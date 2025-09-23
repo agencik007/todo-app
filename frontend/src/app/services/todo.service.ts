@@ -11,9 +11,19 @@ export class TodoService {
   private apiUrl: string;
 
   constructor(private http: HttpClient) {
-    // Dynamic API URL based on current location
-    const hostname = window.location.hostname;
-    const port = window.location.port;
+    // Dynamic API URL based on current location (SSR-safe)
+    let hostname: string;
+    let port: string;
+
+    // Check if we're in browser environment (client-side)
+    if (typeof window !== 'undefined') {
+      hostname = window.location.hostname;
+      port = window.location.port;
+    } else {
+      // Server-side rendering - fallback to environment or default
+      hostname = process.env['HOSTNAME'] || 'localhost';
+      port = process.env['PORT'] || '4200';
+    }
 
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       // Local development
@@ -23,7 +33,7 @@ export class TodoService {
       this.apiUrl = `http://${hostname}:8000/todos`;
     }
 
-    console.log('TodoService API URL:', this.apiUrl);
+    console.log('TodoService API URL:', this.apiUrl, 'Hostname:', hostname);
   }
 
   // Get all todos
