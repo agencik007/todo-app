@@ -18,7 +18,7 @@ Aplikacja Todo zbudowana w technologii **Angular 20** + **Python FastAPI** + **P
 ```bash
 git clone https://github.com/YOUR_USERNAME/todo-app.git
 cd todo-app
-make dev  # lub: docker compose -f docker/docker-compose.yml up --build
+make dev  # lub: cd docker && docker compose up --build
 ```
 Otwórz: http://localhost:4200
 
@@ -451,7 +451,7 @@ docker-compose exec frontend curl http://backend:8000/health
 docker-compose -f docker/docker-compose.yml build
 
 # Uruchom w tle
-docker-compose -f docker/docker-compose.yml up -d
+cd docker && docker-compose up -d
 
 # Sprawdź status
 docker-compose ps
@@ -563,8 +563,14 @@ DEBUG=False
 
 #### 3. Uruchomienie aplikacji:
 ```bash
+# Przejdź do katalogu docker
+cd docker
+
 # Uruchom aplikację w tle
-docker compose -f docker/docker-compose.yml up -d --build
+docker compose up -d --build
+
+# Lub jeśli używasz starej składni docker-compose:
+# docker-compose up -d --build
 
 # Sprawdź status kontenerów
 docker compose ps

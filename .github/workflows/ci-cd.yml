@@ -217,11 +217,14 @@ jobs:
           # Pull latest changes
           git pull origin main
 
+          # Navigate to docker directory
+          cd docker
+
           # Stop existing containers
-          docker compose -f docker/docker-compose.yml down || true
+          docker compose down || true
 
           # Start with new images
-          docker compose -f docker/docker-compose.yml up -d --build
+          docker compose up -d --build
 
           # Clean up old images
           docker image prune -f
