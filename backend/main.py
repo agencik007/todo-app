@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 import os
 from routes.todo import router as todo_router
@@ -8,14 +9,19 @@ from config.database import engine, Base
 # Load environment variables
 load_dotenv()
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create database tables on startup
+    Base.metadata.create_all(bind=engine)
+    yield
+    # Cleanup if needed (optional)
 
 # Create FastAPI app
 app = FastAPI(
     title="Todo API",
     description="A simple Todo application API built with FastAPI",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # CORS middleware for frontend integration

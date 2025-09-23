@@ -22,6 +22,11 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_
 # Create tables at module level
 Base.metadata.create_all(bind=test_engine)
 
+# Mock database configuration for tests
+import config.database
+config.database.engine = test_engine
+config.database.SessionLocal = TestingSessionLocal
+
 @pytest.fixture(scope="function")
 def test_db():
     """
