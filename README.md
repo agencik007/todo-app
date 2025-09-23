@@ -498,7 +498,7 @@ W repo na GitHub → **Settings** → **Secrets and variables** → **Actions**:
 | Secret Name | Opis | Przykład |
 |-------------|------|----------|
 | `SERVER_HOST` | Adres IP instancji Oracle | `130.61.130.231` |
-| `SERVER_USER` | Użytkownik SSH | `opc` |
+| `SERVER_USER` | Użytkownik SSH | `ubuntu` |
 | `SSH_PRIVATE_KEY` | Klucz prywatny SSH | Cała zawartość `~/.ssh/id_rsa` |
 
 **Jak wygenerować SSH key:**
@@ -515,24 +515,25 @@ cat ~/.ssh/id_rsa
 
 ### 🌐 Deployment na Oracle Cloud
 
-#### 1. Przygotowanie instancji OCI:
+#### 1. Przygotowanie instancji OCI (Ubuntu):
 ```bash
-# Połącz się z instancją (użytkownik domyślny to 'opc')
-ssh -i your-private-key opc@130.61.130.231
+# Połącz się z instancją (użytkownik domyślny to 'ubuntu')
+ssh -i your-private-key ubuntu@130.61.130.231
+
+# Aktualizuj system
+sudo apt update && sudo apt upgrade -y
 
 # Zainstaluj Docker
-sudo yum update -y
-sudo yum install -y docker
+sudo apt install -y docker.io
 sudo systemctl start docker
 sudo systemctl enable docker
-sudo usermod -a -G docker opc
+sudo usermod -aG docker ubuntu
 
 # Zainstaluj Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+sudo apt install -y docker-compose-plugin
 
-# Zainstaluj Git
-sudo yum install -y git
+# Zainstaluj Git (jeśli nie jest zainstalowany)
+sudo apt install -y git
 
 # Sklonuj repo
 git clone https://github.com/YOUR_USERNAME/todo-app.git
@@ -563,13 +564,25 @@ docker-compose ps
 docker-compose logs -f
 ```
 
+#### 4. Firewall (jeśli potrzebne):
+```bash
+# Otwórz porty w Oracle Cloud firewall
+# VPC → Security Lists → Dodaj reguły dla portów: 80, 4200, 8000, 5050
+
+# Lub na instancji Ubuntu (UFW)
+sudo ufw allow 4200/tcp
+sudo ufw allow 8000/tcp
+sudo ufw allow 5050/tcp
+sudo ufw --force enable
+```
+
 #### 5. Konfiguracja Nginx (opcjonalnie dla domeny):
 ```bash
-# Dla domeny, utwórz konfigurację Nginx
-sudo yum install -y nginx
-sudo nano /etc/nginx/conf.d/todo-app.conf
+# Dla domeny, zainstaluj i skonfiguruj Nginx
+sudo apt install -y nginx
+sudo nano /etc/nginx/sites-available/todo-app
 
-# Dodaj:
+# Dodaj konfigurację:
 server {
     listen 80;
     server_name your-domain.com;
@@ -578,14 +591,25 @@ server {
         proxy_pass http://localhost:4200;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     location /api {
         proxy_pass http://localhost:8000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
+
+# Włącz konfigurację i wyłącz domyślną
+sudo ln -s /etc/nginx/sites-available/todo-app /etc/nginx/sites-enabled/
+sudo unlink /etc/nginx/sites-enabled/default
+
+# Restartuj Nginx
+sudo systemctl restart nginx
 ```
 
 ### 📊 Monitoring CI/CD
