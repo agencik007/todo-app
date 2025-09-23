@@ -21,7 +21,13 @@ app = FastAPI(
 # CORS middleware for frontend integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],  # Angular dev server
+    allow_origins=[
+        "http://localhost:4200",        # Local development
+        "http://127.0.0.1:4200",       # Local development (alternative)
+        "http://130.61.130.231:4200",  # Oracle Cloud frontend
+        "http://localhost:3000",        # Alternative local port
+        "http://localhost:8080",        # Alternative local port
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

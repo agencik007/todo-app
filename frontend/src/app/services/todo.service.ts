@@ -8,9 +8,23 @@ import { Todo, TodoCreate, TodoUpdate } from '../models/todo.model';
   providedIn: 'root'
 })
 export class TodoService {
-  private apiUrl = 'http://localhost:8000/todos';
+  private apiUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    // Dynamic API URL based on current location
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      // Local development
+      this.apiUrl = 'http://localhost:8000/todos';
+    } else {
+      // Production (Oracle Cloud) - use same hostname but backend port
+      this.apiUrl = `http://${hostname}:8000/todos`;
+    }
+
+    console.log('TodoService API URL:', this.apiUrl);
+  }
 
   // Get all todos
   getTodos(): Observable<Todo[]> {
