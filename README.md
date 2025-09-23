@@ -491,14 +491,48 @@ Projekt zawiera kompleksową konfigurację CI/CD z GitHub Actions:
 2. **🔒 Dependency Security** - safety (Python), npm audit
 3. **🐳 Docker Build Test** - walidacja obrazów
 
+### 🔐 Konfiguracja Secrets (dla automatycznego deploymentu)
+
+W repo na GitHub → **Settings** → **Secrets and variables** → **Actions**:
+
+| Secret Name | Opis | Przykład |
+|-------------|------|----------|
+| `SERVER_HOST` | Adres IP instancji Oracle | `130.61.130.231` |
+| `SERVER_USER` | Użytkownik SSH | `opc` |
+| `SSH_PRIVATE_KEY` | Klucz prywatny SSH | Cała zawartość `~/.ssh/id_rsa` |
+
+**Jak wygenerować SSH key:**
+```bash
+# Na lokalnej maszynie
+ssh-keygen -t rsa -b 4096 -C "your-email@example.com"
+
+# Skopiuj klucz publiczny na serwer
+ssh-copy-id opc@130.61.130.231
+
+# Skopiuj klucz prywatny do GitHub secret
+cat ~/.ssh/id_rsa
+```
+
 ### 🌐 Deployment na Oracle Cloud
 
 #### 1. Przygotowanie instancji OCI:
 ```bash
-# Zainstaluj Docker na instancji Oracle
+# Połącz się z instancją (użytkownik domyślny to 'opc')
+ssh -i your-private-key opc@130.61.130.231
+
+# Zainstaluj Docker
+sudo yum update -y
 sudo yum install -y docker
 sudo systemctl start docker
+sudo systemctl enable docker
 sudo usermod -a -G docker opc
+
+# Zainstaluj Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Zainstaluj Git
+sudo yum install -y git
 
 # Sklonuj repo
 git clone https://github.com/YOUR_USERNAME/todo-app.git
@@ -519,14 +553,17 @@ DEBUG=False
 
 #### 3. Uruchomienie aplikacji:
 ```bash
-# W katalogu głównym projektu
-docker-compose -f docker/docker-compose.yml up -d
+# Uruchom aplikację w tle
+docker-compose -f docker/docker-compose.yml up -d --build
 
-# Sprawdź status
+# Sprawdź status kontenerów
 docker-compose ps
+
+# Zobacz logi (opcjonalnie)
+docker-compose logs -f
 ```
 
-#### 4. Konfiguracja Nginx (opcjonalnie):
+#### 5. Konfiguracja Nginx (opcjonalnie dla domeny):
 ```bash
 # Dla domeny, utwórz konfigurację Nginx
 sudo yum install -y nginx
