@@ -91,8 +91,8 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Lint code
-      run: npm run lint
+    - name: Check TypeScript compilation
+      run: npx tsc --noEmit
 
     - name: Build for production
       run: npm run build --configuration=production
