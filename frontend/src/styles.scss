@@ -7,10 +7,22 @@ body {
   padding: 0;
   background-color: #f8fafc;
   color: #334155;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .todo-app {
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
+}
+
+/* Dark mode styles */
+.dark {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+.dark body {
+  background-color: #111827;
+  color: #f9fafb;
 }
