@@ -11,16 +11,24 @@ Aplikacja Todo zbudowana w technologii **Angular 20** + **Python FastAPI** + **P
 - ✅ **Frontend Angular 20** - Signals, Control Flow, Standalone Components, SSR
 - ✅ **Docker** - Pełna konteneryzacja, multi-stage builds, production ready
 - ✅ **Baza danych** - PostgreSQL z persistent storage
-- 🔄 **Testy** - W trakcie implementacji
-- ⏳ **CI/CD** - Planowane
+- ✅ **Testy backendu** - 29 testów jednostkowych z coverage
+- ✅ **CI/CD** - GitHub Actions z automatycznym buildem i deployem
 
 ### 🚀 Jak uruchomić (3 proste kroki):
 ```bash
-git clone <repo>
-cd todo-app/docker
-docker-compose up --build
+git clone https://github.com/YOUR_USERNAME/todo-app.git
+cd todo-app
+make dev  # lub: docker-compose -f docker/docker-compose.yml up --build
 ```
 Otwórz: http://localhost:4200
+
+**Alternatywnie z Makefile:**
+```bash
+make dev      # Development mode
+make prod     # Production mode
+make status   # Check status
+make logs     # View logs
+```
 
 ---
 
@@ -462,25 +470,108 @@ docker-compose exec db pg_dump -U todo_user todo_db > backup.sql
 docker-compose exec -T db psql -U todo_user todo_db < backup.sql
 ```
 
-## 🔄 CI/CD
+## 🔄 CI/CD - GitHub Actions
 
-Projekt zawiera konfigurację GitHub Actions w `.github/workflows/`. Pipeline wykonuje:
+Projekt zawiera kompleksową konfigurację CI/CD z GitHub Actions:
 
-1. **Linting** - sprawdzenie jakości kodu
-2. **Testy** - uruchamianie testów jednostkowych
-3. **Build** - budowanie aplikacji
-4. **Deploy** - automatyczne wdrażanie (jeśli skonfigurowane)
+### 📋 Workflow CI/CD (`.github/workflows/ci-cd.yml`)
 
-### Lokalne uruchomienie CI/CD
+**Dla branchy `main` i `develop`:**
+1. **🔍 Testy backendu** - pytest z coverage, PostgreSQL w kontenerze
+2. **⚡ Testy frontendu** - linting, build produkcyjny
+3. **🛡️ Skanowanie bezpieczeństwa** - Trivy vulnerability scanner
+4. **🐳 Build obrazów Docker** - multi-stage builds dla backendu i frontendu
+5. **📦 Push do GHCR** - GitHub Container Registry
+6. **🚀 Deploy** - staging (develop) / production (main)
+
+### 🔍 Workflow PR Checks (`.github/workflows/pr-checks.yml`)
+
+**Dla Pull Requestów:**
+1. **💅 Code Quality** - ESLint, Black, isort, mypy
+2. **🔒 Dependency Security** - safety (Python), npm audit
+3. **🐳 Docker Build Test** - walidacja obrazów
+
+### 🌐 Deployment na Oracle Cloud
+
+#### 1. Przygotowanie instancji OCI:
+```bash
+# Zainstaluj Docker na instancji Oracle
+sudo yum install -y docker
+sudo systemctl start docker
+sudo usermod -a -G docker opc
+
+# Sklonuj repo
+git clone https://github.com/YOUR_USERNAME/todo-app.git
+cd todo-app
+```
+
+#### 2. Konfiguracja środowiska:
+```bash
+# Utwórz plik .env
+cp docker/docker.env .env
+nano .env
+
+# Przykładowa konfiguracja:
+DATABASE_URL=postgresql://todo_user:SECURE_PASSWORD@db:5432/todo_db
+SECRET_KEY=your-super-secure-secret-key-here
+DEBUG=False
+```
+
+#### 3. Uruchomienie aplikacji:
+```bash
+# W katalogu głównym projektu
+docker-compose -f docker/docker-compose.yml up -d
+
+# Sprawdź status
+docker-compose ps
+```
+
+#### 4. Konfiguracja Nginx (opcjonalnie):
+```bash
+# Dla domeny, utwórz konfigurację Nginx
+sudo yum install -y nginx
+sudo nano /etc/nginx/conf.d/todo-app.conf
+
+# Dodaj:
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://localhost:4200;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /api {
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+### 📊 Monitoring CI/CD
+
+- **📈 Coverage Reports** - automatycznie wysyłane do Codecov
+- **🛡️ Security Scans** - SARIF reports w GitHub Security
+- **🐳 Container Images** - dostępne w `ghcr.io/YOUR_USERNAME/todo-app`
+
+### 🚀 Lokalne uruchomienie CI/CD
 
 ```bash
-# Uruchom linting
-npm run lint  # frontend
-black .       # backend (python)
+# Backend - testy z coverage
+cd backend
+python -m pytest tests/ -v --cov=. --cov-report=html
 
-# Uruchom testy
-npm test      # frontend
-pytest        # backend
+# Frontend - linting i build
+cd frontend
+npm run lint
+npm run build --configuration=production
+
+# Docker - build test
+docker build -f docker/Dockerfile.backend .
+docker build -f docker/Dockerfile.frontend .
 ```
 
 ## 📁 Struktura projektu

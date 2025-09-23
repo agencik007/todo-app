@@ -1,0 +1,120 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # Code quality checks
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js for frontend
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm ci
+
+    - name: Run frontend linter
+      run: |
+        cd frontend
+        npm run lint
+
+    - name: Setup Python for backend
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run backend code quality checks
+      run: |
+        cd backend
+        pip install flake8 black isort mypy
+        # Check code formatting
+        black --check .
+        isort --check-only .
+        # Lint code
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        # Type checking
+        mypy . --ignore-missing-imports
+
+  # Dependency vulnerability check
+  dependency-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Check Python dependencies for vulnerabilities
+      run: |
+        cd backend
+        pip install safety
+        safety check
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Check Node.js dependencies for vulnerabilities
+      run: |
+        cd frontend
+        npm audit --audit-level moderate
+
+  # Docker build test
+  docker-build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build backend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile.backend
+        push: false
+        tags: backend:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build frontend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile.frontend
+        push: false
+        tags: frontend:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Test Docker Compose configuration
+      run: |
+        docker-compose -f docker/docker-compose.yml config
