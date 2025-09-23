@@ -1,0 +1,36 @@
+# Frontend Dockerfile - Angular application (Production build)
+
+FROM node:22-alpine AS build
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY frontend/package*.json ./
+
+# Install dependencies (fresh install to avoid platform conflicts)
+RUN npm install
+
+# Copy source code
+COPY frontend/ .
+
+# Build the application for production
+RUN npm run build --configuration=production
+
+# Production stage - Serve with simple HTTP server
+FROM node:22-alpine
+
+# Install http-server globally
+RUN npm install -g http-server
+
+# Set working directory
+WORKDIR /app
+
+# Copy built application from build stage
+COPY --from=build /app/dist/frontend/browser .
+
+# Expose port
+EXPOSE 4200
+
+# Serve the application
+CMD ["http-server", "-p", "4200", "--host", "0.0.0.0", "-c-1"]

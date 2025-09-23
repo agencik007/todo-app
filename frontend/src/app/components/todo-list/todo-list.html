@@ -1,0 +1,91 @@
+<div class="todo-app">
+  <!-- Header -->
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2rem; font-weight: bold; color: #1f2937; margin-bottom: 0.5rem;">📝 Moja Lista Zadań</h1>
+    <p style="color: #6b7280;">Zarządzaj swoimi zadaniami w prosty i efektywny sposób</p>
+  </div>
+
+  <!-- Stats -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+    <div style="background: white; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
+      <div style="font-size: 1.5rem; font-weight: bold; color: #2563eb;">{{ totalTodos() }}</div>
+      <div style="font-size: 0.875rem; color: #6b7280;">Wszystkie zadania</div>
+    </div>
+    <div style="background: white; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
+      <div style="font-size: 1.5rem; font-weight: bold; color: #ea580c;">{{ pendingTodos().length }}</div>
+      <div style="font-size: 0.875rem; color: #6b7280;">Do wykonania</div>
+    </div>
+    <div style="background: white; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
+      <div style="font-size: 1.5rem; font-weight: bold; color: #16a34a;">{{ completedTodos().length }}</div>
+      <div style="font-size: 0.875rem; color: #6b7280;">Ukończone</div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  @if (error()) {
+    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center;">
+        <span style="color: #dc2626;">{{ error() }}</span>
+      </div>
+      <button
+        (click)="clearError()"
+        style="color: #dc2626;">
+        ✕
+      </button>
+    </div>
+  }
+
+  <!-- Add Todo Button -->
+  <div style="margin-bottom: 1.5rem;">
+    <button
+      (click)="showCreateForm()"
+      style="background: #2563eb; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; cursor: pointer;">
+      Dodaj nowe zadanie
+    </button>
+  </div>
+
+  <!-- Todo Form -->
+  @if (showForm()) {
+    <div style="margin-bottom: 1.5rem;">
+      <app-todo-form
+        [todo]="editingTodo()"
+        (save)="saveTodo($event)"
+        (cancel)="hideForm()">
+      </app-todo-form>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div style="display: flex; align-items: center; justify-content: center; padding: 3rem 0;">
+      <span style="color: #6b7280;">Ładowanie zadań...</span>
+    </div>
+  }
+
+  <!-- Todo List -->
+  @if (!loading() && todos().length > 0) {
+    <div style="background: white; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; overflow: hidden;">
+      @for (todo of todos(); track todo.id) {
+        <app-todo-item
+          [todo]="todo"
+          (toggleCompleted)="toggleTodoCompletion(todo)"
+          (edit)="editTodo(todo)"
+          (delete)="deleteTodo(todo)">
+        </app-todo-item>
+      }
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading() && todos().length === 0) {
+    <div style="text-align: center; padding: 3rem 0;">
+      <h3 style="font-size: 1.125rem; font-weight: 500; color: #1f2937; margin-bottom: 0.5rem;">Brak zadań</h3>
+      <p style="color: #6b7280; margin-bottom: 1.5rem;">Nie masz jeszcze żadnych zadań. Dodaj pierwsze zadanie, aby zacząć!</p>
+      <button
+        (click)="showCreateForm()"
+        style="background: #2563eb; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; cursor: pointer;">
+        Dodaj pierwsze zadanie
+      </button>
+    </div>
+  }
+</div>
