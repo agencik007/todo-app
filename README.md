@@ -507,7 +507,7 @@ W repo na GitHub → **Settings** → **Secrets and variables** → **Actions**:
 ssh-keygen -t rsa -b 4096 -C "your-email@example.com"
 
 # Skopiuj klucz publiczny na serwer
-ssh-copy-id opc@130.61.130.231
+ssh-copy-id ubuntu@130.61.130.231
 
 # Skopiuj klucz prywatny do GitHub secret
 cat ~/.ssh/id_rsa

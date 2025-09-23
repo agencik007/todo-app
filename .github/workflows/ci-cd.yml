@@ -204,6 +204,17 @@ jobs:
     environment: production
 
     steps:
+    - name: Check deployment secrets
+      run: |
+        if [ -z "$SERVER_HOST" ]; then echo "SERVER_HOST is not set"; exit 1; fi
+        if [ -z "$SERVER_USER" ]; then echo "SERVER_USER is not set"; exit 1; fi
+        if [ -z "$SSH_PRIVATE_KEY" ]; then echo "SSH_PRIVATE_KEY is not set"; exit 1; fi
+        echo "All deployment secrets are configured"
+      env:
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
     - name: Deploy to Oracle Cloud
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -211,24 +222,38 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 22
+        timeout: 30s
         script: |
-          # Navigate to project directory
-          cd /home/ubuntu/todo-app
+          # Debug: Show current user and directory
+          echo "Current user: $(whoami)"
+          echo "Current directory: $(pwd)"
+          echo "Home directory: $HOME"
 
-          # Pull latest changes
-          git pull origin main
+          # Check if project directory exists, create if not
+          if [ ! -d "/home/ubuntu/todo-app" ]; then
+            echo "Project directory not found, cloning repository..."
+            cd /home/ubuntu
+            git clone https://github.com/${{ github.repository }}.git todo-app
+            cd todo-app
+          else
+            echo "Project directory found, updating..."
+            cd /home/ubuntu/todo-app
+
+            # Pull latest changes
+            git pull origin main || echo "Git pull failed, continuing..."
+          fi
 
           # Navigate to docker directory
           cd docker
 
           # Stop existing containers
-          docker-compose down || true
+          docker-compose down || echo "Docker compose down failed, continuing..."
 
           # Start with new images
           docker-compose up -d --build
 
           # Clean up old images
-          docker image prune -f
+          docker image prune -f || echo "Image prune failed, continuing..."
 
           # Show status
           docker-compose ps
