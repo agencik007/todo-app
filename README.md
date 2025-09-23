@@ -18,7 +18,7 @@ Aplikacja Todo zbudowana w technologii **Angular 20** + **Python FastAPI** + **P
 ```bash
 git clone https://github.com/YOUR_USERNAME/todo-app.git
 cd todo-app
-make dev  # lub: docker-compose -f docker/docker-compose.yml up --build
+make dev  # lub: docker compose -f docker/docker-compose.yml up --build
 ```
 Otwórz: http://localhost:4200
 
@@ -529,8 +529,17 @@ sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker ubuntu
 
-# Zainstaluj Docker Compose
-sudo apt install -y docker-compose-plugin
+# Zainstaluj Docker Compose (alternatywne metody)
+# Metoda 1: Plugin (dla nowszych wersji Docker)
+sudo apt install -y docker-compose-plugin || {
+
+# Metoda 2: Standalone binary (jeśli plugin nie działa)
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Metoda 3: Sprawdź czy docker compose już jest dostępny
+docker compose version || echo "Docker Compose installation failed"
+}
 
 # Zainstaluj Git (jeśli nie jest zainstalowany)
 sudo apt install -y git
@@ -555,13 +564,13 @@ DEBUG=False
 #### 3. Uruchomienie aplikacji:
 ```bash
 # Uruchom aplikację w tle
-docker-compose -f docker/docker-compose.yml up -d --build
+docker compose -f docker/docker-compose.yml up -d --build
 
 # Sprawdź status kontenerów
-docker-compose ps
+docker compose ps
 
 # Zobacz logi (opcjonalnie)
-docker-compose logs -f
+docker compose logs -f
 ```
 
 #### 4. Firewall (jeśli potrzebne):

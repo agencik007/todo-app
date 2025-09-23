@@ -218,13 +218,13 @@ jobs:
           git pull origin main
 
           # Stop existing containers
-          docker-compose -f docker/docker-compose.yml down || true
+          docker compose -f docker/docker-compose.yml down || true
 
           # Start with new images
-          docker-compose -f docker/docker-compose.yml up -d --build
+          docker compose -f docker/docker-compose.yml up -d --build
 
           # Clean up old images
           docker image prune -f
 
           # Show status
-          docker-compose ps
+          docker compose ps
