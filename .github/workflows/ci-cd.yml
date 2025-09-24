@@ -277,35 +277,80 @@ jobs:
         script_stop: true
         script: |
           # Debug: Show current user and directory
-          echo "Current user: $(whoami)"
-          echo "Current directory: $(pwd)"
-          echo "Home directory: $HOME"
-
-          # Check if project directory exists, create if not
-          if [ ! -d "/home/ubuntu/todo-app" ]; then
-            echo "Project directory not found, cloning repository..."
-            cd /home/ubuntu
-            git clone https://github.com/${{ github.repository }}.git todo-app
+          echo "🔍 Current user: $(whoami)"
+          echo "🔍 Current directory: $(pwd)"
+          echo "🔍 Home directory: $HOME"
+          
+          # Show disk space and permissions
+          echo "🔍 Disk space:"
+          df -h $HOME
+          echo "🔍 Home directory permissions:"
+          ls -la $HOME
+          
+          # Check if project directory exists
+          PROJECT_DIR="$HOME/todo-app"
+          if [ ! -d "$PROJECT_DIR" ]; then
+            echo "📁 Project directory not found, cloning repository..."
+            cd $HOME
+            git clone https://github.com/${{ github.repository }}.git todo-app || {
+              echo "❌ Git clone failed"
+              exit 1
+            }
             cd todo-app
           else
-            echo "Project directory found, updating..."
-            cd /home/ubuntu/todo-app
-
+            echo "📁 Project directory found, updating..."
+            cd "$PROJECT_DIR" || {
+              echo "❌ Cannot access project directory"
+              exit 1
+            }
+            
             # Pull latest changes
-            git pull origin main || echo "Git pull failed, continuing..."
+            git pull origin main || echo "⚠️ Git pull failed, continuing..."
+          fi
+
+          # Check if docker directory exists
+          if [ ! -d "docker" ]; then
+            echo "❌ Docker directory not found!"
+            ls -la
+            exit 1
           fi
 
           # Navigate to docker directory
           cd docker
+          echo "📂 In docker directory: $(pwd)"
+          ls -la
 
-          # Stop existing containers
-          docker-compose down || echo "Docker compose down failed, continuing..."
+          # Check if user can run docker
+          echo "🐳 Checking Docker access..."
+          docker ps || {
+            echo "❌ Docker access failed, trying with sudo..."
+            sudo docker ps || {
+              echo "❌ Docker not accessible even with sudo"
+              exit 1
+            }
+            # Use sudo for docker commands
+            sudo docker-compose down || echo "⚠️ Docker compose down failed"
+            sudo docker-compose up -d --build || {
+              echo "❌ Docker compose up failed"
+              exit 1
+            }
+            sudo docker image prune -f || echo "⚠️ Image prune failed"
+            sudo docker-compose ps
+            exit 0
+          }
 
-          # Start with new images
-          docker-compose up -d --build
+          # Regular docker commands (without sudo)
+          echo "🔽 Stopping existing containers..."
+          docker-compose down || echo "⚠️ Docker compose down failed"
 
-          # Clean up old images
-          docker image prune -f || echo "Image prune failed, continuing..."
+          echo "🚀 Starting containers..."
+          docker-compose up -d --build || {
+            echo "❌ Docker compose up failed"
+            exit 1
+          }
 
-          # Show status
+          echo "🧹 Cleaning up old images..."
+          docker image prune -f || echo "⚠️ Image prune failed"
+
+          echo "📊 Container status:"
           docker-compose ps
