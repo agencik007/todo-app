@@ -243,12 +243,27 @@ jobs:
 
     - name: Debug SSH
       run: |
-        echo "Testing SSH manually..."
-        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+        echo "🔧 Testing SSH manually..."
+        
+        # Create .ssh directory and known_hosts if not exists
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
+        touch ~/.ssh/known_hosts
+        chmod 644 ~/.ssh/known_hosts
+        
+        # Add server to known_hosts
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || echo "keyscan failed"
+        
+        # Create temporary key file
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/temp_key
         chmod 600 ~/.ssh/temp_key
-        ssh -o ConnectTimeout=10 -i ~/.ssh/temp_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "echo 'SSH works!'"
-        rm ~/.ssh/temp_key    
+        
+        # Test SSH connection
+        echo "🔑 Testing SSH connection..."
+        ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no -i ~/.ssh/temp_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "echo 'SSH connection successful!'; whoami; pwd" || echo "❌ SSH failed"
+        
+        # Cleanup
+        rm -f ~/.ssh/temp_key    
 
     - name: Deploy to Oracle Cloud
       uses: appleboy/ssh-action@v1.0.3
