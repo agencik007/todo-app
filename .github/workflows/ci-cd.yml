@@ -322,35 +322,52 @@ jobs:
 
           # Check if user can run docker
           echo "🐳 Checking Docker access..."
-          docker ps || {
+          if ! docker ps > /dev/null 2>&1; then
             echo "❌ Docker access failed, trying with sudo..."
-            sudo docker ps || {
+            if ! sudo docker ps > /dev/null 2>&1; then
               echo "❌ Docker not accessible even with sudo"
               exit 1
-            }
+            fi
+            echo "✅ Docker accessible with sudo"
+            
             # Use sudo for docker commands
-            sudo docker-compose down || echo "⚠️ Docker compose down failed"
-            sudo docker-compose up -d --build || {
+            echo "🔽 Stopping existing containers (sudo)..."
+            sudo docker-compose down 2>&1 || echo "⚠️ Docker compose down failed"
+            
+            echo "🚀 Starting containers (sudo)..."
+            sudo docker-compose up -d --build 2>&1 || {
               echo "❌ Docker compose up failed"
+              echo "📋 Checking logs..."
+              sudo docker-compose logs --tail=20
               exit 1
             }
-            sudo docker image prune -f || echo "⚠️ Image prune failed"
+            
+            echo "🧹 Cleaning up old images (sudo)..."
+            sudo docker image prune -f 2>&1 || echo "⚠️ Image prune failed"
+            
+            echo "📊 Final container status:"
             sudo docker-compose ps
+            echo "✅ Deployment completed successfully!"
             exit 0
-          }
+          fi
 
           # Regular docker commands (without sudo)
+          echo "✅ Docker accessible without sudo"
+          
           echo "🔽 Stopping existing containers..."
-          docker-compose down || echo "⚠️ Docker compose down failed"
+          docker-compose down 2>&1 || echo "⚠️ Docker compose down failed"
 
           echo "🚀 Starting containers..."
-          docker-compose up -d --build || {
+          docker-compose up -d --build 2>&1 || {
             echo "❌ Docker compose up failed"
+            echo "📋 Checking logs..."
+            docker-compose logs --tail=20
             exit 1
           }
 
           echo "🧹 Cleaning up old images..."
-          docker image prune -f || echo "⚠️ Image prune failed"
+          docker image prune -f 2>&1 || echo "⚠️ Image prune failed"
 
-          echo "📊 Container status:"
+          echo "📊 Final container status:"
           docker-compose ps
+          echo "✅ Deployment completed successfully!"
