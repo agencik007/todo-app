@@ -215,6 +215,13 @@ jobs:
         SERVER_USER: ${{ secrets.SERVER_USER }}
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
+    - name: Test SSH connection
+      run: |
+        echo "Testing SSH connection..."
+        # Test if we can reach the server
+        nc -zv ${{ secrets.SERVER_HOST }} 22 || echo "Cannot reach server on port 22"
+        echo "SSH test completed"
+
     - name: Deploy to Oracle Cloud
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -222,7 +229,9 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 22
-        timeout: 30s
+        timeout: 60s
+        debug: true
+        script_stop: true
         script: |
           # Debug: Show current user and directory
           echo "Current user: $(whoami)"
