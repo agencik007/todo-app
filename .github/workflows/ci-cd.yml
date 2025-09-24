@@ -276,6 +276,9 @@ jobs:
         debug: true
         script_stop: true
         script: |
+          # Disable exit on error temporarily for debugging
+          set +e
+          
           # Debug: Show current user and directory
           echo "🔍 Current user: $(whoami)"
           echo "🔍 Current directory: $(pwd)"
@@ -312,17 +315,30 @@ jobs:
             echo "📁 Project directory found, updating..."
             echo "🔍 Project directory info:"
             ls -la "$PROJECT_DIR"
-            cd "$PROJECT_DIR" || {
+            
+            echo "🔄 Attempting to enter project directory..."
+            cd "$PROJECT_DIR"
+            CD_RESULT=$?
+            echo "🔍 CD result: $CD_RESULT"
+            
+            if [ $CD_RESULT -ne 0 ]; then
               echo "❌ Cannot access project directory: $PROJECT_DIR"
               echo "🔍 Directory permissions:"
               ls -la "$HOME/" | grep todo-app
+              echo "🔍 Current directory: $(pwd)"
               exit 1
-            }
-            echo "✅ Successfully entered project directory"
+            fi
+            
+            echo "✅ Successfully entered project directory: $(pwd)"
             
             # Pull latest changes
             echo "🔄 Pulling latest changes..."
-            git pull origin main || echo "⚠️ Git pull failed, continuing..."
+            git pull origin main
+            PULL_RESULT=$?
+            echo "🔍 Git pull result: $PULL_RESULT"
+            if [ $PULL_RESULT -ne 0 ]; then
+              echo "⚠️ Git pull failed, continuing..."
+            fi
           fi
           
           echo "📂 Current directory after setup: $(pwd)"
@@ -330,15 +346,29 @@ jobs:
           ls -la
 
           # Check if docker directory exists
+          echo "🔍 Looking for docker directory..."
+          ls -la | grep docker || echo "📁 Docker directory not visible in listing"
+          
           if [ ! -d "docker" ]; then
             echo "❌ Docker directory not found!"
+            echo "📋 Available directories:"
             ls -la
             exit 1
           fi
 
           # Navigate to docker directory
+          echo "🔄 Attempting to enter docker directory..."
           cd docker
-          echo "📂 In docker directory: $(pwd)"
+          DOCKER_CD_RESULT=$?
+          echo "🔍 Docker CD result: $DOCKER_CD_RESULT"
+          
+          if [ $DOCKER_CD_RESULT -ne 0 ]; then
+            echo "❌ Cannot enter docker directory"
+            exit 1
+          fi
+          
+          echo "📂 Successfully in docker directory: $(pwd)"
+          echo "📋 Docker directory contents:"
           ls -la
 
           # Check if user can run docker
