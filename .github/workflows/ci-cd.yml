@@ -215,12 +215,31 @@ jobs:
         SERVER_USER: ${{ secrets.SERVER_USER }}
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Test SSH connection
+    - name: Check server connectivity
       run: |
-        echo "Testing SSH connection..."
-        # Test if we can reach the server
-        nc -zv ${{ secrets.SERVER_HOST }} 22 || echo "Cannot reach server on port 22"
-        echo "SSH test completed"
+        echo "🔍 Checking server connectivity..."
+        echo "Server IP: ${{ secrets.SERVER_HOST }}"
+
+        # Test basic connectivity
+        ping -c 3 ${{ secrets.SERVER_HOST }} || echo "❌ Ping failed (may be blocked by firewall)"
+
+        # Test SSH port
+        timeout 10 nc -zv ${{ secrets.SERVER_HOST }} 22 || echo "❌ Cannot reach SSH port 22"
+
+        # Test HTTP port (if available)
+        timeout 5 nc -zv ${{ secrets.SERVER_HOST }} 80 || echo "❌ Cannot reach HTTP port 80"
+
+        echo "✅ Connectivity check completed"
+
+        # If SSH fails, provide troubleshooting info
+        if ! timeout 5 nc -zv ${{ secrets.SERVER_HOST }} 22 2>/dev/null; then
+          echo "🔧 TROUBLESHOOTING:"
+          echo "1. Check if instance has Public IP"
+          echo "2. Verify Security Lists allow port 22"
+          echo "3. Check Network Security Groups (NSG)"
+          echo "4. Ensure instance is in Public Subnet"
+          echo "5. Check if firewall on instance blocks SSH"
+        fi
 
     - name: Deploy to Oracle Cloud
       uses: appleboy/ssh-action@v1.0.3
