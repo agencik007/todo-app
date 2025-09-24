@@ -293,28 +293,73 @@ jobs:
           # Check if project directory exists
           PROJECT_DIR="$HOME/todo-app"
           echo "🔍 Checking if project directory exists: $PROJECT_DIR"
-          ls -la "$HOME/" | grep todo-app || echo "📁 todo-app directory not visible"
+
+          # Try ls command and capture result
+          echo "🔍 Listing home directory contents..."
+          HOME_LISTING=$(ls -la "$HOME/")
+          LS_RESULT=$?
+          echo "🔍 LS result: $LS_RESULT"
+          echo "$HOME_LISTING"
+
+          echo "🔍 Checking for todo-app in listing..."
+          echo "$HOME_LISTING" | grep -i todo-app || echo "📁 todo-app directory not visible in listing"
           
+          # Check if directory exists and is accessible
+          echo "🔍 Testing directory accessibility..."
           if [ ! -d "$PROJECT_DIR" ]; then
             echo "📁 Project directory not found, cloning repository..."
-            cd $HOME || {
+            echo "🔄 Attempting to cd to $HOME..."
+            cd "$HOME"
+            CD_HOME_RESULT=$?
+            echo "🔍 CD to HOME result: $CD_HOME_RESULT"
+            if [ $CD_HOME_RESULT -ne 0 ]; then
               echo "❌ Cannot access home directory"
               exit 1
-            }
+            fi
             echo "📂 Current directory before clone: $(pwd)"
-            git clone https://github.com/${{ github.repository }}.git todo-app || {
+            echo "🔄 Starting git clone..."
+            git clone https://github.com/${{ github.repository }}.git todo-app
+            CLONE_RESULT=$?
+            echo "🔍 Git clone result: $CLONE_RESULT"
+            if [ $CLONE_RESULT -ne 0 ]; then
               echo "❌ Git clone failed"
               exit 1
-            }
+            fi
             echo "✅ Repository cloned successfully"
-            cd todo-app || {
+            echo "🔄 Attempting to enter cloned directory..."
+            cd todo-app
+            CLONE_CD_RESULT=$?
+            echo "🔍 CD to cloned directory result: $CLONE_CD_RESULT"
+            if [ $CLONE_CD_RESULT -ne 0 ]; then
               echo "❌ Cannot access newly cloned directory"
               exit 1
-            }
+            fi
           else
             echo "📁 Project directory found, updating..."
             echo "🔍 Project directory info:"
-            ls -la "$PROJECT_DIR"
+            ls -la "$PROJECT_DIR" || {
+              echo "⚠️ Cannot list project directory contents"
+              echo "🔍 Checking directory permissions:"
+              stat "$PROJECT_DIR" || echo "⚠️ Cannot get directory stats"
+            }
+
+            echo "🔍 Checking if project directory is empty..."
+            PROJECT_CONTENTS=$(ls -A "$PROJECT_DIR" 2>/dev/null | wc -l)
+            echo "🔍 Project directory has $PROJECT_CONTENTS items"
+
+            if [ "$PROJECT_CONTENTS" -eq 0 ]; then
+              echo "⚠️ Project directory appears to be empty, removing and re-cloning..."
+              rm -rf "$PROJECT_DIR"
+              echo "🔄 Re-cloning repository..."
+              git clone https://github.com/${{ github.repository }}.git todo-app || {
+                echo "❌ Git clone failed"
+                exit 1
+              }
+              cd todo-app || {
+                echo "❌ Cannot access re-cloned directory"
+                exit 1
+              }
+            else
             
             echo "🔄 Attempting to enter project directory..."
             cd "$PROJECT_DIR"
@@ -329,15 +374,29 @@ jobs:
               exit 1
             fi
             
-            echo "✅ Successfully entered project directory: $(pwd)"
-            
-            # Pull latest changes
-            echo "🔄 Pulling latest changes..."
-            git pull origin main
-            PULL_RESULT=$?
-            echo "🔍 Git pull result: $PULL_RESULT"
-            if [ $PULL_RESULT -ne 0 ]; then
-              echo "⚠️ Git pull failed, continuing..."
+              echo "🔄 Attempting to enter project directory..."
+              cd "$PROJECT_DIR"
+              CD_RESULT=$?
+              echo "🔍 CD result: $CD_RESULT"
+
+              if [ $CD_RESULT -ne 0 ]; then
+                echo "❌ Cannot access project directory: $PROJECT_DIR"
+                echo "🔍 Directory permissions:"
+                ls -la "$HOME/" | grep todo-app
+                echo "🔍 Current directory: $(pwd)"
+                exit 1
+              fi
+
+              echo "✅ Successfully entered project directory: $(pwd)"
+
+              # Pull latest changes
+              echo "🔄 Pulling latest changes..."
+              git pull origin main
+              PULL_RESULT=$?
+              echo "🔍 Git pull result: $PULL_RESULT"
+              if [ $PULL_RESULT -ne 0 ]; then
+                echo "⚠️ Git pull failed, continuing..."
+              fi
             fi
           fi
           
