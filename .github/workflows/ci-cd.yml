@@ -289,24 +289,45 @@ jobs:
           
           # Check if project directory exists
           PROJECT_DIR="$HOME/todo-app"
+          echo "🔍 Checking if project directory exists: $PROJECT_DIR"
+          ls -la "$HOME/" | grep todo-app || echo "📁 todo-app directory not visible"
+          
           if [ ! -d "$PROJECT_DIR" ]; then
             echo "📁 Project directory not found, cloning repository..."
-            cd $HOME
+            cd $HOME || {
+              echo "❌ Cannot access home directory"
+              exit 1
+            }
+            echo "📂 Current directory before clone: $(pwd)"
             git clone https://github.com/${{ github.repository }}.git todo-app || {
               echo "❌ Git clone failed"
               exit 1
             }
-            cd todo-app
-          else
-            echo "📁 Project directory found, updating..."
-            cd "$PROJECT_DIR" || {
-              echo "❌ Cannot access project directory"
+            echo "✅ Repository cloned successfully"
+            cd todo-app || {
+              echo "❌ Cannot access newly cloned directory"
               exit 1
             }
+          else
+            echo "📁 Project directory found, updating..."
+            echo "🔍 Project directory info:"
+            ls -la "$PROJECT_DIR"
+            cd "$PROJECT_DIR" || {
+              echo "❌ Cannot access project directory: $PROJECT_DIR"
+              echo "🔍 Directory permissions:"
+              ls -la "$HOME/" | grep todo-app
+              exit 1
+            }
+            echo "✅ Successfully entered project directory"
             
             # Pull latest changes
+            echo "🔄 Pulling latest changes..."
             git pull origin main || echo "⚠️ Git pull failed, continuing..."
           fi
+          
+          echo "📂 Current directory after setup: $(pwd)"
+          echo "📋 Directory contents:"
+          ls -la
 
           # Check if docker directory exists
           if [ ! -d "docker" ]; then
