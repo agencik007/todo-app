@@ -278,11 +278,46 @@ jobs:
         script: |
           # Disable exit on error temporarily for debugging
           set +e
-          
+
           # Debug: Show current user and directory
           echo "🔍 Current user: $(whoami)"
           echo "🔍 Current directory: $(pwd)"
           echo "🔍 Home directory: $HOME"
+
+          # Cleanup: Stop any existing containers first
+          echo "🧹 Cleaning up existing containers..."
+
+          # Test Docker access first
+          echo "🔍 Testing Docker access..."
+          if docker ps >/dev/null 2>&1; then
+            echo "✅ Docker accessible without sudo"
+            DOCKER_CMD="docker"
+          else
+            echo "🔄 Testing Docker access with sudo..."
+            if sudo docker ps >/dev/null 2>&1; then
+              echo "✅ Docker accessible with sudo"
+              DOCKER_CMD="sudo docker"
+            else
+              echo "❌ Docker not accessible"
+              exit 1
+            fi
+          fi
+
+          # Stop running containers
+          if $DOCKER_CMD ps -q | grep -q .; then
+            echo "📋 Found running containers, stopping them..."
+            $DOCKER_CMD stop $($DOCKER_CMD ps -q) 2>/dev/null || echo "⚠️ Could not stop some containers"
+          fi
+
+          # Remove stopped containers
+          if $DOCKER_CMD ps -a -q | grep -q .; then
+            echo "📋 Found stopped containers, removing them..."
+            $DOCKER_CMD rm $($DOCKER_CMD ps -a -q) 2>/dev/null || echo "⚠️ Could not remove some containers"
+          fi
+
+          # Clean up unused images and volumes
+          $DOCKER_CMD system prune -f 2>/dev/null || echo "⚠️ Could not prune system"
+          echo "✅ Cleanup completed"
           
           # Show disk space and permissions
           echo "🔍 Disk space:"
@@ -306,7 +341,12 @@ jobs:
           
           # Check if directory exists and is accessible
           echo "🔍 Testing directory accessibility..."
+          echo "🔍 PROJECT_DIR variable: '$PROJECT_DIR'"
+          echo "🔍 Testing -d condition..."
+
+          # Test the directory check
           if [ ! -d "$PROJECT_DIR" ]; then
+            echo "🔍 Directory check result: directory does not exist"
             echo "📁 Project directory not found, cloning repository..."
             echo "🔄 Attempting to cd to $HOME..."
             cd "$HOME"
