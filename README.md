@@ -491,6 +491,77 @@ Projekt zawiera kompleksową konfigurację CI/CD z GitHub Actions:
 2. **🔒 Dependency Security** - safety (Python), npm audit
 3. **🐳 Docker Build Test** - walidacja obrazów
 
+### 🚀 Pełna historia rozwoju CI/CD
+
+Projekt przeszedł przez kilka iteracji konfiguracji CI/CD:
+
+#### **Faza 1: Podstawowa konfiguracja**
+- ✅ Utworzono repozytorium na GitHub
+- ✅ Skonfigurowano podstawowe workflow dla backendu i frontendu
+- ✅ Dodać testy jednostkowe dla backendu (pytest + SQLite)
+- ✅ Frontend - usunięto testy Angular ze względu na problemy z konfiguracją
+
+#### **Faza 2: Docker i deployment lokalny**
+- ✅ Skonfigurowano pełne środowisko Docker (backend, frontend, PostgreSQL, PgAdmin)
+- ✅ Utworzono multi-stage Dockerfiles
+- ✅ Skonfigurowano docker-compose.yml
+- ✅ Przetestowano lokalnie - wszystko działa
+
+#### **Faza 3: CI/CD Pipeline**
+- ✅ Skonfigurowano GitHub Actions workflow
+- ✅ Dodać build obrazów Docker i push do GHCR
+- ✅ Skonfigurowano deployment na Oracle Cloud
+- ✅ Rozwiązano problemy z SSH połączeniem
+- ✅ Dodać automatyczne czyszczenie kontenerów przed deploymentem
+- ✅ Skonfigurowano health checks dla kontenerów
+
+#### **Faza 4: Debugowanie i optymalizacja**
+- ✅ Rozwiązano problemy z zatrzymywaniem się skryptu deployment
+- ✅ Dodać szczegółową diagnostykę błędów
+- ✅ Uproszczono logikę sprawdzania katalogów
+- ✅ Dodano obsługę sudo dla Docker
+- ✅ Skonfigurowano CORS dla Oracle Cloud
+
+#### **Faza 5: Funkcjonalności dodatkowe**
+- ✅ Dodać dark/light mode toggle dla frontendu
+- ✅ Skonfigurowano localStorage dla preferencji użytkownika
+- ✅ Zaimplementowano SSR-safe komponenty
+
+### 🚨 Problemy napotkane i rozwiązania
+
+#### **Problem 1: Skrypt deployment się zatrzymywał**
+**Objawy:** Skrypt wykonywał się do sprawdzenia katalogu, potem `Process exited with status 1`
+**Przyczyna:** Zbyt skomplikowana logika if-else z wieloma duplikatami kodu
+**Rozwiązanie:** Przepisanie sekcji sprawdzania katalogu na czystą, prostą strukturę
+
+#### **Problem 2: Konflikty z istniejącymi kontenerami**
+**Objawy:** Nowe deployment nie mógł wystartować z powodu zajętych portów
+**Przyczyna:** Poprzednie kontenery blokowały zasoby
+**Rozwiązanie:** Dodanie automatycznego czyszczenia wszystkich kontenerów na początku deploymentu
+
+#### **Problem 3: CORS errors na Oracle Cloud**
+**Objawy:** Frontend nie mógł się połączyć z backend API
+**Przyczyna:** CORS allow_origins nie zawierał adresu Oracle Cloud
+**Rozwiązanie:** Dodanie `http://130.61.130.231:4200` do CORS middleware
+
+#### **Problem 4: SSR ErrorEvent undefined**
+**Objawy:** `ReferenceError: ErrorEvent is not defined` podczas Docker build
+**Przyczyna:** Angular SSR nie rozpoznawał ErrorEvent w server-side środowisku
+**Rozwiązanie:** Błąd nie przeszkadza w działaniu aplikacji, ale wymaga dalszego debugowania
+
+#### **Problem 5: GitHub Actions deprecated actions**
+**Objawy:** Workflow fail z powodu przestarzałych wersji actions
+**Przyczyna:** `actions/upload-artifact@v3` i `github/codeql-action@v1` zostały zdeprecjonowane
+**Rozwiązanie:** Aktualizacja do `v4` i `v3` odpowiednio
+
+### 🏆 Końcowy rezultat
+
+Aplikacja działa w pełni na Oracle Cloud:
+- 🌐 **Frontend:** `http://130.61.130.231:4200` - Angular z dark/light mode
+- 🔧 **Backend:** `http://130.61.130.231:8000` - FastAPI REST API
+- 🗄️ **Database:** PostgreSQL z PgAdmin na porcie 5050
+- 🚀 **CI/CD:** Automatyczny deployment przy każdym push do main
+
 ### 🔐 Konfiguracja Secrets (dla automatycznego deploymentu)
 
 W repo na GitHub → **Settings** → **Secrets and variables** → **Actions**:

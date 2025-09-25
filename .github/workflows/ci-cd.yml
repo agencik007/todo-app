@@ -319,25 +319,13 @@ jobs:
           $DOCKER_CMD system prune -f 2>/dev/null || echo "⚠️ Could not prune system"
           echo "✅ Cleanup completed"
           
-          # Show disk space and permissions
+          # Show disk space
           echo "🔍 Disk space:"
           df -h $HOME
-          echo "🔍 Home directory permissions:"
-          ls -la $HOME
-          
+
           # Check if project directory exists
           PROJECT_DIR="$HOME/todo-app"
           echo "🔍 Checking if project directory exists: $PROJECT_DIR"
-
-          # Try ls command and capture result
-          echo "🔍 Listing home directory contents..."
-          HOME_LISTING=$(ls -la "$HOME/")
-          LS_RESULT=$?
-          echo "🔍 LS result: $LS_RESULT"
-          echo "$HOME_LISTING"
-
-          echo "🔍 Checking for todo-app in listing..."
-          echo "$HOME_LISTING" | grep -i todo-app || echo "📁 todo-app directory not visible in listing"
           
           # Check if directory exists and is accessible
           echo "🔍 Testing directory accessibility..."
