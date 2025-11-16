@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 import os
 from routes.todo import router as todo_router
+from routes.auth import router as auth_router
 from config.database import engine, Base
 
 # Load environment variables
@@ -40,6 +41,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth_router)
 app.include_router(todo_router)
 
 @app.get("/")

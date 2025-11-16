@@ -34,6 +34,10 @@ services:
       - DATABASE_URL=postgresql://todo_user:todo_password@db:5432/todo_db
       - DEBUG=False
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - EMAIL_FROM=${EMAIL_FROM:-noreply@example.com}
+      - MAILHOG_HOST=mailhog
+      - MAILHOG_PORT=1025
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:4200}
     ports:
       - "8000:8000"
     volumes:
@@ -42,6 +46,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      mailhog:
+        condition: service_started
     networks:
       - todo-network
     healthcheck:
@@ -69,6 +75,23 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost/"]
       interval: 30s
       timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # MailHog - Email testing tool
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: todo-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+    networks:
+      - todo-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025"]
+      interval: 10s
+      timeout: 5s
       retries: 3
       start_period: 10s
 

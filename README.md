@@ -30,6 +30,17 @@ make status   # Check status
 make logs     # View logs
 ```
 
+### 📧 MailHog - Email Testing
+Aplikacja używa **MailHog** do testowania funkcji emailowych (weryfikacja emaila, reset hasła). MailHog to development SMTP server, który przechwytuje wszystkie emaile bez wysyłania prawdziwych wiadomości.
+
+**Jak używać MailHog:**
+1. MailHog uruchamia się automatycznie z docker-compose
+2. Otwórz przeglądarkę: **http://localhost:8025**
+3. Wszystkie emaile wysyłane przez aplikację pojawią się w interfejsie MailHog
+4. Możesz przeglądać treść, nagłówki i testować funkcjonalności emailowe
+
+**Uwaga:** MailHog działa tylko w środowisku deweloperskim. W produkcji użyj prawdziwego serwera SMTP.
+
 ---
 
 ## 📋 Spis treści
