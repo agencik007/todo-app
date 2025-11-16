@@ -71,6 +71,7 @@
       @for (todo of todos(); track todo.id) {
         <app-todo-item
           [todo]="todo"
+          [currentUser]="currentUser"
           (toggleCompleted)="toggleTodoCompletion(todo)"
           (edit)="editTodo(todo)"
           (delete)="deleteTodo(todo)">

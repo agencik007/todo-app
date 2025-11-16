@@ -14,7 +14,7 @@ BCRYPT_ROUNDS = 12
 # JWT Configuration
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 15
+ACCESS_TOKEN_EXPIRE_MINUTES = 60  # Increased from 15 to 60 minutes
 REFRESH_TOKEN_EXPIRE_HOURS = 24
 
 

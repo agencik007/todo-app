@@ -1,0 +1,93 @@
+<div class="register-container">
+  <div class="register-card">
+    <h1 class="register-title">Zarejestruj się</h1>
+
+    @if (error()) {
+      <div class="error-message">
+        {{ error() }}
+      </div>
+    }
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+      <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="form-input"
+          [class.error]="email?.invalid && email?.touched"
+          placeholder="twoj@email.com">
+        @if (email?.invalid && email?.touched) {
+          <p class="form-error">
+            @if (email?.errors?.['required']) {
+              Email jest wymagany
+            } @else if (email?.errors?.['email']) {
+              Nieprawidłowy format email
+            }
+          </p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Hasło</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          class="form-input"
+          [class.error]="password?.invalid && password?.touched"
+          placeholder="Minimum 8 znaków">
+        @if (password?.invalid && password?.touched) {
+          <p class="form-error">
+            @if (password?.errors?.['required']) {
+              Hasło jest wymagane
+            } @else if (password?.errors?.['minlength']) {
+              Hasło musi mieć minimum 8 znaków
+            }
+          </p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword" class="form-label">Potwierdź hasło</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          formControlName="confirmPassword"
+          class="form-input"
+          [class.error]="(confirmPassword?.invalid || passwordMismatch) && confirmPassword?.touched"
+          placeholder="Wpisz hasło ponownie">
+        @if (confirmPassword?.invalid && confirmPassword?.touched) {
+          <p class="form-error">
+            @if (confirmPassword?.errors?.['required']) {
+              Potwierdzenie hasła jest wymagane
+            }
+          </p>
+        }
+        @if (passwordMismatch) {
+          <p class="form-error">
+            Hasła nie są identyczne
+          </p>
+        }
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="registerForm.invalid || isLoading()"
+        class="submit-button">
+        @if (isLoading()) {
+          <span class="spinner"></span>
+          Rejestrowanie...
+        } @else {
+          Zarejestruj się
+        }
+      </button>
+    </form>
+
+    <div class="register-links">
+      <a routerLink="/login" class="link">Masz już konto? Zaloguj się</a>
+    </div>
+  </div>
+</div>
+

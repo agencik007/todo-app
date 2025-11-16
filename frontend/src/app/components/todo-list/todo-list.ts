@@ -1,6 +1,9 @@
-import { Component, signal, inject, OnInit, computed } from '@angular/core';
+import { Component, signal, inject, OnInit, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { TodoService } from '../../services/todo.service';
+import { AuthService } from '../../services/auth.service';
+import { AuthStateService } from '../../services/auth-state.service';
 import { TodoItemComponent } from '../todo-item/todo-item';
 import { TodoFormComponent } from '../todo-form/todo-form';
 import { Todo, TodoCreate } from '../../models/todo.model';
@@ -14,6 +17,9 @@ import { Todo, TodoCreate } from '../../models/todo.model';
 })
 export class TodoListComponent implements OnInit {
   private todoService = inject(TodoService);
+  private authService = inject(AuthService);
+  private authStateService = inject(AuthStateService);
+  private router = inject(Router);
 
   // State management with signals
   todos = signal<Todo[]>([]);
@@ -27,8 +33,25 @@ export class TodoListComponent implements OnInit {
   pendingTodos = computed(() => this.todos().filter(todo => !todo.completed));
   totalTodos = computed(() => this.todos().length);
 
+  // Public getter for current user (needed for template)
+  get currentUser() {
+    return this.authStateService.currentUser();
+  }
+
+  constructor() {
+    // Check authentication in component instead of guard
+    effect(() => {
+      const hasToken = this.authService.isAuthenticated();
+
+      if (!hasToken && typeof window !== 'undefined') {
+        this.router.navigate(['/login'], { queryParams: { returnUrl: '/todos' } });
+      } else if (hasToken) {
+        this.loadTodos();
+      }
+    });
+  }
+
   ngOnInit() {
-    this.loadTodos();
   }
 
   // Load todos from API
@@ -44,7 +67,6 @@ export class TodoListComponent implements OnInit {
       error: (err) => {
         this.error.set('Nie udało się załadować zadań');
         this.loading.set(false);
-        console.error('Error loading todos:', err);
       }
     });
   }
@@ -57,6 +79,13 @@ export class TodoListComponent implements OnInit {
 
   // Show form for editing todo
   editTodo(todo: Todo) {
+    // Check if current user owns this todo
+    const currentUser = this.authStateService.currentUser();
+    if (!currentUser || currentUser.id !== todo.user_id) {
+      this.error.set('Nie masz uprawnień do edycji tego zadania');
+      return;
+    }
+
     this.editingTodo.set(todo);
     this.showForm.set(true);
   }
@@ -87,7 +116,6 @@ export class TodoListComponent implements OnInit {
       },
       error: (err) => {
         this.error.set('Nie udało się utworzyć zadania');
-        console.error('Error creating todo:', err);
       }
     });
   }
@@ -103,7 +131,6 @@ export class TodoListComponent implements OnInit {
       },
       error: (err) => {
         this.error.set('Nie udało się zaktualizować zadania');
-        console.error('Error updating todo:', err);
       }
     });
   }
@@ -118,13 +145,19 @@ export class TodoListComponent implements OnInit {
       },
       error: (err) => {
         this.error.set('Nie udało się zmienić statusu zadania');
-        console.error('Error toggling todo:', err);
       }
     });
   }
 
   // Delete todo
   deleteTodo(todo: Todo) {
+    // Check if current user owns this todo
+    const currentUser = this.authStateService.currentUser();
+    if (!currentUser || currentUser.id !== todo.user_id) {
+      this.error.set('Nie masz uprawnień do usunięcia tego zadania');
+      return;
+    }
+
     if (confirm(`Czy na pewno chcesz usunąć zadanie "${todo.title}"?`)) {
       this.todoService.deleteTodo(todo.id).subscribe({
         next: () => {
@@ -132,7 +165,6 @@ export class TodoListComponent implements OnInit {
         },
         error: (err) => {
           this.error.set('Nie udało się usunąć zadania');
-          console.error('Error deleting todo:', err);
         }
       });
     }

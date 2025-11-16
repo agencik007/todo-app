@@ -21,6 +21,7 @@ export class TodoFormComponent {
   // Form state using signals
   title = signal('');
   description = signal('');
+  isPublic = signal(false);
   isSubmitting = signal(false);
 
   ngOnInit() {
@@ -28,6 +29,7 @@ export class TodoFormComponent {
     if (this.todo()) {
       this.title.set(this.todo()!.title);
       this.description.set(this.todo()!.description || '');
+      this.isPublic.set(this.todo()!.is_public || false);
     }
   }
 
@@ -38,7 +40,8 @@ export class TodoFormComponent {
 
     const todoData: TodoCreate = {
       title: this.title().trim(),
-      description: this.description().trim() || undefined
+      description: this.description().trim() || undefined,
+      is_public: this.isPublic()
     };
 
     this.save.emit(todoData);
@@ -47,6 +50,7 @@ export class TodoFormComponent {
     if (!this.todo()) {
       this.title.set('');
       this.description.set('');
+      this.isPublic.set(false);
     }
 
     this.isSubmitting.set(false);

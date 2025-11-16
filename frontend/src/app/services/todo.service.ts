@@ -27,46 +27,44 @@ export class TodoService {
 
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       // Local development
-      this.apiUrl = 'http://localhost:8000/todos';
+      this.apiUrl = 'http://localhost:8000';
     } else {
       // Production (Oracle Cloud) - use same hostname but backend port
-      this.apiUrl = `http://${hostname}:8000/todos`;
+      this.apiUrl = `http://${hostname}:8000`;
     }
-
-    console.log('TodoService API URL:', this.apiUrl, 'Hostname:', hostname);
   }
 
   // Get all todos
   getTodos(): Observable<Todo[]> {
-    return this.http.get<Todo[]>(this.apiUrl).pipe(
+    return this.http.get<Todo[]>(`${this.apiUrl}/todos`).pipe(
       catchError(this.handleError)
     );
   }
 
   // Get single todo by ID
   getTodo(id: number): Observable<Todo> {
-    return this.http.get<Todo>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.get<Todo>(`${this.apiUrl}/todos/${id}`).pipe(
       catchError(this.handleError)
     );
   }
 
   // Create new todo
   createTodo(todo: TodoCreate): Observable<Todo> {
-    return this.http.post<Todo>(this.apiUrl, todo).pipe(
+    return this.http.post<Todo>(`${this.apiUrl}/todos`, todo).pipe(
       catchError(this.handleError)
     );
   }
 
   // Update existing todo
   updateTodo(id: number, todo: TodoUpdate): Observable<Todo> {
-    return this.http.put<Todo>(`${this.apiUrl}/${id}`, todo).pipe(
+    return this.http.put<Todo>(`${this.apiUrl}/todos/${id}`, todo).pipe(
       catchError(this.handleError)
     );
   }
 
   // Delete todo
   deleteTodo(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.delete<void>(`${this.apiUrl}/todos/${id}`).pipe(
       catchError(this.handleError)
     );
   }
@@ -96,7 +94,6 @@ export class TodoService {
       errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
     }
 
-    console.error(errorMessage);
     return throwError(() => new Error(errorMessage));
   }
 }

@@ -7,11 +7,18 @@
       class="todo-checkbox">
 
     <div class="todo-details">
-      <h3 class="todo-title"
-          [class.completed]="todo().completed"
-          [class.pending]="!todo().completed">
-        {{ todo().title }}
-      </h3>
+      <div class="todo-title-row">
+        <h3 class="todo-title"
+            [class.completed]="todo().completed"
+            [class.pending]="!todo().completed">
+          {{ todo().title }}
+        </h3>
+        @if (todo().is_public) {
+          <span class="public-badge" title="Zadanie publiczne - widoczne dla wszystkich">
+            🌐 Publiczne
+          </span>
+        }
+      </div>
       @if (todo().description) {
         <p class="todo-description">{{ todo().description }}</p>
       }
@@ -22,17 +29,25 @@
   </div>
 
   <div class="todo-actions">
-    <button
-      (click)="edit.emit()"
-      class="todo-edit-btn">
-      <span class="hidden sm:inline">Edytuj</span>
-      <span class="sm:hidden">✏️</span>
-    </button>
-    <button
-      (click)="delete.emit()"
-      class="todo-delete-btn">
-      <span class="hidden sm:inline">Usuń</span>
-      <span class="sm:hidden">🗑️</span>
-    </button>
+    @if (canEdit()) {
+      <button
+        (click)="edit.emit()"
+        class="todo-edit-btn">
+        <span class="hidden sm:inline">Edytuj</span>
+        <span class="sm:hidden">✏️</span>
+      </button>
+      <button
+        (click)="delete.emit()"
+        class="todo-delete-btn">
+        <span class="hidden sm:inline">Usuń</span>
+        <span class="sm:hidden">🗑️</span>
+      </button>
+    } @else {
+      <div class="todo-owner-info">
+        <span class="owner-badge" title="Zadanie innego użytkownika - tylko do odczytu">
+          🔒 Tylko do odczytu
+        </span>
+      </div>
+    }
   </div>
 </div>

@@ -36,6 +36,20 @@
       </textarea>
     </div>
 
+    <div class="form-group">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          [(ngModel)]="isPublic"
+          name="isPublic"
+          class="checkbox-input">
+        <span class="checkbox-text">Publiczne</span>
+      </label>
+      <p class="checkbox-description">
+        Zadanie publiczne będzie widoczne dla wszystkich użytkowników
+      </p>
+    </div>
+
     <div class="form-actions">
       <button
         type="submit"
