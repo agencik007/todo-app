@@ -17,7 +17,7 @@ services:
     networks:
       - todo-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U todo_user -d todo_db"]
+      test: [ "CMD-SHELL", "pg_isready -U todo_user -d todo_db" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -42,7 +42,7 @@ services:
       - "8000:8000"
     volumes:
       - ../backend:/app
-      - /app/venv  # Don't mount virtual environment
+      - /app/venv # Don't mount virtual environment
     depends_on:
       db:
         condition: service_healthy
@@ -51,7 +51,7 @@ services:
     networks:
       - todo-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import socket; s = socket.socket(); s.connect(('localhost', 8000)); s.close()"]
+      test: [ "CMD", "python", "-c", "import socket; s = socket.socket(); s.connect(('localhost', 8000)); s.close()" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -72,7 +72,7 @@ services:
     networks:
       - todo-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
+      test: [ "CMD", "curl", "-f", "http://localhost:4200/" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -84,12 +84,12 @@ services:
     container_name: todo-mailhog
     restart: unless-stopped
     ports:
-      - "1025:1025"  # SMTP server
-      - "8025:8025"  # Web UI
+      - "1025:1025" # SMTP server
+      - "8025:8025" # Web UI
     networks:
       - todo-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025"]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025" ]
       interval: 10s
       timeout: 5s
       retries: 3

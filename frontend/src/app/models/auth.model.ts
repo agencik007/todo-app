@@ -3,8 +3,9 @@ export interface User {
   email: string;
   is_active: boolean;
   is_verified: boolean;
-  created_at: Date;
-  updated_at: Date;
+  avatar_url?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Token {

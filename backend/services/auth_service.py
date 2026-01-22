@@ -12,7 +12,10 @@ import os
 BCRYPT_ROUNDS = 12
 
 # JWT Configuration
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY or SECRET_KEY == "your-secret-key-here-change-in-production":
+    raise ValueError("No secure SECRET_KEY set for Flask application. Please set SECRET_KEY in environment variables.")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60  # Increased from 15 to 60 minutes
 REFRESH_TOKEN_EXPIRE_HOURS = 24

@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
 
+import { UserProfileComponent } from '../user-profile/user-profile.component';
+
 @Component({
   selector: 'app-auth-nav',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, UserProfileComponent],
   templateUrl: './auth-nav.html',
   styleUrl: './auth-nav.scss'
 })

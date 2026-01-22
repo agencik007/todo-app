@@ -1,0 +1,104 @@
+.profile-trigger {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.user-info {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    outline: none;
+}
+
+.avatar-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #f3f4f6;
+
+    .large-avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+
+        mat-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 48px;
+        }
+    }
+
+    .upload-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 30%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    &:hover .upload-overlay {
+        opacity: 1;
+    }
+}
+
+.user-details {
+    text-align: center;
+
+    .user-email {
+        font-weight: 500;
+        color: var(--text-color);
+    }
+}
+
+/* Dark mode adjustments */
+:host-context(.dark) {
+    .avatar-container {
+        background-color: #374151;
+
+        .avatar-placeholder {
+            color: #6b7280;
+        }
+    }
+
+    .user-email {
+        color: #f9fafb;
+    }
+}

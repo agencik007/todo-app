@@ -1,10 +1,10 @@
 <div class="todo-item">
   <div class="todo-content">
-    <input
-      type="checkbox"
+    <app-checkbox
       [checked]="todo().completed"
-      (change)="toggleCompleted.emit()"
-      class="todo-checkbox">
+      (changed)="toggleCompleted.emit()"
+      class="todo-checkbox-wrapper">
+    </app-checkbox>
 
     <div class="todo-details">
       <div class="todo-title-row">
@@ -14,9 +14,9 @@
           {{ todo().title }}
         </h3>
         @if (todo().is_public) {
-          <span class="public-badge" title="Zadanie publiczne - widoczne dla wszystkich">
+          <app-badge variant="public" title="Zadanie publiczne - widoczne dla wszystkich">
             🌐 Publiczne
-          </span>
+          </app-badge>
         }
       </div>
       @if (todo().description) {
@@ -44,9 +44,9 @@
       </button>
     } @else {
       <div class="todo-owner-info">
-        <span class="owner-badge" title="Zadanie innego użytkownika - tylko do odczytu">
+        <app-badge variant="readonly" title="Zadanie innego użytkownika - tylko do odczytu">
           🔒 Tylko do odczytu
-        </span>
+        </app-badge>
       </div>
     }
   </div>

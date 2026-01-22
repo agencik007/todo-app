@@ -3,26 +3,20 @@
     <div class="auth-nav-left">
       <a routerLink="/todos" class="logo">Todo App</a>
     </div>
-    
+
     @if (isLoading()) {
-      <div class="auth-nav-right">
-        <span class="loading-indicator">Ładowanie...</span>
-      </div>
+    <div class="auth-nav-right">
+      <span class="loading-indicator">Ładowanie...</span>
+    </div>
     } @else if (isAuthenticated() && currentUser()) {
-      <div class="auth-nav-right">
-        <span class="user-info">
-          <span class="user-email">{{ currentUser()?.email }}</span>
-        </span>
-        <button (click)="logout()" class="logout-button">
-          Wyloguj się
-        </button>
-      </div>
+    <div class="auth-nav-right">
+      <app-user-profile></app-user-profile>
+    </div>
     } @else {
-      <div class="auth-nav-right">
-        <a routerLink="/login" class="auth-link">Zaloguj się</a>
-        <a routerLink="/register" class="auth-link auth-link-primary">Zarejestruj się</a>
-      </div>
+    <div class="auth-nav-right">
+      <a routerLink="/login" class="auth-link">Zaloguj się</a>
+      <a routerLink="/register" class="auth-link auth-link-primary">Zarejestruj się</a>
+    </div>
     }
   </div>
 </nav>
-

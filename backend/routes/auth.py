@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 import secrets
@@ -23,6 +25,7 @@ from services.email_service import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 def create_verification_token() -> str:
@@ -31,7 +34,8 @@ def create_verification_token() -> str:
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def register(request: Request, user_data: UserCreate, db: Session = Depends(get_db)):
     """Register a new user"""
     # Check if user already exists
     existing_user = db.query(User).filter(User.email == user_data.email).first()
@@ -67,7 +71,9 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
+@limiter.limit("5/minute")
 def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
@@ -98,7 +104,8 @@ def login(
 
 
 @router.post("/login/json", response_model=Token)
-def login_json(login_data: LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login_json(request: Request, login_data: LoginRequest, db: Session = Depends(get_db)):
     """Login endpoint that accepts JSON (alternative to OAuth2 form)"""
     user = authenticate_user(db, login_data.email, login_data.password)
     if not user:

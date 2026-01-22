@@ -17,20 +17,21 @@ COPY frontend/ .
 # Build the application for production
 RUN npm run build --configuration=production
 
-# Production stage - Serve with simple HTTP server
+# Production stage - Serve with Angular SSR (Node.js)
 FROM node:22-alpine
-
-# Install http-server globally
-RUN npm install -g http-server
 
 # Set working directory
 WORKDIR /app
 
-# Copy built application from build stage
-COPY --from=build /app/dist/frontend/browser .
+# Copy built application and server from build stage
+# Note: we copy the whole dist/frontend which contains 'browser' and 'server'
+COPY --from=build /app/dist/frontend/ .
 
 # Expose port
 EXPOSE 4200
 
-# Serve the application
-CMD ["http-server", "-p", "4200", "--host", "0.0.0.0", "-c-1"]
+# Set port environment variable
+ENV PORT=4200
+
+# Run the SSR server
+CMD ["node", "server/server.mjs"]

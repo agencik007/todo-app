@@ -143,7 +143,7 @@ class TestAuthAPI:
             is_verified=True
         )
         test_db.add(inactive_user)
-        test_db.commit()
+        test_db.commit() 
         
         login_data = {
             "username": inactive_user.email,

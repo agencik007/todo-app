@@ -8,7 +8,7 @@ export class ThemeService {
   private platformId = inject(PLATFORM_ID);
 
   // Signal for current theme
-  private isDarkMode = signal(false);
+  readonly isDarkMode = signal(false);
 
   constructor() {
     // Only access localStorage in browser
