@@ -1,7 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AuthNavComponent } from './layout/auth-nav/auth-nav';
-import { AuthStateService } from './core/services/auth-state.service';
 
 @Component({
   selector: 'app-root',
@@ -10,12 +9,6 @@ import { AuthStateService } from './core/services/auth-state.service';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App implements OnInit {
-  private authStateService = inject(AuthStateService);
-
+export class App {
   protected readonly title = 'Todo App';
-
-  ngOnInit() {
-    this.authStateService.loadUserFromStorage();
-  }
 }

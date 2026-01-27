@@ -1,4 +1,5 @@
-import { Component, signal, inject, OnInit, computed } from '@angular/core';
+import { Component, signal, inject, OnInit, computed, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TodoService } from '../../services/todo.service';
@@ -41,19 +42,16 @@ import { ConfirmationService } from 'primeng/api';
 })
 export class TodoListComponent implements OnInit {
   private todoService = inject(TodoService);
-  private authService = inject(AuthService);
   private authStateService = inject(AuthStateService);
-  private router = inject(Router);
   private confirmationService = inject(ConfirmationService);
+  private platformId = inject(PLATFORM_ID);
 
-  // State management with signals
   todos = signal<Todo[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
   editingTodo = signal<Todo | null>(null);
   formVisible = false;
 
-  // Computed signals
   completedTodos = computed(() => this.todos().filter(todo => todo.completed));
   pendingTodos = computed(() => this.todos().filter(todo => !todo.completed));
   totalTodos = computed(() => this.todos().length);
@@ -63,9 +61,8 @@ export class TodoListComponent implements OnInit {
   }
 
   ngOnInit() {
-    if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/login'], { queryParams: { returnUrl: '/todos' } });
-    } else {
+    // Only load todos in the browser to avoid 401 errors on SSR
+    if (isPlatformBrowser(this.platformId)) {
       this.loadTodos();
     }
   }

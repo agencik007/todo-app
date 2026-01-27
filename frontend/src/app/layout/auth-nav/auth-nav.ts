@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AuthStateService } from '../../core/services/auth-state.service';
 import { AuthService } from '../../features/auth/services/auth.service';
+import { ThemeService, ThemeMode } from '../../core/services/theme.service';
 
 // PrimeNG
 import { MessageService } from 'primeng/api';
@@ -31,6 +32,7 @@ import { ToastModule } from 'primeng/toast';
 export class AuthNavComponent {
   private authStateService = inject(AuthStateService);
   private authService = inject(AuthService);
+  private themeService = inject(ThemeService);
   private router = inject(Router);
   private messageService = inject(MessageService);
 
@@ -39,51 +41,54 @@ export class AuthNavComponent {
   readonly isLoading = this.authStateService.isLoading;
   readonly userAvatar = this.authStateService.userAvatar;
 
-  readonly menuItems = signal<MenuItem[]>([]);
-
-  constructor() {
-    console.log('AuthNavComponent constructor');
-    this.initializeMenu();
-  }
-
-  private initializeMenu() {
-    console.log('Initializing menu items...');
-    this.menuItems.set([
+  readonly menuItems = computed<MenuItem[]>(() => {
+    const currentMode = this.themeService.mode();
+    
+    return [
       {
         label: 'Użytkownik',
         items: [
           {
             label: 'Zmień awatar',
             icon: 'pi pi-upload',
-            command: () => {
-              console.log('Triggering file upload');
-              this.triggerFileUpload();
-            }
+            command: () => this.triggerFileUpload()
           },
           {
             label: 'Usuń awatar',
             icon: 'pi pi-trash',
-            command: () => {
-              console.log('Triggering delete avatar');
-              this.deleteAvatar();
-            }
+            command: () => this.deleteAvatar()
           },
           {
             label: 'Wyloguj',
             icon: 'pi pi-sign-out',
-            command: () => {
-              console.log('LOGOUT COMMAND CLICKED');
-              this.logout();
-            }
+            command: () => this.logout()
+          }
+        ]
+      },
+      {
+        label: 'Motyw',
+        items: [
+          {
+            label: 'Jasny',
+            icon: currentMode === 'light' ? 'pi pi-check' : 'pi pi-sun',
+            command: () => this.themeService.setMode('light')
+          },
+          {
+            label: 'Ciemny',
+            icon: currentMode === 'dark' ? 'pi pi-check' : 'pi pi-moon',
+            command: () => this.themeService.setMode('dark')
+          },
+          {
+            label: 'Systemowy',
+            icon: currentMode === 'system' ? 'pi pi-check' : 'pi pi-desktop',
+            command: () => this.themeService.setMode('system')
           }
         ]
       }
-    ]);
-    console.log('Menu items initialized:', this.menuItems);
-  }
+    ];
+  });
 
   logout() {
-    console.log('Performing logout...');
     this.authService.logout();
     this.authStateService.clearUser();
     this.router.navigate(['/login']);

@@ -30,7 +30,8 @@ export const routes: Routes = [
   },
   {
     path: 'todos',
-    loadComponent: () => import('./features/todos/components/todo-list/todo-list').then(m => m.TodoListComponent)
+    loadComponent: () => import('./features/todos/components/todo-list/todo-list').then(m => m.TodoListComponent),
+    canActivate: [authGuard]
   },
   {
     path: '**',

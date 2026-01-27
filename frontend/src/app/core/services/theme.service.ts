@@ -1,60 +1,68 @@
-import { Injectable, signal, inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, signal, inject, PLATFORM_ID, effect } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ThemeService {
   private platformId = inject(PLATFORM_ID);
+  
+  // Current user preference
+  readonly mode = signal<ThemeMode>('system');
+  
+  // Actual calculated state (is it dark now?)
+  readonly isDark = signal<boolean>(false);
 
-  // Signal for current theme
-  readonly isDarkMode = signal(false);
+  private mediaQuery?: MediaQueryList;
 
   constructor() {
-    // Only access localStorage in browser
     if (isPlatformBrowser(this.platformId)) {
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme === 'dark') {
-        this.isDarkMode.set(true);
-        this.applyDarkTheme();
-      } else {
-        this.isDarkMode.set(false);
-        this.applyLightTheme();
+      const savedMode = localStorage.getItem('theme-mode') as ThemeMode;
+      if (savedMode) {
+        this.mode.set(savedMode);
       }
+      
+      this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      
+      // Update actual theme based on mode and system preference
+      effect(() => {
+        const currentMode = this.mode();
+        this.applyTheme(currentMode);
+      });
+
+      // Listen for system changes
+      this.mediaQuery.addEventListener('change', () => {
+        if (this.mode() === 'system') {
+          this.applyTheme('system');
+        }
+      });
     }
   }
 
-  // Get current theme
-  get isDark() {
-    return this.isDarkMode.asReadonly();
-  }
-
-  // Toggle theme
-  toggleTheme() {
-    const newTheme = !this.isDarkMode();
-    this.isDarkMode.set(newTheme);
-
+  setMode(mode: ThemeMode) {
+    this.mode.set(mode);
     if (isPlatformBrowser(this.platformId)) {
-      if (newTheme) {
-        this.applyDarkTheme();
-        localStorage.setItem('theme', 'dark');
-      } else {
-        this.applyLightTheme();
-        localStorage.setItem('theme', 'light');
-      }
+      localStorage.setItem('theme-mode', mode);
     }
   }
 
-  // Apply dark theme
-  private applyDarkTheme() {
-    if (isPlatformBrowser(this.platformId)) {
+  private applyTheme(mode: ThemeMode) {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    let dark: boolean;
+    if (mode === 'system') {
+      dark = this.mediaQuery?.matches ?? false;
+    } else {
+      dark = mode === 'dark';
+    }
+
+    this.isDark.set(dark);
+    
+    if (dark) {
       document.documentElement.classList.add('dark');
-    }
-  }
-
-  // Apply light theme
-  private applyLightTheme() {
-    if (isPlatformBrowser(this.platformId)) {
+    } else {
       document.documentElement.classList.remove('dark');
     }
   }
