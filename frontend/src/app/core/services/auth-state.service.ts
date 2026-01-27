@@ -48,11 +48,29 @@ export class AuthStateService {
         this.authService.getCurrentUser().subscribe({
           next: (user) => {
             this.currentUser.set(user);
-            this.isLoading.set(false);
             this.isAuthenticated.set(true);
-            this.loadAvatar();
-            this.isInitialized.set(true);
-            resolve();
+            
+            if (user.avatar_url) {
+              this.authService.fetchAndCacheAvatar(user.avatar_url).subscribe({
+                next: () => {
+                  this.loadAvatar();
+                  this.isLoading.set(false);
+                  this.isInitialized.set(true);
+                  resolve();
+                },
+                error: () => {
+                  this.loadAvatar();
+                  this.isLoading.set(false);
+                  this.isInitialized.set(true);
+                  resolve();
+                }
+              });
+            } else {
+              this.loadAvatar();
+              this.isLoading.set(false);
+              this.isInitialized.set(true);
+              resolve();
+            }
           },
           error: () => {
             this.authService.logout();
@@ -79,7 +97,15 @@ export class AuthStateService {
     this.currentUser.set(user);
     this.isAuthenticated.set(true);
     this.error.set(null);
-    this.loadAvatar();
+    
+    if (user.avatar_url) {
+      this.authService.fetchAndCacheAvatar(user.avatar_url).subscribe({
+        next: () => this.loadAvatar(),
+        error: () => this.loadAvatar()
+      });
+    } else {
+      this.loadAvatar();
+    }
   }
 
   clearUser(): void {

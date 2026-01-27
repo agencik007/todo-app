@@ -56,10 +56,19 @@ export class AuthService {
 
   getCurrentUser(): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/me`).pipe(
-      tap(user => { if (user.avatar_url) this.fetchAndCacheAvatar(user.avatar_url); }),
       catchError(this.handleError)
     );
   }
+
+  fetchAndCacheAvatar(url: string): Observable<Blob> {
+    const baseUrl = this.apiUrl.replace('/auth', '');
+    const fullUrl = `${baseUrl}${url}`;
+    return this.http.get(fullUrl, { responseType: 'blob' }).pipe(
+      tap((blob) => this.indexedDbService.saveAvatar(blob)),
+      catchError(this.handleError)
+    );
+  }
+
 
   forgotPassword(request: PasswordResetRequest): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.apiUrl}/forgot-password`, request).pipe(catchError(this.handleError));
@@ -81,15 +90,6 @@ export class AuthService {
   deleteAvatar() {
     const baseUrl = this.apiUrl.replace('/auth', '');
     return this.http.delete(`${baseUrl}/users/me/avatar`).pipe(tap(() => this.indexedDbService.deleteAvatar()));
-  }
-
-  private fetchAndCacheAvatar(url: string) {
-    const baseUrl = this.apiUrl.replace('/auth', '');
-    const fullUrl = `${baseUrl}${url}`;
-    this.http.get(fullUrl, { responseType: 'blob' }).subscribe({
-      next: (blob) => this.indexedDbService.saveAvatar(blob),
-      error: (err) => console.error('Failed to fetch avatar', err)
-    });
   }
 
   logout(): void {
