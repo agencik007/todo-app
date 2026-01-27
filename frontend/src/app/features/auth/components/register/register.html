@@ -38,7 +38,8 @@
       <div class="form-group">
         <label for="confirmPassword" class="block mb-2">Potwierdź hasło</label>
         <p-password id="confirmPassword" formControlName="confirmPassword" placeholder="Wpisz hasło ponownie"
-          [feedback]="false" [toggleMask]="true" clas="w-full" inputStyleClass="w-full" />
+          [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
+
         @if (confirmPassword?.invalid && confirmPassword?.touched) {
         <small class="p-error">
           @if (confirmPassword?.errors?.['required']) {

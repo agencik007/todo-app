@@ -43,12 +43,29 @@ export class ResetPasswordComponent {
       validators: this.passwordMatchValidator
     });
 
-    this.route.params.subscribe(params => {
-      this.token.set(params['token'] || null);
+    // Handle token from path or query params
+    this.token.set(this.route.snapshot.params['token'] || this.route.snapshot.queryParams['token']);
+    
+    if (!this.token()) {
+      // Subscribing in case navigation happened before initialization
+      this.route.params.subscribe(params => {
+        if (params['token']) {
+          this.token.set(params['token']);
+        }
+      });
+      this.route.queryParams.subscribe(params => {
+        if (params['token']) {
+          this.token.set(params['token']);
+        }
+      });
+    }
+
+    // After a short delay, check if token is still missing
+    setTimeout(() => {
       if (!this.token()) {
-        this.error.set('Brak tokenu resetującego hasło');
+        this.error.set('Brak prawidłowego tokenu resetującego hasło. Skorzystaj ponownie z linku w e-mailu.');
       }
-    });
+    }, 500);
   }
 
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {

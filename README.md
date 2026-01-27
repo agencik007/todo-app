@@ -729,6 +729,37 @@ docker build -f docker/Dockerfile.backend .
 docker build -f docker/Dockerfile.frontend .
 ```
 
+## 🗄️ Zarządzanie bazą danych (Alembic)
+
+Projekt używa **Alembic** do zarządzania migracjami bazy danych. Pozwala to na wersjonowanie schematu bazy danych i łatwe wprowadzanie zmian.
+
+### Podstawowe komendy
+
+Wszystkie komendy powinny być wykonywane w katalogu `backend/`.
+
+```bash
+# 1. Stworzenie nowej migracji (po zmianie modeli SQLAlchemy)
+alembic revision --autogenerate -m "opis zmian"
+
+# 2. Uruchomienie oczekujących migracji (aktualizacja bazy)
+alembic upgrade head
+
+# 3. Cofnięcie ostatniej migracji
+alembic downgrade -1
+
+# 4. Sprawdzenie aktualnej wersji bazy
+alembic current
+```
+
+### Użycie z Docker
+Jeśli aplikacja działa w kontenerach, komendy należy wywołać wewnątrz kontenera backendu:
+
+```bash
+docker-compose exec backend alembic upgrade head
+```
+
+---
+
 ## 📁 Struktura projektu
 
 ```

@@ -12,11 +12,13 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     avatar_url = Column(String, nullable=True)
+    
+    # Password reset fields
+    password_reset_token = Column(String, nullable=True, index=True)
+    password_reset_expires_at = Column(DateTime(timezone=True), nullable=True)
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationships
     todos = relationship("Todo", back_populates="owner", cascade="all, delete-orphan")
-    password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
-
-

@@ -14,7 +14,6 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from models.user import User
-from models.password_reset_token import PasswordResetToken
 from services.auth_service import hash_password, create_refresh_token
 from datetime import datetime, timedelta, timezone
 
@@ -24,16 +23,13 @@ class TestAuthAPI:
 
     def test_register_user(self, client: TestClient):
         """Test POST /auth/register creates a new user."""
-        user_data = {
-            "email": "newuser@example.com",
-            "password": "securepass123"
-        }
-        
+        user_data = {"email": "newuser@example.com", "password": "securepass123"}
+
         response = client.post("/auth/register", json=user_data)
-        
+
         assert response.status_code == 201
         data = response.json()
-        
+
         assert data["email"] == "newuser@example.com"
         assert data["id"] is not None
         assert data["is_active"] == True
@@ -42,13 +38,10 @@ class TestAuthAPI:
 
     def test_register_duplicate_email(self, client: TestClient, test_user):
         """Test POST /auth/register rejects duplicate email."""
-        user_data = {
-            "email": test_user.email,
-            "password": "anotherpassword123"
-        }
-        
+        user_data = {"email": test_user.email, "password": "anotherpassword123"}
+
         response = client.post("/auth/register", json=user_data)
-        
+
         assert response.status_code == 400
         data = response.json()
         assert "already registered" in data["detail"].lower()
@@ -57,36 +50,33 @@ class TestAuthAPI:
         """Test POST /auth/register rejects short password."""
         user_data = {
             "email": "user@example.com",
-            "password": "short"  # Less than 8 characters
+            "password": "short",  # Less than 8 characters
         }
-        
+
         response = client.post("/auth/register", json=user_data)
-        
+
         assert response.status_code == 422  # Validation error
 
     def test_register_invalid_email(self, client: TestClient):
         """Test POST /auth/register rejects invalid email."""
-        user_data = {
-            "email": "notanemail",
-            "password": "validpass123"
-        }
-        
+        user_data = {"email": "notanemail", "password": "validpass123"}
+
         response = client.post("/auth/register", json=user_data)
-        
+
         assert response.status_code == 422  # Validation error
 
     def test_login_success(self, client: TestClient, test_user):
         """Test POST /auth/login with correct credentials."""
         login_data = {
             "username": test_user.email,  # OAuth2 uses username field
-            "password": "testpassword123"
+            "password": "testpassword123",
         }
-        
+
         response = client.post("/auth/login", data=login_data)
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert "access_token" in data
         assert "refresh_token" in data
         assert data["token_type"] == "bearer"
@@ -95,42 +85,39 @@ class TestAuthAPI:
 
     def test_login_json_endpoint(self, client: TestClient, test_user):
         """Test POST /auth/login/json with JSON payload."""
-        login_data = {
-            "email": test_user.email,
-            "password": "testpassword123"
-        }
-        
+        login_data = {"email": test_user.email, "password": "testpassword123"}
+
         response = client.post("/auth/login/json", json=login_data)
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert "access_token" in data
         assert "refresh_token" in data
         assert data["token_type"] == "bearer"
 
     def test_login_wrong_password(self, client: TestClient, test_user):
         """Test POST /auth/login with wrong password."""
-        login_data = {
-            "username": test_user.email,
-            "password": "wrongpassword"
-        }
-        
+        login_data = {"username": test_user.email, "password": "wrongpassword"}
+
         response = client.post("/auth/login", data=login_data)
-        
+
         assert response.status_code == 401
         data = response.json()
-        assert "incorrect" in data["detail"].lower() or "unauthorized" in data["detail"].lower()
+        assert (
+            "incorrect" in data["detail"].lower()
+            or "unauthorized" in data["detail"].lower()
+        )
 
     def test_login_nonexistent_user(self, client: TestClient):
         """Test POST /auth/login with non-existent user."""
         login_data = {
             "username": "nonexistent@example.com",
-            "password": "somepassword123"
+            "password": "somepassword123",
         }
-        
+
         response = client.post("/auth/login", data=login_data)
-        
+
         assert response.status_code == 401
 
     def test_login_inactive_user(self, client: TestClient, test_db: Session):
@@ -140,18 +127,15 @@ class TestAuthAPI:
             email="inactive@example.com",
             hashed_password=hash_password("password123"),
             is_active=False,
-            is_verified=True
+            is_verified=True,
         )
         test_db.add(inactive_user)
-        test_db.commit() 
-        
-        login_data = {
-            "username": inactive_user.email,
-            "password": "password123"
-        }
-        
+        test_db.commit()
+
+        login_data = {"username": inactive_user.email, "password": "password123"}
+
         response = client.post("/auth/login", data=login_data)
-        
+
         assert response.status_code == 403
         data = response.json()
         assert "inactive" in data["detail"].lower()
@@ -159,10 +143,10 @@ class TestAuthAPI:
     def test_get_current_user(self, authenticated_client: TestClient):
         """Test GET /auth/me returns current user info."""
         response = authenticated_client.get("/auth/me")
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert "email" in data
         assert "id" in data
         assert "is_active" in data
@@ -172,7 +156,7 @@ class TestAuthAPI:
     def test_get_current_user_unauthorized(self, client: TestClient):
         """Test GET /auth/me without token returns 401."""
         response = client.get("/auth/me")
-        
+
         assert response.status_code == 401
 
     def test_refresh_token(self, client: TestClient, test_user, test_db):
@@ -185,10 +169,11 @@ class TestAuthAPI:
             test_db.commit()
 
         # Create refresh token
-        refresh_token = create_refresh_token(data={"sub": test_user.id, "email": test_user.email})
+        refresh_token = create_refresh_token(
+            data={"sub": test_user.id, "email": test_user.email}
+        )
 
         response = client.post("/auth/refresh", json={"refresh_token": refresh_token})
-
 
         assert response.status_code == 200
         data = response.json()
@@ -200,140 +185,100 @@ class TestAuthAPI:
     def test_refresh_token_invalid(self, client: TestClient):
         """Test POST /auth/refresh with invalid token."""
         response = client.post("/auth/refresh", json={"refresh_token": "invalid_token"})
-        
+
         assert response.status_code == 401
         data = response.json()
-        assert "invalid" in data["detail"].lower() or "expired" in data["detail"].lower()
+        assert (
+            "invalid" in data["detail"].lower() or "expired" in data["detail"].lower()
+        )
 
     def test_forgot_password(self, client: TestClient, test_user):
         """Test POST /auth/forgot-password sends reset email."""
-        reset_request = {
-            "email": test_user.email
-        }
-        
+        reset_request = {"email": test_user.email}
+
         response = client.post("/auth/forgot-password", json=reset_request)
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "message" in data
 
     def test_forgot_password_nonexistent_user(self, client: TestClient):
         """Test POST /auth/forgot-password with non-existent user (should still return success)."""
-        reset_request = {
-            "email": "nonexistent@example.com"
-        }
-        
+        reset_request = {"email": "nonexistent@example.com"}
+
         response = client.post("/auth/forgot-password", json=reset_request)
-        
+
         # Should still return 200 to prevent email enumeration
         assert response.status_code == 200
 
     def test_reset_password(self, client: TestClient, test_user, test_db: Session):
         """Test POST /auth/reset-password with valid token."""
-        # Create reset token
+        # Create reset token directly on user
         reset_token = "test_reset_token_123"
         expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
-        
-        reset_token_obj = PasswordResetToken(
-            token=reset_token,
-            user_id=test_user.id,
-            expires_at=expires_at,
-            used=False
-        )
-        test_db.add(reset_token_obj)
+
+        user = test_db.query(User).filter(User.id == test_user.id).first()
+        user.password_reset_token = reset_token
+        user.password_reset_expires_at = expires_at
         test_db.commit()
-        
-        reset_data = {
-            "token": reset_token,
-            "new_password": "newpassword123"
-        }
-        
+
+        reset_data = {"token": reset_token, "new_password": "newpassword123"}
+
         response = client.post("/auth/reset-password", json=reset_data)
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "success" in data["message"].lower()
-        
-        # Verify token was marked as used
-        test_db.refresh(reset_token_obj)
-        assert reset_token_obj.used == True
-        
+
+        # Verify token was cleared
+        test_db.refresh(user)
+        assert user.password_reset_token is None
+        assert user.password_reset_expires_at is None
+
         # Verify password was changed (can login with new password)
-        login_data = {
-            "username": test_user.email,
-            "password": "newpassword123"
-        }
+        login_data = {"username": test_user.email, "password": "newpassword123"}
         login_response = client.post("/auth/login", data=login_data)
         assert login_response.status_code == 200
 
     def test_reset_password_invalid_token(self, client: TestClient):
         """Test POST /auth/reset-password with invalid token."""
-        reset_data = {
-            "token": "invalid_token",
-            "new_password": "newpassword123"
-        }
-        
+        reset_data = {"token": "invalid_token", "new_password": "newpassword123"}
+
         response = client.post("/auth/reset-password", json=reset_data)
-        
+
         assert response.status_code == 400
         data = response.json()
-        assert "invalid" in data["detail"].lower() or "expired" in data["detail"].lower()
+        assert (
+            "invalid" in data["detail"].lower() or "expired" in data["detail"].lower()
+        )
 
-    def test_reset_password_expired_token(self, client: TestClient, test_user, test_db: Session):
+    def test_reset_password_expired_token(
+        self, client: TestClient, test_user, test_db: Session
+    ):
         """Test POST /auth/reset-password with expired token."""
         # Create expired reset token
         reset_token = "expired_token_123"
         expires_at = datetime.now(timezone.utc) - timedelta(hours=1)  # Expired
-        
-        reset_token_obj = PasswordResetToken(
-            token=reset_token,
-            user_id=test_user.id,
-            expires_at=expires_at,
-            used=False
-        )
-        test_db.add(reset_token_obj)
+
+        user = test_db.query(User).filter(User.id == test_user.id).first()
+        user.password_reset_token = reset_token
+        user.password_reset_expires_at = expires_at
         test_db.commit()
-        
-        reset_data = {
-            "token": reset_token,
-            "new_password": "newpassword123"
-        }
-        
+
+        reset_data = {"token": reset_token, "new_password": "newpassword123"}
+
         response = client.post("/auth/reset-password", json=reset_data)
-        
+
         assert response.status_code == 400
         data = response.json()
-        assert "invalid" in data["detail"].lower() or "expired" in data["detail"].lower()
-
-    def test_reset_password_used_token(self, client: TestClient, test_user, test_db: Session):
-        """Test POST /auth/reset-password with already used token."""
-        # Create used reset token
-        reset_token = "used_token_123"
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
-        
-        reset_token_obj = PasswordResetToken(
-            token=reset_token,
-            user_id=test_user.id,
-            expires_at=expires_at,
-            used=True  # Already used
+        assert (
+            "invalid" in data["detail"].lower() or "expired" in data["detail"].lower()
         )
-        test_db.add(reset_token_obj)
-        test_db.commit()
-        
-        reset_data = {
-            "token": reset_token,
-            "new_password": "newpassword123"
-        }
-        
-        response = client.post("/auth/reset-password", json=reset_data)
-        
-        assert response.status_code == 400
 
     def test_logout(self, authenticated_client: TestClient):
         """Test POST /auth/logout."""
         response = authenticated_client.post("/auth/logout")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "success" in data["message"].lower()
-

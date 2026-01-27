@@ -5,7 +5,6 @@ from sqlalchemy.pool import StaticPool
 from config.database import Base, get_db
 from models.todo import Todo
 from models.user import User
-from models.password_reset_token import PasswordResetToken
 from services.auth_service import hash_password
 import os
 
@@ -27,8 +26,10 @@ Base.metadata.create_all(bind=test_engine)
 
 # Mock database configuration for tests
 import config.database
+
 config.database.engine = test_engine
 config.database.SessionLocal = TestingSessionLocal
+
 
 @pytest.fixture(scope="function")
 def test_db():
@@ -49,6 +50,7 @@ def test_db():
         db.rollback()
         db.close()
 
+
 @pytest.fixture(scope="function")
 def client():
     """
@@ -65,7 +67,6 @@ def client():
     try:
         # Delete all data (order matters due to foreign keys)
         # Use delete() for each object to ensure proper cascade
-        db.query(PasswordResetToken).delete()
         db.query(Todo).delete()
         db.query(User).delete()
         db.commit()
@@ -91,6 +92,7 @@ def client():
     # This allows authenticated_client to keep its override
     app.dependency_overrides.pop(get_db, None)
 
+
 @pytest.fixture(scope="function")
 def test_user(test_db):
     """
@@ -103,31 +105,32 @@ def test_user(test_db):
     if existing_user:
         test_db.delete(existing_user)
         test_db.commit()
-    
+
     # Create new user
     user = User(
         email="test@example.com",
         hashed_password=hash_password("testpassword123"),
         is_active=True,
-        is_verified=True
+        is_verified=True,
     )
     test_db.add(user)
     test_db.commit()
     test_db.refresh(user)
     return user
 
+
 @pytest.fixture(scope="function")
 def authenticated_client(test_user):
     """
     Create an authenticated client for testing.
-    
+
     Creates its own TestClient with all necessary dependency overrides.
     This bypasses OAuth2PasswordBearer token extraction completely.
     """
     from fastapi.testclient import TestClient
     from main import app
     from config.auth import get_current_user, get_current_active_user
-    
+
     # Override get_db to use test database
     def override_get_db():
         db = TestingSessionLocal()
@@ -135,34 +138,35 @@ def authenticated_client(test_user):
             yield db
         finally:
             db.close()
-    
+
     # Override get_current_user to return test_user directly
     # This bypasses token verification completely
     async def override_get_current_user():
         return test_user
-    
+
     async def override_get_current_active_user():
         if not test_user.is_active:
             from fastapi import HTTPException, status
+
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Inactive user"
+                status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user"
             )
         return test_user
-    
+
     # Apply all overrides
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
     app.dependency_overrides[get_current_active_user] = override_get_current_active_user
-    
+
     # Create client with all overrides applied
     with TestClient(app) as client:
         yield client
-    
+
     # Clean up all overrides after test
     app.dependency_overrides.pop(get_db, None)
     app.dependency_overrides.pop(get_current_user, None)
     app.dependency_overrides.pop(get_current_active_user, None)
+
 
 @pytest.fixture(scope="function")
 def sample_todo(test_db, test_user):
@@ -176,7 +180,7 @@ def sample_todo(test_db, test_user):
         description="This is a test todo item",
         completed=False,
         user_id=test_user.id,
-        is_public=False
+        is_public=False,
     )
     test_db.add(todo)
     test_db.commit()

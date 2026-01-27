@@ -15,10 +15,12 @@ MAILHOG_HOST = os.getenv("MAILHOG_HOST", "localhost")
 MAILHOG_PORT = int(os.getenv("MAILHOG_PORT", "1025"))
 
 
-def send_email(to_email: str, subject: str, html_content: str, text_content: Optional[str] = None) -> bool:
+def send_email(
+    to_email: str, subject: str, html_content: str, text_content: Optional[str] = None
+) -> bool:
     """
     Send an email using MailHog SMTP (for development/testing).
-    
+
     MailHog captures all emails sent through its SMTP server (port 1025)
     and displays them in a web interface (http://localhost:8025).
     This is perfect for testing email functionality without sending real emails.
@@ -26,7 +28,9 @@ def send_email(to_email: str, subject: str, html_content: str, text_content: Opt
     return _send_with_mailhog(to_email, subject, html_content, text_content)
 
 
-def _send_with_mailhog(to_email: str, subject: str, html_content: str, text_content: Optional[str] = None) -> bool:
+def _send_with_mailhog(
+    to_email: str, subject: str, html_content: str, text_content: Optional[str] = None
+) -> bool:
     """Send email using MailHog SMTP (for testing)"""
     try:
         msg = MIMEMultipart("alternative")
@@ -37,7 +41,7 @@ def _send_with_mailhog(to_email: str, subject: str, html_content: str, text_cont
         if text_content:
             part1 = MIMEText(text_content, "plain")
             msg.attach(part1)
-        
+
         part2 = MIMEText(html_content, "html")
         msg.attach(part2)
 
@@ -52,7 +56,7 @@ def _send_with_mailhog(to_email: str, subject: str, html_content: str, text_cont
 def send_verification_email(to_email: str, verification_token: str) -> bool:
     """Send email verification email"""
     verification_url = f"{FRONTEND_URL}/verify-email?token={verification_token}"
-    
+
     subject = "Verify your email address"
     html_content = f"""
     <html>
@@ -64,7 +68,7 @@ def send_verification_email(to_email: str, verification_token: str) -> bool:
       </body>
     </html>
     """
-    
+
     text_content = f"""
     Email Verification
     
@@ -73,38 +77,72 @@ def send_verification_email(to_email: str, verification_token: str) -> bool:
     
     If you didn't create an account, please ignore this email.
     """
-    
+
     return send_email(to_email, subject, html_content, text_content)
 
 
 def send_password_reset_email(to_email: str, reset_token: str) -> bool:
     """Send password reset email"""
-    reset_url = f"{FRONTEND_URL}/reset-password?token={reset_token}"
-    
-    subject = "Password Reset Request"
+    reset_url = f"{FRONTEND_URL}/reset-password/{reset_token}"
+
+    subject = "Resetowanie hasła - Todo App"
     html_content = f"""
-    <html>
-      <body>
-        <h2>Password Reset Request</h2>
-        <p>You requested to reset your password. Click the link below to reset it:</p>
-        <p><a href="{reset_url}">{reset_url}</a></p>
-        <p>This link will expire in 1 hour.</p>
-        <p>If you didn't request a password reset, please ignore this email.</p>
-      </body>
+    <!DOCTYPE html>
+    <html lang="pl">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px; }}
+            .header {{ text-align: center; border-bottom: 2px solid #6366f1; padding-bottom: 10px; }}
+            .content {{ padding: 20px 0; }}
+            .button {{ display: inline-block; padding: 12px 24px; background-color: #6366f1; color: #ffffff !important; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px; }}
+            .footer {{ font-size: 12px; color: #777; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; text-align: center; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2 style="color: #6366f1;">Todo App</h2>
+            </div>
+            <div class="content">
+                <h3>Cześć!</h3>
+                <p>Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta w aplikacji Todo App.</p>
+                <p>Kliknij w poniższy przycisk, aby ustawić nowe hasło:</p>
+                <div style="text-align: center;">
+                    <a href="{reset_url}" class="button">Zresetuj hasło</a>
+                </div>
+                <p>Jeśli przycisk nie działa, skopiuj i wklej poniższy link do przeglądarki:</p>
+                <p style="word-break: break-all;"><a href="{reset_url}">{reset_url}</a></p>
+                <p>Ten link wygaśnie za <strong>1 godzinę</strong>.</p>
+                <p>Jeśli to nie Ty prosiłeś o reset hasła, możesz zignorować tę wiadomość.</p>
+            </div>
+            <div class="footer">
+                <p>Ta wiadomość została wysłana automatycznie. Prosimy na nią nie odpowiadać.</p>
+                <p>&copy; 2026 Todo App</p>
+            </div>
+        </div>
+    </body>
     </html>
     """
-    
+
     text_content = f"""
-    Password Reset Request
+    Resetowanie hasła - Todo App
     
-    You requested to reset your password. Click the link below to reset it:
+    Cześć!
+    
+    Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta w aplikacji Todo App.
+    Kliknij w poniższy link, aby ustawić nowe hasło:
+    
     {reset_url}
     
-    This link will expire in 1 hour.
+    Ten link wygaśnie za 1 godzinę.
     
-    If you didn't request a password reset, please ignore this email.
+    Jeśli to nie Ty prosiłeś o reset hasła, możesz zignorować tę wiadomość.
+    
+    Ta wiadomość została wysłana automatycznie. Prosimy na nią nie odpowiadać.
     """
-    
+
     return send_email(to_email, subject, html_content, text_content)
 
 
@@ -120,13 +158,12 @@ def send_welcome_email(to_email: str) -> bool:
       </body>
     </html>
     """
-    
+
     text_content = """
     Welcome to Todo App!
     
     Thank you for joining us. Your account has been successfully created.
     Start managing your tasks right away!
     """
-    
-    return send_email(to_email, subject, html_content, text_content)
 
+    return send_email(to_email, subject, html_content, text_content)
