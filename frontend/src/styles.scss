@@ -70,3 +70,23 @@ html, body {
 .p-password {
   width: 100%;
 }
+
+// Menu enhancements
+.p-menu {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 0.5rem 0;
+}
+
+.logout-item .p-menuitem-link .p-menuitem-text,
+.logout-item .p-menuitem-link .p-menuitem-icon {
+  color: var(--p-red-500) !important;
+}
+
+.logout-item .p-menuitem-link:hover {
+  background: var(--p-red-50) !important;
+}
+
+.dark .logout-item .p-menuitem-link:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+}

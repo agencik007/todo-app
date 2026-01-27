@@ -1,9 +1,9 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AuthStateService } from '../../core/services/auth-state.service';
 import { AuthService } from '../../features/auth/services/auth.service';
-import { ThemeService, ThemeMode } from '../../core/services/theme.service';
+import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle';
 
 // PrimeNG
 import { MessageService } from 'primeng/api';
@@ -13,17 +13,21 @@ import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-auth-nav',
+  standalone: true,
   imports: [
+    CommonModule,
     RouterModule,
     MenubarModule,
     ButtonModule,
     AvatarModule,
     ProgressSpinnerModule,
     MenuModule,
-    ToastModule
+    ToastModule,
+    ThemeToggleComponent
   ],
   providers: [MessageService],
   templateUrl: './auth-nav.html',
@@ -32,7 +36,6 @@ import { ToastModule } from 'primeng/toast';
 export class AuthNavComponent {
   private authStateService = inject(AuthStateService);
   private authService = inject(AuthService);
-  private themeService = inject(ThemeService);
   private router = inject(Router);
   private messageService = inject(MessageService);
 
@@ -42,11 +45,11 @@ export class AuthNavComponent {
   readonly userAvatar = this.authStateService.userAvatar;
 
   readonly menuItems = computed<MenuItem[]>(() => {
-    const currentMode = this.themeService.mode();
+    const hasAvatar = !!this.userAvatar();
     
     return [
       {
-        label: 'Użytkownik',
+        label: 'Profil',
         items: [
           {
             label: 'Zmień awatar',
@@ -56,32 +59,19 @@ export class AuthNavComponent {
           {
             label: 'Usuń awatar',
             icon: 'pi pi-trash',
+            visible: hasAvatar,
             command: () => this.deleteAvatar()
-          },
-          {
-            label: 'Wyloguj',
-            icon: 'pi pi-sign-out',
-            command: () => this.logout()
           }
         ]
       },
       {
-        label: 'Motyw',
+        label: 'Konto',
         items: [
           {
-            label: 'Jasny',
-            icon: currentMode === 'light' ? 'pi pi-check' : 'pi pi-sun',
-            command: () => this.themeService.setMode('light')
-          },
-          {
-            label: 'Ciemny',
-            icon: currentMode === 'dark' ? 'pi pi-check' : 'pi pi-moon',
-            command: () => this.themeService.setMode('dark')
-          },
-          {
-            label: 'Systemowy',
-            icon: currentMode === 'system' ? 'pi pi-check' : 'pi pi-desktop',
-            command: () => this.themeService.setMode('system')
+            label: 'Wyloguj',
+            icon: 'pi pi-sign-out',
+            styleClass: 'logout-item',
+            command: () => this.logout()
           }
         ]
       }
@@ -96,7 +86,9 @@ export class AuthNavComponent {
 
   triggerFileUpload() {
     const fileInput = document.getElementById('avatarInput') as HTMLInputElement;
-    fileInput?.click();
+    if (fileInput) {
+      fileInput.click();
+    }
   }
 
   onFileSelected(event: any) {
@@ -112,6 +104,7 @@ export class AuthNavComponent {
         }
       });
     }
+    event.target.value = '';
   }
 
   deleteAvatar() {

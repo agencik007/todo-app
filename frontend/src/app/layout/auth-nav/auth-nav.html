@@ -13,19 +13,23 @@
       @if (isLoading()) {
         <p-progressSpinner strokeWidth="4" [style]="{ width: '24px', height: '24px' }" />
       } @else if (isAuthenticated() && currentUser()) {
-        <span class="font-medium text-sm text-color-secondary hidden md:block">{{
-          currentUser()!.email
-        }}</span>
+        <div class="flex align-items-center gap-2 hidden md:flex">
+          <span class="font-medium text-sm text-color-secondary">{{
+            currentUser()!.email
+          }}</span>
+          <app-theme-toggle class="ml-2"></app-theme-toggle>
+        </div>
+
         <p-avatar
           [image]="userAvatar() || undefined"
           [label]="!userAvatar() ? currentUser()!.email.charAt(0).toUpperCase() : undefined"
           shape="circle"
           size="normal"
-          class="cursor-pointer border-1 surface-border"
+          class="cursor-pointer border-1 surface-border hover:surface-100 transition-colors"
           (click)="menu.toggle($event)"
         />
 
-        <p-menu #menu [model]="menuItems()" [popup]="true" appendTo="body" />
+        <p-menu #menu [model]="menuItems()" [popup]="true" appendTo="body"></p-menu>
 
         <input
           type="file"
@@ -35,15 +39,18 @@
           (change)="onFileSelected($event)"
         />
       } @else {
-        <div class="flex gap-2">
-          <p-button
-            label="Zaloguj się"
-            routerLink="/login"
-            severity="secondary"
-            [outlined]="true"
-            size="small"
-          />
-          <p-button label="Zarejestruj się" routerLink="/register" size="small" />
+        <div class="flex align-items-center gap-3">
+          <app-theme-toggle></app-theme-toggle>
+          <div class="flex gap-2">
+            <p-button
+              label="Zaloguj się"
+              routerLink="/login"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+            />
+            <p-button label="Zarejestruj się" routerLink="/register" size="small" />
+          </div>
         </div>
       }
     </div>
