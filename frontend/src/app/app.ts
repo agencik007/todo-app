@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { AuthNavComponent } from './components/auth-nav/auth-nav';
-import { AuthStateService } from './services/auth-state.service';
+import { AuthNavComponent } from './layout/auth-nav/auth-nav';
+import { AuthStateService } from './core/services/auth-state.service';
 
 @Component({
   selector: 'app-root',

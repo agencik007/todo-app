@@ -29,10 +29,25 @@
   <p-message severity="error" [text]="error()!" styleClass="mb-3 w-full" [closable]="true" (onClose)="clearError()" />
   }
 
-  <!-- Loading State -->
+  <!-- Loading State (Skeletons) -->
   @if (loading()) {
-  <div class="flex justify-content-center align-items-center py-6">
-    <p-progressSpinner strokeWidth="4" />
+  <div class="flex flex-column gap-2">
+    @for (i of [1, 2, 3]; track i) {
+    <p-card>
+      <div class="flex align-items-center gap-3">
+        <p-skeleton shape="circle" size="24px" />
+        <div class="flex-grow-1">
+          <p-skeleton width="60%" height="1.2rem" styleClass="mb-2" />
+          <p-skeleton width="40%" height="0.8rem" />
+        </div>
+        <div class="flex align-items-center gap-2">
+          <p-skeleton width="80px" height="2rem" borderRadius="16px" />
+          <p-skeleton shape="circle" size="2.5rem" />
+          <p-skeleton shape="circle" size="2.5rem" />
+        </div>
+      </div>
+    </p-card>
+    }
   </div>
   }
 

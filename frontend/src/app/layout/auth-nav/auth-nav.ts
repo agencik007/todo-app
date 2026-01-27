@@ -1,8 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
-import { AuthStateService } from '../../services/auth-state.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthStateService } from '../../core/services/auth-state.service';
+import { AuthService } from '../../features/auth/services/auth.service';
 
 // PrimeNG
 import { MessageService } from 'primeng/api';

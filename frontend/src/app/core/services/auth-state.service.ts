@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
-import { AuthService } from './auth.service';
+import { AuthService } from '../../features/auth/services/auth.service';
 import { IndexedDbService } from './indexed-db.service';
-import { User } from '../models/auth.model';
+import { User } from '../../features/auth/models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +10,6 @@ export class AuthStateService {
   private authService = inject(AuthService);
   private indexedDbService = inject(IndexedDbService);
 
-  // State signals
   readonly currentUser = signal<User | null>(null);
   readonly isLoading = signal(false);
   readonly error = signal<string | null>(null);
@@ -18,12 +17,9 @@ export class AuthStateService {
   readonly userAvatar = signal<string | null>(null);
 
   constructor() {
-    // Effect to handle authentication state changes
     effect(() => {
       const hasToken = this.authService.isAuthenticated();
       const hasUser = this.currentUser() !== null;
-
-      // If token was removed but user still exists, clear user
       if (!hasToken && hasUser) {
         this.currentUser.set(null);
         this.isAuthenticated.set(false);
@@ -32,31 +28,20 @@ export class AuthStateService {
     });
   }
 
-  // Load user from API if token exists
   loadUserFromStorage(): void {
-    // Only load in browser environment
-    if (typeof window === 'undefined') {
-      return;
-    }
-
+    if (typeof window === 'undefined') return;
     if (this.authService.isAuthenticated()) {
-      // Prevent multiple simultaneous loads
-      if (this.isLoading()) {
-        return;
-      }
-
+      if (this.isLoading()) return;
       this.isLoading.set(true);
-      this.isAuthenticated.set(true); // Ensure it's true if we have a token
-
+      this.isAuthenticated.set(true);
       this.authService.getCurrentUser().subscribe({
         next: (user) => {
           this.currentUser.set(user);
           this.isLoading.set(false);
           this.isAuthenticated.set(true);
-          this.loadAvatar(); // Load avatar after user is loaded
+          this.loadAvatar();
         },
         error: (err) => {
-          // Token might be invalid, clear it
           this.authService.logout();
           this.currentUser.set(null);
           this.isAuthenticated.set(false);
@@ -69,15 +54,13 @@ export class AuthStateService {
     }
   }
 
-  // Set user (called after successful login/register)
   setUser(user: User): void {
     this.currentUser.set(user);
     this.isAuthenticated.set(true);
     this.error.set(null);
-    this.loadAvatar(); // Load avatar
+    this.loadAvatar();
   }
 
-  // Clear user and tokens (called on logout)
   clearUser(): void {
     this.authService.logout();
     this.currentUser.set(null);
@@ -86,7 +69,6 @@ export class AuthStateService {
     this.userAvatar.set(null);
   }
 
-  // Load avatar from IndexedDB
   async loadAvatar() {
     try {
       const blob = await this.indexedDbService.getAvatar();
@@ -97,19 +79,15 @@ export class AuthStateService {
         this.userAvatar.set(null);
       }
     } catch (e) {
-      console.error('Error loading avatar from IDB', e);
       this.userAvatar.set(null);
     }
   }
 
-  // Set error message
   setError(message: string): void {
     this.error.set(message);
   }
 
-  // Clear error message
   clearError(): void {
     this.error.set(null);
   }
 }
-

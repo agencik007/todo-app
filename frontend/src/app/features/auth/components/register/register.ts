@@ -3,7 +3,7 @@ import { NgClass } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { AuthStateService } from '../../services/auth-state.service';
+import { AuthStateService } from '../../../../core/services/auth-state.service';
 import { RegisterRequest } from '../../models/auth.model';
 
 // PrimeNG

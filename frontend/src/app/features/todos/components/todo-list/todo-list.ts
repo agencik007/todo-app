@@ -2,10 +2,11 @@ import { Component, signal, inject, OnInit, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TodoService } from '../../services/todo.service';
-import { AuthService } from '../../services/auth.service';
-import { AuthStateService } from '../../services/auth-state.service';
+import { AuthService } from '../../../auth/services/auth.service';
+import { AuthStateService } from '../../../../core/services/auth-state.service';
 import { TodoFormComponent } from '../todo-form/todo-form';
 import { Todo, TodoCreate } from '../../models/todo.model';
+import { delay } from 'rxjs/operators';
 
 // PrimeNG
 import { CardModule } from 'primeng/card';
@@ -13,6 +14,7 @@ import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SkeletonModule } from 'primeng/skeleton';
 import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -28,6 +30,7 @@ import { ConfirmationService } from 'primeng/api';
     CheckboxModule,
     TagModule,
     ProgressSpinnerModule,
+    SkeletonModule,
     DialogModule,
     MessageModule,
     ConfirmDialogModule
@@ -71,7 +74,7 @@ export class TodoListComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.todoService.getTodos().subscribe({
+    this.todoService.getTodos().pipe(delay(2000)).subscribe({
       next: (todos) => {
         this.todos.set(todos);
         this.loading.set(false);
