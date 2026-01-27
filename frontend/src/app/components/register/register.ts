@@ -1,15 +1,29 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { AuthStateService } from '../../services/auth-state.service';
 import { RegisterRequest } from '../../models/auth.model';
 
+// PrimeNG
+import { CardModule } from 'primeng/card';
+import { InputTextModule } from 'primeng/inputtext';
+import { PasswordModule } from 'primeng/password';
+import { ButtonModule } from 'primeng/button';
+import { MessageModule } from 'primeng/message';
+
 @Component({
   selector: 'app-register',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [
+    ReactiveFormsModule,
+    RouterModule,
+    CardModule,
+    InputTextModule,
+    PasswordModule,
+    ButtonModule,
+    MessageModule,
+  ],
   templateUrl: './register.html',
   styleUrl: './register.scss'
 })
@@ -36,11 +50,11 @@ export class RegisterComponent {
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const password = control.get('password');
     const confirmPassword = control.get('confirmPassword');
-    
+
     if (!password || !confirmPassword) {
       return null;
     }
-    
+
     return password.value === confirmPassword.value ? null : { passwordMismatch: true };
   }
 
@@ -59,7 +73,6 @@ export class RegisterComponent {
 
     this.authService.register(registerData).subscribe({
       next: (user) => {
-        // After registration, login automatically
         const loginData = {
           email: registerData.email,
           password: registerData.password
@@ -97,8 +110,7 @@ export class RegisterComponent {
   }
 
   get passwordMismatch() {
-    return this.registerForm.errors?.['passwordMismatch'] && 
-           this.confirmPassword?.touched;
+    return this.registerForm.errors?.['passwordMismatch'] &&
+      this.confirmPassword?.touched;
   }
 }
-

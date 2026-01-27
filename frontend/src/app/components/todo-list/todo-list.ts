@@ -1,17 +1,38 @@
-import { Component, signal, inject, OnInit, computed, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal, inject, OnInit, computed } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TodoService } from '../../services/todo.service';
 import { AuthService } from '../../services/auth.service';
 import { AuthStateService } from '../../services/auth-state.service';
-import { TodoItemComponent } from '../todo-item/todo-item';
 import { TodoFormComponent } from '../todo-form/todo-form';
 import { Todo, TodoCreate } from '../../models/todo.model';
 
+// PrimeNG
+import { CardModule } from 'primeng/card';
+import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
+import { TagModule } from 'primeng/tag';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { DialogModule } from 'primeng/dialog';
+import { MessageModule } from 'primeng/message';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
+
 @Component({
   selector: 'app-todo-list',
-  standalone: true,
-  imports: [CommonModule, TodoItemComponent, TodoFormComponent],
+  imports: [
+    FormsModule,
+    TodoFormComponent,
+    CardModule,
+    ButtonModule,
+    CheckboxModule,
+    TagModule,
+    ProgressSpinnerModule,
+    DialogModule,
+    MessageModule,
+    ConfirmDialogModule
+  ],
+  providers: [ConfirmationService],
   templateUrl: './todo-list.html',
   styleUrl: './todo-list.scss'
 })
@@ -20,41 +41,32 @@ export class TodoListComponent implements OnInit {
   private authService = inject(AuthService);
   private authStateService = inject(AuthStateService);
   private router = inject(Router);
+  private confirmationService = inject(ConfirmationService);
 
   // State management with signals
   todos = signal<Todo[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
-  showForm = signal(false);
   editingTodo = signal<Todo | null>(null);
+  formVisible = false;
 
   // Computed signals
   completedTodos = computed(() => this.todos().filter(todo => todo.completed));
   pendingTodos = computed(() => this.todos().filter(todo => !todo.completed));
   totalTodos = computed(() => this.todos().length);
 
-  // Public getter for current user (needed for template)
   get currentUser() {
     return this.authStateService.currentUser();
   }
 
-  constructor() {
-    // Check authentication in component instead of guard
-    effect(() => {
-      const hasToken = this.authService.isAuthenticated();
-
-      if (!hasToken && typeof window !== 'undefined') {
-        this.router.navigate(['/login'], { queryParams: { returnUrl: '/todos' } });
-      } else if (hasToken) {
-        this.loadTodos();
-      }
-    });
-  }
-
   ngOnInit() {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: '/todos' } });
+    } else {
+      this.loadTodos();
+    }
   }
 
-  // Load todos from API
   loadTodos() {
     this.loading.set(true);
     this.error.set(null);
@@ -71,43 +83,33 @@ export class TodoListComponent implements OnInit {
     });
   }
 
-  // Show form for creating new todo
   showCreateForm() {
     this.editingTodo.set(null);
-    this.showForm.set(true);
+    this.formVisible = true;
   }
 
-  // Show form for editing todo
   editTodo(todo: Todo) {
-    // Check if current user owns this todo
-    const currentUser = this.authStateService.currentUser();
-    if (!currentUser || currentUser.id !== todo.user_id) {
+    if (!this.canEditTodo(todo)) {
       this.error.set('Nie masz uprawnień do edycji tego zadania');
       return;
     }
-
     this.editingTodo.set(todo);
-    this.showForm.set(true);
+    this.formVisible = true;
   }
 
-  // Hide form
   hideForm() {
-    this.showForm.set(false);
+    this.formVisible = false;
     this.editingTodo.set(null);
   }
 
-  // Save todo (create or update)
   saveTodo(todoData: TodoCreate) {
     if (this.editingTodo()) {
-      // Update existing todo
       this.updateTodo(this.editingTodo()!.id, todoData);
     } else {
-      // Create new todo
       this.createTodo(todoData);
     }
   }
 
-  // Create new todo
   private createTodo(todoData: TodoCreate) {
     this.todoService.createTodo(todoData).subscribe({
       next: (newTodo) => {
@@ -120,7 +122,6 @@ export class TodoListComponent implements OnInit {
     });
   }
 
-  // Update existing todo
   private updateTodo(id: number, todoData: TodoCreate) {
     this.todoService.updateTodo(id, todoData).subscribe({
       next: (updatedTodo) => {
@@ -135,7 +136,6 @@ export class TodoListComponent implements OnInit {
     });
   }
 
-  // Toggle todo completion
   toggleTodoCompletion(todo: Todo) {
     this.todoService.updateTodo(todo.id, { completed: !todo.completed }).subscribe({
       next: (updatedTodo) => {
@@ -149,28 +149,36 @@ export class TodoListComponent implements OnInit {
     });
   }
 
-  // Delete todo
   deleteTodo(todo: Todo) {
-    // Check if current user owns this todo
-    const currentUser = this.authStateService.currentUser();
-    if (!currentUser || currentUser.id !== todo.user_id) {
+    if (!this.canEditTodo(todo)) {
       this.error.set('Nie masz uprawnień do usunięcia tego zadania');
       return;
     }
 
-    if (confirm(`Czy na pewno chcesz usunąć zadanie "${todo.title}"?`)) {
-      this.todoService.deleteTodo(todo.id).subscribe({
-        next: () => {
-          this.todos.update(todos => todos.filter(t => t.id !== todo.id));
-        },
-        error: (err) => {
-          this.error.set('Nie udało się usunąć zadania');
-        }
-      });
-    }
+    this.confirmationService.confirm({
+      message: `Czy na pewno chcesz usunąć zadanie "${todo.title}"?`,
+      header: 'Potwierdź usunięcie',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Tak, usuń',
+      rejectLabel: 'Anuluj',
+      accept: () => {
+        this.todoService.deleteTodo(todo.id).subscribe({
+          next: () => {
+            this.todos.update(todos => todos.filter(t => t.id !== todo.id));
+          },
+          error: (err) => {
+            this.error.set('Nie udało się usunąć zadania');
+          }
+        });
+      }
+    });
   }
 
-  // Clear error message
+  canEditTodo(todo: Todo): boolean {
+    const user = this.currentUser;
+    return !!user && user.id === todo.user_id;
+  }
+
   clearError() {
     this.error.set(null);
   }

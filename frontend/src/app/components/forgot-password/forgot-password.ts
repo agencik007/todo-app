@@ -1,14 +1,27 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { NgClass } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
 import { PasswordResetRequest } from '../../models/auth.model';
+import { AuthService } from '../../services/auth.service';
+
+// PrimeNG
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { InputTextModule } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
 
 @Component({
   selector: 'app-forgot-password',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [
+    ReactiveFormsModule,
+    RouterModule,
+    CardModule,
+    InputTextModule,
+    ButtonModule,
+    MessageModule,
+    NgClass
+  ],
   templateUrl: './forgot-password.html',
   styleUrl: './forgot-password.scss'
 })
@@ -56,4 +69,3 @@ export class ForgotPasswordComponent {
     return this.forgotPasswordForm.get('email');
   }
 }
-

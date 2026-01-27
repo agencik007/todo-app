@@ -1,15 +1,30 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { AuthStateService } from '../../services/auth-state.service';
 import { LoginRequest } from '../../models/auth.model';
 
+// PrimeNG
+import { CardModule } from 'primeng/card';
+import { InputTextModule } from 'primeng/inputtext';
+import { PasswordModule } from 'primeng/password';
+import { ButtonModule } from 'primeng/button';
+import { MessageModule } from 'primeng/message';
+
 @Component({
   selector: 'app-login',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [
+    ReactiveFormsModule,
+    RouterModule,
+    CardModule,
+    InputTextModule,
+    PasswordModule,
+    ButtonModule,
+    MessageModule,
+    NgClass
+  ],
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
@@ -46,13 +61,10 @@ export class LoginComponent {
 
     this.authService.login(loginData).subscribe({
       next: () => {
-        // Load user data
         this.authService.getCurrentUser().subscribe({
           next: (user) => {
             this.authStateService.setUser(user);
             this.isLoading.set(false);
-            
-            // Redirect to return URL or default to /todos
             const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/todos';
             this.router.navigate([returnUrl]);
           },
@@ -77,4 +89,3 @@ export class LoginComponent {
     return this.loginForm.get('password');
   }
 }
-

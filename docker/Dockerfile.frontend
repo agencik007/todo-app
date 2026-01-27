@@ -1,6 +1,6 @@
-# Frontend Dockerfile - Angular application (Production build)
+# Frontend Dockerfile - Angular application (Dev & Prod support)
 
-FROM node:22-alpine AS build
+FROM node:22-alpine
 
 # Set working directory
 WORKDIR /app
@@ -8,24 +8,11 @@ WORKDIR /app
 # Copy package files
 COPY frontend/package*.json ./
 
-# Install dependencies (fresh install to avoid platform conflicts)
-RUN npm install
+# Install dependencies
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY frontend/ .
-
-# Build the application for production
-RUN npm run build --configuration=production
-
-# Production stage - Serve with Angular SSR (Node.js)
-FROM node:22-alpine
-
-# Set working directory
-WORKDIR /app
-
-# Copy built application and server from build stage
-# Note: we copy the whole dist/frontend which contains 'browser' and 'server'
-COPY --from=build /app/dist/frontend/ .
 
 # Expose port
 EXPOSE 4200
@@ -33,5 +20,7 @@ EXPOSE 4200
 # Set port environment variable
 ENV PORT=4200
 
-# Run the SSR server
-CMD ["node", "server/server.mjs"]
+# By default, run the build and start the SSR server
+# In development, this will be overridden by docker-compose
+RUN npm run build
+CMD ["node", "dist/frontend/server/server.mjs"]

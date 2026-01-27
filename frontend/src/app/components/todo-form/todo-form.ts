@@ -1,16 +1,27 @@
-import { Component, input, output, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Todo, TodoCreate } from '../../models/todo.model';
+
+// PrimeNG
+import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'app-todo-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    FormsModule,
+    InputTextModule,
+    TextareaModule,
+    CheckboxModule,
+    ButtonModule
+  ],
   templateUrl: './todo-form.html',
   styleUrl: './todo-form.scss'
 })
-export class TodoFormComponent {
+export class TodoFormComponent implements OnInit {
   // Input for editing existing todo
   todo = input<Todo | null>(null);
 
@@ -25,7 +36,6 @@ export class TodoFormComponent {
   isSubmitting = signal(false);
 
   ngOnInit() {
-    // If editing existing todo, populate form
     if (this.todo()) {
       this.title.set(this.todo()!.title);
       this.description.set(this.todo()!.description || '');
@@ -46,7 +56,6 @@ export class TodoFormComponent {
 
     this.save.emit(todoData);
 
-    // Reset form if creating new todo
     if (!this.todo()) {
       this.title.set('');
       this.description.set('');

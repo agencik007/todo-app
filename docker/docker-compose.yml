@@ -66,6 +66,13 @@ services:
     restart: unless-stopped
     ports:
       - "4200:4200"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    # Development mode (Hot-reloading):
+    command: npx ng serve --host 0.0.0.0
+    # Production-like mode (SSR):
+    # command: node dist/frontend/server/server.mjs
     depends_on:
       backend:
         condition: service_healthy

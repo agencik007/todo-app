@@ -314,7 +314,7 @@ Po uruchomieniu otwórz w przeglądarce:
 make dev
 
 # Lub bezpośrednio:
-docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml up --build
+docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml up -d
 ```
 
 #### Tryb Production

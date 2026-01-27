@@ -1,14 +1,25 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { PasswordReset } from '../../models/auth.model';
 
+// PrimeNG
+import { CardModule } from 'primeng/card';
+import { PasswordModule } from 'primeng/password';
+import { ButtonModule } from 'primeng/button';
+import { MessageModule } from 'primeng/message';
+
 @Component({
   selector: 'app-reset-password',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [
+    ReactiveFormsModule,
+    RouterModule,
+    CardModule,
+    PasswordModule,
+    ButtonModule,
+    MessageModule
+  ],
   templateUrl: './reset-password.html',
   styleUrl: './reset-password.scss'
 })
@@ -32,7 +43,6 @@ export class ResetPasswordComponent {
       validators: this.passwordMatchValidator
     });
 
-    // Get token from route params
     this.route.params.subscribe(params => {
       this.token.set(params['token'] || null);
       if (!this.token()) {
@@ -44,11 +54,11 @@ export class ResetPasswordComponent {
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const password = control.get('password');
     const confirmPassword = control.get('confirmPassword');
-    
+
     if (!password || !confirmPassword) {
       return null;
     }
-    
+
     return password.value === confirmPassword.value ? null : { passwordMismatch: true };
   }
 
@@ -70,7 +80,6 @@ export class ResetPasswordComponent {
       next: () => {
         this.success.set(true);
         this.isLoading.set(false);
-        // Redirect to login after 2 seconds
         setTimeout(() => {
           this.router.navigate(['/login']);
         }, 2000);
@@ -91,8 +100,7 @@ export class ResetPasswordComponent {
   }
 
   get passwordMismatch() {
-    return this.resetPasswordForm.errors?.['passwordMismatch'] && 
-           this.confirmPassword?.touched;
+    return this.resetPasswordForm.errors?.['passwordMismatch'] &&
+      this.confirmPassword?.touched;
   }
 }
-

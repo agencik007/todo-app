@@ -1,93 +1,64 @@
-<div class="register-container">
-  <div class="register-card">
-    <h1 class="register-title">Zarejestruj się</h1>
-
+<div class="auth-container">
+  <p-card header="Zarejestruj się" [style]="{ width: '400px' }">
     @if (error()) {
-      <div class="error-message">
-        {{ error() }}
-      </div>
+    <p-message severity="error" [text]="error()!" styleClass="mb-3 w-full" />
     }
 
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
       <div class="form-group">
-        <label for="email" class="form-label">Email</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          class="form-input"
-          [class.error]="email?.invalid && email?.touched"
-          placeholder="twoj@email.com">
+        <label for="email" class="block mb-2">Email</label>
+        <input pInputText id="email" type="email" formControlName="email" placeholder="twoj@email.com"
+          [class]="{ 'ng-invalid ng-dirty': email?.invalid && email?.touched }" class="w-full" />
         @if (email?.invalid && email?.touched) {
-          <p class="form-error">
-            @if (email?.errors?.['required']) {
-              Email jest wymagany
-            } @else if (email?.errors?.['email']) {
-              Nieprawidłowy format email
-            }
-          </p>
+        <small class="p-error">
+          @if (email?.errors?.['required']) {
+          Email jest wymagany
+          } @else if (email?.errors?.['email']) {
+          Nieprawidłowy format email
+          }
+        </small>
         }
       </div>
 
       <div class="form-group">
-        <label for="password" class="form-label">Hasło</label>
-        <input
-          id="password"
-          type="password"
-          formControlName="password"
-          class="form-input"
-          [class.error]="password?.invalid && password?.touched"
-          placeholder="Minimum 8 znaków">
+        <label for="password" class="block mb-2">Hasło</label>
+        <p-password id="password" formControlName="password" placeholder="Minimum 8 znaków" [feedback]="true"
+          [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
         @if (password?.invalid && password?.touched) {
-          <p class="form-error">
-            @if (password?.errors?.['required']) {
-              Hasło jest wymagane
-            } @else if (password?.errors?.['minlength']) {
-              Hasło musi mieć minimum 8 znaków
-            }
-          </p>
+        <small class="p-error">
+          @if (password?.errors?.['required']) {
+          Hasło jest wymagane
+          } @else if (password?.errors?.['minlength']) {
+          Hasło musi mieć minimum 8 znaków
+          }
+        </small>
         }
       </div>
 
       <div class="form-group">
-        <label for="confirmPassword" class="form-label">Potwierdź hasło</label>
-        <input
-          id="confirmPassword"
-          type="password"
-          formControlName="confirmPassword"
-          class="form-input"
-          [class.error]="(confirmPassword?.invalid || passwordMismatch) && confirmPassword?.touched"
-          placeholder="Wpisz hasło ponownie">
+        <label for="confirmPassword" class="block mb-2">Potwierdź hasło</label>
+        <p-password id="confirmPassword" formControlName="confirmPassword" placeholder="Wpisz hasło ponownie"
+          [feedback]="false" [toggleMask]="true" clas="w-full" inputStyleClass="w-full" />
         @if (confirmPassword?.invalid && confirmPassword?.touched) {
-          <p class="form-error">
-            @if (confirmPassword?.errors?.['required']) {
-              Potwierdzenie hasła jest wymagane
-            }
-          </p>
+        <small class="p-error">
+          @if (confirmPassword?.errors?.['required']) {
+          Potwierdzenie hasła jest wymagane
+          }
+        </small>
         }
         @if (passwordMismatch) {
-          <p class="form-error">
-            Hasła nie są identyczne
-          </p>
+        <small class="p-error">
+          Hasła nie są identyczne
+        </small>
         }
       </div>
 
-      <button
-        type="submit"
-        [disabled]="registerForm.invalid || isLoading()"
-        class="submit-button">
-        @if (isLoading()) {
-          <span class="spinner"></span>
-          Rejestrowanie...
-        } @else {
-          Zarejestruj się
-        }
-      </button>
+      <p-button type="submit" label="Zarejestruj się" [disabled]="registerForm.invalid || isLoading()"
+        [loading]="isLoading()" styleClass="w-full" />
     </form>
 
-    <div class="register-links">
-      <a routerLink="/login" class="link">Masz już konto? Zaloguj się</a>
+    <div class="flex justify-content-center mt-4">
+      <a routerLink="/login" class="p-link">Masz już konto? Zaloguj się</a>
     </div>
-  </div>
+  </p-card>
 </div>
-

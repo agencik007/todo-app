@@ -1,75 +1,31 @@
-<div class="todo-form-container">
-  <h2 class="todo-form-title">
-    {{ todo() ? 'Edytuj zadanie' : 'Dodaj nowe zadanie' }}
-  </h2>
+<form (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
+  <div class="form-group">
+    <label for="title" class="block mb-2">Tytuł *</label>
+    <input pInputText id="title" type="text" [(ngModel)]="title" name="title" placeholder="Wpisz tytuł zadania..."
+      class="w-full" />
+    @if (!title().trim()) {
+    <small class="p-error">Tytuł jest wymagany</small>
+    }
+  </div>
 
-  <form (ngSubmit)="onSubmit()" class="todo-form">
-    <div class="form-group">
-      <label for="title" class="form-label">
-        Tytuł *
-      </label>
-      <input
-        id="title"
-        type="text"
-        [(ngModel)]="title"
-        name="title"
-        required
-        placeholder="Wpisz tytuł zadania..."
-        class="form-input"
-        [class.error]="!title().trim()">
-      @if (!title().trim()) {
-        <p class="form-error">Tytuł jest wymagany</p>
-      }
-    </div>
+  <div class="form-group">
+    <label for="description" class="block mb-2">Opis</label>
+    <textarea pTextarea id="description" [(ngModel)]="description" name="description" rows="4"
+      placeholder="Dodaj opcjonalny opis..." class="w-full">
+    </textarea>
+  </div>
 
-    <div class="form-group">
-      <label for="description" class="form-label">
-        Opis
-      </label>
-      <textarea
-        id="description"
-        [(ngModel)]="description"
-        name="description"
-        rows="4"
-        placeholder="Dodaj opcjonalny opis..."
-        class="form-textarea">
-      </textarea>
-    </div>
+  <div class="form-group">
+    <p-checkbox [(ngModel)]="isPublic" name="isPublic" [binary]="true" label="Publiczne" />
+    <p class="text-sm text-color-secondary mt-1">
+      Zadanie publiczne będzie widoczne dla wszystkich użytkowników
+    </p>
+  </div>
 
-    <div class="form-group">
-      <label class="checkbox-label">
-        <input
-          type="checkbox"
-          [(ngModel)]="isPublic"
-          name="isPublic"
-          class="checkbox-input">
-        <span class="checkbox-text">Publiczne</span>
-      </label>
-      <p class="checkbox-description">
-        Zadanie publiczne będzie widoczne dla wszystkich użytkowników
-      </p>
-    </div>
-
-    <div class="form-actions">
-      <button
-        type="submit"
-        [disabled]="isSubmitting() || !title().trim()"
-        class="form-submit-btn">
-        @if (isSubmitting()) {
-          <div class="spinner"></div>
-          Zapisywanie...
-        } @else {
-          <span class="text-lg">{{ todo() ? '💾' : '➕' }}</span>
-          {{ todo() ? 'Zapisz zmiany' : 'Dodaj zadanie' }}
-        }
-      </button>
-
-      <button
-        type="button"
-        (click)="onCancel()"
-        class="form-cancel-btn">
-        Anuluj
-      </button>
-    </div>
-  </form>
-</div>
+  <div class="flex gap-2 justify-content-end">
+    <p-button type="button" label="Anuluj" severity="secondary" [outlined]="true" (onClick)="onCancel()" />
+    <p-button type="submit" [label]="todo() ? 'Zapisz zmiany' : 'Dodaj zadanie'"
+      [icon]="todo() ? 'pi pi-save' : 'pi pi-plus'" [disabled]="isSubmitting() || !title().trim()"
+      [loading]="isSubmitting()" />
+  </div>
+</form>
