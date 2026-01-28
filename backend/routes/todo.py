@@ -10,47 +10,68 @@ from config.auth import get_current_active_user
 
 router = APIRouter(prefix="/todos", tags=["todos"])
 
-@router.get("/", response_model=List[Todo])
+
+@router.get("", response_model=List[Todo])
 def get_todos(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ):
     """Get all todos for current user (own todos + public todos)"""
-    todos = db.query(TodoModel).filter(
-        or_(
-            TodoModel.user_id == current_user.id,
-            TodoModel.is_public == True
-        )
-    ).offset(skip).limit(limit).all()
+    results = (
+        db.query(TodoModel, User.email)
+        .join(User, TodoModel.user_id == User.id)
+        .filter(or_(TodoModel.user_id == current_user.id, TodoModel.is_public == True))
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    todos = []
+    for todo, email in results:
+        todo.owner_email = email
+        todos.append(todo)
     return todos
+
 
 @router.get("/{todo_id}", response_model=Todo)
 def get_todo(
     todo_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ):
     """Get a specific todo by ID (must be owned by user or public)"""
-    todo = db.query(TodoModel).filter(TodoModel.id == todo_id).first()
-    if todo is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todo not found")
-    
+    result = (
+        db.query(TodoModel, User.email)
+        .join(User, TodoModel.user_id == User.id)
+        .filter(TodoModel.id == todo_id)
+        .first()
+    )
+
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Todo not found"
+        )
+
+    todo, email = result
+    todo.owner_email = email
+
     # Check if user has access (owner or public)
     if todo.user_id != current_user.id and not todo.is_public:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions to access this todo"
+            detail="Not enough permissions to access this todo",
         )
-    
+
     return todo
 
-@router.post("/", response_model=Todo, status_code=status.HTTP_201_CREATED)
+
+@router.post("", response_model=Todo, status_code=status.HTTP_201_CREATED)
 def create_todo(
     todo: TodoCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ):
     """Create a new todo (automatically assigned to current user)"""
     todo_data = todo.model_dump()
@@ -59,25 +80,29 @@ def create_todo(
     db.add(db_todo)
     db.commit()
     db.refresh(db_todo)
+    db_todo.owner_email = current_user.email
     return db_todo
+
 
 @router.put("/{todo_id}", response_model=Todo)
 def update_todo(
     todo_id: int,
     todo_update: TodoUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ):
     """Update an existing todo (only owner can update)"""
     todo = db.query(TodoModel).filter(TodoModel.id == todo_id).first()
     if todo is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todo not found")
-    
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Todo not found"
+        )
+
     # Check if user is the owner
     if todo.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions to update this todo"
+            detail="Not enough permissions to update this todo",
         )
 
     # Update only provided fields
@@ -87,24 +112,28 @@ def update_todo(
 
     db.commit()
     db.refresh(todo)
+    todo.owner_email = current_user.email
     return todo
+
 
 @router.delete("/{todo_id}")
 def delete_todo(
     todo_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ):
     """Delete a todo (only owner can delete)"""
     todo = db.query(TodoModel).filter(TodoModel.id == todo_id).first()
     if todo is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todo not found")
-    
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Todo not found"
+        )
+
     # Check if user is the owner
     if todo.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions to delete this todo"
+            detail="Not enough permissions to delete this todo",
         )
 
     db.delete(todo)

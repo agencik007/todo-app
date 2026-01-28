@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from datetime import datetime
 from typing import Optional
 
+
 # Base Todo schema
 class TodoBase(BaseModel):
     title: str = Field(..., min_length=1, description="Title must not be empty")
@@ -9,9 +10,11 @@ class TodoBase(BaseModel):
     completed: bool = False
     is_public: bool = False
 
+
 # Todo schema for creating new todos (inherits from TodoBase)
 class TodoCreate(TodoBase):
     pass
+
 
 # Todo schema for updating existing todos
 class TodoUpdate(BaseModel):
@@ -20,25 +23,32 @@ class TodoUpdate(BaseModel):
     completed: Optional[bool] = None
     is_public: Optional[bool] = None
 
+
 # Todo schema for API responses (includes id and timestamps)
 class Todo(TodoBase):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     user_id: int
+    owner_email: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+
 
 # User schemas
 class UserBase(BaseModel):
     email: EmailStr
 
+
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=8, description="Password must be at least 8 characters")
+    password: str = Field(
+        ..., min_length=8, description="Password must be at least 8 characters"
+    )
+
 
 class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     is_active: bool
     is_verified: bool
@@ -46,28 +56,35 @@ class UserResponse(UserBase):
     created_at: datetime
     updated_at: datetime
 
+
 # Auth schemas
 class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
 
+
 class TokenData(BaseModel):
     user_id: Optional[int] = None
     email: Optional[str] = None
+
 
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+
 # Password reset schemas
 class PasswordResetRequest(BaseModel):
     email: EmailStr
 
+
 class PasswordReset(BaseModel):
     token: str
-    new_password: str = Field(..., min_length=8, description="Password must be at least 8 characters")
+    new_password: str = Field(
+        ..., min_length=8, description="Password must be at least 8 characters"
+    )
+
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
-

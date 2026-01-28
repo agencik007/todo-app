@@ -1,4 +1,4 @@
-import { Component, input, output, signal, OnInit } from '@angular/core';
+import { Component, input, output, signal, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Todo, TodoCreate } from '../../models/todo.model';
 
@@ -21,7 +21,7 @@ import { ButtonModule } from 'primeng/button';
   templateUrl: './todo-form.html',
   styleUrl: './todo-form.scss'
 })
-export class TodoFormComponent implements OnInit {
+export class TodoFormComponent {
   // Input for editing existing todo
   todo = input<Todo | null>(null);
 
@@ -35,12 +35,19 @@ export class TodoFormComponent implements OnInit {
   isPublic = signal(false);
   isSubmitting = signal(false);
 
-  ngOnInit() {
-    if (this.todo()) {
-      this.title.set(this.todo()!.title);
-      this.description.set(this.todo()!.description || '');
-      this.isPublic.set(this.todo()!.is_public || false);
-    }
+  constructor() {
+    effect(() => {
+      const todo = this.todo();
+      if (todo) {
+        this.title.set(todo.title);
+        this.description.set(todo.description || '');
+        this.isPublic.set(todo.is_public || false);
+      } else {
+        this.title.set('');
+        this.description.set('');
+        this.isPublic.set(false);
+      }
+    });
   }
 
   onSubmit() {

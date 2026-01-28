@@ -57,7 +57,9 @@
     @for (todo of todos(); track todo.id) {
     <p-card>
       <div class="flex align-items-center gap-3">
+        @if (canEditTodo(todo)) {
         <p-checkbox [binary]="true" [ngModel]="todo.completed" (onChange)="toggleTodoCompletion(todo)" />
+        }
         <div class="flex-grow-1">
           <div class="font-semibold" [class.line-through]="todo.completed"
             [class.text-color-secondary]="todo.completed">
@@ -65,6 +67,12 @@
           </div>
           @if (todo.description) {
           <div class="text-sm text-color-secondary mt-1">{{ todo.description }}</div>
+          }
+          @if (!canEditTodo(todo) && todo.owner_email) {
+          <div class="text-xs text-color-secondary mt-1">
+            <i class="pi pi-user mr-1" style="font-size: 0.7rem"></i>
+            To zadanie jest usera {{ todo.owner_email }}
+          </div>
           }
         </div>
         <div class="flex align-items-center gap-2">
@@ -99,7 +107,7 @@
 
   <!-- Todo Form Dialog -->
   <p-dialog [header]="editingTodo() ? 'Edytuj zadanie' : 'Dodaj nowe zadanie'" [(visible)]="formVisible" [modal]="true"
-    [style]="{ width: '450px' }">
+    [style]="{ width: '450px' }" (onHide)="hideForm()">
     <app-todo-form [todo]="editingTodo()" (save)="saveTodo($event)" (cancel)="hideForm()">
     </app-todo-form>
   </p-dialog>

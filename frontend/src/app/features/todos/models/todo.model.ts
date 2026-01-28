@@ -5,6 +5,7 @@ export interface Todo {
   completed: boolean;
   is_public: boolean;
   user_id: number;
+  owner_email?: string;
   created_at: Date;
   updated_at: Date;
 }
