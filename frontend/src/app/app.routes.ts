@@ -19,6 +19,10 @@ export const routes: Routes = [
     canActivate: [guestGuard]
   },
   {
+    path: 'check-email',
+    loadComponent: () => import('./features/auth/components/check-email/check-email').then(m => m.CheckEmailComponent)
+  },
+  {
     path: 'forgot-password',
     loadComponent: () => import('./features/auth/components/forgot-password/forgot-password').then(m => m.ForgotPasswordComponent),
     canActivate: [guestGuard]
@@ -32,6 +36,14 @@ export const routes: Routes = [
     path: 'reset-password/:token',
     loadComponent: () => import('./features/auth/components/reset-password/reset-password').then(m => m.ResetPasswordComponent),
     canActivate: [guestGuard]
+  },
+  {
+    path: 'verify-email',
+    loadComponent: () => import('./features/auth/components/verify-email/verify-email').then(m => m.VerifyEmailComponent)
+  },
+  {
+    path: 'verify-email/:token',
+    loadComponent: () => import('./features/auth/components/verify-email/verify-email').then(m => m.VerifyEmailComponent)
   },
   {
     path: 'todos',

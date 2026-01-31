@@ -282,3 +282,75 @@ class TestAuthAPI:
         assert response.status_code == 200
         data = response.json()
         assert "success" in data["message"].lower()
+
+    def test_register_saves_verification_token(self, client: TestClient, test_db: Session):
+        """Test POST /auth/register saves verification token to database."""
+        user_data = {"email": "verify@example.com", "password": "securepass123"}
+        response = client.post("/auth/register", json=user_data)
+
+        assert response.status_code == 201
+        user = test_db.query(User).filter(User.email == "verify@example.com").first()
+        assert user.email_verification_token is not None
+        assert user.email_verification_expires_at is not None
+
+    def test_verify_email_success(self, client: TestClient, test_db: Session):
+        """Test GET /auth/verify-email/{token} verifies user."""
+        # Create user with token
+        user = User(
+            email="unverified@example.com",
+            hashed_password=hash_password("password123"),
+            is_verified=False,
+            email_verification_token="test_token_123",
+            email_verification_expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        response = client.get("/auth/verify-email/test_token_123")
+
+        assert response.status_code == 200
+        test_db.refresh(user)
+        assert user.is_verified == True
+        assert user.email_verification_token is None
+
+    def test_verify_email_expired_token(self, client: TestClient, test_db: Session):
+        """Test GET /auth/verify-email with expired token fails."""
+        user = User(
+            email="expired@example.com",
+            hashed_password=hash_password("password123"),
+            is_verified=False,
+            email_verification_token="expired_token",
+            email_verification_expires_at=datetime.now(timezone.utc) - timedelta(hours=1)
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        response = client.get("/auth/verify-email/expired_token")
+
+        assert response.status_code == 400
+
+    def test_verify_email_invalid_token(self, client: TestClient):
+        """Test GET /auth/verify-email with invalid token fails."""
+        response = client.get("/auth/verify-email/nonexistent_token")
+        assert response.status_code == 400
+
+    def test_login_unverified_user_fails(self, client: TestClient, test_db: Session):
+        """Test POST /auth/login fails for unverified user."""
+        # Create unverified user
+        email = "unverified_login@example.com"
+        password = "password123"
+        user = User(
+            email=email,
+            hashed_password=hash_password(password),
+            is_active=True,
+            is_verified=False
+        )
+        test_db.add(user)
+        test_db.commit()
+
+        login_data = {"email": email, "password": password}
+        response = client.post("/auth/login", json=login_data)
+
+        assert response.status_code == 403
+        data = response.json()
+        assert "not verified" in data["detail"].lower()

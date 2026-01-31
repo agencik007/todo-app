@@ -14,9 +14,7 @@
         <p-progressSpinner strokeWidth="4" [style]="{ width: '24px', height: '24px' }" />
       } @else if (isAuthenticated() && currentUser()) {
         <div class="flex align-items-center gap-2 hidden md:flex">
-          <span class="font-medium text-sm text-color-secondary">{{
-            currentUser()!.email
-          }}</span>
+          <span class="font-medium text-sm text-color-secondary">{{ currentUser()!.email }}</span>
           <app-theme-toggle class="ml-2"></app-theme-toggle>
         </div>
 
@@ -56,5 +54,3 @@
     </div>
   </ng-template>
 </p-menubar>
-
-<p-toast position="top-right" />

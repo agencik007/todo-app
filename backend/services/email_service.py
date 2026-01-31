@@ -68,7 +68,7 @@ def send_verification_email(to_email: str, verification_token: str) -> bool:
     Returns:
         bool: True if email was sent successfully.
     """
-    verification_url = f"{FRONTEND_URL}/verify-email?token={verification_token}"
+    verification_url = f"{FRONTEND_URL}/verify-email/{verification_token}"
 
     subject = "Verify your email address"
     html_content = f"""

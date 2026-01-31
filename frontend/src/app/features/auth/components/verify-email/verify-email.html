@@ -1,0 +1,42 @@
+<p-card styleClass="verify-email-card">
+  <ng-template pTemplate="header">
+    <div class="card-header">
+      <h2>Weryfikacja Email</h2>
+    </div>
+  </ng-template>
+
+  @if (status() === 'loading') {
+    <div class="loading-state">
+      <p-progressSpinner strokeWidth="4" animationDuration=".5s"> </p-progressSpinner>
+      <p>Weryfikuję adres email...</p>
+    </div>
+  }
+
+  @if (status() === 'success') {
+    <div class="success-state">
+      <i class="pi pi-check-circle"></i>
+      <h3>{{ message() }}</h3>
+      <p>Za chwilę zostaniesz przekierowany do strony logowania...</p>
+      <p-button label="Przejdź do logowania teraz" routerLink="/login" icon="pi pi-sign-in">
+      </p-button>
+    </div>
+  }
+
+  @if (status() === 'error') {
+    <div class="error-state">
+      <i class="pi pi-times-circle"></i>
+      <h3>{{ message() }}</h3>
+      <p-message severity="error" [text]="errorDetail()"></p-message>
+      <div class="actions">
+        <p-button label="Przejdź do logowania" routerLink="/login" icon="pi pi-sign-in"> </p-button>
+        <p-button
+          label="Zarejestruj się ponownie"
+          routerLink="/register"
+          icon="pi pi-user-plus"
+          severity="secondary"
+        >
+        </p-button>
+      </div>
+    </div>
+  }
+</p-card>

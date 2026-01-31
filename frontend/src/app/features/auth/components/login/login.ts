@@ -5,6 +5,7 @@ import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { AuthStateService } from '../../../../core/services/auth-state.service';
 import { LoginRequest } from '../../models/auth.model';
+import { MessageService } from 'primeng/api';
 
 // PrimeNG
 import { CardModule } from 'primeng/card';
@@ -34,6 +35,7 @@ export class LoginComponent {
   private authStateService = inject(AuthStateService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private messageService = inject(MessageService);
 
   loginForm: FormGroup;
   error = signal<string | null>(null);
@@ -44,12 +46,22 @@ export class LoginComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]]
     });
+
+    const verified = this.route.snapshot.queryParams['verified'];
+    if (verified === 'success') {
+      setTimeout(() => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sukces',
+          detail: 'Pomyslnie zweryfikowano email, mozesz sie teraz zalogowac',
+          life: 5000
+        });
+      }, 100);
+    }
   }
 
   onSubmit() {
-    if (this.loginForm.invalid) {
-      return;
-    }
+    if (this.loginForm.invalid) return;
 
     this.isLoading.set(true);
     this.error.set(null);
@@ -68,24 +80,29 @@ export class LoginComponent {
             const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/todos';
             this.router.navigate([returnUrl]);
           },
-          error: (err) => {
+          error: () => {
             this.error.set('Nie udało się załadować danych użytkownika');
             this.isLoading.set(false);
           }
         });
       },
       error: (err) => {
-        this.error.set(err.message || 'Nieprawidłowy email lub hasło');
+        const errorMsg = err.message || 'Nieprawidłowy email lub hasło';
+        this.error.set(errorMsg);
         this.isLoading.set(false);
+
+        if (errorMsg.toLowerCase().includes('verified') || errorMsg.toLowerCase().includes('zweryfikuj')) {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Email niezweryfikowany',
+            detail: 'Sprawdź swoją skrzynkę odbiorczą i zweryfikuj adres email przed zalogowaniem.',
+            life: 5000
+          });
+        }
       }
     });
   }
 
-  get email() {
-    return this.loginForm.get('email');
-  }
-
-  get password() {
-    return this.loginForm.get('password');
-  }
+  get email() { return this.loginForm.get('email'); }
+  get password() { return this.loginForm.get('password'); }
 }

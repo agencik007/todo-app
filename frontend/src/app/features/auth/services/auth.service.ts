@@ -78,6 +78,14 @@ export class AuthService {
     return this.http.post<{ message: string }>(`${this.apiUrl}/reset-password`, resetData).pipe(catchError(this.handleError));
   }
 
+  verifyEmail(token: string): Observable<{ message: string }> {
+    return this.http.get<{ message: string }>(`${this.apiUrl}/verify-email/${token}`).pipe(catchError(this.handleError));
+  }
+
+  resendVerification(): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/resend-verification`, {}).pipe(catchError(this.handleError));
+  }
+
   uploadAvatar(file: File) {
     const formData = new FormData();
     formData.append('file', file);

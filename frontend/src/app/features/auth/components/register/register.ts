@@ -3,7 +3,6 @@ import { NgClass } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { AuthStateService } from '../../../../core/services/auth-state.service';
 import { RegisterRequest } from '../../models/auth.model';
 
 // PrimeNG
@@ -30,7 +29,6 @@ import { MessageModule } from 'primeng/message';
 export class RegisterComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
-  private authStateService = inject(AuthStateService);
   private router = inject(Router);
 
   registerForm: FormGroup;
@@ -72,22 +70,11 @@ export class RegisterComponent {
     };
 
     this.authService.register(registerData).subscribe({
-      next: (user) => {
-        const loginData = {
-          email: registerData.email,
-          password: registerData.password
-        };
-
-        this.authService.login(loginData).subscribe({
-          next: () => {
-            this.authStateService.setUser(user);
-            this.isLoading.set(false);
-            this.router.navigate(['/todos']);
-          },
-          error: (err) => {
-            this.error.set('Rejestracja zakończona sukcesem, ale logowanie nie powiodło się. Spróbuj się zalogować.');
-            this.isLoading.set(false);
-          }
+      next: () => {
+        this.isLoading.set(false);
+        // Redirect to check-email page with email param
+        this.router.navigate(['/check-email'], { 
+          queryParams: { email: registerData.email } 
         });
       },
       error: (err) => {

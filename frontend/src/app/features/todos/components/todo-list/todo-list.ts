@@ -1,9 +1,7 @@
 import { Component, signal, inject, OnInit, computed, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { TodoService } from '../../services/todo.service';
-import { AuthService } from '../../../auth/services/auth.service';
 import { AuthStateService } from '../../../../core/services/auth-state.service';
 import { TodoFormComponent } from '../todo-form/todo-form';
 import { Todo, TodoCreate } from '../../models/todo.model';
@@ -51,6 +49,7 @@ export class TodoListComponent implements OnInit {
   error = signal<string | null>(null);
   editingTodo = signal<Todo | null>(null);
   formVisible = false;
+  isBrowser = signal(false);
 
   completedTodos = computed(() => this.todos().filter(todo => todo.completed));
   pendingTodos = computed(() => this.todos().filter(todo => !todo.completed));
@@ -61,8 +60,8 @@ export class TodoListComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Only load todos in the browser to avoid 401 errors on SSR
-    if (isPlatformBrowser(this.platformId)) {
+    this.isBrowser.set(isPlatformBrowser(this.platformId));
+    if (this.isBrowser()) {
       this.loadTodos();
     }
   }
@@ -70,7 +69,6 @@ export class TodoListComponent implements OnInit {
   loadTodos() {
     this.loading.set(true);
     this.error.set(null);
-
     this.todoService.getTodos().pipe(delay(2500)).subscribe({
       next: (todos) => {
         this.todos.set(todos);
@@ -125,9 +123,7 @@ export class TodoListComponent implements OnInit {
   private updateTodo(id: number, todoData: TodoCreate) {
     this.todoService.updateTodo(id, todoData).subscribe({
       next: (updatedTodo) => {
-        this.todos.update(todos =>
-          todos.map(todo => todo.id === id ? updatedTodo : todo)
-        );
+        this.todos.update(todos => todos.map(todo => todo.id === id ? updatedTodo : todo));
         this.hideForm();
       },
       error: (err) => {
@@ -139,9 +135,7 @@ export class TodoListComponent implements OnInit {
   toggleTodoCompletion(todo: Todo) {
     this.todoService.updateTodo(todo.id, { completed: !todo.completed }).subscribe({
       next: (updatedTodo) => {
-        this.todos.update(todos =>
-          todos.map(t => t.id === todo.id ? updatedTodo : t)
-        );
+        this.todos.update(todos => todos.map(t => t.id === todo.id ? updatedTodo : t));
       },
       error: (err) => {
         this.error.set('Nie udało się zmienić statusu zadania');

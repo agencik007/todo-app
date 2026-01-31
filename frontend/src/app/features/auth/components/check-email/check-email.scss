@@ -1,0 +1,60 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 200px);
+  padding: 2rem;
+}
+
+.check-email-card {
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.card-header {
+  padding: 2rem 1.5rem 1rem;
+  text-align: center;
+
+  i.pi-envelope {
+    font-size: 4rem;
+    color: var(--p-primary-color);
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--p-text-color);
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.main-message {
+  font-size: 1.1rem;
+  color: var(--p-text-secondary-color);
+  margin: 0;
+}
+
+.email-address {
+  font-size: 1.2rem;
+  color: var(--p-primary-color);
+  margin: 0;
+}
+
+.instruction {
+  color: var(--p-text-secondary-color);
+  margin: 0.5rem 0 1rem;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}

@@ -7,6 +7,7 @@ Aplikacja Todo zbudowana w technologii **Angular 20** + **Python FastAPI** + **P
 🎉 **Aplikacja działa!** Wszystkie komponenty zostały zaimplementowane i skonteneryzowane.
 
 ### ✅ Zrealizowane funkcjonalności:
+
 - ✅ **Backend FastAPI** - REST API z pełnym CRUD, PostgreSQL, Pydantic
 - ✅ **Frontend Angular 20** - Signals, Control Flow, Standalone Components, SSR
 - ✅ **Docker** - Pełna konteneryzacja, multi-stage builds, production ready
@@ -15,14 +16,17 @@ Aplikacja Todo zbudowana w technologii **Angular 20** + **Python FastAPI** + **P
 - ✅ **CI/CD** - GitHub Actions z automatycznym buildem i deployem
 
 ### 🚀 Jak uruchomić (3 proste kroki):
+
 ```bash
 git clone https://github.com/YOUR_USERNAME/todo-app.git
 cd todo-app
 make dev  # lub: cd docker && docker-compose up --build
 ```
+
 Otwórz: http://localhost:4200
 
 **Alternatywnie z Makefile:**
+
 ```bash
 make dev      # Development mode
 make prod     # Production mode
@@ -31,9 +35,11 @@ make logs     # View logs
 ```
 
 ### 📧 MailHog - Email Testing
+
 Aplikacja używa **MailHog** do testowania funkcji emailowych (weryfikacja emaila, reset hasła). MailHog to development SMTP server, który przechwytuje wszystkie emaile bez wysyłania prawdziwych wiadomości.
 
 **Jak używać MailHog:**
+
 1. MailHog uruchamia się automatycznie z docker-compose
 2. Otwórz przeglądarkę: **http://localhost:8025**
 3. Wszystkie emaile wysyłane przez aplikację pojawią się w interfejsie MailHog
@@ -71,6 +77,7 @@ Prosta aplikacja Todo do zarządzania zadaniami z pełnym CRUD (Create, Read, Up
 ## 🛠 Technologie
 
 ### Backend
+
 - **Python 3.12**
 - **FastAPI** - nowoczesny framework webowy
 - **SQLAlchemy** - ORM dla baz danych
@@ -79,12 +86,14 @@ Prosta aplikacja Todo do zarządzania zadaniami z pełnym CRUD (Create, Read, Up
 - **Uvicorn** - serwer ASGI
 
 ### Frontend
+
 - **Angular 20** - framework frontendowy
 - **TypeScript** - język programowania
 - **RxJS** - programowanie reaktywne
 - **Angular Material** (planowane)
 
 ### DevOps
+
 - **Docker** - konteneryzacja
 - **Docker Compose** - orkiestracja kontenerów
 - **GitHub Actions** - CI/CD
@@ -169,6 +178,7 @@ Jeśli wolisz używać Docker, cała aplikacja może być uruchomiona w kontener
 ### Opcja 1: Uruchomienie bez Docker
 
 #### Backend
+
 ```bash
 cd backend
 venv\Scripts\activate
@@ -178,6 +188,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 Backend będzie dostępny na: http://localhost:8000
 
 #### Frontend
+
 ```bash
 cd frontend
 ng serve
@@ -204,15 +215,15 @@ Po uruchomieniu backendu, dokumentacja API jest dostępna pod adresami:
 
 ### Dostępne endpointy
 
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/` | Status aplikacji |
-| GET | `/health` | Health check |
-| GET | `/todos` | Pobierz wszystkie zadania |
-| GET | `/todos/{id}` | Pobierz zadanie po ID |
-| POST | `/todos` | Utwórz nowe zadanie |
-| PUT | `/todos/{id}` | Aktualizuj zadanie |
-| DELETE | `/todos/{id}` | Usuń zadanie |
+| Metoda | Endpoint      | Opis                      |
+| ------ | ------------- | ------------------------- |
+| GET    | `/`           | Status aplikacji          |
+| GET    | `/health`     | Health check              |
+| GET    | `/todos`      | Pobierz wszystkie zadania |
+| GET    | `/todos/{id}` | Pobierz zadanie po ID     |
+| POST   | `/todos`      | Utwórz nowe zadanie       |
+| PUT    | `/todos/{id}` | Aktualizuj zadanie        |
+| DELETE | `/todos/{id}` | Usuń zadanie              |
 
 ### Przykładowe żądania
 
@@ -240,6 +251,9 @@ pytest
 pytest --cov=. --cov-report=html
 ```
 
+> [!NOTE]
+> **Rate Limiting:** Podczas uruchamiania testów (pytest), ograniczanie liczby żądań (rate limiting) jest automatycznie wyłączane za pomocą zmiennej środowiskowej `TESTING=1`. Pozwala to na szybkie wykonywanie testów bez blokowania żądań.
+
 ### Frontend - Testy jednostkowe
 
 ```bash
@@ -255,15 +269,18 @@ ng test --code-coverage
 ## 🚀 Szybkie uruchomienie aplikacji
 
 ### Wymagania wstępne
+
 - **Docker Desktop** zainstalowany i uruchomiony
 
 ### Krok 1: Klonowanie repozytorium
+
 ```bash
 git clone <repository-url>
 cd todo-app
 ```
 
 ### Krok 2: Uruchomienie aplikacji (Docker)
+
 ```bash
 # Przejdź do katalogu docker
 cd docker
@@ -273,7 +290,9 @@ docker-compose up --build
 ```
 
 ### Krok 3: Dostęp do aplikacji
+
 Po uruchomieniu otwórz w przeglądarce:
+
 - **📱 Frontend aplikacji**: http://localhost:4200
 - **🔧 Backend API**: http://localhost:8000
 - **📚 Dokumentacja API**: http://localhost:8000/docs
@@ -309,6 +328,7 @@ Po uruchomieniu otwórz w przeglądarce:
 ### Tryby uruchomienia
 
 #### Tryb Development (z hot-reload)
+
 ```bash
 # Z katalogu głównego projektu
 make dev
@@ -318,6 +338,7 @@ docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.ym
 ```
 
 #### Tryb Production
+
 ```bash
 # Z katalogu głównego projektu
 make prod
@@ -387,18 +408,21 @@ PgAdmin to webowe narzędzie do zarządzania bazą danych PostgreSQL:
 ### Pliki konfiguracyjne Docker
 
 #### Dockerfile.backend
+
 - **Baza**: Python 3.12 slim
 - **Serwer**: Uvicorn z hot-reload
 - **Bezpieczeństwo**: Non-root user
 - **Health checks**: Socket connection test
 
 #### Dockerfile.frontend
+
 - **Baza**: Node.js 22 Alpine (multi-stage)
 - **Build**: Angular CLI production build
 - **Serwer**: HTTP-Server dla statycznych plików
 - **Optymalizacja**: Minifikacja i kompresja
 
 #### docker-compose.yml
+
 - **Sieć**: Isolated todo-network
 - **Volumes**: Persistent PostgreSQL data
 - **Health checks**: Service dependencies
@@ -407,6 +431,7 @@ PgAdmin to webowe narzędzie do zarządzania bazą danych PostgreSQL:
 ### Troubleshooting Docker
 
 #### Problem: Port już zajęty
+
 ```bash
 # Sprawdź jaki proces używa portu
 netstat -ano | findstr :4200
@@ -417,6 +442,7 @@ ports:
 ```
 
 #### Problem: Kontener się zatrzymuje
+
 ```bash
 # Sprawdź logi
 docker-compose logs frontend
@@ -429,6 +455,7 @@ docker-compose build --no-cache frontend
 ```
 
 #### Problem: Baza danych nie działa
+
 ```bash
 # Sprawdź połączenie
 docker-compose exec db pg_isready -U todo_user -d todo_db
@@ -439,6 +466,7 @@ docker-compose up --build db
 ```
 
 #### Problem: Frontend nie łączy się z backendem
+
 ```bash
 # Sprawdź czy backend działa
 curl http://localhost:8000/health
@@ -488,6 +516,7 @@ Projekt zawiera kompleksową konfigurację CI/CD z GitHub Actions:
 ### 📋 Workflow CI/CD (`.github/workflows/ci-cd.yml`)
 
 **Dla branchy `main` i `develop`:**
+
 1. **🔍 Testy backendu** - pytest z coverage, PostgreSQL w kontenerze
 2. **⚡ Testy frontendu** - linting, build produkcyjny
 3. **🛡️ Skanowanie bezpieczeństwa** - Trivy vulnerability scanner
@@ -498,6 +527,7 @@ Projekt zawiera kompleksową konfigurację CI/CD z GitHub Actions:
 ### 🔍 Workflow PR Checks (`.github/workflows/pr-checks.yml`)
 
 **Dla Pull Requestów:**
+
 1. **💅 Code Quality** - ESLint, Black, isort, mypy
 2. **🔒 Dependency Security** - safety (Python), npm audit
 3. **🐳 Docker Build Test** - walidacja obrazów
@@ -507,18 +537,21 @@ Projekt zawiera kompleksową konfigurację CI/CD z GitHub Actions:
 Projekt przeszedł przez kilka iteracji konfiguracji CI/CD:
 
 #### **Faza 1: Podstawowa konfiguracja**
+
 - ✅ Utworzono repozytorium na GitHub
 - ✅ Skonfigurowano podstawowe workflow dla backendu i frontendu
 - ✅ Dodać testy jednostkowe dla backendu (pytest + SQLite)
 - ✅ Frontend - usunięto testy Angular ze względu na problemy z konfiguracją
 
 #### **Faza 2: Docker i deployment lokalny**
+
 - ✅ Skonfigurowano pełne środowisko Docker (backend, frontend, PostgreSQL, PgAdmin)
 - ✅ Utworzono multi-stage Dockerfiles
 - ✅ Skonfigurowano docker-compose.yml
 - ✅ Przetestowano lokalnie - wszystko działa
 
 #### **Faza 3: CI/CD Pipeline**
+
 - ✅ Skonfigurowano GitHub Actions workflow
 - ✅ Dodać build obrazów Docker i push do GHCR
 - ✅ Skonfigurowano deployment na Oracle Cloud
@@ -527,6 +560,7 @@ Projekt przeszedł przez kilka iteracji konfiguracji CI/CD:
 - ✅ Skonfigurowano health checks dla kontenerów
 
 #### **Faza 4: Debugowanie i optymalizacja**
+
 - ✅ Rozwiązano problemy z zatrzymywaniem się skryptu deployment
 - ✅ Dodać szczegółową diagnostykę błędów
 - ✅ Uproszczono logikę sprawdzania katalogów
@@ -534,6 +568,7 @@ Projekt przeszedł przez kilka iteracji konfiguracji CI/CD:
 - ✅ Skonfigurowano CORS dla Oracle Cloud
 
 #### **Faza 5: Funkcjonalności dodatkowe**
+
 - ✅ Dodać dark/light mode toggle dla frontendu
 - ✅ Skonfigurowano localStorage dla preferencji użytkownika
 - ✅ Zaimplementowano SSR-safe komponenty
@@ -541,26 +576,31 @@ Projekt przeszedł przez kilka iteracji konfiguracji CI/CD:
 ### 🚨 Problemy napotkane i rozwiązania
 
 #### **Problem 1: Skrypt deployment się zatrzymywał**
+
 **Objawy:** Skrypt wykonywał się do sprawdzenia katalogu, potem `Process exited with status 1`
 **Przyczyna:** Zbyt skomplikowana logika if-else z wieloma duplikatami kodu
 **Rozwiązanie:** Przepisanie sekcji sprawdzania katalogu na czystą, prostą strukturę
 
 #### **Problem 2: Konflikty z istniejącymi kontenerami**
+
 **Objawy:** Nowe deployment nie mógł wystartować z powodu zajętych portów
 **Przyczyna:** Poprzednie kontenery blokowały zasoby
 **Rozwiązanie:** Dodanie automatycznego czyszczenia wszystkich kontenerów na początku deploymentu
 
 #### **Problem 3: CORS errors na Oracle Cloud**
+
 **Objawy:** Frontend nie mógł się połączyć z backend API
 **Przyczyna:** CORS allow_origins nie zawierał adresu Oracle Cloud
 **Rozwiązanie:** Dodanie `http://130.61.130.231:4200` do CORS middleware
 
 #### **Problem 4: SSR ErrorEvent undefined**
+
 **Objawy:** `ReferenceError: ErrorEvent is not defined` podczas Docker build
 **Przyczyna:** Angular SSR nie rozpoznawał ErrorEvent w server-side środowisku
 **Rozwiązanie:** Błąd nie przeszkadza w działaniu aplikacji, ale wymaga dalszego debugowania
 
 #### **Problem 5: GitHub Actions deprecated actions**
+
 **Objawy:** Workflow fail z powodu przestarzałych wersji actions
 **Przyczyna:** `actions/upload-artifact@v3` i `github/codeql-action@v1` zostały zdeprecjonowane
 **Rozwiązanie:** Aktualizacja do `v4` i `v3` odpowiednio
@@ -568,6 +608,7 @@ Projekt przeszedł przez kilka iteracji konfiguracji CI/CD:
 ### 🏆 Końcowy rezultat
 
 Aplikacja działa w pełni na Oracle Cloud:
+
 - 🌐 **Frontend:** `http://130.61.130.231:4200` - Angular z dark/light mode
 - 🔧 **Backend:** `http://130.61.130.231:8000` - FastAPI REST API
 - 🗄️ **Database:** PostgreSQL z PgAdmin na porcie 5050
@@ -577,13 +618,14 @@ Aplikacja działa w pełni na Oracle Cloud:
 
 W repo na GitHub → **Settings** → **Secrets and variables** → **Actions**:
 
-| Secret Name | Opis | Przykład |
-|-------------|------|----------|
-| `SERVER_HOST` | Adres IP instancji Oracle | `130.61.130.231` |
-| `SERVER_USER` | Użytkownik SSH | `ubuntu` |
-| `SSH_PRIVATE_KEY` | Klucz prywatny SSH | Cała zawartość `~/.ssh/id_rsa` |
+| Secret Name       | Opis                      | Przykład                       |
+| ----------------- | ------------------------- | ------------------------------ |
+| `SERVER_HOST`     | Adres IP instancji Oracle | `130.61.130.231`               |
+| `SERVER_USER`     | Użytkownik SSH            | `ubuntu`                       |
+| `SSH_PRIVATE_KEY` | Klucz prywatny SSH        | Cała zawartość `~/.ssh/id_rsa` |
 
 **Jak wygenerować SSH key:**
+
 ```bash
 # Na lokalnej maszynie
 ssh-keygen -t rsa -b 4096 -C "your-email@example.com"
@@ -598,6 +640,7 @@ cat ~/.ssh/id_rsa
 ### 🌐 Deployment na Oracle Cloud
 
 #### 1. Przygotowanie instancji OCI (Ubuntu):
+
 ```bash
 # Połącz się z instancją (użytkownik domyślny to 'ubuntu')
 ssh -i your-private-key ubuntu@130.61.130.231
@@ -632,6 +675,7 @@ cd todo-app
 ```
 
 #### 2. Konfiguracja środowiska:
+
 ```bash
 # Utwórz plik .env
 cp docker/docker.env .env
@@ -644,6 +688,7 @@ DEBUG=False
 ```
 
 #### 3. Uruchomienie aplikacji:
+
 ```bash
 # Przejdź do katalogu docker
 cd docker
@@ -659,6 +704,7 @@ docker-compose logs -f
 ```
 
 #### 4. Firewall (jeśli potrzebne):
+
 ```bash
 # Otwórz porty w Oracle Cloud firewall
 # VPC → Security Lists → Dodaj reguły dla portów: 80, 4200, 8000, 5050
@@ -671,6 +717,7 @@ sudo ufw --force enable
 ```
 
 #### 5. Konfiguracja Nginx (opcjonalnie dla domeny):
+
 ```bash
 # Dla domeny, zainstaluj i skonfiguruj Nginx
 sudo apt install -y nginx
@@ -752,6 +799,7 @@ alembic current
 ```
 
 ### Użycie z Docker
+
 Jeśli aplikacja działa w kontenerach, komendy należy wywołać wewnątrz kontenera backendu:
 
 ```bash
@@ -846,4 +894,3 @@ Masz pytania? Napisz do mnie!
 ---
 
 ⭐ Jeśli projekt Ci się podoba, daj gwiazdkę na GitHub!
-

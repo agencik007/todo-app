@@ -38,11 +38,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 # Use a no-op limiter in testing environment
 IS_TESTING = os.getenv("TESTING", "0") == "1"
-if IS_TESTING:
-    # No rate limiting in tests
-    limiter = Limiter(key_func=get_remote_address, default_limits=["10000/second"])
-else:
-    limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(
+    key_func=get_remote_address,
+    enabled=not IS_TESTING
+)
 
 # Constants
 PASSWORD_RESET_EXPIRY_HOURS = 1
@@ -95,12 +94,15 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
             detail="Email already registered"
         )
 
-    # Create new user
+    # Create new user with verification token
+    verification_token = _create_verification_token()
     new_user = User(
         email=user_data.email,
         hashed_password=hash_password(user_data.password),
         is_active=True,
         is_verified=False,
+        email_verification_token=verification_token,
+        email_verification_expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
     )
 
     db.add(new_user)
@@ -109,10 +111,10 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
 
     # Send verification email (non-blocking)
     try:
-        verification_token = _create_verification_token()
         send_verification_email(user_data.email, verification_token)
-    except Exception as e:
-        print(f"Error sending verification email: {e}")
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("Failed to send verification email")
 
     return new_user
 
@@ -184,6 +186,12 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, 
             detail="Inactive user"
+        )
+
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email not verified. Please check your inbox and verify your email before logging in."
         )
 
     return _create_tokens(user)
@@ -333,34 +341,74 @@ def reset_password(
 @router.get("/verify-email/{token}")
 def verify_email(token: str, db: Session = Depends(get_db)):
     """
-    Verify email address with token (not fully implemented).
-    
-    Args:
-        token: Email verification token.
-        db: Database session.
-        
-    Raises:
-        HTTPException: Feature not implemented.
-    """
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Email verification via token endpoint is not fully implemented.",
-    )
-
-
-@router.post("/verify-email")
-def verify_email_post(token: str, db: Session = Depends(get_db)):
-    """
-    Verify email address (placeholder endpoint).
+    Verify email address with token.
     
     Args:
         token: Email verification token.
         db: Database session.
         
     Returns:
-        dict: Placeholder message.
+        dict: Success message.
+        
+    Raises:
+        HTTPException: If token is invalid or expired.
     """
-    return {"message": "Email verification endpoint - implement proper token storage"}
+    user = (
+        db.query(User)
+        .filter(
+            User.email_verification_token == token,
+            User.email_verification_expires_at > datetime.now(timezone.utc),
+        )
+        .first()
+    )
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification token",
+        )
+    
+    user.is_verified = True
+    user.email_verification_token = None
+    user.email_verification_expires_at = None
+    db.commit()
+    
+    return {"message": "Email verified successfully"}
+
+
+@router.post("/resend-verification")
+@limiter.limit("3/hour")
+def resend_verification(
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Resend verification email to current user.
+    
+    Args:
+        request: FastAPI request object (for rate limiting).
+        current_user: Current authenticated user.
+        db: Database session.
+        
+    Returns:
+        dict: Success message.
+    """
+    if current_user.is_verified:
+        return {"message": "Email already verified"}
+    
+    token = _create_verification_token()
+    current_user.email_verification_token = token
+    current_user.email_verification_expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+    db.commit()
+    
+    try:
+        send_verification_email(current_user.email, token)
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("Failed to send verification email")
+    
+    return {"message": "Verification email sent"}
 
 
 @router.post("/logout")

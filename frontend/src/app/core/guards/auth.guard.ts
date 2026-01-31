@@ -1,19 +1,15 @@
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthStateService } from '../services/auth-state.service';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const authStateService = inject(AuthStateService);
   const router = inject(Router);
+  const platformId = inject(PLATFORM_ID);
 
-  if (typeof window === 'undefined') {
-    return true;
+  if (!authStateService.isAuthenticated()) {
+    return router.parseUrl('/login');
   }
 
-  if (authStateService.isAuthenticated()) {
-    return true;
-  }
-
-  router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
-  return false;
+  return true;
 };

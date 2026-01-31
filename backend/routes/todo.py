@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from config.auth import get_current_active_user
+from config.auth import get_current_verified_user
 from config.database import get_db
 from models.todo import Todo as TodoModel
 from models.user import User
@@ -22,8 +22,8 @@ def get_todos(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
+    current_user: User = Depends(get_current_verified_user),
+) -> List[Todo]:
     """
     Get all todos for current user (own todos + public todos).
     
@@ -56,8 +56,8 @@ def get_todos(
 def get_todo(
     todo_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
+    current_user: User = Depends(get_current_verified_user),
+) -> Todo:
     """
     Get a specific todo by ID.
     
@@ -102,8 +102,8 @@ def get_todo(
 def create_todo(
     todo: TodoCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
+    current_user: User = Depends(get_current_verified_user),
+) -> Todo:
     """
     Create a new todo.
     
@@ -132,8 +132,8 @@ def update_todo(
     todo_id: int,
     todo_update: TodoUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
+    current_user: User = Depends(get_current_verified_user),
+) -> Todo:
     """
     Update an existing todo.
     
@@ -179,8 +179,8 @@ def update_todo(
 def delete_todo(
     todo_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
+    current_user: User = Depends(get_current_verified_user),
+) -> dict:
     """
     Delete a todo.
     

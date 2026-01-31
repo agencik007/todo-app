@@ -8,7 +8,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.orm import Session
 
-from config.auth import get_current_user
+from config.auth import get_current_verified_user
 from config.database import get_db
 from models.user import User
 
@@ -21,7 +21,7 @@ ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
 @router.post("/me/avatar")
 async def upload_avatar(
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -73,7 +73,7 @@ async def upload_avatar(
 
 @router.delete("/me/avatar")
 async def delete_avatar(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     db: Session = Depends(get_db)
 ):
     """

@@ -7,6 +7,7 @@ This repository contains a full-stack Todo application with a FastAPI backend an
 All major operations are managed via the root `Makefile`.
 
 ### General
+
 - **Start Dev Environment:** `make dev` (hot-reload enabled)
 - **Start Prod Environment:** `make prod`
 - **Stop All Services:** `make down`
@@ -14,12 +15,19 @@ All major operations are managed via the root `Makefile`.
 - **Clean Environment:** `make clean` (removes containers, images, volumes)
 
 ### Backend (FastAPI)
+
 - **Run All Tests:** `make test-backend`
 - **Run Single Test:** `docker-compose -f docker/docker-compose.yml exec backend python -m pytest backend/tests/test_filename.py::test_function_name`
+- **Rate Limiting & Testing:**
+  - Rate limiting is enabled by default on sensitive endpoints (registration, login, verify email).
+  - **CRITICAL:** To disable rate limiting during tests, ensure the environment variable `TESTING=1` is set.
+  - The `backend/tests/conftest.py` file sets `os.environ["TESTING"] = "1"` automatically for all pytest-runs.
+  - If adding new rate-limited endpoints, always check `enabled=not IS_TESTING` or `os.getenv("TESTING") != "1"`.
 - **Database Migration:** `make migrate` (creates tables using SQLAlchemy)
 - **Enter Shell:** `make shell-backend`
 
 ### Frontend (Angular)
+
 - **Run All Tests:** `make test-frontend` (non-watching mode)
 - **Run Single Test:** `docker-compose -f docker/docker-compose.yml exec frontend npx ng test --include=src/app/path/to/spec.ts`
 - **Linting:** `docker-compose -f docker/docker-compose.yml exec frontend npm run lint`
@@ -29,14 +37,16 @@ All major operations are managed via the root `Makefile`.
 ## 🎨 Code Style Guidelines
 
 ### General Principles
+
 - **DRY & KISS:** Keep it simple and don't repeat yourself.
 - **Docker-First:** Assume all tools run inside containers.
 - **Absolute Paths:** When using tools, always prefer absolute paths.
 
 ### Backend (Python/FastAPI)
+
 - **Framework:** FastAPI with SQLAlchemy (models) and Pydantic (schemas).
 - **Imports:** Group imports: 1. Standard library, 2. Third-party, 3. Local modules.
-- **Naming:** 
+- **Naming:**
   - Functions/Variables: `snake_case`
   - Classes: `PascalCase`
   - Schemas: suffix with `Create`, `Update` where applicable (e.g., `TodoCreate`).
@@ -45,6 +55,7 @@ All major operations are managed via the root `Makefile`.
 - **Formatting:** Follow PEP 8 (handled by toolings, but keep it clean). Use double quotes for strings unless single quotes are required.
 
 ### Frontend (TypeScript/Angular)
+
 - **Framework:** Angular (Standalone Components) with PrimeNG UI library.
 - **Imports:** Preferred order: 1. Angular core/common, 2. Third-party libraries, 3. Shared/Core services, 4. Local models/components.
 - **Naming:**
@@ -59,6 +70,7 @@ All major operations are managed via the root `Makefile`.
 ---
 
 ## 📂 Project Structure
+
 - `/backend`: FastAPI application, models, routes, and tests.
 - `/frontend`: Angular source code, components, and assets.
 - `/docker`: Dockerfiles and docker-compose configurations.
