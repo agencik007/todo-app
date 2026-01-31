@@ -121,6 +121,8 @@ class TestTodoResponseSchema:
             "title": "Response Todo",
             "description": "Response description",
             "completed": False,
+            "is_public": False,
+            "user_id": 1,
             "created_at": datetime(2023, 1, 1, 12, 0, 0),
             "updated_at": datetime(2023, 1, 1, 12, 0, 0)
         }
@@ -131,6 +133,7 @@ class TestTodoResponseSchema:
         assert todo.title == "Response Todo"
         assert todo.description == "Response description"
         assert todo.completed == False
+        assert todo.user_id == 1
         assert isinstance(todo.created_at, datetime)
         assert isinstance(todo.updated_at, datetime)
 
@@ -142,6 +145,8 @@ class TestTodoResponseSchema:
             "title": sample_todo.title,
             "description": sample_todo.description,
             "completed": sample_todo.completed,
+            "is_public": sample_todo.is_public,
+            "user_id": sample_todo.user_id,
             "created_at": sample_todo.created_at,
             "updated_at": sample_todo.updated_at
         }
@@ -152,3 +157,4 @@ class TestTodoResponseSchema:
         assert todo.title == sample_todo.title
         assert todo.description == sample_todo.description
         assert todo.completed == sample_todo.completed
+        assert todo.user_id == sample_todo.user_id

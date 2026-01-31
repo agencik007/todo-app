@@ -17,7 +17,7 @@ services:
     networks:
       - todo-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U todo_user -d todo_db"]
+      test: [ "CMD-SHELL", "pg_isready -U todo_user -d todo_db" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,18 +34,24 @@ services:
       - DATABASE_URL=postgresql://todo_user:todo_password@db:5432/todo_db
       - DEBUG=False
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - EMAIL_FROM=${EMAIL_FROM:-noreply@example.com}
+      - MAILHOG_HOST=mailhog
+      - MAILHOG_PORT=1025
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:4200}
     ports:
       - "8000:8000"
     volumes:
       - ../backend:/app
-      - /app/venv  # Don't mount virtual environment
+      - /app/venv # Don't mount virtual environment
     depends_on:
       db:
         condition: service_healthy
+      mailhog:
+        condition: service_started
     networks:
       - todo-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import socket; s = socket.socket(); s.connect(('localhost', 8000)); s.close()"]
+      test: [ "CMD", "python", "-c", "import socket; s = socket.socket(); s.connect(('localhost', 8000)); s.close()" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -60,15 +66,39 @@ services:
     restart: unless-stopped
     ports:
       - "4200:4200"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    # Development mode (Hot-reloading):
+    command: npx ng serve --host 0.0.0.0
+    # Production-like mode (SSR):
+    # command: node dist/frontend/server/server.mjs
     depends_on:
       backend:
         condition: service_healthy
     networks:
       - todo-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
+      test: [ "CMD", "curl", "-f", "http://localhost:4200/" ]
       interval: 30s
       timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # MailHog - Email testing tool
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: todo-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP server
+      - "8025:8025" # Web UI
+    networks:
+      - todo-network
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025" ]
+      interval: 10s
+      timeout: 5s
       retries: 3
       start_period: 10s
 

@@ -24,6 +24,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/animations": "^20.3.16",
     "@angular/common": "^20.3.0",
     "@angular/compiler": "^20.3.0",
     "@angular/core": "^20.3.0",
@@ -32,7 +33,10 @@
     "@angular/platform-server": "^20.3.0",
     "@angular/router": "^20.3.0",
     "@angular/ssr": "^20.3.2",
+    "@primeuix/themes": "^2.0.3",
     "express": "^5.1.0",
+    "primeicons": "^7.0.0",
+    "primeng": "^21.0.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -43,6 +47,7 @@
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",
+    "baseline-browser-mapping": "^2.8.30",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",

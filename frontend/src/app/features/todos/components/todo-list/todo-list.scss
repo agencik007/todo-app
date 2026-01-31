@@ -1,0 +1,75 @@
+// Utility classes for todo-list
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.justify-content-between {
+  justify-content: space-between;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mt-1 {
+  margin-top: 0.25rem;
+}
+
+.m-0 {
+  margin: 0;
+}
+
+.py-6 {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.text-color-secondary {
+  color: var(--p-text-muted-color);
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+}
+
+.text-6xl {
+  font-size: 3.75rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+}
+
+.line-through {
+  text-decoration: line-through;
+}
+
+.w-full {
+  width: 100%;
+}

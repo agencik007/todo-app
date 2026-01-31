@@ -259,3 +259,6 @@ playwright/.cache/
 
 # CI/CD
 .github/workflows/cache/
+
+# backend files
+backend/uploadedFiles/

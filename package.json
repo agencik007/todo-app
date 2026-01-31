@@ -1,1 +1,19 @@
-{}
+{
+  "name": "todo-app-agencik007",
+  "version": "1.0.0",
+  "description": "Full-stack Todo App (FastAPI + Angular)",
+  "private": true,
+  "scripts": {
+    "dev": "make dev",
+    "prod": "make prod",
+    "test:backend": "make test-backend",
+    "test:frontend": "make test-frontend",
+    "clean": "make clean",
+    "migrate": "make migrate",
+    "logs": "make logs",
+    "status": "make status"
+  },
+  "workspaces": [
+    "frontend"
+  ]
+}

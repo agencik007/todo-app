@@ -1,41 +1,168 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+"""
+Todo routes - CRUD operations for todo items.
+"""
+
 from typing import List
-from models.todo import Todo as TodoModel
-from models.schemas import Todo, TodoCreate, TodoUpdate
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import or_
+from sqlalchemy.orm import Session
+
+from config.auth import get_current_verified_user
 from config.database import get_db
+from models.todo import Todo as TodoModel
+from models.user import User
+from models.schemas import Todo, TodoCreate, TodoUpdate
 
 router = APIRouter(prefix="/todos", tags=["todos"])
 
-@router.get("/", response_model=List[Todo])
-def get_todos(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Get all todos with pagination"""
-    todos = db.query(TodoModel).offset(skip).limit(limit).all()
+
+@router.get("", response_model=List[Todo])
+def get_todos(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_verified_user),
+) -> List[Todo]:
+    """
+    Get all todos for current user (own todos + public todos).
+    
+    Args:
+        skip: Number of records to skip (pagination).
+        limit: Maximum number of records to return.
+        db: Database session.
+        current_user: Current authenticated user.
+        
+    Returns:
+        List[Todo]: List of todo items.
+    """
+    results = (
+        db.query(TodoModel, User.email)
+        .join(User, TodoModel.user_id == User.id)
+        .filter(or_(TodoModel.user_id == current_user.id, TodoModel.is_public == True))
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    todos = []
+    for todo, email in results:
+        todo.owner_email = email
+        todos.append(todo)
     return todos
 
+
 @router.get("/{todo_id}", response_model=Todo)
-def get_todo(todo_id: int, db: Session = Depends(get_db)):
-    """Get a specific todo by ID"""
-    todo = db.query(TodoModel).filter(TodoModel.id == todo_id).first()
-    if todo is None:
-        raise HTTPException(status_code=404, detail="Todo not found")
+def get_todo(
+    todo_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_verified_user),
+) -> Todo:
+    """
+    Get a specific todo by ID.
+    
+    Args:
+        todo_id: ID of the todo to retrieve.
+        db: Database session.
+        current_user: Current authenticated user.
+        
+    Returns:
+        Todo: The requested todo item.
+        
+    Raises:
+        HTTPException: If todo not found or user doesn't have access.
+    """
+    result = (
+        db.query(TodoModel, User.email)
+        .join(User, TodoModel.user_id == User.id)
+        .filter(TodoModel.id == todo_id)
+        .first()
+    )
+
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Todo not found"
+        )
+
+    todo, email = result
+    todo.owner_email = email
+
+    # Check if user has access (owner or public)
+    if todo.user_id != current_user.id and not todo.is_public:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions to access this todo",
+        )
+
     return todo
 
-@router.post("/", response_model=Todo)
-def create_todo(todo: TodoCreate, db: Session = Depends(get_db)):
-    """Create a new todo"""
-    db_todo = TodoModel(**todo.model_dump())
+
+@router.post("", response_model=Todo, status_code=status.HTTP_201_CREATED)
+def create_todo(
+    todo: TodoCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_verified_user),
+) -> Todo:
+    """
+    Create a new todo.
+    
+    Args:
+        todo: Todo data to create.
+        db: Database session.
+        current_user: Current authenticated user.
+        
+    Returns:
+        Todo: The created todo item.
+    """
+    todo_data = todo.model_dump()
+    todo_data["user_id"] = current_user.id
+    
+    db_todo = TodoModel(**todo_data)
     db.add(db_todo)
     db.commit()
     db.refresh(db_todo)
+    
+    db_todo.owner_email = current_user.email
     return db_todo
 
+
 @router.put("/{todo_id}", response_model=Todo)
-def update_todo(todo_id: int, todo_update: TodoUpdate, db: Session = Depends(get_db)):
-    """Update an existing todo"""
+def update_todo(
+    todo_id: int,
+    todo_update: TodoUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_verified_user),
+) -> Todo:
+    """
+    Update an existing todo.
+    
+    Args:
+        todo_id: ID of the todo to update.
+        todo_update: Updated todo data.
+        db: Database session.
+        current_user: Current authenticated user.
+        
+    Returns:
+        Todo: The updated todo item.
+        
+    Raises:
+        HTTPException: If todo not found or user is not the owner.
+    """
     todo = db.query(TodoModel).filter(TodoModel.id == todo_id).first()
+    
     if todo is None:
-        raise HTTPException(status_code=404, detail="Todo not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Todo not found"
+        )
+
+    # Check if user is the owner
+    if todo.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions to update this todo",
+        )
 
     # Update only provided fields
     update_data = todo_update.model_dump(exclude_unset=True)
@@ -44,14 +171,44 @@ def update_todo(todo_id: int, todo_update: TodoUpdate, db: Session = Depends(get
 
     db.commit()
     db.refresh(todo)
+    todo.owner_email = current_user.email
     return todo
 
+
 @router.delete("/{todo_id}")
-def delete_todo(todo_id: int, db: Session = Depends(get_db)):
-    """Delete a todo"""
+def delete_todo(
+    todo_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_verified_user),
+) -> dict:
+    """
+    Delete a todo.
+    
+    Args:
+        todo_id: ID of the todo to delete.
+        db: Database session.
+        current_user: Current authenticated user.
+        
+    Returns:
+        dict: Success message.
+        
+    Raises:
+        HTTPException: If todo not found or user is not the owner.
+    """
     todo = db.query(TodoModel).filter(TodoModel.id == todo_id).first()
+    
     if todo is None:
-        raise HTTPException(status_code=404, detail="Todo not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Todo not found"
+        )
+
+    # Check if user is the owner
+    if todo.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions to delete this todo",
+        )
 
     db.delete(todo)
     db.commit()
