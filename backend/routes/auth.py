@@ -1,20 +1,23 @@
+"""
+Authentication routes - User registration, login, and password management.
+"""
+
+import os
+import secrets
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.security import OAuth2PasswordRequestForm
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta, timezone
-import secrets
-from typing import Optional
 
+from config.auth import get_current_active_user
 from config.database import get_db
-from config.auth import get_current_active_user, get_current_user
 from models.user import User
 from models.schemas import (
     UserCreate,
     UserResponse,
     Token,
-    LoginRequest,
     PasswordResetRequest,
     PasswordReset,
     RefreshTokenRequest,
@@ -29,38 +32,73 @@ from services.auth_service import (
 from services.email_service import (
     send_verification_email,
     send_password_reset_email,
-    send_welcome_email,
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-limiter = Limiter(key_func=get_remote_address)
+
+# Use a no-op limiter in testing environment
+IS_TESTING = os.getenv("TESTING", "0") == "1"
+if IS_TESTING:
+    # No rate limiting in tests
+    limiter = Limiter(key_func=get_remote_address, default_limits=["10000/second"])
+else:
+    limiter = Limiter(key_func=get_remote_address)
+
+# Constants
+PASSWORD_RESET_EXPIRY_HOURS = 1
 
 
-def create_verification_token() -> str:
-    """Create a verification token for email verification"""
+def _create_verification_token() -> str:
+    """Create a cryptographically secure verification token."""
     return secrets.token_urlsafe(32)
 
 
-@router.post(
-    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
-)
+def _create_tokens(user: User) -> dict:
+    """
+    Create access and refresh tokens for a user.
+    
+    Args:
+        user: The user to create tokens for.
+        
+    Returns:
+        dict: Token response with access_token, refresh_token, and token_type.
+    """
+    return {
+        "access_token": create_access_token(data={"sub": user.id, "email": user.email}),
+        "refresh_token": create_refresh_token(data={"sub": user.id, "email": user.email}),
+        "token_type": "bearer",
+    }
+
+
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 def register(request: Request, user_data: UserCreate, db: Session = Depends(get_db)):
-    """Register a new user"""
+    """
+    Register a new user.
+    
+    Args:
+        request: FastAPI request object (for rate limiting).
+        user_data: User registration data.
+        db: Database session.
+        
+    Returns:
+        UserResponse: The created user.
+        
+    Raises:
+        HTTPException: If email is already registered.
+    """
     # Check if user already exists
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Email already registered"
         )
 
     # Create new user
-    hashed_password = hash_password(user_data.password)
-    verification_token = create_verification_token()
-
     new_user = User(
         email=user_data.email,
-        hashed_password=hashed_password,
+        hashed_password=hash_password(user_data.password),
         is_active=True,
         is_verified=False,
     )
@@ -69,25 +107,72 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
     db.commit()
     db.refresh(new_user)
 
-    # Send verification email
+    # Send verification email (non-blocking)
     try:
+        verification_token = _create_verification_token()
         send_verification_email(user_data.email, verification_token)
     except Exception as e:
         print(f"Error sending verification email: {e}")
-        # Don't fail registration if email fails
 
     return new_user
 
 
 @router.post("/login", response_model=Token)
 @limiter.limit("5/minute")
-def login(
+async def login(
     request: Request,
-    form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
-    """Login and get access/refresh tokens"""
-    user = authenticate_user(db, form_data.username, form_data.password)
+    """
+    Login endpoint - accepts both form data and JSON.
+    
+    Supports two formats:
+    - **Form data**: `username` (email) and `password` fields (OAuth2 standard)
+    - **JSON body**: `{"email": "...", "password": "..."}` (frontend-friendly)
+    
+    Args:
+        request: FastAPI request object.
+        db: Database session.
+        
+    Returns:
+        Token: Access and refresh tokens.
+        
+    Raises:
+        HTTPException: If credentials are invalid or user is inactive.
+    """
+    content_type = request.headers.get("content-type", "")
+    
+    if "application/json" in content_type:
+        # Parse JSON body
+        try:
+            body = await request.json()
+            email = body.get("email", "")
+            password = body.get("password", "")
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid JSON body"
+            )
+    else:
+        # Parse form data
+        try:
+            form = await request.form()
+            email = form.get("username", "")  # OAuth2 uses 'username' field
+            password = form.get("password", "")
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid form data"
+            )
+    
+    if not email or not password:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Email and password are required"
+        )
+    
+    user = authenticate_user(db, email, password)
+    
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -97,54 +182,30 @@ def login(
 
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user"
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Inactive user"
         )
 
-    # Create tokens
-    access_token = create_access_token(data={"sub": user.id, "email": user.email})
-    refresh_token = create_refresh_token(data={"sub": user.id, "email": user.email})
-
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-    }
-
-
-@router.post("/login/json", response_model=Token)
-@limiter.limit("5/minute")
-def login_json(
-    request: Request, login_data: LoginRequest, db: Session = Depends(get_db)
-):
-    """Login endpoint that accepts JSON (alternative to OAuth2 form)"""
-    user = authenticate_user(db, login_data.email, login_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user"
-        )
-
-    # Create tokens
-    access_token = create_access_token(data={"sub": user.id, "email": user.email})
-    refresh_token = create_refresh_token(data={"sub": user.id, "email": user.email})
-
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-    }
+    return _create_tokens(user)
 
 
 @router.post("/refresh", response_model=Token)
 def refresh_access_token(request: RefreshTokenRequest, db: Session = Depends(get_db)):
-    """Refresh access token using refresh token"""
+    """
+    Refresh access token using refresh token.
+    
+    Args:
+        request: Refresh token request.
+        db: Database session.
+        
+    Returns:
+        Token: New access and refresh tokens.
+        
+    Raises:
+        HTTPException: If refresh token is invalid or user not found.
+    """
     payload = verify_token(request.refresh_token, token_type="refresh")
+    
     if payload is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -153,11 +214,10 @@ def refresh_access_token(request: RefreshTokenRequest, db: Session = Depends(get
         )
 
     user_id = payload.get("sub")
-    email = payload.get("email")
-
     if user_id is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Invalid token payload"
         )
 
     # Verify user still exists and is active
@@ -168,46 +228,56 @@ def refresh_access_token(request: RefreshTokenRequest, db: Session = Depends(get
             detail="User not found or inactive",
         )
 
-    # Create new tokens
-    new_access_token = create_access_token(data={"sub": user.id, "email": user.email})
-    new_refresh_token = create_refresh_token(data={"sub": user.id, "email": user.email})
-
-    return {
-        "access_token": new_access_token,
-        "refresh_token": new_refresh_token,
-        "token_type": "bearer",
-    }
+    return _create_tokens(user)
 
 
 @router.get("/me", response_model=UserResponse)
 def get_current_user_info(current_user: User = Depends(get_current_active_user)):
-    """Get current user information"""
+    """
+    Get current user information.
+    
+    Args:
+        current_user: Current authenticated user.
+        
+    Returns:
+        UserResponse: Current user's profile information.
+    """
     return current_user
 
 
 @router.post("/forgot-password")
 @limiter.limit("3/hour")
 def forgot_password(
-    request: Request, reset_request: PasswordResetRequest, db: Session = Depends(get_db)
+    request: Request, 
+    reset_request: PasswordResetRequest, 
+    db: Session = Depends(get_db)
 ):
-    """Request password reset"""
+    """
+    Request password reset.
+    
+    Always returns success to prevent email enumeration attacks.
+    
+    Args:
+        request: FastAPI request object (for rate limiting).
+        reset_request: Password reset request with email.
+        db: Database session.
+        
+    Returns:
+        dict: Generic success message.
+    """
     user = db.query(User).filter(User.email == reset_request.email).first()
 
-    # Always return success to prevent email enumeration
     if user:
-        # Generate reset token
-        reset_token = secrets.token_urlsafe(32)
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
-
-        # Update user with reset token
-        user.password_reset_token = reset_token
-        user.password_reset_expires_at = expires_at
-
+        # Generate reset token with expiration
+        user.password_reset_token = secrets.token_urlsafe(32)
+        user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(
+            hours=PASSWORD_RESET_EXPIRY_HOURS
+        )
         db.commit()
 
         # Send reset email
         try:
-            send_password_reset_email(user.email, reset_token)
+            send_password_reset_email(user.email, user.password_reset_token)
         except Exception as e:
             print(f"Error sending password reset email: {e}")
 
@@ -217,9 +287,24 @@ def forgot_password(
 @router.post("/reset-password")
 @limiter.limit("5/hour")
 def reset_password(
-    request: Request, reset_data: PasswordReset, db: Session = Depends(get_db)
+    request: Request, 
+    reset_data: PasswordReset, 
+    db: Session = Depends(get_db)
 ):
-    """Reset password with token"""
+    """
+    Reset password with token.
+    
+    Args:
+        request: FastAPI request object (for rate limiting).
+        reset_data: Reset data with token and new password.
+        db: Database session.
+        
+    Returns:
+        dict: Success message.
+        
+    Raises:
+        HTTPException: If token is invalid or expired.
+    """
     # Find user with valid reset token
     user = (
         db.query(User)
@@ -236,13 +321,10 @@ def reset_password(
             detail="Invalid or expired reset token",
         )
 
-    # Update password
+    # Update password and clear reset token
     user.hashed_password = hash_password(reset_data.new_password)
-
-    # Clear reset token fields
     user.password_reset_token = None
     user.password_reset_expires_at = None
-
     db.commit()
 
     return {"message": "Password has been reset successfully"}
@@ -251,7 +333,14 @@ def reset_password(
 @router.get("/verify-email/{token}")
 def verify_email(token: str, db: Session = Depends(get_db)):
     """
-    Verify email address with token
+    Verify email address with token (not fully implemented).
+    
+    Args:
+        token: Email verification token.
+        db: Database session.
+        
+    Raises:
+        HTTPException: Feature not implemented.
     """
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
@@ -262,7 +351,14 @@ def verify_email(token: str, db: Session = Depends(get_db)):
 @router.post("/verify-email")
 def verify_email_post(token: str, db: Session = Depends(get_db)):
     """
-    Verify email address - simplified version
+    Verify email address (placeholder endpoint).
+    
+    Args:
+        token: Email verification token.
+        db: Database session.
+        
+    Returns:
+        dict: Placeholder message.
     """
     return {"message": "Email verification endpoint - implement proper token storage"}
 
@@ -270,6 +366,14 @@ def verify_email_post(token: str, db: Session = Depends(get_db)):
 @router.post("/logout")
 def logout(current_user: User = Depends(get_current_active_user)):
     """
-    Logout endpoint
+    Logout endpoint.
+    
+    Note: With JWT tokens, logout is handled client-side by discarding tokens.
+    
+    Args:
+        current_user: Current authenticated user.
+        
+    Returns:
+        dict: Success message.
     """
     return {"message": "Logged out successfully"}

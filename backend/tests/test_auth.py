@@ -84,10 +84,10 @@ class TestAuthAPI:
         assert len(data["refresh_token"]) > 0
 
     def test_login_json_endpoint(self, client: TestClient, test_user):
-        """Test POST /auth/login/json with JSON payload."""
+        """Test POST /auth/login with JSON payload (instead of form data)."""
         login_data = {"email": test_user.email, "password": "testpassword123"}
 
-        response = client.post("/auth/login/json", json=login_data)
+        response = client.post("/auth/login", json=login_data)
 
         assert response.status_code == 200
         data = response.json()
@@ -213,6 +213,8 @@ class TestAuthAPI:
 
     def test_reset_password(self, client: TestClient, test_user, test_db: Session):
         """Test POST /auth/reset-password with valid token."""
+        from services.auth_service import verify_password
+        
         # Create reset token directly on user
         reset_token = "test_reset_token_123"
         expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
@@ -235,10 +237,8 @@ class TestAuthAPI:
         assert user.password_reset_token is None
         assert user.password_reset_expires_at is None
 
-        # Verify password was changed (can login with new password)
-        login_data = {"username": test_user.email, "password": "newpassword123"}
-        login_response = client.post("/auth/login", data=login_data)
-        assert login_response.status_code == 200
+        # Verify password was changed by checking hash directly (avoids rate limiting)
+        assert verify_password("newpassword123", user.hashed_password)
 
     def test_reset_password_invalid_token(self, client: TestClient):
         """Test POST /auth/reset-password with invalid token."""

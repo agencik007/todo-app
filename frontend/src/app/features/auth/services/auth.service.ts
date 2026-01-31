@@ -40,7 +40,7 @@ export class AuthService {
   }
 
   login(loginData: LoginRequest): Observable<Token> {
-    return this.http.post<Token>(`${this.apiUrl}/login/json`, loginData).pipe(
+    return this.http.post<Token>(`${this.apiUrl}/login`, loginData).pipe(
       tap(token => this.setTokens(token)),
       catchError(this.handleError)
     );

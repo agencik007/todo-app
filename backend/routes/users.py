@@ -1,18 +1,22 @@
-import os
+"""
+Users routes - User profile and avatar management endpoints.
+"""
+
 import shutil
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
-from sqlalchemy.orm import Session
-from models.user import User
-from config.database import get_db
-from routes.auth import get_current_user
 from pathlib import Path
 
-router = APIRouter(
-    prefix="/users",
-    tags=["users"]
-)
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from sqlalchemy.orm import Session
+
+from config.auth import get_current_user
+from config.database import get_db
+from models.user import User
+
+router = APIRouter(prefix="/users", tags=["users"])
 
 UPLOAD_DIR = Path("uploadedFiles")
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+
 
 @router.post("/me/avatar")
 async def upload_avatar(
@@ -20,24 +24,33 @@ async def upload_avatar(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """
+    Upload user avatar image.
+    
+    Args:
+        file: Image file to upload.
+        current_user: Current authenticated user.
+        db: Database session.
+        
+    Returns:
+        dict: URL of the uploaded avatar.
+        
+    Raises:
+        HTTPException: If file is not an image or upload fails.
+    """
     # Validate file type
-    if not file.content_type.startswith("image/"):
+    if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must be an image"
+            detail=f"File must be an image. Allowed types: {', '.join(ALLOWED_IMAGE_TYPES)}"
         )
     
     # Create user directory if not exists
     user_dir = UPLOAD_DIR / str(current_user.id)
     user_dir.mkdir(parents=True, exist_ok=True)
     
-    # Generate file path
-    # We'll use a fixed name 'avatar' + extension to avoid accumulating files
-    # or we could use the original filename. Let's use 'avatar' to keep it simple and overwrite.
-    extension = Path(file.filename).suffix
-    if not extension:
-        extension = ".png" # Default to png if no extension
-        
+    # Generate file path with extension
+    extension = Path(file.filename).suffix if file.filename else ".png"
     file_path = user_dir / f"avatar{extension}"
     
     try:
@@ -50,34 +63,37 @@ async def upload_avatar(
         )
         
     # Update user avatar_url
-    # The URL should be accessible via the static mount
-    # We'll serve 'uploadedFiles' at '/static' or similar, or directly at '/uploadedFiles'
-    # Let's assume we mount it at '/uploads'
     avatar_url = f"/uploads/{current_user.id}/avatar{extension}"
-    
     current_user.avatar_url = avatar_url
     db.commit()
     db.refresh(current_user)
     
     return {"avatar_url": avatar_url}
 
+
 @router.delete("/me/avatar")
 async def delete_avatar(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if current_user.avatar_url:
-        # Extract file path from url
-        # URL is like /uploads/{user_id}/avatar.png
-        # File path is uploadedFiles/{user_id}/avatar.png
+    """
+    Delete user avatar.
+    
+    Args:
+        current_user: Current authenticated user.
+        db: Database session.
         
-        # Simple way: assume structure
+    Returns:
+        dict: Success message.
+    """
+    if current_user.avatar_url:
+        # Delete user's upload directory
         try:
             user_dir = UPLOAD_DIR / str(current_user.id)
             if user_dir.exists():
                 shutil.rmtree(user_dir)
         except Exception as e:
-            print(f"Error deleting file: {e}")
+            print(f"Error deleting avatar file: {e}")
             # Continue to clear DB even if file delete fails
             
         current_user.avatar_url = None

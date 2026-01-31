@@ -71,7 +71,7 @@ export class TodoListComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.todoService.getTodos().pipe(delay(500)).subscribe({
+    this.todoService.getTodos().pipe(delay(2500)).subscribe({
       next: (todos) => {
         this.todos.set(todos);
         this.loading.set(false);

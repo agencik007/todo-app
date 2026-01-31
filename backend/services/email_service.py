@@ -1,3 +1,7 @@
+"""
+Email service - Email sending functionality using MailHog.
+"""
+
 import os
 import smtplib
 from email.mime.text import MIMEText
@@ -9,29 +13,31 @@ EMAIL_FROM = os.getenv("EMAIL_FROM", "noreply@example.com")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:4200")
 
 # MailHog configuration (for local development/testing)
-# MailHog is a development SMTP server that captures all emails
-# Access the web UI at http://localhost:8025 to view sent emails
 MAILHOG_HOST = os.getenv("MAILHOG_HOST", "localhost")
 MAILHOG_PORT = int(os.getenv("MAILHOG_PORT", "1025"))
 
 
 def send_email(
-    to_email: str, subject: str, html_content: str, text_content: Optional[str] = None
+    to_email: str, 
+    subject: str, 
+    html_content: str, 
+    text_content: Optional[str] = None
 ) -> bool:
     """
-    Send an email using MailHog SMTP (for development/testing).
-
-    MailHog captures all emails sent through its SMTP server (port 1025)
-    and displays them in a web interface (http://localhost:8025).
-    This is perfect for testing email functionality without sending real emails.
+    Send an email using MailHog SMTP.
+    
+    MailHog captures all emails and displays them in a web interface
+    at http://localhost:8025. Perfect for development/testing.
+    
+    Args:
+        to_email: Recipient email address.
+        subject: Email subject line.
+        html_content: HTML content of the email.
+        text_content: Optional plain text content.
+        
+    Returns:
+        bool: True if email was sent successfully, False otherwise.
     """
-    return _send_with_mailhog(to_email, subject, html_content, text_content)
-
-
-def _send_with_mailhog(
-    to_email: str, subject: str, html_content: str, text_content: Optional[str] = None
-) -> bool:
-    """Send email using MailHog SMTP (for testing)"""
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
@@ -39,22 +45,29 @@ def _send_with_mailhog(
         msg["To"] = to_email
 
         if text_content:
-            part1 = MIMEText(text_content, "plain")
-            msg.attach(part1)
+            msg.attach(MIMEText(text_content, "plain"))
 
-        part2 = MIMEText(html_content, "html")
-        msg.attach(part2)
+        msg.attach(MIMEText(html_content, "html"))
 
         with smtplib.SMTP(MAILHOG_HOST, MAILHOG_PORT) as server:
             server.send_message(msg)
         return True
     except Exception as e:
-        print(f"Error sending email with MailHog: {e}")
+        print(f"Error sending email: {e}")
         return False
 
 
 def send_verification_email(to_email: str, verification_token: str) -> bool:
-    """Send email verification email"""
+    """
+    Send email verification email.
+    
+    Args:
+        to_email: Recipient email address.
+        verification_token: Token for email verification.
+        
+    Returns:
+        bool: True if email was sent successfully.
+    """
     verification_url = f"{FRONTEND_URL}/verify-email?token={verification_token}"
 
     subject = "Verify your email address"
@@ -82,7 +95,16 @@ def send_verification_email(to_email: str, verification_token: str) -> bool:
 
 
 def send_password_reset_email(to_email: str, reset_token: str) -> bool:
-    """Send password reset email"""
+    """
+    Send password reset email.
+    
+    Args:
+        to_email: Recipient email address.
+        reset_token: Token for password reset.
+        
+    Returns:
+        bool: True if email was sent successfully.
+    """
     reset_url = f"{FRONTEND_URL}/reset-password/{reset_token}"
 
     subject = "Resetowanie hasła - Todo App"
@@ -147,9 +169,17 @@ def send_password_reset_email(to_email: str, reset_token: str) -> bool:
 
 
 def send_welcome_email(to_email: str) -> bool:
-    """Send welcome email after successful registration"""
+    """
+    Send welcome email after successful registration.
+    
+    Args:
+        to_email: Recipient email address.
+        
+    Returns:
+        bool: True if email was sent successfully.
+    """
     subject = "Welcome to Todo App!"
-    html_content = f"""
+    html_content = """
     <html>
       <body>
         <h2>Welcome to Todo App!</h2>

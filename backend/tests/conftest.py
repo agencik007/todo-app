@@ -1,3 +1,8 @@
+# Set testing environment variable BEFORE any imports
+# This disables rate limiting in routes/auth.py
+import os
+os.environ["TESTING"] = "1"
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -6,7 +11,6 @@ from config.database import Base, get_db
 from models.todo import Todo
 from models.user import User
 from services.auth_service import hash_password
-import os
 
 # Test database URL - use SQLite for testing
 TEST_DATABASE_URL = "sqlite:///./test.db"
@@ -84,6 +88,16 @@ def client():
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
+    
+    # Reset rate limiter storage to prevent rate limit issues between tests
+    if hasattr(app.state, 'limiter') and app.state.limiter:
+        try:
+            app.state.limiter.reset()
+        except Exception:
+            # Some limiter implementations don't have reset()
+            # In that case, try to clear the storage directly
+            if hasattr(app.state.limiter, '_storage'):
+                app.state.limiter._storage = {}
 
     with TestClient(app) as client:
         yield client
