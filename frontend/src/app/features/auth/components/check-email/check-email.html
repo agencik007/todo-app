@@ -1,40 +1,48 @@
-<p-card styleClass="check-email-card">
-  <ng-template pTemplate="header">
-    <div class="card-header">
-      <i class="pi pi-envelope"></i>
-      <h2>Sprawdź swoją skrzynkę email</h2>
+<p-card class="check-email-card">
+    <ng-template pTemplate="header">
+        <div class="card-header">
+            <i class="pi pi-envelope"></i>
+            <h2>Sprawdź swoją skrzynkę email</h2>
+        </div>
+    </ng-template>
+
+    <div class="content">
+        <p class="main-message">Wysłaliśmy link weryfikacyjny na adres:</p>
+
+        @if (email()) {
+            <p class="email-address">
+                <strong>{{ email() }}</strong>
+            </p>
+        }
+
+        <p class="instruction">
+            Kliknij w link w wiadomości email, aby aktywować swoje konto i uzyskać dostęp do
+            aplikacji.
+        </p>
+
+        <p-message severity="info"> Link weryfikacyjny jest ważny przez 24 godziny.</p-message>
+
+        <div class="actions">
+            <p-button
+                severity="secondary"
+                label="Sprawdź folder spam"
+                icon="pi pi-exclamation-triangle"
+                (onClick)="resendEmail()"
+            >
+            </p-button>
+
+            <p-button
+                routerLink="/login"
+                label="Przejdź do logowania"
+                icon="pi pi-sign-in"
+            >
+            </p-button>
+        </div>
+
+        @if (resendStatus() === 'success') {
+            <p-message severity="success">
+                {{ resendMessage() }}
+            </p-message>
+        }
     </div>
-  </ng-template>
-
-  <div class="content">
-    <p class="main-message">Wysłaliśmy link weryfikacyjny na adres:</p>
-
-    @if (email()) {
-      <p class="email-address">
-        <strong>{{ email() }}</strong>
-      </p>
-    }
-
-    <p class="instruction">
-      Kliknij w link w wiadomości email, aby aktywować swoje konto i uzyskać dostęp do aplikacji.
-    </p>
-
-    <p-message severity="info" text="Link weryfikacyjny jest ważny przez 24 godziny."> </p-message>
-
-    <div class="actions">
-      <p-button
-        label="Sprawdź folder spam"
-        icon="pi pi-exclamation-triangle"
-        severity="secondary"
-        (onClick)="resendEmail()"
-      >
-      </p-button>
-
-      <p-button label="Przejdź do logowania" routerLink="/login" icon="pi pi-sign-in"> </p-button>
-    </div>
-
-    @if (resendStatus() === 'success') {
-      <p-message severity="success" [text]="resendMessage()"> </p-message>
-    }
-  </div>
 </p-card>

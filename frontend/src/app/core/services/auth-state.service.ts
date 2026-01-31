@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, effect } from '@angular/core';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { IndexedDbService } from './indexed-db.service';
-import { User } from '../../features/auth/models/auth.model';
+import { UserResponse as User } from '@api';
 
 @Injectable({
   providedIn: 'root'

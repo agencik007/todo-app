@@ -2,7 +2,7 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
-import { catchError, switchMap, throwError, of } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { AuthStateService } from '../services/auth-state.service';
