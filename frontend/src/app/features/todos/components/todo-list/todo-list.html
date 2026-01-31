@@ -3,14 +3,14 @@
         <!-- Header -->
         <div class="flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="m-0">📝 Moja Lista Zadań</h1>
+                <h1 class="m-0">📝 {{ 'TODOS.TITLE' | translate }}</h1>
                 <p class="text-color-secondary mt-1">
-                    Zarządzaj swoimi zadaniami w prosty i efektywny sposób
+                    {{ 'TODOS.SUBTITLE' | translate }}
                 </p>
             </div>
             <p-button
-                label="Dodaj zadanie"
                 icon="pi pi-plus"
+                [label]="'TODOS.ADD_BUTTON' | translate"
                 (onClick)="showCreateForm()"
             />
         </div>
@@ -19,7 +19,7 @@
         <div class="flex gap-3 mb-4">
             <p-card [style]="{ flex: 1, textAlign: 'center' }">
                 <div class="text-3xl font-bold">{{ totalTodos() }}</div>
-                <div class="text-color-secondary">Wszystkie</div>
+                <div class="text-color-secondary">{{ 'TODOS.STATS.ALL' | translate }}</div>
             </p-card>
             <p-card [style]="{ flex: 1, textAlign: 'center' }">
                 <div
@@ -28,7 +28,7 @@
                 >
                     {{ pendingTodos().length }}
                 </div>
-                <div class="text-color-secondary">Do wykonania</div>
+                <div class="text-color-secondary">{{ 'TODOS.STATS.PENDING' | translate }}</div>
             </p-card>
             <p-card [style]="{ flex: 1, textAlign: 'center' }">
                 <div
@@ -37,7 +37,7 @@
                 >
                     {{ completedTodos().length }}
                 </div>
-                <div class="text-color-secondary">Ukończone</div>
+                <div class="text-color-secondary">{{ 'TODOS.STATS.COMPLETED' | translate }}</div>
             </p-card>
         </div>
 
@@ -66,8 +66,8 @@
                             <div class="flex-grow-1">
                                 <p-skeleton
                                     width="60%"
-                                    class="mb-2"
                                     height="1.2rem"
+                                    class="mb-2"
                                 />
                                 <p-skeleton
                                     width="40%"
@@ -127,19 +127,27 @@
                                             style="font-size: 0.7rem"
                                             class="pi pi-user mr-1"
                                         ></i>
-                                        To zadanie jest usera {{ todo.owner_email }}
+                                        {{
+                                            'TODOS.LIST.OWNER_INFO'
+                                                | translate: { email: todo.owner_email }
+                                        }}
                                     </div>
                                 }
                             </div>
                             <div class="flex align-items-center gap-2">
                                 <p-tag
-                                    [value]="todo.completed ? 'Ukończone' : 'Do zrobienia'"
+                                    [value]="
+                                        (todo.completed
+                                            ? 'TODOS.LIST.STATUS_COMPLETED'
+                                            : 'TODOS.LIST.STATUS_PENDING'
+                                        ) | translate
+                                    "
                                     [severity]="todo.completed ? 'success' : 'warn'"
                                 />
                                 @if (todo.is_public) {
                                     <p-tag
-                                        value="Publiczne"
                                         severity="info"
+                                        [value]="'TODOS.LIST.PUBLIC' | translate"
                                     />
                                 }
                                 @if (canEditTodo(todo)) {
@@ -170,13 +178,13 @@
             <p-card>
                 <div class="flex flex-column align-items-center py-6">
                     <span class="text-6xl mb-3">📝</span>
-                    <h3 class="m-0 mb-2">Brak zadań</h3>
+                    <h3 class="m-0 mb-2">{{ 'TODOS.LIST.EMPTY_TITLE' | translate }}</h3>
                     <p class="text-color-secondary mb-3">
-                        Nie masz jeszcze żadnych zadań. Dodaj pierwsze zadanie, aby zacząć!
+                        {{ 'TODOS.LIST.EMPTY_MESSAGE' | translate }}
                     </p>
                     <p-button
-                        label="Dodaj pierwsze zadanie"
                         icon="pi pi-plus"
+                        [label]="'TODOS.LIST.ADD_FIRST' | translate"
                         (onClick)="showCreateForm()"
                     />
                 </div>
@@ -187,7 +195,9 @@
         <p-dialog
             [style]="{ width: '450px' }"
             [modal]="true"
-            [header]="editingTodo() ? 'Edytuj zadanie' : 'Dodaj nowe zadanie'"
+            [header]="
+                (editingTodo() ? 'TODOS.FORM.TITLE_EDIT' : 'TODOS.FORM.TITLE_ADD') | translate
+            "
             [(visible)]="formVisible"
             (onHide)="hideForm()"
         >

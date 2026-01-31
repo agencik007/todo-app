@@ -5,7 +5,7 @@
             routerLink="/todos"
             class="flex align-items-center gap-2 p-link"
         >
-            <span class="font-semibold text-xl">📝 Todo App</span>
+            <span class="font-semibold text-xl">📝 {{ 'NAV.HOME' | translate }}</span>
         </a>
     </ng-template>
     <ng-template #end>
@@ -21,6 +21,7 @@
                         currentUser()!.email
                     }}</span>
                     <app-theme-toggle class="ml-2"></app-theme-toggle>
+                    <app-language-selector></app-language-selector>
                 </div>
 
                 <p-avatar
@@ -51,18 +52,19 @@
             } @else {
                 <div class="flex align-items-center gap-3">
                     <app-theme-toggle></app-theme-toggle>
+                    <app-language-selector></app-language-selector>
                     <div class="flex gap-2">
                         <p-button
                             size="small"
                             severity="secondary"
                             routerLink="/login"
-                            label="Zaloguj się"
                             [outlined]="true"
+                            [label]="'NAV.LOGIN' | translate"
                         />
                         <p-button
                             size="small"
                             routerLink="/register"
-                            label="Zarejestruj się"
+                            [label]="'NAV.REGISTER' | translate"
                         />
                     </div>
                 </div>

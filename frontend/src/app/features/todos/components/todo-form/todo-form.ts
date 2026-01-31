@@ -1,6 +1,7 @@
 import { Component, effect, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Todo, TodoCreate } from '@api';
+import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
@@ -14,6 +15,7 @@ import { TextareaModule } from 'primeng/textarea';
         TextareaModule,
         CheckboxModule,
         ButtonModule,
+        TranslateModule,
     ],
     templateUrl: './todo-form.html',
     styleUrl: './todo-form.scss',

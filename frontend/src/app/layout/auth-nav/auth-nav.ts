@@ -1,6 +1,7 @@
 import { Component, computed, inject, SecurityContext } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MenuItem, MessageService } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
@@ -9,7 +10,9 @@ import { MenubarModule } from 'primeng/menubar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
 import { AuthStateService } from '../../core/services/auth-state.service';
+import { LanguageService } from '../../core/services/language.service';
 import { AuthService } from '../../features/auth/services/auth.service';
+import { LanguageSelectorComponent } from '../../shared/components/language-selector/language-selector.component';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle';
 
 @Component({
@@ -23,6 +26,8 @@ import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme
         MenuModule,
         ToastModule,
         ThemeToggleComponent,
+        LanguageSelectorComponent,
+        TranslateModule,
     ],
     providers: [MessageService],
     templateUrl: './auth-nav.html',
@@ -34,6 +39,8 @@ export class AuthNavComponent {
     private router = inject(Router);
     private messageService = inject(MessageService);
     private sanitizer = inject(DomSanitizer);
+    private translate = inject(TranslateService);
+    private languageService = inject(LanguageService);
 
     readonly currentUser = this.authStateService.currentUser;
     readonly isAuthenticated = this.authStateService.isAuthenticated;
@@ -48,18 +55,20 @@ export class AuthNavComponent {
 
     readonly menuItems = computed<MenuItem[]>(() => {
         const hasAvatar = !!this.userAvatar();
+        // Trigger re-computation on language change
+        this.languageService.currentLang();
 
         return [
             {
-                label: 'Profil',
+                label: this.translate.instant('NAV.PROFILE'),
                 items: [
                     {
-                        label: 'Zmień awatar',
+                        label: this.translate.instant('NAV.CHANGE_AVATAR'),
                         icon: 'pi pi-upload',
                         command: (): void => this.triggerFileUpload(),
                     },
                     {
-                        label: 'Usuń awatar',
+                        label: this.translate.instant('NAV.DELETE_AVATAR'),
                         icon: 'pi pi-trash',
                         visible: hasAvatar,
                         command: (): void => this.deleteAvatar(),
@@ -67,10 +76,10 @@ export class AuthNavComponent {
                 ],
             },
             {
-                label: 'Konto',
+                label: this.translate.instant('NAV.ACCOUNT'),
                 items: [
                     {
-                        label: 'Wyloguj',
+                        label: this.translate.instant('NAV.LOGOUT'),
                         icon: 'pi pi-sign-out',
                         styleClass: 'logout-item',
                         command: (): void => this.logout(),
@@ -102,16 +111,20 @@ export class AuthNavComponent {
                 next: () => {
                     this.messageService.add({
                         severity: 'success',
-                        summary: 'Sukces',
-                        detail: 'Awatar został zaktualizowany',
+                        summary: this.translate.instant('MESSAGES.SUCCESS'),
+                        detail: this.translate.instant(
+                            'MESSAGES.AVATAR_UPLOAD_SUCCESS',
+                        ),
                     });
                     this.authStateService.loadAvatar();
                 },
                 error: () => {
                     this.messageService.add({
                         severity: 'error',
-                        summary: 'Błąd',
-                        detail: 'Nie udało się wgrać awatara',
+                        summary: this.translate.instant('MESSAGES.ERROR'),
+                        detail: this.translate.instant(
+                            'MESSAGES.AVATAR_UPLOAD_ERROR',
+                        ),
                     });
                 },
             });
@@ -124,16 +137,20 @@ export class AuthNavComponent {
             next: () => {
                 this.messageService.add({
                     severity: 'success',
-                    summary: 'Sukces',
-                    detail: 'Awatar został usunięty',
+                    summary: this.translate.instant('MESSAGES.SUCCESS'),
+                    detail: this.translate.instant(
+                        'MESSAGES.AVATAR_DELETE_SUCCESS',
+                    ),
                 });
                 this.authStateService.loadAvatar();
             },
             error: () => {
                 this.messageService.add({
                     severity: 'error',
-                    summary: 'Błąd',
-                    detail: 'Nie udało się usunąć awatara',
+                    summary: this.translate.instant('MESSAGES.ERROR'),
+                    detail: this.translate.instant(
+                        'MESSAGES.AVATAR_DELETE_ERROR',
+                    ),
                 });
             },
         });

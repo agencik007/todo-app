@@ -2,12 +2,12 @@
     <ng-template pTemplate="header">
         <div class="card-header">
             <i class="pi pi-envelope"></i>
-            <h2>Sprawdź swoją skrzynkę email</h2>
+            <h2>{{ 'AUTH.CHECK_EMAIL.TITLE' | translate }}</h2>
         </div>
     </ng-template>
 
     <div class="content">
-        <p class="main-message">Wysłaliśmy link weryfikacyjny na adres:</p>
+        <p class="main-message">{{ 'AUTH.CHECK_EMAIL.MESSAGE' | translate }}</p>
 
         @if (email()) {
             <p class="email-address">
@@ -16,32 +16,31 @@
         }
 
         <p class="instruction">
-            Kliknij w link w wiadomości email, aby aktywować swoje konto i uzyskać dostęp do
-            aplikacji.
+            {{ 'AUTH.CHECK_EMAIL.INSTRUCTION' | translate }}
         </p>
 
-        <p-message severity="info"> Link weryfikacyjny jest ważny przez 24 godziny.</p-message>
+        <p-message severity="info">{{ 'AUTH.CHECK_EMAIL.EXPIRE' | translate }}</p-message>
 
         <div class="actions">
             <p-button
                 severity="secondary"
-                label="Sprawdź folder spam"
                 icon="pi pi-exclamation-triangle"
+                [label]="'AUTH.CHECK_EMAIL.SPAM_FOLDER' | translate"
                 (onClick)="resendEmail()"
             >
             </p-button>
 
             <p-button
                 routerLink="/login"
-                label="Przejdź do logowania"
                 icon="pi pi-sign-in"
+                [label]="'AUTH.CHECK_EMAIL.GO_TO_LOGIN' | translate"
             >
             </p-button>
         </div>
 
         @if (resendStatus() === 'success') {
             <p-message severity="success">
-                {{ resendMessage() }}
+                {{ 'AUTH.CHECK_EMAIL.RESEND_SUCCESS' | translate }}
             </p-message>
         }
     </div>
