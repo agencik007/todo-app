@@ -1,0 +1,6 @@
+# Ignore generated code
+src/libs/generated-api/
+
+# Ignore build output
+dist/
+node_modules/

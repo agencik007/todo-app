@@ -116,7 +116,7 @@ export class AuthStateService {
     this.userAvatar.set(null);
   }
 
-  async loadAvatar() {
+  async loadAvatar(): Promise<void> {
     try {
       const blob = await this.indexedDbService.getAvatar();
       if (blob) {
@@ -125,7 +125,7 @@ export class AuthStateService {
       } else {
         this.userAvatar.set(null);
       }
-    } catch (e) {
+    } catch {
       this.userAvatar.set(null);
     }
   }

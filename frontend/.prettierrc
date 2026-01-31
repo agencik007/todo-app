@@ -1,0 +1,39 @@
+{
+    "singleQuote": true,
+    "trailingComma": "all",
+    "semi": true,
+    "tabWidth": 4,
+    "arrowParens": "always",
+    "useTabs": false,
+    "endOfLine": "lf",
+    "bracketSameLine": false,
+    "bracketSpacing": true,
+    "plugins": [
+        "prettier-plugin-organize-imports",
+        "prettier-plugin-organize-attributes"
+    ],
+    "attributeSort": "DESC",
+    "attributeGroups": ["$DEFAULT", "^data-", "^ng-", "$ANGULAR_BINDINGS"],
+    "overrides": [
+        {
+            "files": "*.json",
+            "options": {
+                "tabWidth": 2
+            }
+        },
+        {
+            "files": "*.html",
+            "options": {
+                "parser": "angular",
+                "printWidth": 100,
+                "singleAttributePerLine": true
+            }
+        },
+        {
+            "files": "*.routes.ts",
+            "options": {
+                "printWidth": 120
+            }
+        }
+    ]
+}

@@ -8,19 +8,9 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
+    "format": "prettier --write",
+    "generate-api": "python ../backend/export_openapi.py && openapi-generator-cli generate -i ../backend/openapi.json -g typescript-angular -o src/libs/generated-api --skip-validate-spec",
     "serve:ssr:frontend": "node dist/frontend/server/server.mjs"
-  },
-  "prettier": {
-    "printWidth": 100,
-    "singleQuote": true,
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
   },
   "private": true,
   "dependencies": {
@@ -44,17 +34,27 @@
     "@angular/build": "^20.3.2",
     "@angular/cli": "^20.3.2",
     "@angular/compiler-cli": "^20.3.0",
+    "@eslint/js": "^9.39.2",
+    "@openapitools/openapi-generator-cli": "^2.28.0",
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",
+    "angular-eslint": "^21.2.0",
     "baseline-browser-mapping": "^2.8.30",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "lint-staged": "^16.2.7",
+    "prettier-plugin-organize-attributes": "^1.0.0",
+    "prettier-plugin-organize-imports": "^4.3.0",
     "typescript": "~5.9.2",
+    "typescript-eslint": "^8.54.0",
     "zone.js": "^0.15.1"
   }
 }

@@ -3,7 +3,7 @@ import { isPlatformServer } from '@angular/common';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthStateService } from '../services/auth-state.service';
 
-export const authGuard: CanActivateFn = (route, state) => {
+export const authGuard: CanActivateFn = () => {
   const authStateService = inject(AuthStateService);
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
