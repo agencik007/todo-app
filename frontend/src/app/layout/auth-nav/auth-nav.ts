@@ -1,4 +1,5 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, SecurityContext } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AuthStateService } from '../../core/services/auth-state.service';
@@ -38,11 +39,18 @@ export class AuthNavComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private messageService = inject(MessageService);
+  private sanitizer = inject(DomSanitizer);
 
   readonly currentUser = this.authStateService.currentUser;
   readonly isAuthenticated = this.authStateService.isAuthenticated;
   readonly isLoading = this.authStateService.isLoading;
   readonly userAvatar = this.authStateService.userAvatar;
+
+  readonly sanitizedAvatarUrl = computed(() => {
+    const url = this.userAvatar();
+    if (!url) return undefined;
+    return this.sanitizer.sanitize(SecurityContext.URL, url) || undefined;
+  });
 
   readonly menuItems = computed<MenuItem[]>(() => {
     const hasAvatar = !!this.userAvatar();
@@ -92,7 +100,7 @@ export class AuthNavComponent {
   }
 
   onFileSelected(event: any) {
-    const file = event.target.files[0];
+    const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
       this.authService.uploadAvatar(file).subscribe({
         next: () => {

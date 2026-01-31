@@ -4,6 +4,7 @@ Authentication routes - User registration, login, and password management.
 
 import os
 import secrets
+import logging
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
@@ -35,6 +36,7 @@ from services.email_service import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
 
 # Use a no-op limiter in testing environment
 IS_TESTING = os.getenv("TESTING", "0") == "1"
@@ -287,7 +289,7 @@ def forgot_password(
         try:
             send_password_reset_email(user.email, user.password_reset_token)
         except Exception as e:
-            print(f"Error sending password reset email: {e}")
+            logger.exception("Error sending password reset email")
 
     return {"message": "If the email exists, a password reset link has been sent"}
 

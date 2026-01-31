@@ -1,38 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { catchError, switchMap } from 'rxjs/operators';
+import { environment } from '../../../../environments/environment';
 import { Todo, TodoCreate, TodoUpdate } from '../models/todo.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TodoService {
-  private apiUrl: string;
+  private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {
-    // Dynamic API URL based on current location (SSR-safe)
-    let hostname: string;
-    let port: string;
-
-    // Check if we're in browser environment (client-side)
-    if (typeof window !== 'undefined') {
-      hostname = window.location.hostname;
-      port = window.location.port;
-    } else {
-      // Server-side rendering - fallback to environment or default
-      hostname = process.env['HOSTNAME'] || 'localhost';
-      port = process.env['PORT'] || '4200';
-    }
-
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      // Local development
-      this.apiUrl = 'http://localhost:8000';
-    } else {
-      // Production (Oracle Cloud) - use same hostname but backend port
-      this.apiUrl = `http://${hostname}:8000`;
-    }
-  }
+  constructor(private http: HttpClient) {}
 
   // Get all todos
   getTodos(): Observable<Todo[]> {
@@ -72,14 +51,7 @@ export class TodoService {
   // Toggle todo completion status
   toggleTodo(id: number): Observable<Todo> {
     return this.getTodo(id).pipe(
-      map(todo => ({ completed: !todo.completed } as TodoUpdate)),
-      catchError(this.handleError)
-    ).pipe(
-      map(update => this.updateTodo(id, update)),
-      catchError(this.handleError)
-    ).pipe(
-      switchMap(() => this.getTodo(id)),
-      catchError(this.handleError)
+      switchMap(todo => this.updateTodo(id, { completed: !todo.completed }))
     );
   }
 

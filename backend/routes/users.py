@@ -3,6 +3,7 @@ Users routes - User profile and avatar management endpoints.
 """
 
 import shutil
+import logging
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
@@ -13,9 +14,12 @@ from config.database import get_db
 from models.user import User
 
 router = APIRouter(prefix="/users", tags=["users"])
+logger = logging.getLogger(__name__)
 
 UPLOAD_DIR = Path("uploadedFiles")
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 
 @router.post("/me/avatar")
@@ -45,12 +49,34 @@ async def upload_avatar(
             detail=f"File must be an image. Allowed types: {', '.join(ALLOWED_IMAGE_TYPES)}"
         )
     
+    # Validate file size
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"File too large. Maximum size is {MAX_FILE_SIZE / 1024 / 1024}MB"
+        )
+    # Reset file pointer after reading for saving
+    await file.seek(0)
+    
+    # Validate extension and prevent path traversal
+    if not file.filename:
+        extension = ".png"
+    else:
+        # Get extension safely and validate against whitelist
+        original_path = Path(file.filename)
+        extension = original_path.suffix.lower()
+        if extension not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid file extension. Allowed extensions: {', '.join(ALLOWED_EXTENSIONS)}"
+            )
+
     # Create user directory if not exists
     user_dir = UPLOAD_DIR / str(current_user.id)
     user_dir.mkdir(parents=True, exist_ok=True)
     
-    # Generate file path with extension
-    extension = Path(file.filename).suffix if file.filename else ".png"
+    # Generate file path with extension (using hardcoded 'avatar' name prevents traversal)
     file_path = user_dir / f"avatar{extension}"
     
     try:
@@ -93,7 +119,7 @@ async def delete_avatar(
             if user_dir.exists():
                 shutil.rmtree(user_dir)
         except Exception as e:
-            print(f"Error deleting avatar file: {e}")
+            logger.exception("Error deleting avatar file")
             # Continue to clear DB even if file delete fails
             
         current_user.avatar_url = None

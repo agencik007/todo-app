@@ -13,27 +13,17 @@ import {
   User
 } from '../models/auth.model';
 
+import { environment } from '../../../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private http = inject(HttpClient);
   private indexedDbService = inject(IndexedDbService);
-  private apiUrl: string;
+  private apiUrl = `${environment.apiUrl}/auth`;
 
-  constructor() {
-    let hostname: string;
-    if (typeof window !== 'undefined') {
-      hostname = window.location.hostname;
-    } else {
-      hostname = process.env['HOSTNAME'] || 'localhost';
-    }
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      this.apiUrl = 'http://localhost:8000/auth';
-    } else {
-      this.apiUrl = `http://${hostname}:8000/auth`;
-    }
-  }
+  constructor() {}
 
   register(userData: RegisterRequest): Observable<User> {
     return this.http.post<User>(`${this.apiUrl}/register`, userData).pipe(catchError(this.handleError));

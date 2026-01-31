@@ -24,14 +24,8 @@ load_dotenv()
 
 # Constants
 UPLOAD_DIR = "uploadedFiles"
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "130.61.130.231", "testserver"]
-CORS_ORIGINS = [
-    "http://localhost:4200",
-    "http://127.0.0.1:4200",
-    "http://130.61.130.231:4200",
-    "http://localhost:3000",
-    "http://localhost:8080",
-]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:4200").split(",")
 
 
 @asynccontextmanager
@@ -68,6 +62,13 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "img-src 'self' data: https://fastapi.tiangolo.com; "
+        "connect-src 'self' https://cdn.jsdelivr.net;"
+    )
     return response
 
 

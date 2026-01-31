@@ -20,11 +20,11 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY or SECRET_KEY == "your-secret-key-here-change-in-production":
     raise ValueError(
         "No secure SECRET_KEY set for application. "
-        "Please set SECRET_KEY in environment variables."
+        "Please set a strong SECRET_KEY in environment variables."
     )
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_HOURS = 24
 
 

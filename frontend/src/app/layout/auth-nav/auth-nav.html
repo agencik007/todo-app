@@ -19,7 +19,7 @@
         </div>
 
         <p-avatar
-          [image]="userAvatar() || undefined"
+          [image]="sanitizedAvatarUrl()"
           [label]="!userAvatar() ? currentUser()!.email.charAt(0).toUpperCase() : undefined"
           shape="circle"
           size="normal"
