@@ -11,9 +11,26 @@
     "clean": "make clean",
     "migrate": "make migrate",
     "logs": "make logs",
-    "status": "make status"
+    "status": "make status",
+    "prepare": "husky"
   },
   "workspaces": [
     "frontend"
-  ]
+  ],
+  "lint-staged": {
+    "frontend/src/**/*.{ts,html,scss}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "backend/**/*.py": [
+      "ruff format",
+      "ruff check --fix"
+    ]
+  },
+  "devDependencies": {
+    "eslint": "^9.39.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1"
+  }
 }

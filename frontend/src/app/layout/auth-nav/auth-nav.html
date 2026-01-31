@@ -1,56 +1,72 @@
 <p-menubar [model]="[]">
-  <ng-template #start>
-    <a
-      routerLink="/todos"
-      class="flex align-items-center gap-2 p-link"
-      style="text-decoration: none"
-    >
-      <span class="font-semibold text-xl">📝 Todo App</span>
-    </a>
-  </ng-template>
-  <ng-template #end>
-    <div class="flex align-items-center gap-3">
-      @if (isLoading()) {
-        <p-progressSpinner strokeWidth="4" [style]="{ width: '24px', height: '24px' }" />
-      } @else if (isAuthenticated() && currentUser()) {
-        <div class="flex align-items-center gap-2 hidden md:flex">
-          <span class="font-medium text-sm text-color-secondary">{{ currentUser()!.email }}</span>
-          <app-theme-toggle class="ml-2"></app-theme-toggle>
-        </div>
-
-        <p-avatar
-          [image]="sanitizedAvatarUrl()"
-          [label]="!userAvatar() ? currentUser()!.email.charAt(0).toUpperCase() : undefined"
-          shape="circle"
-          size="normal"
-          class="cursor-pointer border-1 surface-border hover:surface-100 transition-colors"
-          (click)="menu.toggle($event)"
-        />
-
-        <p-menu #menu [model]="menuItems()" [popup]="true" appendTo="body"></p-menu>
-
-        <input
-          type="file"
-          id="avatarInput"
-          style="display: none"
-          accept="image/*"
-          (change)="onFileSelected($event)"
-        />
-      } @else {
+    <ng-template #start>
+        <a
+            style="text-decoration: none"
+            routerLink="/todos"
+            class="flex align-items-center gap-2 p-link"
+        >
+            <span class="font-semibold text-xl">📝 Todo App</span>
+        </a>
+    </ng-template>
+    <ng-template #end>
         <div class="flex align-items-center gap-3">
-          <app-theme-toggle></app-theme-toggle>
-          <div class="flex gap-2">
-            <p-button
-              label="Zaloguj się"
-              routerLink="/login"
-              severity="secondary"
-              [outlined]="true"
-              size="small"
-            />
-            <p-button label="Zarejestruj się" routerLink="/register" size="small" />
-          </div>
+            @if (isLoading()) {
+                <p-progressSpinner
+                    strokeWidth="4"
+                    [style]="{ width: '24px', height: '24px' }"
+                />
+            } @else if (isAuthenticated() && currentUser()) {
+                <div class="flex align-items-center gap-2 hidden md:flex">
+                    <span class="font-medium text-sm text-color-secondary">{{
+                        currentUser()!.email
+                    }}</span>
+                    <app-theme-toggle class="ml-2"></app-theme-toggle>
+                </div>
+
+                <p-avatar
+                    size="normal"
+                    shape="circle"
+                    class="cursor-pointer border-1 surface-border hover:surface-100 transition-colors"
+                    [label]="
+                        !userAvatar() ? currentUser()!.email.charAt(0).toUpperCase() : undefined
+                    "
+                    [image]="sanitizedAvatarUrl()"
+                    (click)="menu.toggle($event)"
+                />
+
+                <p-menu
+                    appendTo="body"
+                    #menu
+                    [popup]="true"
+                    [model]="menuItems()"
+                ></p-menu>
+
+                <input
+                    type="file"
+                    style="display: none"
+                    id="avatarInput"
+                    accept="image/*"
+                    (change)="onFileSelected($event)"
+                />
+            } @else {
+                <div class="flex align-items-center gap-3">
+                    <app-theme-toggle></app-theme-toggle>
+                    <div class="flex gap-2">
+                        <p-button
+                            size="small"
+                            severity="secondary"
+                            routerLink="/login"
+                            label="Zaloguj się"
+                            [outlined]="true"
+                        />
+                        <p-button
+                            size="small"
+                            routerLink="/register"
+                            label="Zarejestruj się"
+                        />
+                    </div>
+                </div>
+            }
         </div>
-      }
-    </div>
-  </ng-template>
+    </ng-template>
 </p-menubar>

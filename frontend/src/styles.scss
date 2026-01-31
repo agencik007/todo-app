@@ -1,92 +1,9 @@
 // PrimeNG Icons
-@import 'primeicons/primeicons.css';
+@use 'primeicons/primeicons.css';
 
-:root {
-  --p-font-family: 'JetBrains Mono', monospace;
-}
-
-// Global styles
-html, body {
-  height: 100%;
-  margin: 0;
-  font-family: 'JetBrains Mono', monospace;
-  background-color: var(--p-surface-ground);
-  color: var(--p-text-color);
-}
-
-// Container utility
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
-// Card spacing
-.p-card {
-  margin-bottom: 1rem;
-}
-
-// Form spacing
-.form-group {
-  margin-bottom: 1rem;
-}
-
-// Flex utilities
-.flex {
-  display: flex;
-}
-
-.flex-column {
-  flex-direction: column;
-}
-
-.gap-2 {
-  gap: 0.5rem;
-}
-
-.gap-3 {
-  gap: 1rem;
-}
-
-.justify-center {
-  justify-content: center;
-}
-
-.align-center {
-  align-items: center;
-}
-
-// Auth pages centering
-.auth-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-
-// Full width inputs in forms
-.p-inputtext,
-.p-password {
-  width: 100%;
-}
-
-// Menu enhancements
-.p-menu {
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  padding: 0.5rem 0;
-}
-
-.logout-item .p-menuitem-link .p-menuitem-text,
-.logout-item .p-menuitem-link .p-menuitem-icon {
-  color: var(--p-red-500) !important;
-}
-
-.logout-item .p-menuitem-link:hover {
-  background: var(--p-red-50) !important;
-}
-
-.dark .logout-item .p-menuitem-link:hover {
-  background: rgba(239, 68, 68, 0.1) !important;
-}
+// Global Partials
+@use 'app/shared/global-styling/variables';
+@use 'app/shared/global-styling/layout';
+@use 'app/shared/global-styling/typography';
+@use 'app/shared/global-styling/forms';
+@use 'app/shared/global-styling/components';

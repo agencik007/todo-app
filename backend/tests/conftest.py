@@ -1,9 +1,11 @@
 # Set testing environment variable BEFORE any imports
 # This disables rate limiting in routes/auth.py
 import os
-os.environ["TESTING"] = "1"
 
-import pytest
+os.environ["TESTING"] = "1"
+os.environ["ALLOWED_HOSTS"] = "localhost,127.0.0.1,testserver"
+
+import pytest  # noqa: E402
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -29,7 +31,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_
 Base.metadata.create_all(bind=test_engine)
 
 # Mock database configuration for tests
-import config.database
+import config.database  # noqa: E402
 
 config.database.engine = test_engine
 config.database.SessionLocal = TestingSessionLocal
@@ -88,15 +90,15 @@ def client():
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
-    
+
     # Reset rate limiter storage to prevent rate limit issues between tests
-    if hasattr(app.state, 'limiter') and app.state.limiter:
+    if hasattr(app.state, "limiter") and app.state.limiter:
         try:
             app.state.limiter.reset()
         except Exception:
             # Some limiter implementations don't have reset()
             # In that case, try to clear the storage directly
-            if hasattr(app.state.limiter, '_storage'):
+            if hasattr(app.state.limiter, "_storage"):
                 app.state.limiter._storage = {}
 
     with TestClient(app) as client:

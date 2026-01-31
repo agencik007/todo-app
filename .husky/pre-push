@@ -1,0 +1,5 @@
+# Run frontend build
+cd frontend && npm run build && cd ..
+
+# Run backend tests
+cd backend && python -m pytest

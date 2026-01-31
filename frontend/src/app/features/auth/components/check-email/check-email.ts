@@ -1,10 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-
-// PrimeNG
-import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 
 @Component({
@@ -20,7 +17,6 @@ import { MessageModule } from 'primeng/message';
 })
 export class CheckEmailComponent {
   private route = inject(ActivatedRoute);
-  private authService = inject(AuthService);
 
   email = signal('');
   resendStatus = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -33,7 +29,7 @@ export class CheckEmailComponent {
     }
   }
 
-  resendEmail() {
+  resendEmail(): void {
     // Note: resendVerification requires auth, so user must login first
     // For now, we just show a message to check spam folder
     this.resendStatus.set('success');

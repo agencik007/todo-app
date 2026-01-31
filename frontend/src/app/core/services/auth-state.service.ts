@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, effect } from '@angular/core';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { IndexedDbService } from './indexed-db.service';
-import { User } from '../../features/auth/models/auth.model';
+import { UserResponse as User } from '@api';
 
 @Injectable({
   providedIn: 'root'
@@ -116,7 +116,7 @@ export class AuthStateService {
     this.userAvatar.set(null);
   }
 
-  async loadAvatar() {
+  async loadAvatar(): Promise<void> {
     try {
       const blob = await this.indexedDbService.getAvatar();
       if (blob) {
@@ -125,7 +125,7 @@ export class AuthStateService {
       } else {
         this.userAvatar.set(null);
       }
-    } catch (e) {
+    } catch {
       this.userAvatar.set(null);
     }
   }
