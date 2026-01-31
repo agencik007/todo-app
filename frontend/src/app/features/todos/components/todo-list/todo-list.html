@@ -1,158 +1,205 @@
 @if (isBrowser()) {
-  <div class="container">
-    <!-- Header -->
-    <div class="flex justify-content-between align-items-center mb-4">
-      <div>
-        <h1 class="m-0">📝 Moja Lista Zadań</h1>
-        <p class="text-color-secondary mt-1">
-          Zarządzaj swoimi zadaniami w prosty i efektywny sposób
-        </p>
-      </div>
-      <p-button label="Dodaj zadanie" icon="pi pi-plus" (onClick)="showCreateForm()" />
-    </div>
-
-    <!-- Stats -->
-    <div class="flex gap-3 mb-4">
-      <p-card [style]="{ flex: 1, textAlign: 'center' }">
-        <div class="text-3xl font-bold">{{ totalTodos() }}</div>
-        <div class="text-color-secondary">Wszystkie</div>
-      </p-card>
-      <p-card [style]="{ flex: 1, textAlign: 'center' }">
-        <div class="text-3xl font-bold" style="color: var(--p-orange-500)">
-          {{ pendingTodos().length }}
-        </div>
-        <div class="text-color-secondary">Do wykonania</div>
-      </p-card>
-      <p-card [style]="{ flex: 1, textAlign: 'center' }">
-        <div class="text-3xl font-bold" style="color: var(--p-green-500)">
-          {{ completedTodos().length }}
-        </div>
-        <div class="text-color-secondary">Ukończone</div>
-      </p-card>
-    </div>
-
-    <!-- Error Message -->
-    @if (error()) {
-      <p-message
-        severity="error"
-        [text]="error()!"
-        styleClass="mb-3 w-full"
-        [closable]="true"
-        (onClose)="clearError()"
-      />
-    }
-
-    <!-- Loading State (Skeletons) -->
-    @if (loading()) {
-      <div class="flex flex-column gap-2">
-        @for (i of [1, 2, 3]; track i) {
-          <p-card>
-            <div class="flex align-items-center gap-3">
-              <p-skeleton shape="circle" size="24px" />
-              <div class="flex-grow-1">
-                <p-skeleton width="60%" height="1.2rem" styleClass="mb-2" />
-                <p-skeleton width="40%" height="0.8rem" />
-              </div>
-              <div class="flex align-items-center gap-2">
-                <p-skeleton width="80px" height="2rem" borderRadius="16px" />
-                <p-skeleton shape="circle" size="2.5rem" />
-                <p-skeleton shape="circle" size="2.5rem" />
-              </div>
+    <div class="container">
+        <!-- Header -->
+        <div class="flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="m-0">📝 Moja Lista Zadań</h1>
+                <p class="text-color-secondary mt-1">
+                    Zarządzaj swoimi zadaniami w prosty i efektywny sposób
+                </p>
             </div>
-          </p-card>
-        }
-      </div>
-    }
+            <p-button
+                label="Dodaj zadanie"
+                icon="pi pi-plus"
+                (onClick)="showCreateForm()"
+            />
+        </div>
 
-    <!-- Todo List -->
-    @if (!loading() && todos().length > 0) {
-      <div class="flex flex-column gap-2">
-        @for (todo of todos(); track todo.id) {
-          <p-card>
-            <div class="flex align-items-center gap-3">
-              @if (canEditTodo(todo)) {
-                <p-checkbox
-                  [binary]="true"
-                  [ngModel]="todo.completed"
-                  (onChange)="toggleTodoCompletion(todo)"
-                />
-              }
-              <div class="flex-grow-1">
+        <!-- Stats -->
+        <div class="flex gap-3 mb-4">
+            <p-card [style]="{ flex: 1, textAlign: 'center' }">
+                <div class="text-3xl font-bold">{{ totalTodos() }}</div>
+                <div class="text-color-secondary">Wszystkie</div>
+            </p-card>
+            <p-card [style]="{ flex: 1, textAlign: 'center' }">
                 <div
-                  class="font-semibold"
-                  [class.line-through]="todo.completed"
-                  [class.text-color-secondary]="todo.completed"
+                    style="color: var(--p-orange-500)"
+                    class="text-3xl font-bold"
                 >
-                  {{ todo.title }}
+                    {{ pendingTodos().length }}
                 </div>
-                @if (todo.description) {
-                  <div class="text-sm text-color-secondary mt-1">{{ todo.description }}</div>
-                }
-                @if (!canEditTodo(todo) && todo.owner_email) {
-                  <div class="text-xs text-color-secondary mt-1">
-                    <i class="pi pi-user mr-1" style="font-size: 0.7rem"></i>
-                    To zadanie jest usera {{ todo.owner_email }}
-                  </div>
-                }
-              </div>
-              <div class="flex align-items-center gap-2">
-                <p-tag
-                  [value]="todo.completed ? 'Ukończone' : 'Do zrobienia'"
-                  [severity]="todo.completed ? 'success' : 'warn'"
-                />
-                @if (todo.is_public) {
-                  <p-tag value="Publiczne" severity="info" />
-                }
-                @if (canEditTodo(todo)) {
-                  <p-button
-                    icon="pi pi-pencil"
-                    [rounded]="true"
-                    [text]="true"
-                    severity="secondary"
-                    (onClick)="editTodo(todo)"
-                  />
-                  <p-button
-                    icon="pi pi-trash"
-                    [rounded]="true"
-                    [text]="true"
-                    severity="danger"
-                    (onClick)="deleteTodo(todo)"
-                  />
-                }
-              </div>
-            </div>
-          </p-card>
-        }
-      </div>
-    }
-
-    <!-- Empty State -->
-    @if (!loading() && todos().length === 0) {
-      <p-card>
-        <div class="flex flex-column align-items-center py-6">
-          <span class="text-6xl mb-3">📝</span>
-          <h3 class="m-0 mb-2">Brak zadań</h3>
-          <p class="text-color-secondary mb-3">
-            Nie masz jeszcze żadnych zadań. Dodaj pierwsze zadanie, aby zacząć!
-          </p>
-          <p-button label="Dodaj pierwsze zadanie" icon="pi pi-plus" (onClick)="showCreateForm()" />
+                <div class="text-color-secondary">Do wykonania</div>
+            </p-card>
+            <p-card [style]="{ flex: 1, textAlign: 'center' }">
+                <div
+                    style="color: var(--p-green-500)"
+                    class="text-3xl font-bold"
+                >
+                    {{ completedTodos().length }}
+                </div>
+                <div class="text-color-secondary">Ukończone</div>
+            </p-card>
         </div>
-      </p-card>
-    }
 
-    <!-- Todo Form Dialog -->
-    <p-dialog
-      [header]="editingTodo() ? 'Edytuj zadanie' : 'Dodaj nowe zadanie'"
-      [(visible)]="formVisible"
-      [modal]="true"
-      [style]="{ width: '450px' }"
-      (onHide)="hideForm()"
-    >
-      <app-todo-form [todo]="editingTodo()" (save)="saveTodo($event)" (cancel)="hideForm()">
-      </app-todo-form>
-    </p-dialog>
+        <!-- Error Message -->
+        @if (error()) {
+            <p-message
+                styleClass="mb-3 w-full"
+                severity="error"
+                [closable]="true"
+                (onClose)="clearError()"
+            >
+                {{ error() }}
+            </p-message>
+        }
 
-    <!-- Confirm Delete Dialog -->
-    <p-confirmDialog />
-  </div>
+        <!-- Loading State (Skeletons) -->
+        @if (loading()) {
+            <div class="flex flex-column gap-2">
+                @for (i of [1, 2, 3]; track i) {
+                    <p-card>
+                        <div class="flex align-items-center gap-3">
+                            <p-skeleton
+                                size="24px"
+                                shape="circle"
+                            />
+                            <div class="flex-grow-1">
+                                <p-skeleton
+                                    width="60%"
+                                    class="mb-2"
+                                    height="1.2rem"
+                                />
+                                <p-skeleton
+                                    width="40%"
+                                    height="0.8rem"
+                                />
+                            </div>
+                            <div class="flex align-items-center gap-2">
+                                <p-skeleton
+                                    width="80px"
+                                    height="2rem"
+                                    borderRadius="16px"
+                                />
+                                <p-skeleton
+                                    size="2.5rem"
+                                    shape="circle"
+                                />
+                                <p-skeleton
+                                    size="2.5rem"
+                                    shape="circle"
+                                />
+                            </div>
+                        </div>
+                    </p-card>
+                }
+            </div>
+        }
+
+        <!-- Todo List -->
+        @if (!loading() && todos().length > 0) {
+            <div class="flex flex-column gap-2">
+                @for (todo of todos(); track todo.id) {
+                    <p-card>
+                        <div class="flex align-items-center gap-3">
+                            @if (canEditTodo(todo)) {
+                                <p-checkbox
+                                    [ngModel]="todo.completed"
+                                    [binary]="true"
+                                    (onChange)="toggleTodoCompletion(todo)"
+                                />
+                            }
+                            <div class="flex-grow-1">
+                                <div
+                                    class="font-semibold"
+                                    [class.text-color-secondary]="todo.completed"
+                                    [class.line-through]="todo.completed"
+                                >
+                                    {{ todo.title }}
+                                </div>
+                                @if (todo.description) {
+                                    <div class="text-sm text-color-secondary mt-1">
+                                        {{ todo.description }}
+                                    </div>
+                                }
+                                @if (!canEditTodo(todo) && todo.owner_email) {
+                                    <div class="text-xs text-color-secondary mt-1">
+                                        <i
+                                            style="font-size: 0.7rem"
+                                            class="pi pi-user mr-1"
+                                        ></i>
+                                        To zadanie jest usera {{ todo.owner_email }}
+                                    </div>
+                                }
+                            </div>
+                            <div class="flex align-items-center gap-2">
+                                <p-tag
+                                    [value]="todo.completed ? 'Ukończone' : 'Do zrobienia'"
+                                    [severity]="todo.completed ? 'success' : 'warn'"
+                                />
+                                @if (todo.is_public) {
+                                    <p-tag
+                                        value="Publiczne"
+                                        severity="info"
+                                    />
+                                }
+                                @if (canEditTodo(todo)) {
+                                    <p-button
+                                        severity="secondary"
+                                        icon="pi pi-pencil"
+                                        [text]="true"
+                                        [rounded]="true"
+                                        (onClick)="editTodo(todo)"
+                                    />
+                                    <p-button
+                                        severity="danger"
+                                        icon="pi pi-trash"
+                                        [text]="true"
+                                        [rounded]="true"
+                                        (onClick)="deleteTodo(todo)"
+                                    />
+                                }
+                            </div>
+                        </div>
+                    </p-card>
+                }
+            </div>
+        }
+
+        <!-- Empty State -->
+        @if (!loading() && todos().length === 0) {
+            <p-card>
+                <div class="flex flex-column align-items-center py-6">
+                    <span class="text-6xl mb-3">📝</span>
+                    <h3 class="m-0 mb-2">Brak zadań</h3>
+                    <p class="text-color-secondary mb-3">
+                        Nie masz jeszcze żadnych zadań. Dodaj pierwsze zadanie, aby zacząć!
+                    </p>
+                    <p-button
+                        label="Dodaj pierwsze zadanie"
+                        icon="pi pi-plus"
+                        (onClick)="showCreateForm()"
+                    />
+                </div>
+            </p-card>
+        }
+
+        <!-- Todo Form Dialog -->
+        <p-dialog
+            [style]="{ width: '450px' }"
+            [modal]="true"
+            [header]="editingTodo() ? 'Edytuj zadanie' : 'Dodaj nowe zadanie'"
+            [(visible)]="formVisible"
+            (onHide)="hideForm()"
+        >
+            <app-todo-form
+                [todo]="editingTodo()"
+                (save)="saveTodo($event)"
+                (cancel)="hideForm()"
+            >
+            </app-todo-form>
+        </p-dialog>
+
+        <!-- Confirm Delete Dialog -->
+        <p-confirmDialog />
+    </div>
 }

@@ -41,14 +41,14 @@ export class ThemeService {
     }
   }
 
-  setMode(mode: ThemeMode) {
+  setMode(mode: ThemeMode): void {
     this.mode.set(mode);
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('theme-mode', mode);
     }
   }
 
-  private applyTheme(mode: ThemeMode) {
+  private applyTheme(mode: ThemeMode): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
     let dark: boolean;

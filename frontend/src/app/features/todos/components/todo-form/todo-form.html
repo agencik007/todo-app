@@ -1,31 +1,71 @@
-<form (ngSubmit)="onSubmit()" class="flex flex-column gap-3">
-  <div class="form-group">
-    <label for="title" class="block mb-2">Tytuł *</label>
-    <input pInputText id="title" type="text" [(ngModel)]="title" name="title" placeholder="Wpisz tytuł zadania..."
-      class="w-full" />
-    @if (!title().trim()) {
-    <small class="p-error">Tytuł jest wymagany</small>
-    }
-  </div>
+<form
+    class="flex flex-column gap-3"
+    (ngSubmit)="onSubmit()"
+>
+    <div class="form-group">
+        <label
+            for="title"
+            class="block mb-2"
+            >Tytuł *</label
+        >
+        <input
+            type="text"
+            placeholder="Wpisz tytuł zadania..."
+            pInputText
+            name="title"
+            id="title"
+            class="w-full"
+            [(ngModel)]="title"
+        />
+        @if (!title().trim()) {
+            <small class="p-error">Tytuł jest wymagany</small>
+        }
+    </div>
 
-  <div class="form-group">
-    <label for="description" class="block mb-2">Opis</label>
-    <textarea pTextarea id="description" [(ngModel)]="description" name="description" rows="4"
-      placeholder="Dodaj opcjonalny opis..." class="w-full">
-    </textarea>
-  </div>
+    <div class="form-group">
+        <label
+            for="description"
+            class="block mb-2"
+            >Opis</label
+        >
+        <textarea
+            rows="4"
+            pTextarea
+            placeholder="Dodaj opcjonalny opis..."
+            name="description"
+            id="description"
+            class="w-full"
+            [(ngModel)]="description"
+        >
+        </textarea>
+    </div>
 
-  <div class="form-group">
-    <p-checkbox [(ngModel)]="isPublic" name="isPublic" [binary]="true" label="Publiczne" />
-    <p class="text-sm text-color-secondary mt-1">
-      Zadanie publiczne będzie widoczne dla wszystkich użytkowników
-    </p>
-  </div>
+    <div class="form-group">
+        <p-checkbox
+            name="isPublic"
+            label="Publiczne"
+            [binary]="true"
+            [(ngModel)]="isPublic"
+        />
+        <p class="text-sm text-color-secondary mt-1">
+            Zadanie publiczne będzie widoczne dla wszystkich użytkowników
+        </p>
+    </div>
 
-  <div class="flex gap-2 justify-content-end">
-    <p-button type="button" label="Anuluj" severity="secondary" [outlined]="true" (onClick)="onCancel()" />
-    <p-button type="submit" [label]="todo() ? 'Zapisz zmiany' : 'Dodaj zadanie'"
-      [icon]="todo() ? 'pi pi-save' : 'pi pi-plus'" [disabled]="isSubmitting() || !title().trim()"
-      [loading]="isSubmitting()" />
-  </div>
+    <div class="flex gap-2 justify-content-end">
+        <p-button
+            type="button"
+            severity="secondary"
+            label="Anuluj"
+            [outlined]="true"
+            (onClick)="onCancel()"
+        />
+        <p-button
+            type="submit"
+            [loading]="isSubmitting()"
+            [label]="todo() ? 'Zapisz zmiany' : 'Dodaj zadanie'"
+            [icon]="todo() ? 'pi pi-save' : 'pi pi-plus'"
+            [disabled]="isSubmitting() || !title().trim()"
+        />
+    </div>
 </form>

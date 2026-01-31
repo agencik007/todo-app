@@ -61,7 +61,10 @@ All major operations are managed via the root `Makefile`.
 - **Naming:**
   - Components/Services/Classes: `PascalCase` (e.g., `TodoService`, `TodoListComponent`).
   - Variables/Methods: `camelCase`.
+  - Variables/Methods: `camelCase`.
   - Interfaces/Models: suffix with `.model.ts`.
+- **Data Models:** Use auto-generated OpenAPI models from `@api`. Do NOT manually define interfaces for API resources.
+- **Styling:** Use SCSS partials in `src/app/shared/global-styling` (layout, typography, forms). Avoid duplicating styles in components.
 - **Formatting:** Single quotes for strings. 2-space indentation. 100 char line limit (see `frontend/package.json`).
 - **State Management:** Use `AuthStateService` for global state and `IndexedDBService` for local persistence.
 - **API Communication:** Use `HttpClient` in Services. Centralize API URL logic in services using `window.location` for environment awareness.

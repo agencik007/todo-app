@@ -90,6 +90,7 @@ Prosta aplikacja Todo do zarządzania zadaniami z pełnym CRUD (Create, Read, Up
 - **Angular 20** - framework frontendowy
 - **TypeScript** - język programowania
 - **RxJS** - programowanie reaktywne
+- **OpenAPI Generator** - generowanie typów TypeScript z backendu
 - **Angular Material** (planowane)
 
 ### DevOps

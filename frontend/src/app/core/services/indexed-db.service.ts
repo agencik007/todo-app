@@ -22,17 +22,17 @@ export class IndexedDbService {
 
             const request = indexedDB.open(this.dbName, this.version);
 
-            request.onerror = (event) => {
+            request.onerror = (event): void => {
                 console.error('IndexedDB error:', event);
                 reject('Error opening IndexedDB');
             };
 
-            request.onsuccess = (event) => {
+            request.onsuccess = (event): void => {
                 this.db = (event.target as IDBOpenDBRequest).result;
                 resolve();
             };
 
-            request.onupgradeneeded = (event) => {
+            request.onupgradeneeded = (event): void => {
                 const db = (event.target as IDBOpenDBRequest).result;
                 if (!db.objectStoreNames.contains(this.storeName)) {
                     db.createObjectStore(this.storeName);
@@ -50,8 +50,8 @@ export class IndexedDbService {
             const store = transaction.objectStore(this.storeName);
             const request = store.put(blob, 'currentUserAvatar');
 
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject('Error saving avatar');
+            request.onsuccess = (): void => resolve();
+            request.onerror = (): void => reject('Error saving avatar');
         });
     }
 
@@ -64,11 +64,11 @@ export class IndexedDbService {
             const store = transaction.objectStore(this.storeName);
             const request = store.get('currentUserAvatar');
 
-            request.onsuccess = (event) => {
+            request.onsuccess = (event): void => {
                 const result = (event.target as IDBRequest).result;
                 resolve(result || null);
             };
-            request.onerror = () => reject('Error getting avatar');
+            request.onerror = (): void => reject('Error getting avatar');
         });
     }
 
@@ -81,8 +81,8 @@ export class IndexedDbService {
             const store = transaction.objectStore(this.storeName);
             const request = store.delete('currentUserAvatar');
 
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject('Error deleting avatar');
+            request.onsuccess = (): void => resolve();
+            request.onerror = (): void => reject('Error deleting avatar');
         });
     }
 }

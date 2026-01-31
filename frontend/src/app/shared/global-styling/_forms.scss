@@ -1,0 +1,27 @@
+@use './variables';
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.p-inputtext,
+.p-password {
+  width: 100%;
+}
+
+.p-error {
+  color: var(--p-red-500);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.p-link {
+  color: var(--p-primary-color);
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
