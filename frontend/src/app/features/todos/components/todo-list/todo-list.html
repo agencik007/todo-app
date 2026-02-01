@@ -193,12 +193,12 @@
 
         <!-- Todo Form Dialog -->
         <p-dialog
+            [visible]="formVisible()"
             [style]="{ width: '450px' }"
             [modal]="true"
             [header]="
                 (editingTodo() ? 'TODOS.FORM.TITLE_EDIT' : 'TODOS.FORM.TITLE_ADD') | translate
             "
-            [(visible)]="formVisible"
             (onHide)="hideForm()"
         >
             <app-todo-form

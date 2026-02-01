@@ -1,12 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import {
-    Component,
-    computed,
-    inject,
-    OnInit,
-    PLATFORM_ID,
-    signal,
-} from '@angular/core';
+import { Component, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Todo, TodoCreate, UserResponse } from '@api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -17,12 +10,10 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
-import { delay } from 'rxjs/operators';
-import { AuthStateService } from '../../../../core/services/auth-state.service';
-import { TodoService } from '../../services/todo.service';
+import { AuthStore } from '../../../../core/store/auth.store';
+import { TodoStore } from '../../store/todo.store';
 import { TodoFormComponent } from '../todo-form/todo-form';
 
 @Component({
@@ -34,7 +25,6 @@ import { TodoFormComponent } from '../todo-form/todo-form';
         ButtonModule,
         CheckboxModule,
         TagModule,
-        ProgressSpinnerModule,
         SkeletonModule,
         DialogModule,
         MessageModule,
@@ -46,137 +36,70 @@ import { TodoFormComponent } from '../todo-form/todo-form';
     styleUrl: './todo-list.scss',
 })
 export class TodoListComponent implements OnInit {
-    private todoService = inject(TodoService);
-    private authStateService = inject(AuthStateService);
+    // Inject TodoStore for centralized state management
+    readonly store = inject(TodoStore);
+    private authStore = inject(AuthStore);
     private confirmationService = inject(ConfirmationService);
     private platformId = inject(PLATFORM_ID);
     private translate = inject(TranslateService);
 
-    todos = signal<Todo[]>([]);
-    loading = signal(false);
-    error = signal<string | null>(null);
-    editingTodo = signal<Todo | null>(null);
-    formVisible = false;
     isBrowser = signal(false);
 
-    completedTodos = computed(() =>
-        this.todos().filter((todo) => todo.completed),
-    );
-    pendingTodos = computed(() =>
-        this.todos().filter((todo) => !todo.completed),
-    );
-    totalTodos = computed(() => this.todos().length);
+    // Expose store signals directly to template
+    readonly todos = this.store.todos;
+    readonly loading = this.store.loading;
+    readonly error = this.store.error;
+    readonly editingTodo = this.store.editingTodo;
+    readonly formVisible = this.store.formVisible;
+    readonly completedTodos = this.store.completedTodos;
+    readonly pendingTodos = this.store.pendingTodos;
+    readonly totalTodos = this.store.totalCount;
 
     get currentUser(): UserResponse | null {
-        return this.authStateService.currentUser();
+        return this.authStore.currentUser();
     }
 
     ngOnInit(): void {
         this.isBrowser.set(isPlatformBrowser(this.platformId));
         if (this.isBrowser()) {
-            this.loadTodos();
+            this.store.loadTodos();
         }
     }
 
-    loadTodos(): void {
-        this.loading.set(true);
-        this.error.set(null);
-        this.todoService
-            .getTodos()
-            .pipe(delay(2500))
-            .subscribe({
-                next: (todos) => {
-                    this.todos.set(todos);
-                    this.loading.set(false);
-                },
-                error: () => {
-                    this.error.set(
-                        this.translate.instant('TODOS.MESSAGES.ERROR_LOAD'),
-                    );
-                    this.loading.set(false);
-                },
-            });
-    }
-
     showCreateForm(): void {
-        this.editingTodo.set(null);
-        this.formVisible = true;
+        this.store.showCreateForm();
     }
 
     editTodo(todo: Todo): void {
         if (!this.canEditTodo(todo)) {
-            this.error.set(
+            this.store.setError(
                 this.translate.instant('TODOS.MESSAGES.ERROR_NO_PERM_EDIT'),
             );
             return;
         }
-        this.editingTodo.set(todo);
-        this.formVisible = true;
+        this.store.showEditForm(todo.id);
     }
 
     hideForm(): void {
-        this.formVisible = false;
-        this.editingTodo.set(null);
+        this.store.hideForm();
     }
 
     saveTodo(todoData: TodoCreate): void {
-        if (this.editingTodo()) {
-            this.updateTodo(this.editingTodo()!.id, todoData);
+        const editing = this.store.editingTodo();
+        if (editing) {
+            this.store.updateTodo(editing.id, todoData);
         } else {
-            this.createTodo(todoData);
+            this.store.createTodo(todoData);
         }
     }
 
-    private createTodo(todoData: TodoCreate): void {
-        this.todoService.createTodo(todoData).subscribe({
-            next: (newTodo) => {
-                this.todos.update((todos) => [...todos, newTodo]);
-                this.hideForm();
-            },
-            error: () => {
-                this.error.set(
-                    this.translate.instant('TODOS.MESSAGES.ERROR_CREATE'),
-                );
-            },
-        });
-    }
-
-    private updateTodo(id: number, todoData: TodoCreate): void {
-        this.todoService.updateTodo(id, todoData).subscribe({
-            next: (updatedTodo) => {
-                this.todos.update((todos) =>
-                    todos.map((todo) => (todo.id === id ? updatedTodo : todo)),
-                );
-                this.hideForm();
-            },
-            error: () => {
-                this.error.set(
-                    this.translate.instant('TODOS.MESSAGES.ERROR_UPDATE'),
-                );
-            },
-        });
-    }
-
     toggleTodoCompletion(todo: Todo): void {
-        this.todoService
-            .updateTodo(todo.id, { completed: !todo.completed })
-            .subscribe({
-                next: (updatedTodo) => {
-                    this.todos.update((todos) =>
-                        todos.map((t) => (t.id === todo.id ? updatedTodo : t)),
-                    );
-                },
-                error: () => {
-                    this.error.set(
-                        this.translate.instant('TODOS.MESSAGES.ERROR_UPDATE'),
-                    );
-                },
-            });
+        this.store.toggleTodo(todo);
     }
 
     deleteTodo(todo: Todo): void {
         if (!this.canEditTodo(todo)) {
-            this.error.set(
+            this.store.setError(
                 this.translate.instant('TODOS.MESSAGES.ERROR_NO_PERM_DELETE'),
             );
             return;
@@ -196,20 +119,7 @@ export class TodoListComponent implements OnInit {
                 'Tak, usuń',
             rejectLabel: this.translate.instant('TODOS.FORM.CANCEL'),
             accept: () => {
-                this.todoService.deleteTodo(todo.id).subscribe({
-                    next: () => {
-                        this.todos.update((todos) =>
-                            todos.filter((t) => t.id !== todo.id),
-                        );
-                    },
-                    error: () => {
-                        this.error.set(
-                            this.translate.instant(
-                                'TODOS.MESSAGES.ERROR_DELETE',
-                            ),
-                        );
-                    },
-                });
+                this.store.deleteTodo(todo.id);
             },
         });
     }
@@ -220,6 +130,6 @@ export class TodoListComponent implements OnInit {
     }
 
     clearError(): void {
-        this.error.set(null);
+        this.store.clearError();
     }
 }

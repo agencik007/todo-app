@@ -36,7 +36,9 @@
         "USER_DATA_FAILED": "Failed to load user data",
         "INVALID_CREDENTIALS": "Invalid E-mail or password",
         "NOT_VERIFIED_TITLE": "E-mail not verified",
-        "NOT_VERIFIED_DETAIL": "Check your inbox and verify your E-mail address before logging in."
+        "NOT_VERIFIED_DETAIL": "Check your inbox and verify your E-mail address before logging in.",
+        "SESSION_EXPIRED": "Session expired",
+        "SESSION_EXPIRED_DETAIL": "Your session has expired. Please login again."
       },
       "SUCCESS": {
         "VERIFIED": "Successfully verified E-mail, you can now log in"

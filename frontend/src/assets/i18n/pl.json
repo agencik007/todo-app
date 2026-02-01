@@ -36,7 +36,9 @@
         "USER_DATA_FAILED": "Nie udało się załadować danych użytkownika",
         "INVALID_CREDENTIALS": "Nieprawidłowy E-mail lub hasło",
         "NOT_VERIFIED_TITLE": "E-mail niezweryfikowany",
-        "NOT_VERIFIED_DETAIL": "Sprawdź swoją skrzynkę odbiorczą i zweryfikuj adres E-mail przed zalogowaniem."
+        "NOT_VERIFIED_DETAIL": "Sprawdź swoją skrzynkę odbiorczą i zweryfikuj adres E-mail przed zalogowaniem.",
+        "SESSION_EXPIRED": "Sesja wygasła",
+        "SESSION_EXPIRED_DETAIL": "Twoja sesja wygasła. Zaloguj się ponownie."
       },
       "SUCCESS": {
         "VERIFIED": "Pomyślnie zweryfikowano E-mail, możesz się teraz zalogować"

@@ -53,7 +53,11 @@ export class AuthService {
         const baseUrl = this.apiUrl.replace('/auth', '');
         const fullUrl = `${baseUrl}${url}`;
         return this.http.get(fullUrl, { responseType: 'blob' }).pipe(
-            tap((blob) => this.indexedDbService.saveAvatar(blob)),
+            tap((blob) => {
+                // Save both the blob and the URL for cache validation
+                this.indexedDbService.saveAvatar(blob);
+                this.indexedDbService.saveAvatarUrl(url);
+            }),
             catchError(this.handleError),
         );
     }

@@ -2,8 +2,8 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { SelectModule } from 'primeng/select';
-import { AuthStateService } from '../../../core/services/auth-state.service';
 import { LanguageService } from '../../../core/services/language.service';
+import { AuthStore } from '../../../core/store/auth.store';
 
 @Component({
     selector: 'app-language-selector',
@@ -49,7 +49,7 @@ import { LanguageService } from '../../../core/services/language.service';
 })
 export class LanguageSelectorComponent {
     languageService = inject(LanguageService);
-    authStateService = inject(AuthStateService);
+    authStore = inject(AuthStore);
 
     languages = [
         { name: 'English', code: 'en' },
@@ -64,8 +64,8 @@ export class LanguageSelectorComponent {
         // Handled by onChange
     }
 
-    onLanguageChange(event: any): void {
+    onLanguageChange(event: { value: string }): void {
         this.languageService.setLanguage(event.value);
-        this.authStateService.syncLanguage(event.value);
+        this.authStore.syncLanguage(event.value);
     }
 }
