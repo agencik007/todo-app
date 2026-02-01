@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({
-    providedIn: 'root'
+    providedIn: 'root',
 })
 export class IndexedDbService {
     private dbName = 'TodoAppDB';
@@ -46,7 +46,10 @@ export class IndexedDbService {
         if (!this.db) return;
 
         return new Promise((resolve, reject) => {
-            const transaction = this.db!.transaction([this.storeName], 'readwrite');
+            const transaction = this.db!.transaction(
+                [this.storeName],
+                'readwrite',
+            );
             const store = transaction.objectStore(this.storeName);
             const request = store.put(blob, 'currentUserAvatar');
 
@@ -60,7 +63,10 @@ export class IndexedDbService {
         if (!this.db) return null;
 
         return new Promise((resolve, reject) => {
-            const transaction = this.db!.transaction([this.storeName], 'readonly');
+            const transaction = this.db!.transaction(
+                [this.storeName],
+                'readonly',
+            );
             const store = transaction.objectStore(this.storeName);
             const request = store.get('currentUserAvatar');
 
@@ -77,12 +83,53 @@ export class IndexedDbService {
         if (!this.db) return;
 
         return new Promise((resolve, reject) => {
-            const transaction = this.db!.transaction([this.storeName], 'readwrite');
+            const transaction = this.db!.transaction(
+                [this.storeName],
+                'readwrite',
+            );
             const store = transaction.objectStore(this.storeName);
-            const request = store.delete('currentUserAvatar');
+            store.delete('currentUserAvatar');
+            const request = store.delete('currentUserAvatarUrl');
 
             request.onsuccess = (): void => resolve();
             request.onerror = (): void => reject('Error deleting avatar');
+        });
+    }
+
+    async saveAvatarUrl(url: string): Promise<void> {
+        if (!this.db) await this.initDb();
+        if (!this.db) return;
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db!.transaction(
+                [this.storeName],
+                'readwrite',
+            );
+            const store = transaction.objectStore(this.storeName);
+            const request = store.put(url, 'currentUserAvatarUrl');
+
+            request.onsuccess = (): void => resolve();
+            request.onerror = (): void => reject('Error saving avatar URL');
+        });
+    }
+
+    async getAvatarUrl(): Promise<string | null> {
+        if (!this.db) await this.initDb();
+        if (!this.db) return null;
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db!.transaction(
+                [this.storeName],
+                'readonly',
+            );
+            const store = transaction.objectStore(this.storeName);
+            const request = store.get('currentUserAvatarUrl');
+
+            request.onsuccess = (event): void => {
+                const result = (event.target as IDBRequest).result;
+                resolve(result || null);
+            };
+            request.onerror = (): void => reject('Error getting avatar URL');
         });
     }
 }

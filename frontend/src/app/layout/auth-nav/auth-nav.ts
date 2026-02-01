@@ -9,8 +9,8 @@ import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
-import { AuthStateService } from '../../core/services/auth-state.service';
 import { LanguageService } from '../../core/services/language.service';
+import { AuthStore } from '../../core/store/auth.store';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { LanguageSelectorComponent } from '../../shared/components/language-selector/language-selector.component';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle';
@@ -34,7 +34,7 @@ import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme
     styleUrl: './auth-nav.scss',
 })
 export class AuthNavComponent {
-    private authStateService = inject(AuthStateService);
+    private authStore = inject(AuthStore);
     private authService = inject(AuthService);
     private router = inject(Router);
     private messageService = inject(MessageService);
@@ -42,10 +42,10 @@ export class AuthNavComponent {
     private translate = inject(TranslateService);
     private languageService = inject(LanguageService);
 
-    readonly currentUser = this.authStateService.currentUser;
-    readonly isAuthenticated = this.authStateService.isAuthenticated;
-    readonly isLoading = this.authStateService.isLoading;
-    readonly userAvatar = this.authStateService.userAvatar;
+    readonly currentUser = this.authStore.currentUser;
+    readonly isAuthenticated = this.authStore.isAuthenticated;
+    readonly isLoading = this.authStore.isLoading;
+    readonly userAvatar = this.authStore.userAvatar;
 
     readonly sanitizedAvatarUrl = computed(() => {
         const url = this.userAvatar();
@@ -91,7 +91,7 @@ export class AuthNavComponent {
 
     logout(): void {
         this.authService.logout();
-        this.authStateService.clearUser();
+        this.authStore.clearUser();
         this.router.navigate(['/login']);
     }
 
@@ -104,7 +104,7 @@ export class AuthNavComponent {
         }
     }
 
-    onFileSelected(event: any): void {
+    onFileSelected(event: Event): void {
         const file = (event.target as HTMLInputElement).files?.[0];
         if (file) {
             this.authService.uploadAvatar(file).subscribe({
@@ -116,7 +116,7 @@ export class AuthNavComponent {
                             'MESSAGES.AVATAR_UPLOAD_SUCCESS',
                         ),
                     });
-                    this.authStateService.loadAvatar();
+                    this.authStore.loadAvatar();
                 },
                 error: () => {
                     this.messageService.add({
@@ -129,7 +129,7 @@ export class AuthNavComponent {
                 },
             });
         }
-        event.target.value = '';
+        (event.target as HTMLInputElement).value = '';
     }
 
     deleteAvatar(): void {
@@ -142,7 +142,7 @@ export class AuthNavComponent {
                         'MESSAGES.AVATAR_DELETE_SUCCESS',
                     ),
                 });
-                this.authStateService.loadAvatar();
+                this.authStore.loadAvatar();
             },
             error: () => {
                 this.messageService.add({

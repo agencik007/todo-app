@@ -22,8 +22,8 @@ import { providePrimeNG } from 'primeng/config';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
-import { AuthStateService } from './core/services/auth-state.service';
 import { LanguageService } from './core/services/language.service';
+import { AuthStore } from './core/store/auth.store';
 
 function initializeLanguage(): Promise<void> {
     const languageService = inject(LanguageService);
@@ -31,8 +31,8 @@ function initializeLanguage(): Promise<void> {
 }
 
 function initializeApp(): Promise<void> {
-    const authStateService = inject(AuthStateService);
-    return authStateService.initializeAuth();
+    const authStore = inject(AuthStore);
+    return authStore.initializeAuth();
 }
 
 export const appConfig: ApplicationConfig = {

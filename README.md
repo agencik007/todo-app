@@ -828,9 +828,13 @@ todo-app/
 ├── frontend/                # Angular frontend
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── components/  # Komponenty Angular
-│   │   │   ├── services/    # Serwisy
-│   │   │   └── models/      # Modele TypeScript
+│   │   │   ├── core/        # Core module
+│   │   │   │   └── store/   # Signal-based stores (AuthStore)
+│   │   │   ├── features/    # Feature modules
+│   │   │   │   └── todos/
+│   │   │   │       └── store/ # Feature stores (TodoStore)
+│   │   │   ├── shared/      # Shared components
+│   │   │   └── layout/      # Layout components
 │   │   └── ...
 │   ├── angular.json
 │   ├── package.json

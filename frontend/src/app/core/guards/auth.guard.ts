@@ -1,20 +1,20 @@
-import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformServer } from '@angular/common';
-import { Router, CanActivateFn } from '@angular/router';
-import { AuthStateService } from '../services/auth-state.service';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
+import { AuthStore } from '../store/auth.store';
 
 export const authGuard: CanActivateFn = () => {
-  const authStateService = inject(AuthStateService);
-  const router = inject(Router);
-  const platformId = inject(PLATFORM_ID);
+    const authStore = inject(AuthStore);
+    const router = inject(Router);
+    const platformId = inject(PLATFORM_ID);
 
-  if (isPlatformServer(platformId)) {
+    if (isPlatformServer(platformId)) {
+        return true;
+    }
+
+    if (!authStore.isAuthenticated()) {
+        return router.parseUrl('/login');
+    }
+
     return true;
-  }
-
-  if (!authStateService.isAuthenticated()) {
-    return router.parseUrl('/login');
-  }
-
-  return true;
 };

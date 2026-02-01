@@ -16,7 +16,7 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
-import { AuthStateService } from '../../../../core/services/auth-state.service';
+import { AuthStore } from '../../../../core/store/auth.store';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -38,7 +38,7 @@ import { AuthService } from '../../services/auth.service';
 export class LoginComponent {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
-    private authStateService = inject(AuthStateService);
+    private authStore = inject(AuthStore);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private messageService = inject(MessageService);
@@ -84,7 +84,7 @@ export class LoginComponent {
             next: () => {
                 this.authService.getCurrentUser().subscribe({
                     next: (user) => {
-                        this.authStateService.setUser(user);
+                        this.authStore.setUser(user);
                         this.isLoading.set(false);
                         const returnUrl =
                             this.route.snapshot.queryParams['returnUrl'] ||

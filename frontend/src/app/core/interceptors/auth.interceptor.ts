@@ -2,13 +2,15 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject, Injector, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../../features/auth/services/auth.service';
-import { AuthStateService } from '../services/auth-state.service';
+import { AuthStore } from '../store/auth.store';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const authService = inject(AuthService);
+    const translateService = inject(TranslateService);
     const injector = inject(Injector);
     const messageService = inject(MessageService);
     const router = inject(Router);
@@ -53,12 +55,16 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
                         return next(clonedReq);
                     }),
                     catchError((refreshError) => {
-                        const authStateService = injector.get(AuthStateService);
-                        authStateService.clearUser();
+                        const authStore = injector.get(AuthStore);
+                        authStore.clearUser();
                         messageService.add({
                             severity: 'warn',
-                            summary: 'Session Expired',
-                            detail: 'Your session has expired. Please login again.',
+                            summary: translateService.instant(
+                                'AUTH.ERRORS.SESSION_EXPIRED',
+                            ),
+                            detail: translateService.instant(
+                                'AUTH.ERRORS.SESSION_EXPIRED_DETAIL',
+                            ),
                             life: 5000,
                         });
                         router.navigate(['/login']);
@@ -66,12 +72,16 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
                     }),
                 );
             } else {
-                const authStateService = injector.get(AuthStateService);
-                authStateService.clearUser();
+                const authStore = injector.get(AuthStore);
+                authStore.clearUser();
                 messageService.add({
                     severity: 'warn',
-                    summary: 'Session Expired',
-                    detail: 'Your session has expired. Please login again.',
+                    summary: translateService.instant(
+                        'AUTH.ERRORS.SESSION_EXPIRED',
+                    ),
+                    detail: translateService.instant(
+                        'AUTH.ERRORS.SESSION_EXPIRED_DETAIL',
+                    ),
                     life: 5000,
                 });
                 router.navigate(['/login']);

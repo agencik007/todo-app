@@ -62,16 +62,18 @@ All major operations are managed via the root `Makefile`.
 - **Naming:**
   - Components/Services/Classes: `PascalCase` (e.g., `TodoService`, `TodoListComponent`).
   - Variables/Methods: `camelCase`.
-  - Variables/Methods: `camelCase`.
   - Interfaces/Models: suffix with `.model.ts`.
 - **Data Models:** Use auto-generated OpenAPI models from `@api`. Do NOT manually define interfaces for API resources.
 - **Styling:** Use SCSS partials in `src/app/shared/global-styling` (layout, typography, forms). Avoid duplicating styles in components.
 - **Formatting:** Single quotes for strings. 2-space indentation. 100 char line limit (see `frontend/package.json`).
-- **State Management:** Use `AuthStateService` for global state and `IndexedDBService` for local persistence.
+- **State Management:** Use Signal-based stores:
+  - `AuthStore` (`core/store/auth.store.ts`) for authentication state
+  - `TodoStore` (`features/todos/store/todo.store.ts`) for todos state
+  - `IndexedDBService` for local persistence
 - **API Communication:** Use `HttpClient` in Services. Centralize API URL logic in services using `window.location` for environment awareness.
 - **Routing:** Use Angular Router for navigation. Use `AuthGuard` for authentication.
 - **Translations:** Use `ngx-translate` for translations. Use `TranslationService` for translations. Add new translations to `src/assets/i18n/en.json` and `src/assets/i18n/pl.json`.
-- **SSR mode:** Angular is running in SSR mode. Use `window.location` for environment awareness. Remeber to add correct routes with params in `app.routes.server.ts` file.
+- **SSR mode:** Angular is running in SSR mode. Use `window.location` for environment awareness. Remember to add correct routes with params in `app.routes.server.ts` file.
 - **OpenAPI:** Use auto-generated OpenAPI models from `@api`. Do NOT manually define interfaces for API resources. Command to generate: `npm run generate-api` inside frontend folder.
 - **Error Handling:** Use `catchError` in RxJS pipes. Transform errors into user-friendly messages using a centralized `handleError` method in services.
 
@@ -81,5 +83,7 @@ All major operations are managed via the root `Makefile`.
 
 - `/backend`: FastAPI application, models, routes, and tests.
 - `/frontend`: Angular source code, components, and assets.
+  - `/frontend/src/app/core/store`: Signal-based state stores (AuthStore)
+  - `/frontend/src/app/features/todos/store`: Feature-specific stores (TodoStore)
 - `/docker`: Dockerfiles and docker-compose configurations.
 - `Makefile`: Root entry point for all development tasks.
