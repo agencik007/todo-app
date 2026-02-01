@@ -1,3 +1,4 @@
+import { IMAGE_CONFIG } from '@angular/common';
 import {
     provideHttpClient,
     withFetch,
@@ -22,6 +23,7 @@ import { providePrimeNG } from 'primeng/config';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { notificationInterceptor } from './core/interceptors/notification.interceptor';
 import { LanguageService } from './core/services/language.service';
 import { AuthStore } from './core/store/auth.store';
 
@@ -41,7 +43,10 @@ export const appConfig: ApplicationConfig = {
         provideZoneChangeDetection({ eventCoalescing: true }),
         provideRouter(routes),
         provideClientHydration(),
-        provideHttpClient(withInterceptors([authInterceptor]), withFetch()),
+        provideHttpClient(
+            withInterceptors([notificationInterceptor, authInterceptor]),
+            withFetch(),
+        ),
         provideApi(environment.apiUrl),
         importProvidersFrom(TranslateModule.forRoot()),
         provideTranslateHttpLoader({
@@ -59,5 +64,12 @@ export const appConfig: ApplicationConfig = {
                 },
             },
         }),
+        {
+            provide: IMAGE_CONFIG,
+            useValue: {
+                disableImageSizeWarning: true,
+                disableImageLazyLoadWarning: true,
+            },
+        },
     ],
 };
