@@ -14,9 +14,6 @@
     "status": "make status",
     "prepare": "husky"
   },
-  "workspaces": [
-    "frontend"
-  ],
   "devDependencies": {
     "eslint": "^9.39.2",
     "husky": "^9.1.7",
