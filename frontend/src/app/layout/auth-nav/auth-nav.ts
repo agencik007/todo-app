@@ -16,6 +16,7 @@ import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
+import { CommandPaletteService } from '../../core/services/command-palette.service';
 import { LanguageService } from '../../core/services/language.service';
 import { ScreenSizeService } from '../../core/services/screen-size.service';
 import { AuthStore } from '../../core/store/auth.store';
@@ -52,12 +53,21 @@ export class AuthNavComponent {
     public translate = inject(TranslateService);
     public languageService = inject(LanguageService);
     public screenSize = inject(ScreenSizeService);
+    public commandPaletteService = inject(CommandPaletteService);
 
     readonly currentUser = this.authStore.currentUser;
     readonly isAuthenticated = this.authStore.isAuthenticated;
     readonly isLoading = this.authStore.isLoading;
     readonly userAvatar = this.authStore.userAvatar;
     readonly isPreviewVisible = signal(false);
+
+    constructor() {
+        if (typeof window !== 'undefined') {
+            window.addEventListener('delete-avatar-command', () => {
+                this.deleteAvatar();
+            });
+        }
+    }
 
     readonly sanitizedAvatarUrl = computed(() => {
         const url = this.userAvatar();

@@ -187,6 +187,46 @@
       "ERROR_NO_PERM_DELETE": "You do not have permission to delete this task"
     }
   },
+  "COMMAND_PALETTE": {
+    "SEARCH": "Search",
+    "SEARCH_PLACEHOLDER": "Search commands or tasks",
+    "NO_RESULTS": "No results found",
+    "NO_RECENT": "No recent searches",
+    "CATEGORIES": {
+      "COLOR": "Color Palettes",
+      "THEME": "Theme",
+      "LANGUAGE": "Language",
+      "AVATAR": "Avatar",
+      "ACCOUNT": "Account",
+      "TODO": "Tasks",
+      "TASK_ACTION": "Task Actions"
+    },
+    "COMMANDS": {
+      "COLOR_OCEAN": "Ocean Depth",
+      "COLOR_SUNSET": "Sunset Gradient",
+      "COLOR_FOREST": "Forest Night",
+      "COLOR_ROYAL": "Royal Purple",
+      "COLOR_CYBER": "Cyberpunk",
+      "THEME_LIGHT": "Light Theme",
+      "THEME_DARK": "Dark Theme",
+      "THEME_SYSTEM": "System Theme",
+      "LANG_EN": "English",
+      "LANG_PL": "Polish",
+      "AVATAR_CHANGE": "Change Avatar",
+      "AVATAR_DELETE": "Delete Avatar",
+      "LOGOUT": "Logout",
+      "TODO_ADD": "Add Task",
+      "TASK_EDIT_DESC": "Edit",
+      "TASK_DELETE_DESC": "Delete",
+      "TASK_DONE_DESC": "Mark as done",
+      "TASK_UNDO_DESC": "Mark as undone"
+    },
+    "SHORTCUTS": {
+      "SELECT": "to select",
+      "NAVIGATE": "to navigate",
+      "CLOSE": "to close"
+    }
+  },
   "MESSAGES": {
     "SUCCESS": "Success",
     "ERROR": "Error",

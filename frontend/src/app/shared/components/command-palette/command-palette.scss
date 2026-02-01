@@ -1,0 +1,291 @@
+::ng-deep {
+    /* --- Base Styles (Light Mode) --- */
+    .command-palette-dialog {
+        .p-dialog {
+            max-width: 600px;
+            width: 90vw;
+            border: 1px solid var(--p-surface-border);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            background: var(--p-surface-0);
+            color: var(--p-text-color);
+            overflow: hidden;
+        }
+
+        .p-dialog-header {
+            display: none !important;
+        }
+
+        .p-dialog-header-icons {
+            display: none !important;
+        }
+
+        .p-dialog-content {
+            padding: 0;
+            background: inherit;
+            color: inherit;
+            border-radius: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .p-dialog {
+                max-width: 100vw;
+                width: 100vw;
+                height: auto;
+                margin: 0;
+                border-radius: 0;
+                border: none;
+            }
+        }
+    }
+
+    .command-palette-container {
+        display: flex;
+        flex-direction: column;
+        height: 600px;
+        max-height: 80vh;
+        background: transparent;
+
+        @media (max-width: 768px) {
+            height: 100vh;
+            max-height: 100vh;
+        }
+    }
+
+    .search-wrapper {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--p-surface-border);
+        z-index: 10;
+        background: inherit;
+
+        .search-icon {
+            color: var(--p-primary-color);
+            font-size: 1.4rem;
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--p-text-color);
+            font-size: 1.1rem;
+            padding: 0;
+
+            &::placeholder {
+                color: var(--p-text-muted-color);
+            }
+        }
+    }
+
+    .commands-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.5rem 0;
+        background: inherit;
+
+        &::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--p-surface-200);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background: var(--p-surface-300);
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+    }
+
+    .empty-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 1rem;
+        color: var(--p-text-muted-color);
+        font-size: 1rem;
+    }
+
+    .command-group {
+        margin-bottom: 0.5rem;
+    }
+
+    .category-label {
+        padding: 0.75rem 1.5rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--p-text-muted-color);
+        letter-spacing: 0.1em;
+    }
+
+    .command-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1.5rem;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+        color: var(--p-text-color);
+        margin: 0 0.5rem;
+        border-radius: 8px;
+
+        &.selected {
+            background: var(--p-primary-color);
+            color: var(--p-primary-contrast-color);
+
+            .command-icon,
+            .command-label {
+                color: var(--p-primary-contrast-color);
+            }
+
+            .shortcut-badge {
+                background: rgba(255, 255, 255, 0.2);
+                border-color: rgba(255, 255, 255, 0.2);
+                color: white;
+            }
+        }
+
+        .command-icon {
+            font-size: 1.25rem;
+            color: var(--p-text-muted-color);
+            width: 1.5rem;
+            text-align: center;
+        }
+
+        .command-label {
+            flex: 1;
+            font-size: 1rem;
+            font-weight: 500;
+
+            .custom-label {
+                font-weight: 400;
+                opacity: 0.7;
+            }
+        }
+
+        .shortcut-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            background: var(--p-surface-100);
+            border: 1px solid var(--p-surface-border);
+            color: var(--p-text-muted-color);
+            font-family: monospace;
+        }
+    }
+
+    .palette-footer {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--p-surface-border);
+        background: var(--p-surface-50);
+        font-size: 0.85rem;
+        color: var(--p-text-muted-color);
+
+        .shortcuts-hint {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .hint-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        kbd {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            background: var(--p-surface-0);
+            border: 1px solid var(--p-surface-border);
+            color: var(--p-text-color);
+            font-family: monospace;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+            min-width: 1.5rem;
+            text-align: center;
+        }
+    }
+
+    /* --- Dark Mode Overrides (targeted globally) --- */
+    .dark {
+        .command-palette-dialog {
+            .p-dialog {
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+                border-color: rgba(255, 255, 255, 0.1);
+                background: var(--p-surface-900) !important;
+            }
+
+            .p-dialog-content {
+                background: var(--p-surface-900) !important;
+                color: var(--p-text-color) !important;
+            }
+
+            .search-wrapper {
+                border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+                background: inherit;
+            }
+
+            .palette-footer {
+                background: var(--p-surface-950) !important;
+                color: var(--p-text-muted-color) !important;
+                border-top-color: rgba(255, 255, 255, 0.1) !important;
+
+                kbd {
+                    background: rgba(255, 255, 255, 0.05) !important;
+                    border-color: rgba(255, 255, 255, 0.1) !important;
+                    color: rgba(255, 255, 255, 0.8) !important;
+                    box-shadow: none !important;
+                }
+            }
+
+            .command-item {
+                color: var(--p-text-color) !important;
+
+                &:not(.selected):hover {
+                    background: rgba(255, 255, 255, 0.03) !important;
+                }
+
+                .shortcut-badge {
+                    background: rgba(255, 255, 255, 0.05) !important;
+                    border-color: rgba(255, 255, 255, 0.1) !important;
+                }
+
+                &.selected {
+                    background: var(--p-primary-color) !important;
+                    color: var(--p-primary-contrast-color) !important;
+                }
+            }
+
+            .category-label {
+                color: var(--p-primary-color) !important;
+                opacity: 0.8;
+            }
+
+            .commands-list {
+                &::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.1) !important;
+                }
+            }
+        }
+    }
+}

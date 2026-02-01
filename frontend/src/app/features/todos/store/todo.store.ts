@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Todo, TodoCreate, TodoUpdate } from '@api';
+import { delay } from 'rxjs';
 import { TodoService } from '../services/todo.service';
 
 /**
@@ -51,21 +52,24 @@ export class TodoStore {
         this._loading.set(true);
         this._error.set(null);
 
-        this.todoService.getTodos().subscribe({
-            next: (todos) => {
-                this._todos.set(todos);
-                this._loading.set(false);
-            },
-            error: (err) => {
-                const errorDetail = err.error?.detail;
-                const messageCode =
-                    errorDetail?.messageCode || err.error?.messageCode;
-                this._error.set(
-                    messageCode || err.message || 'An error occurred',
-                );
-                this._loading.set(false);
-            },
-        });
+        this.todoService
+            .getTodos()
+            .pipe(delay(1000))
+            .subscribe({
+                next: (todos) => {
+                    this._todos.set(todos);
+                    this._loading.set(false);
+                },
+                error: (err) => {
+                    const errorDetail = err.error?.detail;
+                    const messageCode =
+                        errorDetail?.messageCode || err.error?.messageCode;
+                    this._error.set(
+                        messageCode || err.message || 'An error occurred',
+                    );
+                    this._loading.set(false);
+                },
+            });
     }
 
     createTodo(todoData: TodoCreate): void {

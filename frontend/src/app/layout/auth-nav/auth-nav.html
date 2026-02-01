@@ -1,18 +1,55 @@
-<p-menubar [model]="[]">
+<p-menubar
+    class="auth-menubar"
+    [model]="[]"
+>
     <ng-template #start>
-        <a
-            style="text-decoration: none"
-            routerLink="/todos"
-            class="flex align-items-center gap-2 p-link"
-        >
-            <span class="font-semibold text-xl">📝 {{ 'NAV.HOME' | translate }}</span>
-        </a>
+        <div class="flex align-items-center justify-content-between w-full menubar-inner">
+            <a
+                style="text-decoration: none"
+                routerLink="/todos"
+                class="flex align-items-center gap-2 p-link mr-4 logo-link"
+            >
+                <span class="font-semibold text-xl">📝 {{ 'NAV.HOME' | translate }}</span>
+            </a>
+
+            <!-- Search Button - Centered via Flexbox on Desktop -->
+            @if (!screenSize.isCompact()) {
+                <div class="search-container-desktop">
+                    <button
+                        type="button"
+                        class="search-trigger-btn flex align-items-center gap-2 px-3 py-2 cursor-pointer transition-all transition-duration-200"
+                        (click)="commandPaletteService.open()"
+                    >
+                        <i class="pi pi-search text-secondary"></i>
+                        <span class="text-secondary font-semibold">{{
+                            'COMMAND_PALETTE.SEARCH' | translate
+                        }}</span>
+                        <kbd
+                            class="shortcut-badge text-xs px-1 border-1 border-round surface-border text-secondary"
+                            >CTRL + K</kbd
+                        >
+                    </button>
+                </div>
+            }
+        </div>
     </ng-template>
+
     <ng-template #end>
         <div
             class="flex align-items-center"
             [class.gap-2]="!screenSize.isCompact()"
         >
+            <!-- Mobile Search Icon -->
+            @if (screenSize.isCompact()) {
+                <button
+                    type="button"
+                    class="search-trigger-btn-mobile mr-2"
+                    (click)="commandPaletteService.open()"
+                >
+                    <i class="pi pi-search"></i>
+                </button>
+            }
+
             @if (isLoading()) {
                 <p-progressSpinner
                     strokeWidth="4"

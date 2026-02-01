@@ -187,6 +187,46 @@
       "ERROR_NO_PERM_DELETE": "Nie masz uprawnień do usunięcia tego zadania"
     }
   },
+  "COMMAND_PALETTE": {
+    "SEARCH": "Szukaj",
+    "SEARCH_PLACEHOLDER": "Szukaj poleceń lub zadań",
+    "NO_RESULTS": "Nie znaleziono wyników",
+    "NO_RECENT": "Brak ostatnich wyszukiwań",
+    "CATEGORIES": {
+      "COLOR": "Palety Kolorów",
+      "THEME": "Motyw",
+      "LANGUAGE": "Język",
+      "AVATAR": "Awatar",
+      "ACCOUNT": "Konto",
+      "TODO": "Zadania",
+      "TASK_ACTION": "Akcje zadań"
+    },
+    "COMMANDS": {
+      "COLOR_OCEAN": "Głębia Oceanu",
+      "COLOR_SUNSET": "Zachód Słońca",
+      "COLOR_FOREST": "Leśna Noc",
+      "COLOR_ROYAL": "Królewska Purpura",
+      "COLOR_CYBER": "Cyberpunk",
+      "THEME_LIGHT": "Jasny Motyw",
+      "THEME_DARK": "Ciemny Motyw",
+      "THEME_SYSTEM": "Motyw Systemowy",
+      "LANG_EN": "Angielski",
+      "LANG_PL": "Polski",
+      "AVATAR_CHANGE": "Zmień Awatar",
+      "AVATAR_DELETE": "Usuń Awatar",
+      "LOGOUT": "Wyloguj",
+      "TODO_ADD": "Dodaj Zadanie",
+      "TASK_EDIT_DESC": "Edytuj",
+      "TASK_DELETE_DESC": "Usuń",
+      "TASK_DONE_DESC": "Oznacz jako zrobione",
+      "TASK_UNDO_DESC": "Oznacz jako niezrobione"
+    },
+    "SHORTCUTS": {
+      "SELECT": "aby wybrać",
+      "NAVIGATE": "aby nawigować",
+      "CLOSE": "aby zamknąć"
+    }
+  },
   "MESSAGES": {
     "SUCCESS": "Sukces",
     "ERROR": "Błąd",
