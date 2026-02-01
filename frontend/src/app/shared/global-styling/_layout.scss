@@ -1,4 +1,5 @@
 @use './variables';
+@use './responsive';
 
 html,
 body {
@@ -12,6 +13,12 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 1rem;
+
+    @include responsive.mobile {
+        width: 100%;
+        padding: 0.5rem;
+        max-width: 100%;
+    }
 }
 
 .auth-container {

@@ -9,7 +9,7 @@ import {
 } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { PasswordResetRequest } from '@api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
@@ -26,7 +26,7 @@ import { AuthService } from '../../services/auth.service';
         ButtonModule,
         MessageModule,
         NgClass,
-        TranslateModule,
+        TranslatePipe,
     ],
     templateUrl: './forgot-password.html',
     styleUrl: './forgot-password.scss',
@@ -66,12 +66,17 @@ export class ForgotPasswordComponent {
                 this.isLoading.set(false);
             },
             error: (err) => {
-                this.error.set(
-                    err.message ||
-                        this.translate.instant(
-                            'AUTH.FORGOT_PASSWORD.ERRORS.EMAIL_FAILED',
-                        ),
-                );
+                const errorDetail = err.error?.detail;
+                const messageCode =
+                    errorDetail?.messageCode || err.error?.messageCode;
+
+                const errorMsg = messageCode
+                    ? this.translate.instant(`API_MESSAGES.${messageCode}`)
+                    : this.translate.instant(
+                          'AUTH.FORGOT_PASSWORD.ERRORS.EMAIL_FAILED',
+                      );
+
+                this.error.set(errorMsg);
                 this.isLoading.set(false);
             },
         });

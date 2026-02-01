@@ -19,6 +19,7 @@ export interface UserResponse {
     is_verified: boolean;
     avatar_url?: string | null;
     language: string;
+    message?: string | null;
     created_at: string;
     updated_at: string;
 }

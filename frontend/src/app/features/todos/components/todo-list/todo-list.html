@@ -1,27 +1,39 @@
 @if (isBrowser()) {
     <div class="container">
         <!-- Header -->
-        <div class="flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="m-0">📝 {{ 'TODOS.TITLE' | translate }}</h1>
+        <div class="flex justify-content-between align-items-center mb-4 flex-column-mobile gap-3">
+            <div class="w-full-mobile">
+                <h1 class="m-0 text-3xl md:text-5xl">📝 {{ 'TODOS.TITLE' | translate }}</h1>
                 <p class="text-color-secondary mt-1">
                     {{ 'TODOS.SUBTITLE' | translate }}
                 </p>
             </div>
             <p-button
+                styleClass="w-full-mobile"
                 icon="pi pi-plus"
+                class="w-full-mobile"
                 [label]="'TODOS.ADD_BUTTON' | translate"
                 (onClick)="showCreateForm()"
             />
         </div>
 
         <!-- Stats -->
-        <div class="flex gap-3 mb-4">
-            <p-card [style]="{ flex: 1, textAlign: 'center' }">
+        <div
+            class="flex mb-4"
+            [class.gap-3]="!screenSize.isCompact()"
+            [class.flex-column-mobile]="!screenSize.isCompact()"
+        >
+            <p-card
+                class="w-full"
+                [style]="{ flex: 1, textAlign: 'center' }"
+            >
                 <div class="text-3xl font-bold">{{ totalTodos() }}</div>
                 <div class="text-color-secondary">{{ 'TODOS.STATS.ALL' | translate }}</div>
             </p-card>
-            <p-card [style]="{ flex: 1, textAlign: 'center' }">
+            <p-card
+                class="w-full"
+                [style]="{ flex: 1, textAlign: 'center' }"
+            >
                 <div
                     style="color: var(--p-orange-500)"
                     class="text-3xl font-bold"
@@ -30,7 +42,10 @@
                 </div>
                 <div class="text-color-secondary">{{ 'TODOS.STATS.PENDING' | translate }}</div>
             </p-card>
-            <p-card [style]="{ flex: 1, textAlign: 'center' }">
+            <p-card
+                class="w-full"
+                [style]="{ flex: 1, textAlign: 'center' }"
+            >
                 <div
                     style="color: var(--p-green-500)"
                     class="text-3xl font-bold"
@@ -100,41 +115,44 @@
             <div class="flex flex-column gap-2">
                 @for (todo of todos(); track todo.id) {
                     <p-card>
-                        <div class="flex align-items-center gap-3">
-                            @if (canEditTodo(todo)) {
-                                <p-checkbox
-                                    [ngModel]="todo.completed"
-                                    [binary]="true"
-                                    (onChange)="toggleTodoCompletion(todo)"
-                                />
-                            }
-                            <div class="flex-grow-1">
+                        <div
+                            class="flex align-items-center gap-3"
+                            [class.flex-column]="screenSize.isCompact()"
+                            [class.align-items-start]="screenSize.isCompact()"
+                        >
+                            <div class="flex align-items-center gap-3 w-full">
+                                @if (canEditTodo(todo)) {
+                                    <p-checkbox
+                                        [ngModel]="todo.completed"
+                                        [binary]="true"
+                                        (onChange)="toggleTodoCompletion(todo)"
+                                    />
+                                }
                                 <div
-                                    class="font-semibold"
-                                    [class.text-color-secondary]="todo.completed"
-                                    [class.line-through]="todo.completed"
+                                    style="min-width: 0"
+                                    class="flex-grow-1"
                                 >
-                                    {{ todo.title }}
+                                    <div
+                                        style="word-break: break-word"
+                                        class="font-semibold"
+                                        [class.text-color-secondary]="todo.completed"
+                                        [class.line-through]="todo.completed"
+                                    >
+                                        {{ todo.title }}
+                                    </div>
+                                    @if (todo.description) {
+                                        <div class="text-sm text-color-secondary mt-1">
+                                            {{ todo.description }}
+                                        </div>
+                                    }
                                 </div>
-                                @if (todo.description) {
-                                    <div class="text-sm text-color-secondary mt-1">
-                                        {{ todo.description }}
-                                    </div>
-                                }
-                                @if (!canEditTodo(todo) && todo.owner_email) {
-                                    <div class="text-xs text-color-secondary mt-1">
-                                        <i
-                                            style="font-size: 0.7rem"
-                                            class="pi pi-user mr-1"
-                                        ></i>
-                                        {{
-                                            'TODOS.LIST.OWNER_INFO'
-                                                | translate: { email: todo.owner_email }
-                                        }}
-                                    </div>
-                                }
                             </div>
-                            <div class="flex align-items-center gap-2">
+
+                            <div
+                                class="flex align-items-center gap-1 flex-wrap"
+                                [class.w-full]="screenSize.isCompact()"
+                                [class.justify-content-end]="screenSize.isCompact()"
+                            >
                                 <p-tag
                                     [value]="
                                         (todo.completed
@@ -151,20 +169,22 @@
                                     />
                                 }
                                 @if (canEditTodo(todo)) {
-                                    <p-button
-                                        severity="secondary"
-                                        icon="pi pi-pencil"
-                                        [text]="true"
-                                        [rounded]="true"
-                                        (onClick)="editTodo(todo)"
-                                    />
-                                    <p-button
-                                        severity="danger"
-                                        icon="pi pi-trash"
-                                        [text]="true"
-                                        [rounded]="true"
-                                        (onClick)="deleteTodo(todo)"
-                                    />
+                                    <div class="flex gap-1">
+                                        <p-button
+                                            severity="secondary"
+                                            icon="pi pi-pencil"
+                                            [text]="true"
+                                            [rounded]="true"
+                                            (onClick)="editTodo(todo)"
+                                        />
+                                        <p-button
+                                            severity="danger"
+                                            icon="pi pi-trash"
+                                            [text]="true"
+                                            [rounded]="true"
+                                            (onClick)="deleteTodo(todo)"
+                                        />
+                                    </div>
                                 }
                             </div>
                         </div>

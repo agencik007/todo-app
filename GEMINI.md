@@ -51,7 +51,12 @@ All major operations are managed via the root `Makefile`.
   - Classes: `PascalCase`
   - Schemas: suffix with `Create`, `Update` where applicable (e.g., `TodoCreate`).
 - **Typing:** Use Python type hints everywhere. Use `typing.List`, `Optional`, etc.
-- **Error Handling:** Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`.
+- **Error Handling:** Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`. Use the stylized API message system:
+  - Add new message codes to `ApiMessages` enum in `backend/config/api_messages.py`.
+  - Use `api_error(ApiMessages.CODE)` for error details.
+  - Use `api_success(ApiMessages.CODE)` or include `message: ApiMessages.CODE.value` in success responses.
+  - Ensure success schemas (like `Token` or `UserResponse`) include an optional `message` field.
+- **HTTP Status Codes:** Always use appropriate codes (e.g., 201 for created, 400 for bad request, 401 for unauthorized, 403 for forbidden, 404 for not found).
 - **Formatting:** Follow PEP 8 (handled by toolings, but keep it clean). Use double quotes for strings unless single quotes are required.
 - **OpenAPI:** after changes in API, regenerate OpenAPI models using `npm run generate-api` inside frontend folder.
 
@@ -75,7 +80,8 @@ All major operations are managed via the root `Makefile`.
 - **Translations:** Use `ngx-translate` for translations. Use `TranslationService` for translations. Add new translations to `src/assets/i18n/en.json` and `src/assets/i18n/pl.json`.
 - **SSR mode:** Angular is running in SSR mode. Use `window.location` for environment awareness. Remember to add correct routes with params in `app.routes.server.ts` file.
 - **OpenAPI:** Use auto-generated OpenAPI models from `@api`. Do NOT manually define interfaces for API resources. Command to generate: `npm run generate-api` inside frontend folder.
-- **Error Handling:** Use `catchError` in RxJS pipes. Transform errors into user-friendly messages using a centralized `handleError` method in services.
+- **Error Handling:** Use `catchError` in RxJS pipes. Transform errors into user-friendly messages using a centralized `handleError` method in services. The `notificationInterceptor` will automatically display toasts for responses containing `messageCode` (errors) or `message` (success codes starting with `AUTH_`, `TODO_`, or `USER_`).
+  - Add translations for new `ApiMessages` codes to `src/assets/i18n/en.json` and `pl.json` under the `API_MESSAGES` key.
 
 ---
 

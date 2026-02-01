@@ -9,7 +9,7 @@ import {
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { UserCreate as RegisterRequest } from '@api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
@@ -27,7 +27,7 @@ import { AuthService } from '../../services/auth.service';
         PasswordModule,
         ButtonModule,
         MessageModule,
-        TranslateModule,
+        TranslatePipe,
     ],
     templateUrl: './register.html',
     styleUrl: './register.scss',
@@ -90,10 +90,15 @@ export class RegisterComponent {
                 });
             },
             error: (err) => {
-                this.error.set(
-                    err.message ||
-                        this.translate.instant('AUTH.REGISTER.ERRORS.FAILED'),
-                );
+                const errorDetail = err.error?.detail;
+                const messageCode =
+                    errorDetail?.messageCode || err.error?.messageCode;
+
+                const errorMsg = messageCode
+                    ? this.translate.instant(`API_MESSAGES.${messageCode}`)
+                    : this.translate.instant('AUTH.REGISTER.ERRORS.FAILED');
+
+                this.error.set(errorMsg);
                 this.isLoading.set(false);
             },
         });

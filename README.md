@@ -849,6 +849,18 @@ todo-app/
 └── .gitignore
 ```
 
+## ✉️ System Komunikatów API
+
+Aplikacja używa scentralizowanego systemu komunikacji między backendem a frontendem:
+
+1.  **Backend (`api_messages.py`)**: Wszystkie kody (np. `AUTH_LOGIN_SUCCESS`) są zdefiniowane jako Enum.
+    - Przy nowym endpointcie dodaj kod do Enuma.
+    - Używaj `api_error()` dla wyjątków i `api_success()` dla sukcesów.
+    - Zawsze używaj odpowiednich statusów HTTP (200, 201, 400, 401, 403, 404).
+
+2.  **Frontend (Toasty)**: `notificationInterceptor` automatycznie wyłapuje kody i wyświetla toasty.
+3.  **Tłumaczenia**: Mapowanie kodów na tekst (PL/EN) znajduje się w `frontend/src/assets/i18n/`.
+
 ## 🔧 Rozwój
 
 ### Dodawanie nowych funkcjonalności

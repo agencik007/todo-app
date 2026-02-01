@@ -56,8 +56,13 @@ export class TodoStore {
                 this._todos.set(todos);
                 this._loading.set(false);
             },
-            error: (err: Error) => {
-                this._error.set(err.message);
+            error: (err) => {
+                const errorDetail = err.error?.detail;
+                const messageCode =
+                    errorDetail?.messageCode || err.error?.messageCode;
+                this._error.set(
+                    messageCode || err.message || 'An error occurred',
+                );
                 this._loading.set(false);
             },
         });
@@ -109,8 +114,13 @@ export class TodoStore {
                         todos.map((t) => (t.id === todo.id ? updated : t)),
                     );
                 },
-                error: (err: Error) => {
-                    this._error.set(err.message);
+                error: (err) => {
+                    const errorDetail = err.error?.detail;
+                    const messageCode =
+                        errorDetail?.messageCode || err.error?.messageCode;
+                    this._error.set(
+                        messageCode || err.message || 'An error occurred',
+                    );
                 },
             });
     }

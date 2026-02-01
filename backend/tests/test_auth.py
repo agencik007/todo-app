@@ -10,7 +10,6 @@ These tests verify that our authentication system works correctly:
 - GET /auth/me - get current user info
 """
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from models.user import User
@@ -32,8 +31,8 @@ class TestAuthAPI:
 
         assert data["email"] == "newuser@example.com"
         assert data["id"] is not None
-        assert data["is_active"] == True
-        assert data["is_verified"] == False
+        assert data["is_active"]
+        assert not data["is_verified"]
         assert "hashed_password" not in data  # Password should not be in response
 
     def test_register_duplicate_email(self, client: TestClient, test_user):
@@ -44,7 +43,7 @@ class TestAuthAPI:
 
         assert response.status_code == 400
         data = response.json()
-        assert "already registered" in data["detail"].lower()
+        assert data["detail"]["messageCode"] == "AUTH_EMAIL_ALREADY_REGISTERED"
 
     def test_register_invalid_password(self, client: TestClient):
         """Test POST /auth/register rejects short password."""
@@ -104,10 +103,7 @@ class TestAuthAPI:
 
         assert response.status_code == 401
         data = response.json()
-        assert (
-            "incorrect" in data["detail"].lower()
-            or "unauthorized" in data["detail"].lower()
-        )
+        assert data["detail"]["messageCode"] == "AUTH_INVALID_CREDENTIALS"
 
     def test_login_nonexistent_user(self, client: TestClient):
         """Test POST /auth/login with non-existent user."""
@@ -138,7 +134,7 @@ class TestAuthAPI:
 
         assert response.status_code == 403
         data = response.json()
-        assert "inactive" in data["detail"].lower()
+        assert data["detail"]["messageCode"] == "AUTH_INACTIVE_USER"
 
     def test_get_current_user(self, authenticated_client: TestClient):
         """Test GET /auth/me returns current user info."""
@@ -188,9 +184,7 @@ class TestAuthAPI:
 
         assert response.status_code == 401
         data = response.json()
-        assert (
-            "invalid" in data["detail"].lower() or "expired" in data["detail"].lower()
-        )
+        assert data["detail"]["messageCode"] == "AUTH_INVALID_REFRESH_TOKEN"
 
     def test_forgot_password(self, client: TestClient, test_user):
         """Test POST /auth/forgot-password sends reset email."""
@@ -200,7 +194,7 @@ class TestAuthAPI:
 
         assert response.status_code == 200
         data = response.json()
-        assert "message" in data
+        assert data["message"] == "AUTH_PASSWORD_RESET_SENT"
 
     def test_forgot_password_nonexistent_user(self, client: TestClient):
         """Test POST /auth/forgot-password with non-existent user (should still return success)."""
@@ -214,7 +208,7 @@ class TestAuthAPI:
     def test_reset_password(self, client: TestClient, test_user, test_db: Session):
         """Test POST /auth/reset-password with valid token."""
         from services.auth_service import verify_password
-        
+
         # Create reset token directly on user
         reset_token = "test_reset_token_123"
         expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
@@ -230,7 +224,7 @@ class TestAuthAPI:
 
         assert response.status_code == 200
         data = response.json()
-        assert "success" in data["message"].lower()
+        assert data["message"] == "AUTH_PASSWORD_RESET_SUCCESS"
 
         # Verify token was cleared
         test_db.refresh(user)
@@ -248,9 +242,7 @@ class TestAuthAPI:
 
         assert response.status_code == 400
         data = response.json()
-        assert (
-            "invalid" in data["detail"].lower() or "expired" in data["detail"].lower()
-        )
+        assert data["detail"]["messageCode"] == "AUTH_INVALID_RESET_TOKEN"
 
     def test_reset_password_expired_token(
         self, client: TestClient, test_user, test_db: Session
@@ -271,9 +263,7 @@ class TestAuthAPI:
 
         assert response.status_code == 400
         data = response.json()
-        assert (
-            "invalid" in data["detail"].lower() or "expired" in data["detail"].lower()
-        )
+        assert data["detail"]["messageCode"] == "AUTH_INVALID_RESET_TOKEN"
 
     def test_logout(self, authenticated_client: TestClient):
         """Test POST /auth/logout."""
@@ -281,9 +271,11 @@ class TestAuthAPI:
 
         assert response.status_code == 200
         data = response.json()
-        assert "success" in data["message"].lower()
+        assert data["message"] == "AUTH_LOGOUT_SUCCESS"
 
-    def test_register_saves_verification_token(self, client: TestClient, test_db: Session):
+    def test_register_saves_verification_token(
+        self, client: TestClient, test_db: Session
+    ):
         """Test POST /auth/register saves verification token to database."""
         user_data = {"email": "verify@example.com", "password": "securepass123"}
         response = client.post("/auth/register", json=user_data)
@@ -301,7 +293,8 @@ class TestAuthAPI:
             hashed_password=hash_password("password123"),
             is_verified=False,
             email_verification_token="test_token_123",
-            email_verification_expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
+            email_verification_expires_at=datetime.now(timezone.utc)
+            + timedelta(hours=1),
         )
         test_db.add(user)
         test_db.commit()
@@ -309,8 +302,10 @@ class TestAuthAPI:
         response = client.get("/auth/verify-email/test_token_123")
 
         assert response.status_code == 200
+        data = response.json()
+        assert data["message"] == "AUTH_EMAIL_VERIFIED_SUCCESS"
         test_db.refresh(user)
-        assert user.is_verified == True
+        assert user.is_verified
         assert user.email_verification_token is None
 
     def test_verify_email_expired_token(self, client: TestClient, test_db: Session):
@@ -320,7 +315,8 @@ class TestAuthAPI:
             hashed_password=hash_password("password123"),
             is_verified=False,
             email_verification_token="expired_token",
-            email_verification_expires_at=datetime.now(timezone.utc) - timedelta(hours=1)
+            email_verification_expires_at=datetime.now(timezone.utc)
+            - timedelta(hours=1),
         )
         test_db.add(user)
         test_db.commit()
@@ -328,11 +324,15 @@ class TestAuthAPI:
         response = client.get("/auth/verify-email/expired_token")
 
         assert response.status_code == 400
+        data = response.json()
+        assert data["detail"]["messageCode"] == "AUTH_INVALID_VERIFICATION_TOKEN"
 
     def test_verify_email_invalid_token(self, client: TestClient):
         """Test GET /auth/verify-email with invalid token fails."""
         response = client.get("/auth/verify-email/nonexistent_token")
         assert response.status_code == 400
+        data = response.json()
+        assert data["detail"]["messageCode"] == "AUTH_INVALID_VERIFICATION_TOKEN"
 
     def test_login_unverified_user_fails(self, client: TestClient, test_db: Session):
         """Test POST /auth/login fails for unverified user."""
@@ -343,7 +343,7 @@ class TestAuthAPI:
             email=email,
             hashed_password=hash_password(password),
             is_active=True,
-            is_verified=False
+            is_verified=False,
         )
         test_db.add(user)
         test_db.commit()
@@ -353,4 +353,4 @@ class TestAuthAPI:
 
         assert response.status_code == 403
         data = response.json()
-        assert "not verified" in data["detail"].lower()
+        assert data["detail"]["messageCode"] == "AUTH_EMAIL_NOT_VERIFIED"

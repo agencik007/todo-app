@@ -49,7 +49,7 @@ export class AuthService extends BaseService {
 
     /**
      * Forgot Password
-     * Request password reset.  Always returns success to prevent email enumeration attacks.  Args:     request: FastAPI request object (for rate limiting).     reset_request: Password reset request with email.     db: Database session.      Returns:     dict: Generic success message.
+     * Request password reset.  Always returns success to prevent email enumeration attacks.  Args:     request: FastAPI request object (for rate limiting).     reset_request: Password reset request with email.     db: Database session.  Returns:     dict: Generic success message.
      * @endpoint post /auth/forgot-password
      * @param passwordResetRequest 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -116,7 +116,7 @@ export class AuthService extends BaseService {
 
     /**
      * Get Current User Info
-     * Get current user information.  Args:     current_user: Current authenticated user.      Returns:     UserResponse: Current user\&#39;s profile information.
+     * Get current user information.  Args:     current_user: Current authenticated user.  Returns:     UserResponse: Current user\&#39;s profile information.
      * @endpoint get /auth/me
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -172,7 +172,7 @@ export class AuthService extends BaseService {
 
     /**
      * Login
-     * Login endpoint - accepts both form data and JSON.  Supports two formats: - **Form data**: &#x60;username&#x60; (email) and &#x60;password&#x60; fields (OAuth2 standard) - **JSON body**: &#x60;{\&quot;email\&quot;: \&quot;...\&quot;, \&quot;password\&quot;: \&quot;...\&quot;}&#x60; (frontend-friendly)  Args:     request: FastAPI request object.     db: Database session.      Returns:     Token: Access and refresh tokens.      Raises:     HTTPException: If credentials are invalid or user is inactive.
+     * Login endpoint - accepts both form data and JSON.  Supports two formats: - **Form data**: &#x60;username&#x60; (email) and &#x60;password&#x60; fields (OAuth2 standard) - **JSON body**: &#x60;{\&quot;email\&quot;: \&quot;...\&quot;, \&quot;password\&quot;: \&quot;...\&quot;}&#x60; (frontend-friendly)  Args:     request: FastAPI request object.     db: Database session.  Returns:     Token: Access and refresh tokens.  Raises:     HTTPException: If credentials are invalid or user is inactive.
      * @endpoint post /auth/login
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -225,7 +225,7 @@ export class AuthService extends BaseService {
 
     /**
      * Logout
-     * Logout endpoint.  Note: With JWT tokens, logout is handled client-side by discarding tokens.  Args:     current_user: Current authenticated user.      Returns:     dict: Success message.
+     * Logout endpoint.  Note: With JWT tokens, logout is handled client-side by discarding tokens.  Args:     current_user: Current authenticated user.  Returns:     dict: Success message.
      * @endpoint post /auth/logout
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -281,7 +281,7 @@ export class AuthService extends BaseService {
 
     /**
      * Refresh Access Token
-     * Refresh access token using refresh token.  Args:     request: Refresh token request.     db: Database session.      Returns:     Token: New access and refresh tokens.      Raises:     HTTPException: If refresh token is invalid or user not found.
+     * Refresh access token using refresh token.  Args:     request: Refresh token request.     db: Database session.  Returns:     Token: New access and refresh tokens.  Raises:     HTTPException: If refresh token is invalid or user not found.
      * @endpoint post /auth/refresh
      * @param refreshTokenRequest 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -348,7 +348,7 @@ export class AuthService extends BaseService {
 
     /**
      * Register
-     * Register a new user.  Args:     request: FastAPI request object (for rate limiting).     user_data: User registration data.     db: Database session.      Returns:     UserResponse: The created user.      Raises:     HTTPException: If email is already registered.
+     * Register a new user.  Args:     request: FastAPI request object (for rate limiting).     user_data: User registration data.     db: Database session.  Returns:     UserResponse: The created user.  Raises:     HTTPException: If email is already registered.
      * @endpoint post /auth/register
      * @param userCreate 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -415,7 +415,7 @@ export class AuthService extends BaseService {
 
     /**
      * Resend Verification
-     * Resend verification email to current user.  Args:     request: FastAPI request object (for rate limiting).     current_user: Current authenticated user.     db: Database session.      Returns:     dict: Success message.
+     * Resend verification email to current user.  Args:     request: FastAPI request object (for rate limiting).     current_user: Current authenticated user.     db: Database session.  Returns:     dict: Success message.
      * @endpoint post /auth/resend-verification
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -471,7 +471,7 @@ export class AuthService extends BaseService {
 
     /**
      * Reset Password
-     * Reset password with token.  Args:     request: FastAPI request object (for rate limiting).     reset_data: Reset data with token and new password.     db: Database session.      Returns:     dict: Success message.      Raises:     HTTPException: If token is invalid or expired.
+     * Reset password with token.  Args:     request: FastAPI request object (for rate limiting).     reset_data: Reset data with token and new password.     db: Database session.  Returns:     dict: Success message.  Raises:     HTTPException: If token is invalid or expired.
      * @endpoint post /auth/reset-password
      * @param passwordReset 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -538,7 +538,7 @@ export class AuthService extends BaseService {
 
     /**
      * Verify Email
-     * Verify email address with token.  Args:     token: Email verification token.     db: Database session.      Returns:     dict: Success message.      Raises:     HTTPException: If token is invalid or expired.
+     * Verify email address with token.  Args:     token: Email verification token.     db: Database session.  Returns:     dict: Success message.  Raises:     HTTPException: If token is invalid or expired.
      * @endpoint get /auth/verify-email/{token}
      * @param token 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

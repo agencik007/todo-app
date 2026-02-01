@@ -1,15 +1,23 @@
-import { Component, computed, inject, SecurityContext } from '@angular/core';
+import {
+    Component,
+    computed,
+    inject,
+    SecurityContext,
+    signal,
+} from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router, RouterModule } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MenuItem, MessageService } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
 import { LanguageService } from '../../core/services/language.service';
+import { ScreenSizeService } from '../../core/services/screen-size.service';
 import { AuthStore } from '../../core/store/auth.store';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { LanguageSelectorComponent } from '../../shared/components/language-selector/language-selector.component';
@@ -25,11 +33,11 @@ import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme
         ProgressSpinnerModule,
         MenuModule,
         ToastModule,
+        DialogModule,
         ThemeToggleComponent,
         LanguageSelectorComponent,
-        TranslateModule,
+        TranslatePipe,
     ],
-    providers: [MessageService],
     templateUrl: './auth-nav.html',
     styleUrl: './auth-nav.scss',
 })
@@ -39,13 +47,15 @@ export class AuthNavComponent {
     private router = inject(Router);
     private messageService = inject(MessageService);
     private sanitizer = inject(DomSanitizer);
-    private translate = inject(TranslateService);
-    private languageService = inject(LanguageService);
+    public translate = inject(TranslateService);
+    public languageService = inject(LanguageService);
+    public screenSize = inject(ScreenSizeService);
 
     readonly currentUser = this.authStore.currentUser;
     readonly isAuthenticated = this.authStore.isAuthenticated;
     readonly isLoading = this.authStore.isLoading;
     readonly userAvatar = this.authStore.userAvatar;
+    readonly isPreviewVisible = signal(false);
 
     readonly sanitizedAvatarUrl = computed(() => {
         const url = this.userAvatar();
@@ -90,9 +100,16 @@ export class AuthNavComponent {
     });
 
     logout(): void {
-        this.authService.logout();
-        this.authStore.clearUser();
-        this.router.navigate(['/login']);
+        this.authService.logout().subscribe({
+            next: () => {
+                this.authStore.clearUser();
+                this.router.navigate(['/login']);
+            },
+            error: () => {
+                this.authStore.clearUser();
+                this.router.navigate(['/login']);
+            },
+        });
     }
 
     triggerFileUpload(): void {
@@ -118,14 +135,8 @@ export class AuthNavComponent {
                     });
                     this.authStore.loadAvatar();
                 },
-                error: () => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: this.translate.instant('MESSAGES.ERROR'),
-                        detail: this.translate.instant(
-                            'MESSAGES.AVATAR_UPLOAD_ERROR',
-                        ),
-                    });
+                error: (error) => {
+                    console.error(error);
                 },
             });
         }
@@ -135,23 +146,10 @@ export class AuthNavComponent {
     deleteAvatar(): void {
         this.authService.deleteAvatar().subscribe({
             next: () => {
-                this.messageService.add({
-                    severity: 'success',
-                    summary: this.translate.instant('MESSAGES.SUCCESS'),
-                    detail: this.translate.instant(
-                        'MESSAGES.AVATAR_DELETE_SUCCESS',
-                    ),
-                });
                 this.authStore.loadAvatar();
             },
-            error: () => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: this.translate.instant('MESSAGES.ERROR'),
-                    detail: this.translate.instant(
-                        'MESSAGES.AVATAR_DELETE_ERROR',
-                    ),
-                });
+            error: (error) => {
+                console.error(error);
             },
         });
     }

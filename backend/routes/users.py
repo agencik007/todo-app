@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from config.auth import get_current_verified_user
 from config.database import get_db
+from config.api_messages import ApiMessages, api_error, api_success
 from models.user import User
 from models.schemas import UserLanguageUpdate
 
@@ -47,7 +48,7 @@ async def upload_avatar(
     if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File must be an image. Allowed types: {', '.join(ALLOWED_IMAGE_TYPES)}",
+            detail=api_error(ApiMessages.USER_AVATAR_INVALID_TYPE),
         )
 
     # Validate file size
@@ -55,7 +56,7 @@ async def upload_avatar(
     if len(contents) > MAX_FILE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File too large. Maximum size is {MAX_FILE_SIZE / 1024 / 1024}MB",
+            detail=api_error(ApiMessages.USER_AVATAR_TOO_LARGE),
         )
     # Reset file pointer after reading for saving
     await file.seek(0)
@@ -70,7 +71,7 @@ async def upload_avatar(
         if extension not in ALLOWED_EXTENSIONS:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid file extension. Allowed extensions: {', '.join(ALLOWED_EXTENSIONS)}",
+                detail=api_error(ApiMessages.USER_AVATAR_INVALID_EXTENSION),
             )
 
     # Create user directory if not exists
@@ -83,10 +84,11 @@ async def upload_avatar(
     try:
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-    except Exception as e:
+    except Exception:
+        logger.exception("Error saving avatar file")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Could not save file: {str(e)}",
+            detail=api_error(ApiMessages.USER_AVATAR_SAVE_ERROR),
         )
 
     # Update user avatar_url
@@ -127,7 +129,7 @@ async def delete_avatar(
         db.commit()
         db.refresh(current_user)
 
-    return {"message": "Avatar deleted"}
+    return api_success(ApiMessages.USER_AVATAR_DELETED)
 
 
 @router.put("/me/language")
@@ -151,4 +153,6 @@ async def update_language(
     db.commit()
     db.refresh(current_user)
 
-    return {"message": "Language updated", "language": current_user.language}
+    return api_success(
+        ApiMessages.USER_LANGUAGE_UPDATED, language=current_user.language
+    )

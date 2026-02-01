@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from config.auth import get_current_verified_user
 from config.database import get_db
+from config.api_messages import ApiMessages, api_error, api_success
 from models.todo import Todo as TodoModel
 from models.user import User
 from models.schemas import Todo, TodoCreate, TodoUpdate
@@ -26,20 +27,20 @@ def get_todos(
 ) -> List[Todo]:
     """
     Get all todos for current user (own todos + public todos).
-    
+
     Args:
         skip: Number of records to skip (pagination).
         limit: Maximum number of records to return.
         db: Database session.
         current_user: Current authenticated user.
-        
+
     Returns:
         List[Todo]: List of todo items.
     """
     results = (
         db.query(TodoModel, User.email)
         .join(User, TodoModel.user_id == User.id)
-        .filter(or_(TodoModel.user_id == current_user.id, TodoModel.is_public == True))
+        .filter(or_(TodoModel.user_id == current_user.id, TodoModel.is_public))
         .offset(skip)
         .limit(limit)
         .all()
@@ -60,15 +61,15 @@ def get_todo(
 ) -> Todo:
     """
     Get a specific todo by ID.
-    
+
     Args:
         todo_id: ID of the todo to retrieve.
         db: Database session.
         current_user: Current authenticated user.
-        
+
     Returns:
         Todo: The requested todo item.
-        
+
     Raises:
         HTTPException: If todo not found or user doesn't have access.
     """
@@ -81,8 +82,8 @@ def get_todo(
 
     if result is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Todo not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.TODO_NOT_FOUND),
         )
 
     todo, email = result
@@ -92,7 +93,7 @@ def get_todo(
     if todo.user_id != current_user.id and not todo.is_public:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions to access this todo",
+            detail=api_error(ApiMessages.TODO_NO_ACCESS),
         )
 
     return todo
@@ -106,23 +107,23 @@ def create_todo(
 ) -> Todo:
     """
     Create a new todo.
-    
+
     Args:
         todo: Todo data to create.
         db: Database session.
         current_user: Current authenticated user.
-        
+
     Returns:
         Todo: The created todo item.
     """
     todo_data = todo.model_dump()
     todo_data["user_id"] = current_user.id
-    
+
     db_todo = TodoModel(**todo_data)
     db.add(db_todo)
     db.commit()
     db.refresh(db_todo)
-    
+
     db_todo.owner_email = current_user.email
     return db_todo
 
@@ -136,32 +137,32 @@ def update_todo(
 ) -> Todo:
     """
     Update an existing todo.
-    
+
     Args:
         todo_id: ID of the todo to update.
         todo_update: Updated todo data.
         db: Database session.
         current_user: Current authenticated user.
-        
+
     Returns:
         Todo: The updated todo item.
-        
+
     Raises:
         HTTPException: If todo not found or user is not the owner.
     """
     todo = db.query(TodoModel).filter(TodoModel.id == todo_id).first()
-    
+
     if todo is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Todo not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.TODO_NOT_FOUND),
         )
 
     # Check if user is the owner
     if todo.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions to update this todo",
+            detail=api_error(ApiMessages.TODO_NO_UPDATE_PERMISSION),
         )
 
     # Update only provided fields
@@ -183,33 +184,33 @@ def delete_todo(
 ) -> dict:
     """
     Delete a todo.
-    
+
     Args:
         todo_id: ID of the todo to delete.
         db: Database session.
         current_user: Current authenticated user.
-        
+
     Returns:
         dict: Success message.
-        
+
     Raises:
         HTTPException: If todo not found or user is not the owner.
     """
     todo = db.query(TodoModel).filter(TodoModel.id == todo_id).first()
-    
+
     if todo is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Todo not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.TODO_NOT_FOUND),
         )
 
     # Check if user is the owner
     if todo.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions to delete this todo",
+            detail=api_error(ApiMessages.TODO_NO_DELETE_PERMISSION),
         )
 
     db.delete(todo)
     db.commit()
-    return {"message": "Todo deleted successfully"}
+    return api_success(ApiMessages.TODO_DELETED_SUCCESS)

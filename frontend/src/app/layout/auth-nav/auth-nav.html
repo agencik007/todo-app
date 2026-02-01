@@ -9,31 +9,73 @@
         </a>
     </ng-template>
     <ng-template #end>
-        <div class="flex align-items-center gap-3">
+        <div
+            class="flex align-items-center"
+            [class.gap-2]="!screenSize.isCompact()"
+        >
             @if (isLoading()) {
                 <p-progressSpinner
                     strokeWidth="4"
                     [style]="{ width: '24px', height: '24px' }"
                 />
             } @else if (isAuthenticated() && currentUser()) {
-                <div class="flex align-items-center gap-2 hidden md:flex">
-                    <span class="font-medium text-sm text-color-secondary">{{
-                        currentUser()!.email
-                    }}</span>
-                    <app-theme-toggle class="ml-2"></app-theme-toggle>
-                    <app-language-selector></app-language-selector>
+                @if (!screenSize.isCompact()) {
+                    <div class="flex align-items-center gap-2">
+                        <span class="font-medium text-sm text-color-secondary">{{
+                            currentUser()!.email
+                        }}</span>
+                        <app-theme-toggle class="ml-2"></app-theme-toggle>
+                        <app-language-selector></app-language-selector>
+                    </div>
+                }
+
+                <div class="relative avatar-wrapper">
+                    <p-avatar
+                        size="normal"
+                        shape="circle"
+                        class="cursor-pointer border-1 surface-border hover:surface-100 transition-colors"
+                        [label]="
+                            !userAvatar() ? currentUser()!.email.charAt(0).toUpperCase() : undefined
+                        "
+                        [image]="sanitizedAvatarUrl()"
+                        (click)="menu.toggle($event)"
+                    />
+                    @if (userAvatar() && !screenSize.isCompact()) {
+                        <button
+                            class="avatar-zoom-btn flex align-items-center justify-content-center"
+                            [title]="'MESSAGES.PREVIEW_AVATAR' | translate"
+                            (click)="isPreviewVisible.set(true)"
+                        >
+                            <i
+                                style="font-size: 0.6rem"
+                                class="pi pi-search-plus"
+                            ></i>
+                        </button>
+                    }
                 </div>
 
-                <p-avatar
-                    size="normal"
-                    shape="circle"
-                    class="cursor-pointer border-1 surface-border hover:surface-100 transition-colors"
-                    [label]="
-                        !userAvatar() ? currentUser()!.email.charAt(0).toUpperCase() : undefined
-                    "
-                    [image]="sanitizedAvatarUrl()"
-                    (click)="menu.toggle($event)"
-                />
+                <p-dialog
+                    styleClass="avatar-preview-dialog"
+                    appendTo="body"
+                    [visible]="isPreviewVisible()"
+                    [resizable]="false"
+                    [modal]="true"
+                    [header]="translate.instant('NAV.PROFILE')"
+                    [draggable]="false"
+                    [dismissableMask]="true"
+                    (visibleChange)="isPreviewVisible.set($event)"
+                >
+                    <div class="flex justify-content-center p-3">
+                        @if (sanitizedAvatarUrl()) {
+                            <img
+                                style="max-height: 50vh; max-width: 50vh; object-fit: contain"
+                                class="max-w-full border-round shadow-4"
+                                [src]="sanitizedAvatarUrl()"
+                                [alt]="'NAV.PROFILE' | translate"
+                            />
+                        }
+                    </div>
+                </p-dialog>
 
                 <p-menu
                     appendTo="body"
@@ -53,20 +95,22 @@
                 <div class="flex align-items-center gap-3">
                     <app-theme-toggle></app-theme-toggle>
                     <app-language-selector></app-language-selector>
-                    <div class="flex gap-2">
-                        <p-button
-                            size="small"
-                            severity="secondary"
-                            routerLink="/login"
-                            [outlined]="true"
-                            [label]="'NAV.LOGIN' | translate"
-                        />
-                        <p-button
-                            size="small"
-                            routerLink="/register"
-                            [label]="'NAV.REGISTER' | translate"
-                        />
-                    </div>
+                    @if (!screenSize.isCompact()) {
+                        <div class="flex gap-2">
+                            <p-button
+                                size="small"
+                                severity="secondary"
+                                routerLink="/login"
+                                [outlined]="true"
+                                [label]="'NAV.LOGIN' | translate"
+                            />
+                            <p-button
+                                size="small"
+                                routerLink="/register"
+                                [label]="'NAV.REGISTER' | translate"
+                            />
+                        </div>
+                    }
                 </div>
             }
         </div>

@@ -1,13 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+
 import { SelectModule } from 'primeng/select';
 import { LanguageService } from '../../../core/services/language.service';
 import { AuthStore } from '../../../core/store/auth.store';
 
 @Component({
     selector: 'app-language-selector',
-    imports: [FormsModule, TranslateModule, SelectModule],
+    imports: [FormsModule, SelectModule],
     template: `
         <div class="flex items-center gap-2">
             <p-select

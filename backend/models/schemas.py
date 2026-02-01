@@ -79,6 +79,7 @@ class UserResponse(UserBase):
     is_verified: bool
     avatar_url: Optional[str] = None
     language: str
+    message: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -100,6 +101,7 @@ class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+    message: Optional[str] = None
 
 
 class TokenData(BaseModel):

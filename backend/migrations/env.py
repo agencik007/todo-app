@@ -23,11 +23,9 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from config.database import Base
+from config.database import Base  # noqa: E402
 
 # Import all models to ensure they are registered with Base.metadata
-from models.user import User
-from models.todo import Todo
 # from models.password_reset_token import PasswordResetToken # Removed as requested
 
 target_metadata = Base.metadata

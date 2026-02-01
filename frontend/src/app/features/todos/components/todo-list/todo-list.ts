@@ -2,7 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Component, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Todo, TodoCreate, UserResponse } from '@api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -12,6 +12,7 @@ import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
+import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { TodoStore } from '../../store/todo.store';
 import { TodoFormComponent } from '../todo-form/todo-form';
@@ -29,7 +30,7 @@ import { TodoFormComponent } from '../todo-form/todo-form';
         DialogModule,
         MessageModule,
         ConfirmDialogModule,
-        TranslateModule,
+        TranslatePipe,
     ],
     providers: [ConfirmationService],
     templateUrl: './todo-list.html',
@@ -42,6 +43,7 @@ export class TodoListComponent implements OnInit {
     private confirmationService = inject(ConfirmationService);
     private platformId = inject(PLATFORM_ID);
     private translate = inject(TranslateService);
+    public screenSize = inject(ScreenSizeService);
 
     isBrowser = signal(false);
 
