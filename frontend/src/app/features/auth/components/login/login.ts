@@ -1,14 +1,15 @@
 import { NgClass } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import {
-  AbstractControl,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
+    AbstractControl,
+    FormBuilder,
+    FormGroup,
+    ReactiveFormsModule,
+    Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { UserCreate as LoginRequest } from '@api';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -29,6 +30,7 @@ import { AuthService } from '../../services/auth.service';
         ButtonModule,
         MessageModule,
         NgClass,
+        TranslateModule,
     ],
     templateUrl: './login.html',
     styleUrl: './login.scss',
@@ -40,6 +42,7 @@ export class LoginComponent {
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private messageService = inject(MessageService);
+    private translate = inject(TranslateService);
 
     loginForm: FormGroup;
     error = signal<string | null>(null);
@@ -56,8 +59,10 @@ export class LoginComponent {
             setTimeout(() => {
                 this.messageService.add({
                     severity: 'success',
-                    summary: 'Sukces',
-                    detail: 'Pomyslnie zweryfikowano email, mozesz sie teraz zalogowac',
+                    summary: this.translate.instant('MESSAGES.SUCCESS'),
+                    detail: this.translate.instant(
+                        'AUTH.LOGIN.SUCCESS.VERIFIED',
+                    ),
                     life: 5000,
                 });
             }, 100);
@@ -88,14 +93,20 @@ export class LoginComponent {
                     },
                     error: () => {
                         this.error.set(
-                            'Nie udało się załadować danych użytkownika',
+                            this.translate.instant(
+                                'AUTH.LOGIN.ERRORS.USER_DATA_FAILED',
+                            ),
                         );
                         this.isLoading.set(false);
                     },
                 });
             },
             error: (err) => {
-                const errorMsg = err.message || 'Nieprawidłowy email lub hasło';
+                const errorMsg =
+                    err.message ||
+                    this.translate.instant(
+                        'AUTH.LOGIN.ERRORS.INVALID_CREDENTIALS',
+                    );
                 this.error.set(errorMsg);
                 this.isLoading.set(false);
 
@@ -105,8 +116,12 @@ export class LoginComponent {
                 ) {
                     this.messageService.add({
                         severity: 'warn',
-                        summary: 'Email niezweryfikowany',
-                        detail: 'Sprawdź swoją skrzynkę odbiorczą i zweryfikuj adres email przed zalogowaniem.',
+                        summary: this.translate.instant(
+                            'AUTH.LOGIN.ERRORS.NOT_VERIFIED_TITLE',
+                        ),
+                        detail: this.translate.instant(
+                            'AUTH.LOGIN.ERRORS.NOT_VERIFIED_DETAIL',
+                        ),
                         life: 5000,
                     });
                 }

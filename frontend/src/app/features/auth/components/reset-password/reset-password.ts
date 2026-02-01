@@ -1,14 +1,15 @@
 import { Component, inject, signal } from '@angular/core';
 import {
-  AbstractControl,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
+    AbstractControl,
+    FormBuilder,
+    FormGroup,
+    ReactiveFormsModule,
+    ValidationErrors,
+    Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PasswordReset } from '@api';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
@@ -24,6 +25,7 @@ import { AuthService } from '../../services/auth.service';
         PasswordModule,
         ButtonModule,
         MessageModule,
+        TranslateModule,
     ],
     templateUrl: './reset-password.html',
     styleUrl: './reset-password.scss',
@@ -33,6 +35,7 @@ export class ResetPasswordComponent {
     private authService = inject(AuthService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
+    private translate = inject(TranslateService);
 
     resetPasswordForm: FormGroup;
     error = signal<string | null>(null);
@@ -75,7 +78,9 @@ export class ResetPasswordComponent {
         setTimeout(() => {
             if (!this.token()) {
                 this.error.set(
-                    'Brak prawidłowego tokenu resetującego hasło. Skorzystaj ponownie z linku w e-mailu.',
+                    this.translate.instant(
+                        'AUTH.RESET_PASSWORD.ERRORS.TOKEN_MISSING',
+                    ),
                 );
             }
         }, 500);
@@ -116,8 +121,10 @@ export class ResetPasswordComponent {
                     this.router.navigate(['/login']);
                 }, 2000);
             },
-            error: (err) => {
-                this.error.set(err.message || 'Nie udało się zresetować hasła');
+            error: () => {
+                this.error.set(
+                    this.translate.instant('AUTH.RESET_PASSWORD.ERRORS.FAILED'),
+                );
                 this.isLoading.set(false);
             },
         });

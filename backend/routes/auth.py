@@ -40,10 +40,7 @@ logger = logging.getLogger(__name__)
 
 # Use a no-op limiter in testing environment
 IS_TESTING = os.getenv("TESTING", "0") == "1"
-limiter = Limiter(
-    key_func=get_remote_address,
-    enabled=not IS_TESTING
-)
+limiter = Limiter(key_func=get_remote_address, enabled=not IS_TESTING)
 
 # Constants
 PASSWORD_RESET_EXPIRY_HOURS = 1
@@ -57,34 +54,38 @@ def _create_verification_token() -> str:
 def _create_tokens(user: User) -> dict:
     """
     Create access and refresh tokens for a user.
-    
+
     Args:
         user: The user to create tokens for.
-        
+
     Returns:
         dict: Token response with access_token, refresh_token, and token_type.
     """
     return {
         "access_token": create_access_token(data={"sub": user.id, "email": user.email}),
-        "refresh_token": create_refresh_token(data={"sub": user.id, "email": user.email}),
+        "refresh_token": create_refresh_token(
+            data={"sub": user.id, "email": user.email}
+        ),
         "token_type": "bearer",
     }
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 @limiter.limit("5/minute")
 def register(request: Request, user_data: UserCreate, db: Session = Depends(get_db)):
     """
     Register a new user.
-    
+
     Args:
         request: FastAPI request object (for rate limiting).
         user_data: User registration data.
         db: Database session.
-        
+
     Returns:
         UserResponse: The created user.
-        
+
     Raises:
         HTTPException: If email is already registered.
     """
@@ -92,8 +93,7 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Email already registered"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
         )
 
     # Create new user with verification token
@@ -113,9 +113,12 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
 
     # Send verification email (non-blocking)
     try:
-        send_verification_email(user_data.email, verification_token)
+        send_verification_email(
+            user_data.email, verification_token, language=new_user.language
+        )
     except Exception:
         import logging
+
         logging.getLogger(__name__).exception("Failed to send verification email")
 
     return new_user
@@ -129,23 +132,23 @@ async def login(
 ):
     """
     Login endpoint - accepts both form data and JSON.
-    
+
     Supports two formats:
     - **Form data**: `username` (email) and `password` fields (OAuth2 standard)
     - **JSON body**: `{"email": "...", "password": "..."}` (frontend-friendly)
-    
+
     Args:
         request: FastAPI request object.
         db: Database session.
-        
+
     Returns:
         Token: Access and refresh tokens.
-        
+
     Raises:
         HTTPException: If credentials are invalid or user is inactive.
     """
     content_type = request.headers.get("content-type", "")
-    
+
     if "application/json" in content_type:
         # Parse JSON body
         try:
@@ -154,8 +157,7 @@ async def login(
             password = body.get("password", "")
         except Exception:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid JSON body"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON body"
             )
     else:
         # Parse form data
@@ -165,18 +167,17 @@ async def login(
             password = form.get("password", "")
         except Exception:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid form data"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid form data"
             )
-    
+
     if not email or not password:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Email and password are required"
+            detail="Email and password are required",
         )
-    
+
     user = authenticate_user(db, email, password)
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -186,14 +187,13 @@ async def login(
 
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="Inactive user"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user"
         )
 
     if not user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Email not verified. Please check your inbox and verify your email before logging in."
+            detail="Email not verified. Please check your inbox and verify your email before logging in.",
         )
 
     return _create_tokens(user)
@@ -203,19 +203,19 @@ async def login(
 def refresh_access_token(request: RefreshTokenRequest, db: Session = Depends(get_db)):
     """
     Refresh access token using refresh token.
-    
+
     Args:
         request: Refresh token request.
         db: Database session.
-        
+
     Returns:
         Token: New access and refresh tokens.
-        
+
     Raises:
         HTTPException: If refresh token is invalid or user not found.
     """
     payload = verify_token(request.refresh_token, token_type="refresh")
-    
+
     if payload is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -226,8 +226,7 @@ def refresh_access_token(request: RefreshTokenRequest, db: Session = Depends(get
     user_id = payload.get("sub")
     if user_id is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="Invalid token payload"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
         )
 
     # Verify user still exists and is active
@@ -245,10 +244,10 @@ def refresh_access_token(request: RefreshTokenRequest, db: Session = Depends(get
 def get_current_user_info(current_user: User = Depends(get_current_active_user)):
     """
     Get current user information.
-    
+
     Args:
         current_user: Current authenticated user.
-        
+
     Returns:
         UserResponse: Current user's profile information.
     """
@@ -258,20 +257,18 @@ def get_current_user_info(current_user: User = Depends(get_current_active_user))
 @router.post("/forgot-password")
 @limiter.limit("3/hour")
 def forgot_password(
-    request: Request, 
-    reset_request: PasswordResetRequest, 
-    db: Session = Depends(get_db)
+    request: Request, reset_request: PasswordResetRequest, db: Session = Depends(get_db)
 ):
     """
     Request password reset.
-    
+
     Always returns success to prevent email enumeration attacks.
-    
+
     Args:
         request: FastAPI request object (for rate limiting).
         reset_request: Password reset request with email.
         db: Database session.
-        
+
     Returns:
         dict: Generic success message.
     """
@@ -287,8 +284,10 @@ def forgot_password(
 
         # Send reset email
         try:
-            send_password_reset_email(user.email, user.password_reset_token)
-        except Exception as e:
+            send_password_reset_email(
+                user.email, user.password_reset_token, language=user.language
+            )
+        except Exception:
             logger.exception("Error sending password reset email")
 
     return {"message": "If the email exists, a password reset link has been sent"}
@@ -297,21 +296,19 @@ def forgot_password(
 @router.post("/reset-password")
 @limiter.limit("5/hour")
 def reset_password(
-    request: Request, 
-    reset_data: PasswordReset, 
-    db: Session = Depends(get_db)
+    request: Request, reset_data: PasswordReset, db: Session = Depends(get_db)
 ):
     """
     Reset password with token.
-    
+
     Args:
         request: FastAPI request object (for rate limiting).
         reset_data: Reset data with token and new password.
         db: Database session.
-        
+
     Returns:
         dict: Success message.
-        
+
     Raises:
         HTTPException: If token is invalid or expired.
     """
@@ -344,14 +341,14 @@ def reset_password(
 def verify_email(token: str, db: Session = Depends(get_db)):
     """
     Verify email address with token.
-    
+
     Args:
         token: Email verification token.
         db: Database session.
-        
+
     Returns:
         dict: Success message.
-        
+
     Raises:
         HTTPException: If token is invalid or expired.
     """
@@ -363,18 +360,18 @@ def verify_email(token: str, db: Session = Depends(get_db)):
         )
         .first()
     )
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired verification token",
         )
-    
+
     user.is_verified = True
     user.email_verification_token = None
     user.email_verification_expires_at = None
     db.commit()
-    
+
     return {"message": "Email verified successfully"}
 
 
@@ -383,33 +380,38 @@ def verify_email(token: str, db: Session = Depends(get_db)):
 def resend_verification(
     request: Request,
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Resend verification email to current user.
-    
+
     Args:
         request: FastAPI request object (for rate limiting).
         current_user: Current authenticated user.
         db: Database session.
-        
+
     Returns:
         dict: Success message.
     """
     if current_user.is_verified:
         return {"message": "Email already verified"}
-    
+
     token = _create_verification_token()
     current_user.email_verification_token = token
-    current_user.email_verification_expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+    current_user.email_verification_expires_at = datetime.now(timezone.utc) + timedelta(
+        hours=24
+    )
     db.commit()
-    
+
     try:
-        send_verification_email(current_user.email, token)
+        send_verification_email(
+            current_user.email, token, language=current_user.language
+        )
     except Exception:
         import logging
+
         logging.getLogger(__name__).exception("Failed to send verification email")
-    
+
     return {"message": "Verification email sent"}
 
 
@@ -417,12 +419,12 @@ def resend_verification(
 def logout(current_user: User = Depends(get_current_active_user)):
     """
     Logout endpoint.
-    
+
     Note: With JWT tokens, logout is handled client-side by discarding tokens.
-    
+
     Args:
         current_user: Current authenticated user.
-        
+
     Returns:
         dict: Success message.
     """

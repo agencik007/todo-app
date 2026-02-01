@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -15,6 +16,7 @@ import { AuthService } from '../../services/auth.service';
         ButtonModule,
         ProgressSpinnerModule,
         MessageModule,
+        TranslateModule,
     ],
     templateUrl: './verify-email.html',
     styleUrl: './verify-email.scss',
@@ -24,6 +26,7 @@ export class VerifyEmailComponent implements OnInit {
     private router = inject(Router);
     private authService = inject(AuthService);
     private messageService = inject(MessageService);
+    private translate = inject(TranslateService);
 
     status = signal<'loading' | 'success' | 'error'>('loading');
     message = signal('');
@@ -43,17 +46,30 @@ export class VerifyEmailComponent implements OnInit {
                 },
                 error: (err) => {
                     this.status.set('error');
-                    this.message.set('Weryfikacja nie powiodła się');
+                    this.message.set(
+                        this.translate.instant(
+                            'AUTH.VERIFY_EMAIL.ERRORS.FAILED',
+                        ),
+                    );
                     if (err.message?.includes('expired')) {
-                        this.errorDetail.set('Token weryfikacyjny wygasł.');
+                        this.errorDetail.set(
+                            this.translate.instant(
+                                'AUTH.VERIFY_EMAIL.ERRORS.EXPIRED',
+                            ),
+                        );
                     } else {
                         this.errorDetail.set(
-                            err.message || 'Wystąpił błąd podczas weryfikacji.',
+                            err.message ||
+                                this.translate.instant(
+                                    'AUTH.VERIFY_EMAIL.ERRORS.GENERAL',
+                                ),
                         );
                     }
                     this.messageService.add({
                         severity: 'error',
-                        summary: 'Błąd weryfikacji',
+                        summary: this.translate.instant(
+                            'AUTH.VERIFY_EMAIL.ERRORS.SUMMARY',
+                        ),
                         detail: this.errorDetail(),
                         life: 8000,
                     });
@@ -61,7 +77,9 @@ export class VerifyEmailComponent implements OnInit {
             });
         } else {
             this.status.set('error');
-            this.message.set('Brak tokenu weryfikacji');
+            this.message.set(
+                this.translate.instant('AUTH.VERIFY_EMAIL.ERRORS.NO_TOKEN'),
+            );
         }
     }
 }

@@ -12,8 +12,10 @@ const angular = require("angular-eslint");
 // Allows us to bring in the config that disables ESLint rules that might conflict with Prettier
 const eslintConfigPrettier = require("eslint-config-prettier");
 
+const { defineConfig } = require("eslint/config");
+
 // Export our config array, which is composed together thanks to the typed utility function from typescript-eslint
-module.exports = tseslint.config(
+module.exports = defineConfig(
     {
         ignores: [
             // Ignoruj konkretyne foldery

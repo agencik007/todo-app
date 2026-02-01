@@ -17,16 +17,6 @@
   "workspaces": [
     "frontend"
   ],
-  "lint-staged": {
-    "frontend/src/**/*.{ts,html,scss}": [
-      "prettier --write",
-      "eslint --fix"
-    ],
-    "backend/**/*.py": [
-      "ruff format",
-      "ruff check --fix"
-    ]
-  },
   "devDependencies": {
     "eslint": "^9.39.2",
     "husky": "^9.1.7",

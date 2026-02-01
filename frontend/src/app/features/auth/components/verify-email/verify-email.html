@@ -1,7 +1,7 @@
 <p-card class="verify-email-card">
     <ng-template pTemplate="header">
         <div class="card-header">
-            <h2>Weryfikacja Email</h2>
+            <h2>{{ 'AUTH.VERIFY_EMAIL.TITLE' | translate }}</h2>
         </div>
     </ng-template>
 
@@ -12,7 +12,7 @@
                 animationDuration=".5s"
             >
             </p-progressSpinner>
-            <p>Weryfikuję adres email...</p>
+            <p>{{ 'AUTH.VERIFY_EMAIL.LOADING' | translate }}</p>
         </div>
     }
 
@@ -20,11 +20,11 @@
         <div class="success-state">
             <i class="pi pi-check-circle"></i>
             <h3>{{ message() }}</h3>
-            <p>Za chwilę zostaniesz przekierowany do strony logowania...</p>
+            <p>{{ 'AUTH.VERIFY_EMAIL.SUCCESS_REDIRECT' | translate }}</p>
             <p-button
                 routerLink="/login"
-                label="Przejdź do logowania teraz"
                 icon="pi pi-sign-in"
+                [label]="'AUTH.VERIFY_EMAIL.LOGIN_NOW' | translate"
             >
             </p-button>
         </div>
@@ -40,15 +40,15 @@
             <div class="actions">
                 <p-button
                     routerLink="/login"
-                    label="Przejdź do logowania"
                     icon="pi pi-sign-in"
+                    [label]="'AUTH.VERIFY_EMAIL.GO_TO_LOGIN' | translate"
                 >
                 </p-button>
                 <p-button
                     severity="secondary"
                     routerLink="/register"
-                    label="Zarejestruj się ponownie"
                     icon="pi pi-user-plus"
+                    [label]="'AUTH.VERIFY_EMAIL.REGISTER_AGAIN' | translate"
                 >
                 </p-button>
             </div>

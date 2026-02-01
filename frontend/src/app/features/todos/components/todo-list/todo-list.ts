@@ -8,14 +8,8 @@ import {
     signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Todo, TodoCreate } from '@api';
-import { delay } from 'rxjs/operators';
-import { AuthStateService } from '../../../../core/services/auth-state.service';
-import { TodoService } from '../../services/todo.service';
-import { TodoFormComponent } from '../todo-form/todo-form';
-
-// PrimeNG
-import { UserResponse } from '@api';
+import { Todo, TodoCreate, UserResponse } from '@api';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -26,6 +20,10 @@ import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
+import { delay } from 'rxjs/operators';
+import { AuthStateService } from '../../../../core/services/auth-state.service';
+import { TodoService } from '../../services/todo.service';
+import { TodoFormComponent } from '../todo-form/todo-form';
 
 @Component({
     selector: 'app-todo-list',
@@ -41,6 +39,7 @@ import { TagModule } from 'primeng/tag';
         DialogModule,
         MessageModule,
         ConfirmDialogModule,
+        TranslateModule,
     ],
     providers: [ConfirmationService],
     templateUrl: './todo-list.html',
@@ -51,6 +50,7 @@ export class TodoListComponent implements OnInit {
     private authStateService = inject(AuthStateService);
     private confirmationService = inject(ConfirmationService);
     private platformId = inject(PLATFORM_ID);
+    private translate = inject(TranslateService);
 
     todos = signal<Todo[]>([]);
     loading = signal(false);
@@ -90,7 +90,9 @@ export class TodoListComponent implements OnInit {
                     this.loading.set(false);
                 },
                 error: () => {
-                    this.error.set('Nie udało się załadować zadań');
+                    this.error.set(
+                        this.translate.instant('TODOS.MESSAGES.ERROR_LOAD'),
+                    );
                     this.loading.set(false);
                 },
             });
@@ -103,7 +105,9 @@ export class TodoListComponent implements OnInit {
 
     editTodo(todo: Todo): void {
         if (!this.canEditTodo(todo)) {
-            this.error.set('Nie masz uprawnień do edycji tego zadania');
+            this.error.set(
+                this.translate.instant('TODOS.MESSAGES.ERROR_NO_PERM_EDIT'),
+            );
             return;
         }
         this.editingTodo.set(todo);
@@ -130,7 +134,9 @@ export class TodoListComponent implements OnInit {
                 this.hideForm();
             },
             error: () => {
-                this.error.set('Nie udało się utworzyć zadania');
+                this.error.set(
+                    this.translate.instant('TODOS.MESSAGES.ERROR_CREATE'),
+                );
             },
         });
     }
@@ -144,7 +150,9 @@ export class TodoListComponent implements OnInit {
                 this.hideForm();
             },
             error: () => {
-                this.error.set('Nie udało się zaktualizować zadania');
+                this.error.set(
+                    this.translate.instant('TODOS.MESSAGES.ERROR_UPDATE'),
+                );
             },
         });
     }
@@ -159,23 +167,34 @@ export class TodoListComponent implements OnInit {
                     );
                 },
                 error: () => {
-                    this.error.set('Nie udało się zmienić statusu zadania');
+                    this.error.set(
+                        this.translate.instant('TODOS.MESSAGES.ERROR_UPDATE'),
+                    );
                 },
             });
     }
 
     deleteTodo(todo: Todo): void {
         if (!this.canEditTodo(todo)) {
-            this.error.set('Nie masz uprawnień do usunięcia tego zadania');
+            this.error.set(
+                this.translate.instant('TODOS.MESSAGES.ERROR_NO_PERM_DELETE'),
+            );
             return;
         }
 
         this.confirmationService.confirm({
-            message: `Czy na pewno chcesz usunąć zadanie "${todo.title}"?`,
-            header: 'Potwierdź usunięcie',
+            message: this.translate.instant(
+                'TODOS.MESSAGES.DELETE_CONFIRM_MESSAGE',
+                { title: todo.title },
+            ),
+            header: this.translate.instant(
+                'TODOS.MESSAGES.DELETE_CONFIRM_TITLE',
+            ),
             icon: 'pi pi-exclamation-triangle',
-            acceptLabel: 'Tak, usuń',
-            rejectLabel: 'Anuluj',
+            acceptLabel:
+                this.translate.instant('TODOS.FORM.SUBMIT_DELETE') ||
+                'Tak, usuń',
+            rejectLabel: this.translate.instant('TODOS.FORM.CANCEL'),
             accept: () => {
                 this.todoService.deleteTodo(todo.id).subscribe({
                     next: () => {
@@ -184,7 +203,11 @@ export class TodoListComponent implements OnInit {
                         );
                     },
                     error: () => {
-                        this.error.set('Nie udało się usunąć zadania');
+                        this.error.set(
+                            this.translate.instant(
+                                'TODOS.MESSAGES.ERROR_DELETE',
+                            ),
+                        );
                     },
                 });
             },

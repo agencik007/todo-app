@@ -638,6 +638,51 @@
         ]
       }
     },
+    "/users/me/language": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update Language",
+        "description": "Update user language preference.\n\nArgs:\n    language_update: New language (en or pl).\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    dict: Success message.",
+        "operationId": "update_language_users_me_language_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLanguageUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/": {
       "get": {
         "tags": [
@@ -962,6 +1007,21 @@
         "title": "UserCreate",
         "description": "Schema for user registration."
       },
+      "UserLanguageUpdate": {
+        "properties": {
+          "language": {
+            "type": "string",
+            "pattern": "^(en|pl)$",
+            "title": "Language"
+          }
+        },
+        "type": "object",
+        "required": [
+          "language"
+        ],
+        "title": "UserLanguageUpdate",
+        "description": "Schema for updating user language."
+      },
       "UserResponse": {
         "properties": {
           "email": {
@@ -992,6 +1052,10 @@
             ],
             "title": "Avatar Url"
           },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -1009,6 +1073,7 @@
           "id",
           "is_active",
           "is_verified",
+          "language",
           "created_at",
           "updated_at"
         ],

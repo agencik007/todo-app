@@ -1,14 +1,15 @@
 import { NgClass } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import {
-  AbstractControl,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
+    AbstractControl,
+    FormBuilder,
+    FormGroup,
+    ReactiveFormsModule,
+    Validators,
 } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { PasswordResetRequest } from '@api';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
@@ -25,6 +26,7 @@ import { AuthService } from '../../services/auth.service';
         ButtonModule,
         MessageModule,
         NgClass,
+        TranslateModule,
     ],
     templateUrl: './forgot-password.html',
     styleUrl: './forgot-password.scss',
@@ -32,6 +34,7 @@ import { AuthService } from '../../services/auth.service';
 export class ForgotPasswordComponent {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
+    private translate = inject(TranslateService);
 
     forgotPasswordForm: FormGroup;
     error = signal<string | null>(null);
@@ -65,7 +68,9 @@ export class ForgotPasswordComponent {
             error: (err) => {
                 this.error.set(
                     err.message ||
-                        'Nie udało się wysłać emaila resetującego hasło',
+                        this.translate.instant(
+                            'AUTH.FORGOT_PASSWORD.ERRORS.EMAIL_FAILED',
+                        ),
                 );
                 this.isLoading.set(false);
             },

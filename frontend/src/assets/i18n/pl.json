@@ -1,0 +1,188 @@
+{
+  "NAV": {
+    "HOME": "Start",
+    "TODOS": "Zadania",
+    "LOGIN": "Logowanie",
+    "REGISTER": "Rejestracja",
+    "LOGOUT": "Wyloguj",
+    "PROFILE": "Profil",
+    "ACCOUNT": "Konto",
+    "CHANGE_AVATAR": "Zmień awatar",
+    "DELETE_AVATAR": "Usuń awatar"
+  },
+  "LANGUAGE": {
+    "SELECT": "Język",
+    "EN": "Angielski",
+    "PL": "Polski"
+  },
+  "THEME": {
+    "TOGGLE": "Przełącz motyw"
+  },
+  "AUTH": {
+    "LOGIN": {
+      "TITLE": "Zaloguj się",
+      "EMAIL_LABEL": "E-mail",
+      "EMAIL_PLACEHOLDER": "twoj@email.com",
+      "PASSWORD_LABEL": "Hasło",
+      "PASSWORD_PLACEHOLDER": "Minimum 8 znaków",
+      "SUBMIT": "Zaloguj się",
+      "FORGOT_PASSWORD": "Zapomniałeś hasła?",
+      "NO_ACCOUNT": "Nie masz konta? Zarejestruj się",
+      "ERRORS": {
+        "EMAIL_REQUIRED": "E-mail jest wymagany",
+        "EMAIL_FORMAT": "Nieprawidłowy format E-mail",
+        "PASSWORD_REQUIRED": "Hasło jest wymagane",
+        "PASSWORD_MIN_LENGTH": "Hasło musi mieć minimum 8 znaków",
+        "USER_DATA_FAILED": "Nie udało się załadować danych użytkownika",
+        "INVALID_CREDENTIALS": "Nieprawidłowy E-mail lub hasło",
+        "NOT_VERIFIED_TITLE": "E-mail niezweryfikowany",
+        "NOT_VERIFIED_DETAIL": "Sprawdź swoją skrzynkę odbiorczą i zweryfikuj adres E-mail przed zalogowaniem."
+      },
+      "SUCCESS": {
+        "VERIFIED": "Pomyślnie zweryfikowano E-mail, możesz się teraz zalogować"
+      }
+    },
+    "REGISTER": {
+      "TITLE": "Zarejestruj się",
+      "EMAIL_LABEL": "E-mail",
+      "EMAIL_PLACEHOLDER": "twoj@email.com",
+      "PASSWORD_LABEL": "Hasło",
+      "PASSWORD_PLACEHOLDER": "Minimum 8 znaków",
+      "CONFIRM_PASSWORD_LABEL": "Potwierdź hasło",
+      "CONFIRM_PASSWORD_PLACEHOLDER": "Wpisz hasło ponownie",
+      "SUBMIT": "Zarejestruj się",
+      "HAVE_ACCOUNT": "Masz już konto? Zaloguj się",
+      "ERRORS": {
+        "EMAIL_REQUIRED": "E-mail jest wymagany",
+        "EMAIL_FORMAT": "Nieprawidłowy format E-mail",
+        "PASSWORD_REQUIRED": "Hasło jest wymagane",
+        "PASSWORD_MIN_LENGTH": "Hasło musi mieć minimum 8 znaków",
+        "CONFIRM_REQUIRED": "Potwierdzenie hasła jest wymagane",
+        "MISMATCH": "Hasła nie są identyczne",
+        "FAILED": "Rejestracja nie powiodła się"
+      }
+    },
+    "CHECK_EMAIL": {
+      "TITLE": "Sprawdź swoją skrzynkę E-mail",
+      "MESSAGE": "Wysłaliśmy link weryfikacyjny na adres:",
+      "INSTRUCTION": "Kliknij w link w wiadomości E-mail, aby aktywować swoje konto i uzyskać dostęp do aplikacji.",
+      "EXPIRE": "Link weryfikacyjny jest ważny przez 24 godziny.",
+      "SPAM_FOLDER": "Sprawdź folder spam",
+      "GO_TO_LOGIN": "Przejdź do logowania",
+      "RESEND_SUCCESS": "E-mail weryfikacyjny został wysłany ponownie."
+    },
+    "FORGOT_PASSWORD": {
+      "TITLE": "Zapomniałeś hasła?",
+      "EMAIL_SENT": "E-mail wysłany",
+      "SUCCESS_MESSAGE": "Twój link do zresetowania hasła został wysłany i będzie ważny przez 1 godzinę.",
+      "SUCCESS_NOTICE": "Jeśli nie widzisz wiadomości, sprawdź folder Spam lub spróbuj ponownie za chwilę.",
+      "BACK_TO_LOGIN": "Powrót do logowania",
+      "INSTRUCTION": "Podaj swój adres E-mail, a wyślemy Ci link do bezpiecznego zresetowania hasła.",
+      "SEND_LINK": "Wyślij link do resetu",
+      "EMAIL_PLACEHOLDER": "twoj@email.com",
+      "ERRORS": {
+        "EMAIL_REQUIRED": "E-mail jest wymagany",
+        "EMAIL_FORMAT": "Nieprawidłowy format E-mail",
+        "EMAIL_FAILED": "Nie udało się wysłać E-maila resetującego hasło"
+      }
+    },
+    "RESET_PASSWORD": {
+      "TITLE": "Resetuj hasło",
+      "SUCCESS_TITLE": "Hasło zmienione!",
+      "SUCCESS_MESSAGE": "Twoje hasło zostało pomyślnie zaktualizowane. Możesz się teraz zalogować przy użyciu nowego hasła.",
+      "REDIRECTING": "Przekierowywanie do logowania...",
+      "LOGIN_NOW": "Zaloguj się teraz",
+      "NEW_PASSWORD_LABEL": "Nowe hasło",
+      "NEW_PASSWORD_PLACEHOLDER": "Minimum 8 znaków",
+      "CONFIRM_PASSWORD_LABEL": "Potwierdź nowe hasło",
+      "CONFIRM_PASSWORD_PLACEHOLDER": "Wpisz hasło ponownie",
+      "SUBMIT": "Zapisz nowe hasło",
+      "PASS_STRENGTH": {
+        "WEAK": "Słabe",
+        "MEDIUM": "Średnie",
+        "STRONG": "Mocne",
+        "PROMPT": "Wpisz nowe hasło"
+      },
+      "ERRORS": {
+        "PASSWORD_REQUIRED": "Hasło jest wymagane",
+        "PASSWORD_MIN_LENGTH": "Hasło musi mieć minimum 8 znaków",
+        "CONFIRM_REQUIRED": "Potwierdzenie hasła jest wymagane",
+        "MISMATCH": "Hasła nie są identyczne",
+        "TOKEN_MISSING": "Brak prawidłowego tokenu resetującego hasło. Skorzystaj ponownie z linku w e-mailu.",
+        "FAILED": "Token resetujący hasło jest nieprawidłowy lub wygasł."
+      }
+    },
+    "VERIFY_EMAIL": {
+      "TITLE": "Weryfikacja E-mail",
+      "LOADING": "Weryfikuję adres E-mail...",
+      "SUCCESS_REDIRECT": "Za chwilę zostaniesz przekierowany do strony logowania...",
+      "LOGIN_NOW": "Przejdź do logowania teraz",
+      "GO_TO_LOGIN": "Przejdź do logowania",
+      "REGISTER_AGAIN": "Zarejestruj się ponownie",
+      "ERRORS": {
+        "FAILED": "Weryfikacja nie powiodła się",
+        "EXPIRED": "Token weryfikacyjny wygasł.",
+        "GENERAL": "Wystąpił błąd podczas weryfikacji.",
+        "SUMMARY": "Błąd weryfikacji",
+        "NO_TOKEN": "Brak tokenu weryfikacji"
+      }
+    }
+  },
+  "TODOS": {
+    "TITLE": "Moja Lista Zadań",
+    "SUBTITLE": "Zarządzaj swoimi zadaniami w prosty i efektywny sposób",
+    "ADD_BUTTON": "Dodaj zadanie",
+    "STATS": {
+      "ALL": "Wszystkie",
+      "PENDING": "Do wykonania",
+      "COMPLETED": "Ukończone"
+    },
+    "LIST": {
+      "STATUS_COMPLETED": "Ukończone",
+      "STATUS_PENDING": "Do zrobienia",
+      "PUBLIC": "Publiczne",
+      "OWNER_INFO": "To zadanie jest usera {{email}}",
+      "EMPTY_TITLE": "Brak zadań",
+      "EMPTY_MESSAGE": "Nie masz jeszcze żadnych zadań. Dodaj pierwsze zadanie, aby zacząć!",
+      "ADD_FIRST": "Dodaj pierwsze zadanie"
+    },
+    "FORM": {
+      "TITLE_EDIT": "Edytuj zadanie",
+      "TITLE_ADD": "Dodaj nowe zadanie",
+      "FIELD_TITLE": "Tytuł *",
+      "FIELD_TITLE_PLACEHOLDER": "Wpisz tytuł zadania...",
+      "FIELD_DESCRIPTION": "Opis",
+      "FIELD_DESCRIPTION_PLACEHOLDER": "Dodaj opcjonalny opis...",
+      "FIELD_PUBLIC": "Publiczne",
+      "PUBLIC_INFO": "Zadanie publiczne będzie widoczne dla wszystkich użytkowników",
+      "CANCEL": "Anuluj",
+      "SUBMIT_ADD": "Dodaj zadanie",
+      "SUBMIT_SAVE": "Zapisz zmiany",
+      "SUBMIT_DELETE": "Tak, usuń",
+      "ERRORS": {
+        "TITLE_REQUIRED": "Tytuł jest wymagany"
+      }
+    },
+    "MESSAGES": {
+      "DELETE_CONFIRM_TITLE": "Potwierdź usunięcie",
+      "DELETE_CONFIRM_MESSAGE": "Czy na pewno chcesz usunąć zadanie \"{{title}}\"?",
+      "DELETE_SUCCESS": "Zadanie zostało usunięte",
+      "CREATE_SUCCESS": "Zadanie zostało utworzone",
+      "UPDATE_SUCCESS": "Zadanie zostało zaktualizowane",
+      "ERROR_LOAD": "Nie udało się załadować zadań",
+      "ERROR_DELETE": "Nie udało się usunąć zadania",
+      "ERROR_CREATE": "Nie udało się utworzyć zadania",
+      "ERROR_UPDATE": "Nie udało się zaktualizować zadania",
+      "ERROR_NO_PERM_EDIT": "Nie masz uprawnień do edycji tego zadania",
+      "ERROR_NO_PERM_DELETE": "Nie masz uprawnień do usunięcia tego zadania"
+    }
+  },
+  "MESSAGES": {
+    "SUCCESS": "Sukces",
+    "ERROR": "Błąd",
+    "AVATAR_UPLOAD_SUCCESS": "Awatar został zaktualizowany",
+    "AVATAR_UPLOAD_ERROR": "Nie udało się wgrać awatara",
+    "AVATAR_DELETE_SUCCESS": "Awatar został usunięty",
+    "AVATAR_DELETE_ERROR": "Nie udało się usunąć awatara"
+  }
+}

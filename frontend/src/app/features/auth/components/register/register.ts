@@ -1,14 +1,15 @@
 import { Component, inject, signal } from '@angular/core';
 import {
-  AbstractControl,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
+    AbstractControl,
+    FormBuilder,
+    FormGroup,
+    ReactiveFormsModule,
+    ValidationErrors,
+    Validators,
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { UserCreate as RegisterRequest } from '@api';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
@@ -26,6 +27,7 @@ import { AuthService } from '../../services/auth.service';
         PasswordModule,
         ButtonModule,
         MessageModule,
+        TranslateModule,
     ],
     templateUrl: './register.html',
     styleUrl: './register.scss',
@@ -34,6 +36,7 @@ export class RegisterComponent {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
     private router = inject(Router);
+    private translate = inject(TranslateService);
 
     registerForm: FormGroup;
     error = signal<string | null>(null);
@@ -87,7 +90,10 @@ export class RegisterComponent {
                 });
             },
             error: (err) => {
-                this.error.set(err.message || 'Rejestracja nie powiodła się');
+                this.error.set(
+                    err.message ||
+                        this.translate.instant('AUTH.REGISTER.ERRORS.FAILED'),
+                );
                 this.isLoading.set(false);
             },
         });

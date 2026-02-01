@@ -1,0 +1,188 @@
+{
+  "NAV": {
+    "HOME": "Home",
+    "TODOS": "Todos",
+    "LOGIN": "Login",
+    "REGISTER": "Register",
+    "LOGOUT": "Logout",
+    "PROFILE": "Profile",
+    "ACCOUNT": "Account",
+    "CHANGE_AVATAR": "Change Avatar",
+    "DELETE_AVATAR": "Delete Avatar"
+  },
+  "LANGUAGE": {
+    "SELECT": "Language",
+    "EN": "English",
+    "PL": "Polish"
+  },
+  "THEME": {
+    "TOGGLE": "Toggle theme"
+  },
+  "AUTH": {
+    "LOGIN": {
+      "TITLE": "Login",
+      "EMAIL_LABEL": "E-mail",
+      "EMAIL_PLACEHOLDER": "your@email.com",
+      "PASSWORD_LABEL": "Password",
+      "PASSWORD_PLACEHOLDER": "Minimum 8 characters",
+      "SUBMIT": "Login",
+      "FORGOT_PASSWORD": "Forgot password?",
+      "NO_ACCOUNT": "Don't have an account? Register",
+      "ERRORS": {
+        "EMAIL_REQUIRED": "E-mail is required",
+        "EMAIL_FORMAT": "Invalid E-mail format",
+        "PASSWORD_REQUIRED": "Password is required",
+        "PASSWORD_MIN_LENGTH": "Password must be at least 8 characters",
+        "USER_DATA_FAILED": "Failed to load user data",
+        "INVALID_CREDENTIALS": "Invalid E-mail or password",
+        "NOT_VERIFIED_TITLE": "E-mail not verified",
+        "NOT_VERIFIED_DETAIL": "Check your inbox and verify your E-mail address before logging in."
+      },
+      "SUCCESS": {
+        "VERIFIED": "Successfully verified E-mail, you can now log in"
+      }
+    },
+    "REGISTER": {
+      "TITLE": "Register",
+      "EMAIL_LABEL": "E-mail",
+      "EMAIL_PLACEHOLDER": "your@email.com",
+      "PASSWORD_LABEL": "Password",
+      "PASSWORD_PLACEHOLDER": "Minimum 8 characters",
+      "CONFIRM_PASSWORD_LABEL": "Confirm password",
+      "CONFIRM_PASSWORD_PLACEHOLDER": "Enter password again",
+      "SUBMIT": "Register",
+      "HAVE_ACCOUNT": "Already have an account? Login",
+      "ERRORS": {
+        "EMAIL_REQUIRED": "E-mail is required",
+        "EMAIL_FORMAT": "Invalid E-mail format",
+        "PASSWORD_REQUIRED": "Password is required",
+        "PASSWORD_MIN_LENGTH": "Password must be at least 8 characters",
+        "CONFIRM_REQUIRED": "Confirming password is required",
+        "MISMATCH": "Passwords are not identical",
+        "FAILED": "Registration failed"
+      }
+    },
+    "CHECK_EMAIL": {
+      "TITLE": "Check your E-mail inbox",
+      "MESSAGE": "We sent a verification link to:",
+      "INSTRUCTION": "Click the link in the E-mail message to activate your account and gain access to the application.",
+      "EXPIRE": "The verification link is valid for 24 hours.",
+      "SPAM_FOLDER": "Check spam folder",
+      "GO_TO_LOGIN": "Go to login",
+      "RESEND_SUCCESS": "Verification E-mail has been sent again."
+    },
+    "FORGOT_PASSWORD": {
+      "TITLE": "Forgot password?",
+      "EMAIL_SENT": "E-mail sent",
+      "SUCCESS_MESSAGE": "Your password reset link has been sent and will be valid for 1 hour.",
+      "SUCCESS_NOTICE": "If you don't see the message, check the Spam folder or try again in a moment.",
+      "BACK_TO_LOGIN": "Back to login",
+      "INSTRUCTION": "Provide your E-mail address and we will send you a link to securely reset your password.",
+      "SEND_LINK": "Send reset link",
+      "EMAIL_PLACEHOLDER": "your@email.com",
+      "ERRORS": {
+        "EMAIL_REQUIRED": "E-mail is required",
+        "EMAIL_FORMAT": "Invalid E-mail format",
+        "EMAIL_FAILED": "Failed to send password reset E-mail"
+      }
+    },
+    "RESET_PASSWORD": {
+      "TITLE": "Reset password",
+      "SUCCESS_TITLE": "Password changed!",
+      "SUCCESS_MESSAGE": "Your password has been successfully updated. You can now log in using the new password.",
+      "REDIRECTING": "Redirecting to login...",
+      "LOGIN_NOW": "Login now",
+      "NEW_PASSWORD_LABEL": "New password",
+      "NEW_PASSWORD_PLACEHOLDER": "Minimum 8 characters",
+      "CONFIRM_PASSWORD_LABEL": "Confirm new password",
+      "CONFIRM_PASSWORD_PLACEHOLDER": "Enter password again",
+      "SUBMIT": "Save new password",
+      "PASS_STRENGTH": {
+        "WEAK": "Weak",
+        "MEDIUM": "Medium",
+        "STRONG": "Strong",
+        "PROMPT": "Enter new password"
+      },
+      "ERRORS": {
+        "PASSWORD_REQUIRED": "Password is required",
+        "PASSWORD_MIN_LENGTH": "Password must be at least 8 characters",
+        "CONFIRM_REQUIRED": "Confirming password is required",
+        "MISMATCH": "Passwords are not identical",
+        "TOKEN_MISSING": "Missing valid password reset token. Please use the link in the E-mail again.",
+        "FAILED": "Token is invalid or outdated"
+      }
+    },
+    "VERIFY_EMAIL": {
+      "TITLE": "E-mail Verification",
+      "LOADING": "Verifying E-mail address...",
+      "SUCCESS_REDIRECT": "You will be redirected to the login page in a moment...",
+      "LOGIN_NOW": "Go to login now",
+      "GO_TO_LOGIN": "Go to login",
+      "REGISTER_AGAIN": "Register again",
+      "ERRORS": {
+        "FAILED": "Verification failed",
+        "EXPIRED": "Verification token has expired.",
+        "GENERAL": "An error occurred during verification.",
+        "SUMMARY": "Verification error",
+        "NO_TOKEN": "Missing verification token"
+      }
+    }
+  },
+  "TODOS": {
+    "TITLE": "My Todo List",
+    "SUBTITLE": "Manage your tasks in a simple and effective way",
+    "ADD_BUTTON": "Add task",
+    "STATS": {
+      "ALL": "All",
+      "PENDING": "To do",
+      "COMPLETED": "Completed"
+    },
+    "LIST": {
+      "STATUS_COMPLETED": "Completed",
+      "STATUS_PENDING": "To do",
+      "PUBLIC": "Public",
+      "OWNER_INFO": "This task belongs to user {{email}}",
+      "EMPTY_TITLE": "No tasks",
+      "EMPTY_MESSAGE": "You don't have any tasks yet. Add your first task to start!",
+      "ADD_FIRST": "Add first task"
+    },
+    "FORM": {
+      "TITLE_EDIT": "Edit task",
+      "TITLE_ADD": "Add new task",
+      "FIELD_TITLE": "Title *",
+      "FIELD_TITLE_PLACEHOLDER": "Enter task title...",
+      "FIELD_DESCRIPTION": "Description",
+      "FIELD_DESCRIPTION_PLACEHOLDER": "Add optional description...",
+      "FIELD_PUBLIC": "Public",
+      "PUBLIC_INFO": "A public task will be visible to all users",
+      "CANCEL": "Cancel",
+      "SUBMIT_ADD": "Add task",
+      "SUBMIT_SAVE": "Save changes",
+      "SUBMIT_DELETE": "Yes, delete",
+      "ERRORS": {
+        "TITLE_REQUIRED": "Title is required"
+      }
+    },
+    "MESSAGES": {
+      "DELETE_CONFIRM_TITLE": "Confirm deletion",
+      "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete the task \"{{title}}\"?",
+      "DELETE_SUCCESS": "Task deleted successfully",
+      "CREATE_SUCCESS": "Task created successfully",
+      "UPDATE_SUCCESS": "Task updated successfully",
+      "ERROR_LOAD": "Failed to load tasks",
+      "ERROR_DELETE": "Failed to delete task",
+      "ERROR_CREATE": "Failed to create task",
+      "ERROR_UPDATE": "Failed to update task",
+      "ERROR_NO_PERM_EDIT": "You do not have permission to edit this task",
+      "ERROR_NO_PERM_DELETE": "You do not have permission to delete this task"
+    }
+  },
+  "MESSAGES": {
+    "SUCCESS": "Success",
+    "ERROR": "Error",
+    "AVATAR_UPLOAD_SUCCESS": "Avatar updated successfully",
+    "AVATAR_UPLOAD_ERROR": "Failed to upload avatar",
+    "AVATAR_DELETE_SUCCESS": "Avatar removed successfully",
+    "AVATAR_DELETE_ERROR": "Failed to remove avatar"
+  }
+}

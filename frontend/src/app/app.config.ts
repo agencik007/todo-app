@@ -5,6 +5,7 @@ import {
 } from '@angular/common/http';
 import {
     ApplicationConfig,
+    importProvidersFrom,
     inject,
     provideAppInitializer,
     provideBrowserGlobalErrorListeners,
@@ -12,16 +13,22 @@ import {
 } from '@angular/core';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { routes } from './app.routes';
-import { authInterceptor } from './core/interceptors/auth.interceptor';
-import { AuthStateService } from './core/services/auth-state.service';
-
-// PrimeNG
 import { provideApi } from '@api/index';
+import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import Aura from '@primeuix/themes/aura';
 import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import { environment } from '../environments/environment';
+import { routes } from './app.routes';
+import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { AuthStateService } from './core/services/auth-state.service';
+import { LanguageService } from './core/services/language.service';
+
+function initializeLanguage(): Promise<void> {
+    const languageService = inject(LanguageService);
+    return languageService.init();
+}
 
 function initializeApp(): Promise<void> {
     const authStateService = inject(AuthStateService);
@@ -36,6 +43,12 @@ export const appConfig: ApplicationConfig = {
         provideClientHydration(),
         provideHttpClient(withInterceptors([authInterceptor]), withFetch()),
         provideApi(environment.apiUrl),
+        importProvidersFrom(TranslateModule.forRoot()),
+        provideTranslateHttpLoader({
+            prefix: './assets/i18n/',
+            suffix: '.json',
+        }),
+        provideAppInitializer(initializeLanguage),
         provideAppInitializer(initializeApp),
         MessageService,
         providePrimeNG({

@@ -1,12 +1,14 @@
 """
-Email service - Email sending functionality using MailHog.
+Email service - Email sending functionality using MailHog with i18n support.
 """
 
 import os
+import json
 import smtplib
+from pathlib import Path
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from typing import Optional
+from typing import Optional, Dict, Any
 
 # Email configuration
 EMAIL_FROM = os.getenv("EMAIL_FROM", "noreply@example.com")
@@ -16,27 +18,101 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:4200")
 MAILHOG_HOST = os.getenv("MAILHOG_HOST", "localhost")
 MAILHOG_PORT = int(os.getenv("MAILHOG_PORT", "1025"))
 
+# Load translations
+BASE_DIR = Path(__file__).resolve().parent.parent
+I18N_DIR = BASE_DIR / "i18n"
+
+
+def load_translations() -> Dict[str, Any]:
+    """Load translation files from i18n directory."""
+    translations = {}
+    for lang in ["en", "pl"]:
+        try:
+            file_path = I18N_DIR / f"{lang}.json"
+            if file_path.exists():
+                with open(file_path, "r", encoding="utf-8") as f:
+                    translations[lang] = json.load(f)
+            else:
+                print(f"Warning: Translation file not found: {file_path}")
+                translations[lang] = {}
+        except Exception as e:
+            print(f"Error loading translation for {lang}: {e}")
+            translations[lang] = {}
+    return translations
+
+
+TRANSLATIONS = load_translations()
+
+
+def get_text(lang: str, category: str, key: str, **kwargs) -> str:
+    """Get translated text and format it with kwargs."""
+    lang = lang if lang in TRANSLATIONS else "en"
+
+    # Try to get text for requested language
+    text = TRANSLATIONS.get(lang, {}).get(category, {}).get(key, "")
+
+    # Fallback to English if missing
+    if not text and lang != "en":
+        text = TRANSLATIONS.get("en", {}).get(category, {}).get(key, "")
+
+    if kwargs:
+        try:
+            return text.format(**kwargs)
+        except KeyError as e:
+            print(f"Missing format key {e} for {lang}.{category}.{key}")
+            return text
+    return text
+
+
+def _get_html_template(lang: str, title: str, content: str) -> str:
+    """Wrap content in a nice HTML template."""
+    footer_text = get_text(lang, "common", "footer_automated")
+    copyright_text = get_text(lang, "common", "footer_copyright")
+
+    return f"""
+    <!DOCTYPE html>
+    <html lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f9fafb; margin: 0; padding: 0; }}
+            .container {{ max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); overflow: hidden; }}
+            .header {{ background-color: #6366f1; padding: 24px; text-align: center; }}
+            .header h2 {{ color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; }}
+            .content {{ padding: 32px 24px; }}
+            .button-container {{ text-align: center; margin: 30px 0; }}
+            .button {{ display: inline-block; padding: 14px 28px; background-color: #6366f1; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; transition: background-color 0.2s; }}
+            .button:hover {{ background-color: #4f46e5; }}
+            .footer {{ background-color: #f3f4f6; padding: 24px; text-align: center; font-size: 13px; color: #6b7280; border-top: 1px solid #e5e7eb; }}
+            .link-text {{ word-break: break-all; color: #6366f1; }}
+            p {{ margin-bottom: 16px; }}
+            h3 {{ color: #111827; margin-top: 0; font-size: 20px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2>Todo App</h2>
+            </div>
+            <div class="content">
+                <h3>{title}</h3>
+                {content}
+            </div>
+            <div class="footer">
+                <p>{footer_text}</p>
+                <p>{copyright_text}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
 
 def send_email(
-    to_email: str, 
-    subject: str, 
-    html_content: str, 
-    text_content: Optional[str] = None
+    to_email: str, subject: str, html_content: str, text_content: Optional[str] = None
 ) -> bool:
     """
     Send an email using MailHog SMTP.
-    
-    MailHog captures all emails and displays them in a web interface
-    at http://localhost:8025. Perfect for development/testing.
-    
-    Args:
-        to_email: Recipient email address.
-        subject: Email subject line.
-        html_content: HTML content of the email.
-        text_content: Optional plain text content.
-        
-    Returns:
-        bool: True if email was sent successfully, False otherwise.
     """
     try:
         msg = MIMEMultipart("alternative")
@@ -57,143 +133,99 @@ def send_email(
         return False
 
 
-def send_verification_email(to_email: str, verification_token: str) -> bool:
+def send_verification_email(
+    to_email: str, verification_token: str, language: str = "en"
+) -> bool:
     """
     Send email verification email.
-    
-    Args:
-        to_email: Recipient email address.
-        verification_token: Token for email verification.
-        
-    Returns:
-        bool: True if email was sent successfully.
     """
     verification_url = f"{FRONTEND_URL}/verify-email/{verification_token}"
 
-    subject = "Verify your email address"
-    html_content = f"""
-    <html>
-      <body>
-        <h2>Email Verification</h2>
-        <p>Thank you for registering! Please click the link below to verify your email address:</p>
-        <p><a href="{verification_url}">{verification_url}</a></p>
-        <p>If you didn't create an account, please ignore this email.</p>
-      </body>
-    </html>
+    subject = get_text(language, "email_verification", "subject")
+    title = get_text(language, "email_verification", "title")
+    greeting = get_text(language, "email_verification", "greeting")
+    message = get_text(language, "email_verification", "message")
+    button_text = get_text(language, "email_verification", "button_text")
+    fallback_text = get_text(language, "email_verification", "fallback_text")
+    ignore_text = get_text(language, "email_verification", "ignore_text")
+
+    html_body = f"""
+        <p>{greeting}</p>
+        <p>{message}</p>
+        <div class="button-container">
+            <a href="{verification_url}" class="button">{button_text}</a>
+        </div>
+        <p>{fallback_text}</p>
+        <p><a href="{verification_url}" class="link-text">{verification_url}</a></p>
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+        <p style="color: #6b7280; font-size: 14px;">{ignore_text}</p>
     """
 
+    html_content = _get_html_template(language, title, html_body)
+
     text_content = f"""
-    Email Verification
+    {title}
     
-    Thank you for registering! Please click the link below to verify your email address:
+    {greeting}
+    
+    {message}
+    
     {verification_url}
     
-    If you didn't create an account, please ignore this email.
+    {ignore_text}
     """
 
     return send_email(to_email, subject, html_content, text_content)
 
 
-def send_password_reset_email(to_email: str, reset_token: str) -> bool:
+def send_password_reset_email(
+    to_email: str, reset_token: str, language: str = "en"
+) -> bool:
     """
     Send password reset email.
-    
-    Args:
-        to_email: Recipient email address.
-        reset_token: Token for password reset.
-        
-    Returns:
-        bool: True if email was sent successfully.
     """
+    # 1 hour expiry
+    hours = 1
     reset_url = f"{FRONTEND_URL}/reset-password/{reset_token}"
 
-    subject = "Resetowanie hasła - Todo App"
-    html_content = f"""
-    <!DOCTYPE html>
-    <html lang="pl">
-    <head>
-        <meta charset="UTF-8">
-        <style>
-            body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }}
-            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px; }}
-            .header {{ text-align: center; border-bottom: 2px solid #6366f1; padding-bottom: 10px; }}
-            .content {{ padding: 20px 0; }}
-            .button {{ display: inline-block; padding: 12px 24px; background-color: #6366f1; color: #ffffff !important; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px; }}
-            .footer {{ font-size: 12px; color: #777; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; text-align: center; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h2 style="color: #6366f1;">Todo App</h2>
-            </div>
-            <div class="content">
-                <h3>Cześć!</h3>
-                <p>Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta w aplikacji Todo App.</p>
-                <p>Kliknij w poniższy przycisk, aby ustawić nowe hasło:</p>
-                <div style="text-align: center;">
-                    <a href="{reset_url}" class="button">Zresetuj hasło</a>
-                </div>
-                <p>Jeśli przycisk nie działa, skopiuj i wklej poniższy link do przeglądarki:</p>
-                <p style="word-break: break-all;"><a href="{reset_url}">{reset_url}</a></p>
-                <p>Ten link wygaśnie za <strong>1 godzinę</strong>.</p>
-                <p>Jeśli to nie Ty prosiłeś o reset hasła, możesz zignorować tę wiadomość.</p>
-            </div>
-            <div class="footer">
-                <p>Ta wiadomość została wysłana automatycznie. Prosimy na nią nie odpowiadać.</p>
-                <p>&copy; 2026 Todo App</p>
-            </div>
+    subject = get_text(language, "password_reset", "subject")
+    title = get_text(language, "password_reset", "title")
+    greeting = get_text(language, "password_reset", "greeting")
+    message = get_text(language, "password_reset", "message")
+    action_text = get_text(language, "password_reset", "action_text")
+    button_text = get_text(language, "password_reset", "button_text")
+    fallback_text = get_text(language, "password_reset", "fallback_text")
+    expiry_text = get_text(language, "password_reset", "expiry_text", hours=hours)
+    ignore_text = get_text(language, "password_reset", "ignore_text")
+
+    html_body = f"""
+        <p>{greeting}</p>
+        <p>{message}</p>
+        <p>{action_text}</p>
+        <div class="button-container">
+            <a href="{reset_url}" class="button">{button_text}</a>
         </div>
-    </body>
-    </html>
+        <p>{fallback_text}</p>
+        <p><a href="{reset_url}" class="link-text">{reset_url}</a></p>
+        <p><strong>{expiry_text}</strong></p>
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+        <p style="color: #6b7280; font-size: 14px;">{ignore_text}</p>
     """
 
+    html_content = _get_html_template(language, title, html_body)
+
     text_content = f"""
-    Resetowanie hasła - Todo App
+    {title}
     
-    Cześć!
+    {greeting}
     
-    Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta w aplikacji Todo App.
-    Kliknij w poniższy link, aby ustawić nowe hasło:
+    {message}
     
     {reset_url}
     
-    Ten link wygaśnie za 1 godzinę.
+    {expiry_text}
     
-    Jeśli to nie Ty prosiłeś o reset hasła, możesz zignorować tę wiadomość.
-    
-    Ta wiadomość została wysłana automatycznie. Prosimy na nią nie odpowiadać.
-    """
-
-    return send_email(to_email, subject, html_content, text_content)
-
-
-def send_welcome_email(to_email: str) -> bool:
-    """
-    Send welcome email after successful registration.
-    
-    Args:
-        to_email: Recipient email address.
-        
-    Returns:
-        bool: True if email was sent successfully.
-    """
-    subject = "Welcome to Todo App!"
-    html_content = """
-    <html>
-      <body>
-        <h2>Welcome to Todo App!</h2>
-        <p>Thank you for joining us. Your account has been successfully created.</p>
-        <p>Start managing your tasks right away!</p>
-      </body>
-    </html>
-    """
-
-    text_content = """
-    Welcome to Todo App!
-    
-    Thank you for joining us. Your account has been successfully created.
-    Start managing your tasks right away!
+    {ignore_text}
     """
 
     return send_email(to_email, subject, html_content, text_content)
