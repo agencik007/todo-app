@@ -1,10 +1,17 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import {
+    Component,
+    inject,
+    OnInit,
+    PLATFORM_ID,
+    signal,
+    viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Todo, TodoCreate, UserResponse } from '@api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
+import { Button, ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -57,6 +64,8 @@ export class TodoListComponent implements OnInit {
     readonly pendingTodos = this.store.pendingTodos;
     readonly totalTodos = this.store.totalCount;
 
+    addButton = viewChild<Button>('addButton');
+
     get currentUser(): UserResponse | null {
         return this.authStore.currentUser();
     }
@@ -84,6 +93,20 @@ export class TodoListComponent implements OnInit {
 
     hideForm(): void {
         this.store.hideForm();
+
+        // Restore focus to the add button after dialog is hidden
+        setTimeout(() => {
+            const buttonEl = this.addButton();
+            if (buttonEl?.el?.nativeElement) {
+                // p-button component wraps a native <button> element
+                // We need to find and focus the actual button inside
+                const nativeButton =
+                    buttonEl.el.nativeElement.querySelector('button');
+                if (nativeButton) {
+                    nativeButton.focus();
+                }
+            }
+        }, 100);
     }
 
     saveTodo(todoData: TodoCreate): void {

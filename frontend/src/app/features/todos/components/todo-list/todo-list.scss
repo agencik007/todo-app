@@ -2,23 +2,22 @@
 
 // Override global container for tighter width
 .container {
-  max-width: 900px;
-  padding: 2rem 1rem;
+    max-width: 900px;
+    padding: 2rem 1rem;
 }
 
 .py-6 {
-  padding-top: 3rem;
-  padding-bottom: 3rem;
+    padding: 3rem 0;
 }
 
 .text-3xl {
-  font-size: 1.875rem;
+    font-size: 1.875rem;
 }
 
 .text-6xl {
-  font-size: 3.75rem;
+    font-size: 3.75rem;
 }
 
 .line-through {
-  text-decoration: line-through;
+    text-decoration: line-through;
 }

@@ -12,7 +12,9 @@
                 styleClass="w-full-mobile"
                 icon="pi pi-plus"
                 class="w-full-mobile"
+                #addButton
                 [label]="'TODOS.ADD_BUTTON' | translate"
+                [autofocus]="true"
                 (onClick)="showCreateForm()"
             />
         </div>
@@ -21,6 +23,7 @@
         <div
             class="flex mb-4"
             [class.gap-3]="!screenSize.isCompact()"
+            [class.gap-1]="screenSize.isCompact()"
             [class.flex-column-mobile]="!screenSize.isCompact()"
         >
             <p-card
@@ -214,17 +217,18 @@
         <!-- Todo Form Dialog -->
         <p-dialog
             [visible]="formVisible()"
-            [style]="{ width: '450px' }"
+            [style]="{ width: 'auto' }"
             [modal]="true"
             [header]="
                 (editingTodo() ? 'TODOS.FORM.TITLE_EDIT' : 'TODOS.FORM.TITLE_ADD') | translate
             "
             (onHide)="hideForm()"
+            (keydown.escape)="hideForm()"
         >
             <app-todo-form
                 [todo]="editingTodo()"
                 (save)="saveTodo($event)"
-                (cancel)="hideForm()"
+                (cancelTodo)="hideForm()"
             >
             </app-todo-form>
         </p-dialog>

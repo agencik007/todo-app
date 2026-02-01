@@ -19,25 +19,31 @@
                     [style]="{ width: '24px', height: '24px' }"
                 />
             } @else if (isAuthenticated() && currentUser()) {
-                @if (!screenSize.isCompact()) {
-                    <div class="flex align-items-center gap-2">
-                        <span class="font-medium text-sm text-color-secondary">{{
-                            currentUser()!.email
-                        }}</span>
+                <div
+                    class="flex align-items-center gap-2"
+                    [style]="{ marginRight: screenSize.isCompact() ? '1rem' : 'unset' }"
+                >
+                    <span class="font-medium text-sm text-color-secondary">{{
+                        currentUser()!.email
+                    }}</span>
+                    @if (!screenSize.isCompact()) {
                         <app-theme-toggle class="ml-2"></app-theme-toggle>
                         <app-language-selector></app-language-selector>
-                    </div>
-                }
+                    }
+                </div>
 
                 <div class="relative avatar-wrapper">
                     <p-avatar
+                        tabindex="0"
                         size="normal"
                         shape="circle"
-                        class="cursor-pointer border-1 surface-border hover:surface-100 transition-colors"
+                        class="cursor-pointer border-1 surface-border hover:surface-200 transition-colors"
                         [label]="
                             !userAvatar() ? currentUser()!.email.charAt(0).toUpperCase() : undefined
                         "
                         [image]="sanitizedAvatarUrl()"
+                        (keydown.space)="menu.toggle($event)"
+                        (keydown.enter)="menu.toggle($event)"
                         (click)="menu.toggle($event)"
                     />
                     @if (userAvatar() && !screenSize.isCompact()) {
@@ -61,7 +67,6 @@
                     [resizable]="false"
                     [modal]="true"
                     [header]="translate.instant('NAV.PROFILE')"
-                    [draggable]="false"
                     [dismissableMask]="true"
                     (visibleChange)="isPreviewVisible.set($event)"
                 >
@@ -82,7 +87,16 @@
                     #menu
                     [popup]="true"
                     [model]="menuItems()"
-                ></p-menu>
+                >
+                    <ng-template pTemplate="start">
+                        <div class="flex flex-column align-items-center gap-2">
+                            @if (screenSize.isCompact()) {
+                                <app-theme-toggle class="ml-2"></app-theme-toggle>
+                                <app-language-selector></app-language-selector>
+                            }
+                        </div>
+                    </ng-template>
+                </p-menu>
 
                 <input
                     type="file"
