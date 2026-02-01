@@ -27,6 +27,7 @@
                         currentUser()!.email
                     }}</span>
                     @if (!screenSize.isCompact()) {
+                        <app-color-toggle class="ml-2"></app-color-toggle>
                         <app-theme-toggle class="ml-2"></app-theme-toggle>
                         <app-language-selector></app-language-selector>
                     }
@@ -91,6 +92,7 @@
                     <ng-template pTemplate="start">
                         <div class="flex flex-column align-items-center gap-2">
                             @if (screenSize.isCompact()) {
+                                <app-color-toggle class="ml-2"></app-color-toggle>
                                 <app-theme-toggle class="ml-2"></app-theme-toggle>
                                 <app-language-selector></app-language-selector>
                             }
@@ -107,6 +109,7 @@
                 />
             } @else {
                 <div class="flex align-items-center gap-3">
+                    <app-color-toggle></app-color-toggle>
                     <app-theme-toggle></app-theme-toggle>
                     <app-language-selector></app-language-selector>
                     @if (!screenSize.isCompact()) {

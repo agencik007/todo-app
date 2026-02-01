@@ -18,6 +18,14 @@
   "THEME": {
     "TOGGLE": "Przełącz motyw"
   },
+  "COLOR_PALETTES": {
+    "OCEAN_DEPTH": "Głębia Oceanu",
+    "SUNSET_GRADIENT": "Zachód Słońca",
+    "FOREST_NIGHT": "Leśna Noc",
+    "ROYAL_PURPLE": "Królewska Purpura",
+    "CYBERPUNK": "Cyberpunk",
+    "SELECT_COLOR": "Wybierz Paletę Kolorów"
+  },
   "AUTH": {
     "LOGIN": {
       "TITLE": "Zaloguj się",

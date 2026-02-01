@@ -18,6 +18,14 @@
   "THEME": {
     "TOGGLE": "Toggle theme"
   },
+  "COLOR_PALETTES": {
+    "OCEAN_DEPTH": "Ocean Depth",
+    "SUNSET_GRADIENT": "Sunset Gradient",
+    "FOREST_NIGHT": "Forest Night",
+    "ROYAL_PURPLE": "Royal Purple",
+    "CYBERPUNK": "Cyberpunk",
+    "SELECT_COLOR": "Select Color Palette"
+  },
   "AUTH": {
     "LOGIN": {
       "TITLE": "Login",

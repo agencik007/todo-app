@@ -20,6 +20,7 @@ import { LanguageService } from '../../core/services/language.service';
 import { ScreenSizeService } from '../../core/services/screen-size.service';
 import { AuthStore } from '../../core/store/auth.store';
 import { AuthService } from '../../features/auth/services/auth.service';
+import { ColorToggleComponent } from '../../shared/components/color-toggle/color-toggle';
 import { LanguageSelectorComponent } from '../../shared/components/language-selector/language-selector.component';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle';
 
@@ -35,6 +36,7 @@ import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme
         ToastModule,
         DialogModule,
         ThemeToggleComponent,
+        ColorToggleComponent,
         LanguageSelectorComponent,
         TranslatePipe,
     ],
