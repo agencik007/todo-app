@@ -1,0 +1,27 @@
+{
+  "email_verification": {
+    "subject": "Zweryfikuj swój adres email - Todo App",
+    "title": "Weryfikacja Email",
+    "greeting": "Cześć!",
+    "message": "Dziękujemy za rejestrację! Kliknij poniższy przycisk, aby zweryfikować swój adres email.",
+    "button_text": "Zweryfikuj Email",
+    "fallback_text": "Jeśli przycisk nie działa, skopiuj i wklej poniższy link do przeglądarki:",
+    "ignore_text": "Jeśli nie zakładałeś konta, zignoruj tę wiadomość."
+  },
+  "password_reset": {
+    "subject": "Resetowanie hasła - Todo App",
+    "title": "Zresetuj hasło",
+    "greeting": "Cześć!",
+    "message": "Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta w aplikacji Todo App.",
+    "action_text": "Kliknij w poniższy przycisk, aby ustawić nowe hasło:",
+    "button_text": "Zresetuj hasło",
+    "fallback_text": "Jeśli przycisk nie działa, skopiuj i wklej poniższy link do przeglądarki:",
+    "expiry_text": "Ten link wygaśnie za {hours} godzinę/godziny.",
+    "ignore_text": "Jeśli to nie Ty prosiłeś o reset hasła, możesz zignorować tę wiadomość."
+  },
+
+  "common": {
+    "footer_automated": "Ta wiadomość została wysłana automatycznie. Prosimy na nią nie odpowiadać.",
+    "footer_copyright": "© 2026 Todo App"
+  }
+}

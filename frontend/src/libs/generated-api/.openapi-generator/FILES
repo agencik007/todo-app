@@ -1,5 +1,4 @@
 .gitignore
-.openapi-generator-ignore
 README.md
 api.base.service.ts
 api.module.ts
@@ -23,6 +22,7 @@ model/todoCreate.ts
 model/todoUpdate.ts
 model/token.ts
 model/userCreate.ts
+model/userLanguageUpdate.ts
 model/userResponse.ts
 model/validationError.ts
 param.ts

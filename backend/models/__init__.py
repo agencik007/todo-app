@@ -14,6 +14,7 @@ from models.schemas import (
     UserBase,
     UserCreate,
     UserResponse,
+    UserLanguageUpdate,
     # Auth schemas
     Token,
     TokenData,
@@ -36,6 +37,7 @@ __all__ = [
     "UserBase",
     "UserCreate",
     "UserResponse",
+    "UserLanguageUpdate",
     # Auth schemas
     "Token",
     "TokenData",

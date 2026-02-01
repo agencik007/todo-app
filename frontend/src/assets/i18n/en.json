@@ -79,6 +79,7 @@
       "BACK_TO_LOGIN": "Back to login",
       "INSTRUCTION": "Provide your E-mail address and we will send you a link to securely reset your password.",
       "SEND_LINK": "Send reset link",
+      "EMAIL_PLACEHOLDER": "your@email.com",
       "ERRORS": {
         "EMAIL_REQUIRED": "E-mail is required",
         "EMAIL_FORMAT": "Invalid E-mail format",
@@ -108,7 +109,7 @@
         "CONFIRM_REQUIRED": "Confirming password is required",
         "MISMATCH": "Passwords are not identical",
         "TOKEN_MISSING": "Missing valid password reset token. Please use the link in the E-mail again.",
-        "FAILED": "Failed to reset password"
+        "FAILED": "Token is invalid or outdated"
       }
     },
     "VERIFY_EMAIL": {

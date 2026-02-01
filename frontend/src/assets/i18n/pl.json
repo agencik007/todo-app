@@ -79,6 +79,7 @@
       "BACK_TO_LOGIN": "Powrót do logowania",
       "INSTRUCTION": "Podaj swój adres E-mail, a wyślemy Ci link do bezpiecznego zresetowania hasła.",
       "SEND_LINK": "Wyślij link do resetu",
+      "EMAIL_PLACEHOLDER": "twoj@email.com",
       "ERRORS": {
         "EMAIL_REQUIRED": "E-mail jest wymagany",
         "EMAIL_FORMAT": "Nieprawidłowy format E-mail",
@@ -108,7 +109,7 @@
         "CONFIRM_REQUIRED": "Potwierdzenie hasła jest wymagane",
         "MISMATCH": "Hasła nie są identyczne",
         "TOKEN_MISSING": "Brak prawidłowego tokenu resetującego hasło. Skorzystaj ponownie z linku w e-mailu.",
-        "FAILED": "Nie udało się zresetować hasła"
+        "FAILED": "Token resetujący hasło jest nieprawidłowy lub wygasł."
       }
     },
     "VERIFY_EMAIL": {

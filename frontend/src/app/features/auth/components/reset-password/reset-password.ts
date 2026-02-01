@@ -121,12 +121,9 @@ export class ResetPasswordComponent {
                     this.router.navigate(['/login']);
                 }, 2000);
             },
-            error: (err) => {
+            error: () => {
                 this.error.set(
-                    err.message ||
-                        this.translate.instant(
-                            'AUTH.RESET_PASSWORD.ERRORS.FAILED',
-                        ),
+                    this.translate.instant('AUTH.RESET_PASSWORD.ERRORS.FAILED'),
                 );
                 this.isLoading.set(false);
             },

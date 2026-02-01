@@ -26,9 +26,8 @@ import { AuthStateService } from './core/services/auth-state.service';
 import { LanguageService } from './core/services/language.service';
 
 function initializeLanguage(): Promise<void> {
-    inject(LanguageService);
-    // Eagerly initialize language service
-    return Promise.resolve();
+    const languageService = inject(LanguageService);
+    return languageService.init();
 }
 
 function initializeApp(): Promise<void> {
@@ -44,11 +43,7 @@ export const appConfig: ApplicationConfig = {
         provideClientHydration(),
         provideHttpClient(withInterceptors([authInterceptor]), withFetch()),
         provideApi(environment.apiUrl),
-        importProvidersFrom(
-            TranslateModule.forRoot({
-                fallbackLang: 'pl',
-            }),
-        ),
+        importProvidersFrom(TranslateModule.forRoot()),
         provideTranslateHttpLoader({
             prefix: './assets/i18n/',
             suffix: '.json',

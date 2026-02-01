@@ -9,7 +9,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "format": "prettier --write",
-    "generate-api": "python ../backend/export_openapi.py && openapi-generator-cli generate -i ../backend/openapi.json -g typescript-angular -o src/libs/generated-api --skip-validate-spec",
+    "generate-api": "python ../backend/openapi/export_openapi.py && openapi-generator-cli generate -i ../backend/openapi/openapi.json -g typescript-angular -o src/libs/generated-api --skip-validate-spec",
     "serve:ssr:frontend": "node dist/frontend/server/server.mjs"
   },
   "private": true,

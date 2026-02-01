@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { SelectModule } from 'primeng/select';
+import { AuthStateService } from '../../../core/services/auth-state.service';
 import { LanguageService } from '../../../core/services/language.service';
 
 @Component({
@@ -48,6 +49,7 @@ import { LanguageService } from '../../../core/services/language.service';
 })
 export class LanguageSelectorComponent {
     languageService = inject(LanguageService);
+    authStateService = inject(AuthStateService);
 
     languages = [
         { name: 'English', code: 'en' },
@@ -64,5 +66,6 @@ export class LanguageSelectorComponent {
 
     onLanguageChange(event: any): void {
         this.languageService.setLanguage(event.value);
+        this.authStateService.syncLanguage(event.value);
     }
 }

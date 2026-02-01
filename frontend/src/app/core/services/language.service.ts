@@ -12,10 +12,11 @@ export class LanguageService {
     currentLang = signal<string>('en');
 
     constructor() {
-        // Set available languages and default
+        // Set available languages
         this.translate.addLangs(['en', 'pl']);
-        this.translate.setFallbackLang('en');
+    }
 
+    init(): Promise<void> {
         if (isPlatformBrowser(this.platformId)) {
             const savedLang = localStorage.getItem('lang');
             const browserLang = this.translate.getBrowserLang();
@@ -24,27 +25,38 @@ export class LanguageService {
                 (browserLang && browserLang.match(/en|pl/)
                     ? browserLang
                     : 'en');
-            this.setLanguage(initialLang);
+
+            this.translate.setFallbackLang(initialLang);
+            return this.setLanguage(initialLang);
         } else {
             // On server, use english without making HTTP request
+            this.translate.setFallbackLang('en');
             this.translate.use('en').subscribe();
             this.currentLang.set('en');
+            return Promise.resolve();
         }
     }
 
-    setLanguage(lang: string): void {
+    setLanguage(lang: string): Promise<void> {
         // Subscribe to the observable to trigger the HTTP request
-        this.translate.use(lang).subscribe({
-            next: () => {
-                this.currentLang.set(lang);
-                if (isPlatformBrowser(this.platformId)) {
-                    localStorage.setItem('lang', lang);
-                    document.documentElement.lang = lang;
-                }
-            },
-            error: (err) => {
-                console.error(`Failed to load translations for ${lang}:`, err);
-            },
+        return new Promise((resolve) => {
+            this.translate.use(lang).subscribe({
+                next: () => {
+                    this.currentLang.set(lang);
+                    if (isPlatformBrowser(this.platformId)) {
+                        localStorage.setItem('lang', lang);
+                        document.documentElement.lang = lang;
+                    }
+                    resolve();
+                },
+                error: (err) => {
+                    console.error(
+                        `Failed to load translations for ${lang}:`,
+                        err,
+                    );
+                    resolve();
+                },
+            });
         });
     }
 }

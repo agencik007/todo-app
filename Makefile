@@ -54,8 +54,8 @@ shell-backend: ## Open shell in backend container
 shell-db: ## Open shell in database container
 	docker-compose -f docker/docker-compose.yml exec db psql -U todo_user -d todo_db
 
-migrate: ## Run database migrations (if any)
-	docker-compose -f docker/docker-compose.yml exec backend python -c "from config.database import Base, engine; Base.metadata.create_all(bind=engine); print('Database tables created')"
+migrate: ## Run database migrations using Alembic
+	docker-compose -f docker/docker-compose.yml exec backend alembic upgrade head
 
 test-backend: ## Run backend tests
 	docker-compose -f docker/docker-compose.yml exec backend python -m pytest
