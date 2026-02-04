@@ -31,23 +31,34 @@ interface CommandGroup {
     styleUrl: './command-palette.scss',
 })
 export class CommandPaletteComponent {
-    commandPaletteService = inject(CommandPaletteService);
-    platformId = inject(PLATFORM_ID);
+    // 1. Injects (readonly #private)
+    readonly #commandPaletteService = inject(CommandPaletteService);
+    readonly #platformId = inject(PLATFORM_ID);
 
-    // Element references
-    searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
-    commandsList = viewChild<ElementRef<HTMLElement>>('commandsList');
+    // 2. Static constants
+    // (None)
 
-    searchQuery = signal('');
-    selectedIndex = signal(0);
+    // 3. Decorators input()
+    // (None)
 
-    readonly isOpen = this.commandPaletteService.isOpen;
+    // 4. Decorators output()
+    // (None)
+
+    // 5. Decorators viewChild/viewChildren
+    readonly searchInput =
+        viewChild<ElementRef<HTMLInputElement>>('searchInput');
+    readonly commandsList = viewChild<ElementRef<HTMLElement>>('commandsList');
+
+    // 6. Signals (always readonly)
+    readonly searchQuery = signal('');
+    readonly selectedIndex = signal(0);
+    readonly isOpen = this.#commandPaletteService.isOpen;
 
     // Filter commands based on search query
     readonly filteredCommands = computed(() => {
         const query = this.searchQuery().toLowerCase().trim();
-        const baseCommands = this.commandPaletteService.commands();
-        const taskCommands = this.commandPaletteService.getTaskCommands(query);
+        const baseCommands = this.#commandPaletteService.commands();
+        const taskCommands = this.#commandPaletteService.getTaskCommands(query);
 
         const allVisibleCommands = [...baseCommands, ...taskCommands];
 
@@ -93,6 +104,16 @@ export class CommandPaletteComponent {
         }));
     });
 
+    // 7. Readonly variables
+    // (None)
+
+    // 8. Private variables (use # prefix)
+    // (None)
+
+    // 9. Public variables
+    // (None)
+
+    // 10. Constructor
     constructor() {
         // Reset search and focus input when dialog opens
         effect(() => {
@@ -100,7 +121,7 @@ export class CommandPaletteComponent {
                 this.searchQuery.set('');
                 this.selectedIndex.set(0);
 
-                if (isPlatformBrowser(this.platformId)) {
+                if (isPlatformBrowser(this.#platformId)) {
                     // Wait for render
                     setTimeout(() => {
                         this.searchInput()?.nativeElement.focus();
@@ -111,6 +132,7 @@ export class CommandPaletteComponent {
 
         // Reset selected index when search changes
         effect(() => {
+            // Track search query change
             this.searchQuery();
             this.selectedIndex.set(0);
         });
@@ -119,7 +141,7 @@ export class CommandPaletteComponent {
         effect(() => {
             this.selectedIndex(); // Access the signal to track changes
 
-            if (isPlatformBrowser(this.platformId)) {
+            if (isPlatformBrowser(this.#platformId)) {
                 const list = this.commandsList()?.nativeElement;
                 if (list) {
                     // Wait for next tick to ensure querySelector works after view updates
@@ -139,7 +161,23 @@ export class CommandPaletteComponent {
         });
     }
 
-    handleKeyboard(event: KeyboardEvent): void {
+    // 11. Lifecycle methods
+    // (None)
+
+    // 12. Private methods (use # prefix)
+    // (None)
+
+    // 13. Public methods
+    trackByCommandId(index: number, command: Command): string {
+        return command.id;
+    }
+
+    getCommandIndex(command: Command): number {
+        return this.filteredCommands().indexOf(command);
+    }
+
+    // 14. Event handlers (use 'on' prefix)
+    onKeyboard(event: KeyboardEvent): void {
         const commandCount = this.filteredCommands().length;
 
         switch (event.key) {
@@ -160,32 +198,27 @@ export class CommandPaletteComponent {
                 const selectedCommand =
                     this.filteredCommands()[this.selectedIndex()];
                 if (selectedCommand) {
-                    this.executeCommand(selectedCommand);
+                    this.onExecuteCommand(selectedCommand);
                 }
                 break;
             }
             case 'Escape':
                 event.preventDefault();
-                this.commandPaletteService.close();
+                this.#commandPaletteService.close();
                 break;
         }
     }
 
-    executeCommand(command: Command): void {
+    onExecuteCommand(command: Command): void {
         command.action();
     }
 
     onVisibleChange(visible: boolean): void {
         if (!visible) {
-            this.commandPaletteService.close();
+            this.#commandPaletteService.close();
         }
     }
 
-    trackByCommandId(index: number, command: Command): string {
-        return command.id;
-    }
-
-    getCommandIndex(command: Command): number {
-        return this.filteredCommands().indexOf(command);
-    }
+    // 15. Getters and Setters
+    // (None)
 }

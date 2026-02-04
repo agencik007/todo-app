@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { TodoStore } from '../../features/todos/store/todo.store';
+import { BASE_COMMANDS_CONFIG } from '../../shared/components/command-palette/commands';
 import { AuthStore } from '../store/auth.store';
 import { ColorPalette, ColorService } from './color.service';
 import { LanguageService } from './language.service';
@@ -39,138 +40,106 @@ export interface Command {
     providedIn: 'root',
 })
 export class CommandPaletteService {
-    private platformId = inject(PLATFORM_ID);
-    private colorService = inject(ColorService);
-    private themeService = inject(ThemeService);
-    private languageService = inject(LanguageService);
-    private authStore = inject(AuthStore);
-    private todoStore = inject(TodoStore);
-    private router = inject(Router);
+    readonly #platformId = inject(PLATFORM_ID);
+    readonly #colorService = inject(ColorService);
+    readonly #themeService = inject(ThemeService);
+    readonly #languageService = inject(LanguageService);
+    readonly #authStore = inject(AuthStore);
+    readonly #todoStore = inject(TodoStore);
+    readonly #router = inject(Router);
 
     // State signals
     readonly isOpen = signal(false);
 
     // All available commands
     readonly commands = computed<Command[]>(() => {
-        const isAuthenticated = this.authStore.isAuthenticated();
-        const hasAvatar = !!this.authStore.userAvatar();
+        const isAuthenticated = this.#authStore.isAuthenticated();
+        const hasAvatar = !!this.#authStore.userAvatar();
 
-        return [
-            // Color Palette Commands
-            {
-                id: 'color-ocean',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.COLOR_OCEAN',
-                icon: 'pi pi-palette',
-                category: 'color' as CommandCategory,
-                action: (): void => this.changeColorPalette('ocean-depth'),
-            },
-            {
-                id: 'color-sunset',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.COLOR_SUNSET',
-                icon: 'pi pi-palette',
-                category: 'color' as CommandCategory,
-                action: (): void => this.changeColorPalette('sunset-gradient'),
-            },
-            {
-                id: 'color-forest',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.COLOR_FOREST',
-                icon: 'pi pi-palette',
-                category: 'color' as CommandCategory,
-                action: (): void => this.changeColorPalette('forest-night'),
-            },
-            {
-                id: 'color-royal',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.COLOR_ROYAL',
-                icon: 'pi pi-palette',
-                category: 'color' as CommandCategory,
-                action: (): void => this.changeColorPalette('royal-purple'),
-            },
-            {
-                id: 'color-cyber',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.COLOR_CYBER',
-                icon: 'pi pi-palette',
-                category: 'color' as CommandCategory,
-                action: (): void => this.changeColorPalette('cyberpunk'),
-            },
-
-            // Theme Commands
-            {
-                id: 'theme-light',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.THEME_LIGHT',
-                icon: 'pi pi-sun',
-                category: 'theme' as CommandCategory,
-                action: (): void => this.changeTheme('light'),
-            },
-            {
-                id: 'theme-dark',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.THEME_DARK',
-                icon: 'pi pi-moon',
-                category: 'theme' as CommandCategory,
-                action: (): void => this.changeTheme('dark'),
-            },
-            {
-                id: 'theme-system',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.THEME_SYSTEM',
-                icon: 'pi pi-desktop',
-                category: 'theme' as CommandCategory,
-                action: (): void => this.changeTheme('system'),
-            },
-
-            // Language Commands
-            {
-                id: 'lang-en',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.LANG_EN',
-                icon: 'pi pi-flag',
-                category: 'language' as CommandCategory,
-                action: (): void => this.changeLanguage('en'),
-            },
-            {
-                id: 'lang-pl',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.LANG_PL',
-                icon: 'pi pi-flag',
-                category: 'language' as CommandCategory,
-                action: (): void => this.changeLanguage('pl'),
-            },
-
-            // Avatar Commands (visible only when authenticated)
-            {
-                id: 'avatar-change',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.AVATAR_CHANGE',
-                icon: 'pi pi-upload',
-                category: 'avatar' as CommandCategory,
-                action: (): void => this.changeAvatar(),
-                visible: (): boolean => isAuthenticated,
-            },
-            {
-                id: 'avatar-delete',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.AVATAR_DELETE',
-                icon: 'pi pi-trash',
-                category: 'avatar' as CommandCategory,
-                action: (): void => this.deleteAvatar(),
-                visible: (): boolean => isAuthenticated && hasAvatar,
-            },
-
-            // Account Commands
-            {
-                id: 'logout',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.LOGOUT',
-                icon: 'pi pi-sign-out',
-                category: 'account' as CommandCategory,
-                action: (): void => this.logout(),
-                visible: (): boolean => isAuthenticated,
-            },
-
-            // Todo Commands (visible only when authenticated)
-            {
-                id: 'todo-add',
-                labelKey: 'COMMAND_PALETTE.COMMANDS.TODO_ADD',
-                icon: 'pi pi-plus',
-                category: 'todo' as CommandCategory,
-                action: (): void => this.addTodo(),
-                visible: (): boolean => isAuthenticated,
-            },
-        ].filter((cmd) => (cmd.visible ? cmd.visible() : true));
+        return BASE_COMMANDS_CONFIG.map((config) => ({
+            ...config,
+            action: (): void => this.#executeBaseCommand(config.id),
+            visible: (): boolean =>
+                this.#isCommandVisible(config.id, isAuthenticated, hasAvatar),
+        })).filter((cmd) => (cmd.visible ? cmd.visible() : true));
     });
+
+    #executeBaseCommand(id: string): void {
+        switch (id) {
+            case 'theme-toggle':
+                this.#toggleTheme();
+                break;
+            case 'theme-light':
+                this.changeTheme('light');
+                break;
+            case 'theme-dark':
+                this.changeTheme('dark');
+                break;
+            case 'theme-system':
+                this.changeTheme('system');
+                break;
+            case 'lang-toggle':
+                this.#toggleLanguage();
+                break;
+            case 'lang-en':
+                this.changeLanguage('en');
+                break;
+            case 'lang-pl':
+                this.changeLanguage('pl');
+                break;
+            case 'color-ocean':
+                this.changeColorPalette('ocean-depth');
+                break;
+            case 'color-sunset':
+                this.changeColorPalette('sunset-gradient');
+                break;
+            case 'color-forest':
+                this.changeColorPalette('forest-night');
+                break;
+            case 'color-royal':
+                this.changeColorPalette('royal-purple');
+                break;
+            case 'color-cyber':
+                this.changeColorPalette('cyberpunk');
+                break;
+            case 'avatar-change':
+                this.changeAvatar();
+                break;
+            case 'avatar-delete':
+                this.deleteAvatar();
+                break;
+            case 'logout':
+                this.logout();
+                break;
+            case 'todo-add':
+                this.addTodo();
+                break;
+        }
+    }
+
+    #isCommandVisible(
+        id: string,
+        isAuthenticated: boolean,
+        hasAvatar: boolean,
+    ): boolean {
+        if (id === 'avatar-change') return isAuthenticated;
+        if (id === 'avatar-delete') return isAuthenticated && hasAvatar;
+        if (id === 'logout') return isAuthenticated;
+        if (id === 'todo-add') return isAuthenticated;
+        return true;
+    }
+
+    #toggleTheme(): void {
+        const currentMode = this.#themeService.mode();
+        const nextMode: ThemeMode = currentMode === 'light' ? 'dark' : 'light';
+        this.changeTheme(nextMode);
+    }
+
+    #toggleLanguage(): void {
+        const currentLang = this.#languageService.currentLang();
+        const nextLang = currentLang === 'en' ? 'pl' : 'en';
+        this.changeLanguage(nextLang);
+    }
 
     /**
      * Dynamically generates task-specific commands (Edit, Delete, Toggle)
@@ -178,9 +147,9 @@ export class CommandPaletteService {
      */
     getTaskCommands(query: string): Command[] {
         const queryLower = query.toLowerCase().trim();
-        if (!queryLower || !this.authStore.isAuthenticated()) return [];
+        if (!queryLower || !this.#authStore.isAuthenticated()) return [];
 
-        const tasks = this.todoStore
+        const tasks = this.#todoStore
             .todos()
             .filter((t) => t.title.toLowerCase().includes(queryLower));
 
@@ -195,7 +164,7 @@ export class CommandPaletteService {
                 icon: 'pi pi-pencil',
                 category: 'task_action' as CommandCategory,
                 action: (): void => {
-                    this.todoStore.showEditForm(task.id);
+                    this.#todoStore.showEditForm(task.id);
                     this.close();
                 },
             });
@@ -210,7 +179,7 @@ export class CommandPaletteService {
                 icon: task.completed ? 'pi pi-circle' : 'pi pi-check-circle',
                 category: 'task_action' as CommandCategory,
                 action: (): void => {
-                    this.todoStore.toggleTodo(task);
+                    this.#todoStore.toggleTodo(task);
                     this.close();
                 },
             });
@@ -223,7 +192,7 @@ export class CommandPaletteService {
                 icon: 'pi pi-trash',
                 category: 'task_action' as CommandCategory,
                 action: (): void => {
-                    this.todoStore.deleteTodo(task.id);
+                    this.#todoStore.deleteTodo(task.id);
                     this.close();
                 },
             });
@@ -233,12 +202,12 @@ export class CommandPaletteService {
     }
 
     constructor() {
-        if (isPlatformBrowser(this.platformId)) {
-            this.setupKeyboardShortcut();
+        if (isPlatformBrowser(this.#platformId)) {
+            this.#setupKeyboardShortcut();
         }
     }
 
-    private setupKeyboardShortcut(): void {
+    #setupKeyboardShortcut(): void {
         // Listen for Ctrl+K (or Cmd+K on Mac)
         effect(() => {
             const handleKeyDown = (event: KeyboardEvent): void => {
@@ -269,23 +238,23 @@ export class CommandPaletteService {
     // ==================== Command Actions ====================
 
     private changeColorPalette(palette: ColorPalette): void {
-        this.colorService.setColorPalette(palette);
+        this.#colorService.setColorPalette(palette);
         this.close();
     }
 
     private changeTheme(theme: ThemeMode): void {
-        this.themeService.setMode(theme);
+        this.#themeService.setMode(theme);
         this.close();
     }
 
     private changeLanguage(lang: string): void {
-        this.languageService.setLanguage(lang);
-        this.authStore.syncLanguage(lang);
+        this.#languageService.setLanguage(lang);
+        this.#authStore.syncLanguage(lang);
         this.close();
     }
 
     private changeAvatar(): void {
-        if (isPlatformBrowser(this.platformId)) {
+        if (isPlatformBrowser(this.#platformId)) {
             // Trigger file upload input
             const fileInput = document.getElementById(
                 'avatarInput',
@@ -298,22 +267,20 @@ export class CommandPaletteService {
     }
 
     private deleteAvatar(): void {
-        // This will be handled by auth-nav component
-        // We'll dispatch a custom event
-        if (isPlatformBrowser(this.platformId)) {
+        if (isPlatformBrowser(this.#platformId)) {
             window.dispatchEvent(new CustomEvent('delete-avatar-command'));
         }
         this.close();
     }
 
     private logout(): void {
-        this.authStore.clearUser();
-        this.router.navigate(['/login']);
+        this.#authStore.clearUser();
+        this.#router.navigate(['/login']);
         this.close();
     }
 
     private addTodo(): void {
-        this.todoStore.showCreateForm();
+        this.#todoStore.showCreateForm();
         this.close();
     }
 }

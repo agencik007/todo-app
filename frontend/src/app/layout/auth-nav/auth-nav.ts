@@ -16,14 +16,16 @@ import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
+import { Tooltip } from 'primeng/tooltip';
 import { CommandPaletteService } from '../../core/services/command-palette.service';
 import { LanguageService } from '../../core/services/language.service';
 import { ScreenSizeService } from '../../core/services/screen-size.service';
 import { AuthStore } from '../../core/store/auth.store';
 import { AuthService } from '../../features/auth/services/auth.service';
-import { ColorToggleComponent } from '../../shared/components/color-toggle/color-toggle';
+import { ColorToggleComponent } from '../../shared/components/color-toggle/color-toggle.component';
 import { LanguageSelectorComponent } from '../../shared/components/language-selector/language-selector.component';
-import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle';
+import { SnowToggleComponent } from '../../shared/components/snow-toggle/snow-toggle.component';
+import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
 
 @Component({
     selector: 'app-auth-nav',
@@ -38,36 +40,48 @@ import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme
         DialogModule,
         ThemeToggleComponent,
         ColorToggleComponent,
+        SnowToggleComponent,
         LanguageSelectorComponent,
         TranslatePipe,
+        Tooltip,
     ],
     templateUrl: './auth-nav.html',
     styleUrl: './auth-nav.scss',
 })
 export class AuthNavComponent {
-    private authStore = inject(AuthStore);
-    private authService = inject(AuthService);
-    private router = inject(Router);
-    private messageService = inject(MessageService);
-    private sanitizer = inject(DomSanitizer);
-    public translate = inject(TranslateService);
-    public languageService = inject(LanguageService);
-    public screenSize = inject(ScreenSizeService);
-    public commandPaletteService = inject(CommandPaletteService);
+    // 1. Injects (readonly private)
+    private readonly authStore = inject(AuthStore);
+    private readonly authService = inject(AuthService);
+    private readonly router = inject(Router);
+    private readonly messageService = inject(MessageService);
+    private readonly sanitizer = inject(DomSanitizer);
+    readonly translate = inject(TranslateService); // exposed for menu templates
+    private readonly languageService = inject(LanguageService);
+    private readonly screenSize = inject(ScreenSizeService);
+    private readonly commandPaletteService = inject(CommandPaletteService);
 
+    // 2. Static constants
+    // (None)
+
+    // 3. Decorators input()
+    // (None)
+
+    // 4. Decorators output()
+    // (None)
+
+    // 5. Decorators viewChild/viewChildren
+    // (None)
+
+    // 6. Signals (always readonly)
     readonly currentUser = this.authStore.currentUser;
     readonly isAuthenticated = this.authStore.isAuthenticated;
     readonly isLoading = this.authStore.isLoading;
     readonly userAvatar = this.authStore.userAvatar;
     readonly isPreviewVisible = signal(false);
 
-    constructor() {
-        if (typeof window !== 'undefined') {
-            window.addEventListener('delete-avatar-command', () => {
-                this.deleteAvatar();
-            });
-        }
-    }
+    // Defer signal access to computed to ensure services are fully initialized
+    readonly isCompact = computed(() => this.screenSize.isCompact());
+    readonly isSmallScreen = computed(() => this.screenSize.isMobile());
 
     readonly sanitizedAvatarUrl = computed(() => {
         const url = this.userAvatar();
@@ -87,13 +101,13 @@ export class AuthNavComponent {
                     {
                         label: this.translate.instant('NAV.CHANGE_AVATAR'),
                         icon: 'pi pi-upload',
-                        command: (): void => this.triggerFileUpload(),
+                        command: (): void => this.onTriggerFileUpload(),
                     },
                     {
                         label: this.translate.instant('NAV.DELETE_AVATAR'),
                         icon: 'pi pi-trash',
                         visible: hasAvatar,
-                        command: (): void => this.deleteAvatar(),
+                        command: (): void => this.onDeleteAvatar(),
                     },
                 ],
             },
@@ -104,14 +118,71 @@ export class AuthNavComponent {
                         label: this.translate.instant('NAV.LOGOUT'),
                         icon: 'pi pi-sign-out',
                         styleClass: 'logout-item',
-                        command: (): void => this.logout(),
+                        command: (): void => this.onLogout(),
                     },
                 ],
             },
         ];
     });
 
-    logout(): void {
+    readonly guestMenuItems = computed<MenuItem[]>(() => {
+        // Trigger re-computation on language change
+        this.languageService.currentLang();
+
+        return [
+            {
+                label: this.translate.instant('NAV.LOGIN'),
+                icon: 'pi pi-sign-in',
+                command: (): void => {
+                    this.router.navigate(['/login']);
+                },
+            },
+            {
+                label: this.translate.instant('NAV.REGISTER'),
+                icon: 'pi pi-user-plus',
+                command: (): void => {
+                    this.router.navigate(['/register']);
+                },
+            },
+        ];
+    });
+
+    // 7. Readonly variables
+    // (None)
+
+    // 8. Private variables
+    // (None)
+
+    // 9. Public variables
+    // (None)
+
+    // 10. Constructor
+    constructor() {
+        if (typeof window !== 'undefined') {
+            window.addEventListener('delete-avatar-command', () => {
+                this.onDeleteAvatar();
+            });
+        }
+    }
+
+    // 11. Lifecycle methods
+    // (None)
+
+    // 12. Private methods
+    // (None)
+
+    // 13. Public methods
+    onTriggerFileUpload(): void {
+        const fileInput = document.getElementById(
+            'avatarInput',
+        ) as HTMLInputElement;
+        if (fileInput) {
+            fileInput.click();
+        }
+    }
+
+    // 14. Event handlers (use 'on' prefix)
+    onLogout(): void {
         this.authService.logout().subscribe({
             next: () => {
                 this.authStore.clearUser();
@@ -122,15 +193,6 @@ export class AuthNavComponent {
                 this.router.navigate(['/login']);
             },
         });
-    }
-
-    triggerFileUpload(): void {
-        const fileInput = document.getElementById(
-            'avatarInput',
-        ) as HTMLInputElement;
-        if (fileInput) {
-            fileInput.click();
-        }
     }
 
     onFileSelected(event: Event): void {
@@ -155,7 +217,7 @@ export class AuthNavComponent {
         (event.target as HTMLInputElement).value = '';
     }
 
-    deleteAvatar(): void {
+    onDeleteAvatar(): void {
         this.authService.deleteAvatar().subscribe({
             next: () => {
                 this.authStore.loadAvatar();
@@ -165,4 +227,11 @@ export class AuthNavComponent {
             },
         });
     }
+
+    onOpenCommandPalette(): void {
+        this.commandPaletteService.open();
+    }
+
+    // 15. Getters and Setters
+    // (None)
 }

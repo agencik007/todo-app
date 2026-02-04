@@ -21,7 +21,7 @@
                 #searchInput
                 [placeholder]="'COMMAND_PALETTE.SEARCH_PLACEHOLDER' | translate"
                 [(ngModel)]="searchQuery"
-                (keydown)="handleKeyboard($event)"
+                (keydown)="onKeyboard($event)"
             />
         </div>
 
@@ -50,8 +50,8 @@
                                 class="command-item"
                                 [class.selected]="selectedIndex() === getCommandIndex(cmd)"
                                 (mouseenter)="selectedIndex.set(getCommandIndex(cmd))"
-                                (keydown.enter)="executeCommand(cmd)"
-                                (click)="executeCommand(cmd)"
+                                (keydown.enter)="onExecuteCommand(cmd)"
+                                (click)="onExecuteCommand(cmd)"
                             >
                                 <i [class]="cmd.icon + ' command-icon'"></i>
                                 <span class="command-label">

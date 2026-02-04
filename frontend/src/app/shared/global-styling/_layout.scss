@@ -10,14 +10,26 @@ body {
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1rem;
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    padding-right: 1rem;
+    padding-left: 1rem;
 
-    @include responsive.mobile {
-        width: 100%;
-        padding: 0.5rem;
-        max-width: 100%;
+    @include responsive.min-width(responsive.$sm) {
+        max-width: responsive.$container-sm;
+    }
+
+    @include responsive.min-width(responsive.$md) {
+        max-width: responsive.$container-md;
+    }
+
+    @include responsive.min-width(responsive.$lg) {
+        max-width: responsive.$container-lg;
+    }
+
+    @include responsive.min-width(responsive.$xl) {
+        max-width: responsive.$container-xl;
     }
 }
 

@@ -4,7 +4,19 @@ $md: 768px;
 $lg: 992px;
 $xl: 1200px;
 
+// Container Max Widths
+$container-sm: 540px;
+$container-md: 720px;
+$container-lg: 960px;
+$container-xl: 1140px;
+
 // Mixins
+@mixin min-width($width) {
+    @media (min-width: $width) {
+        @content;
+    }
+}
+
 @mixin mobile {
     @media (max-width: #{$md - 1}) {
         @content;

@@ -13,12 +13,12 @@
             </a>
 
             <!-- Search Button - Centered via Flexbox on Desktop -->
-            @if (!screenSize.isCompact()) {
+            @if (!isCompact()) {
                 <div class="search-container-desktop">
                     <button
                         type="button"
                         class="search-trigger-btn flex align-items-center gap-2 px-3 py-2 cursor-pointer transition-all transition-duration-200"
-                        (click)="commandPaletteService.open()"
+                        (click)="onOpenCommandPalette()"
                     >
                         <i class="pi pi-search text-secondary"></i>
                         <span class="text-secondary font-semibold">{{
@@ -37,14 +37,14 @@
     <ng-template #end>
         <div
             class="flex align-items-center"
-            [class.gap-2]="!screenSize.isCompact()"
+            [class.gap-2]="!isCompact()"
         >
             <!-- Mobile Search Icon -->
-            @if (screenSize.isCompact()) {
+            @if (isCompact()) {
                 <button
                     type="button"
                     class="search-trigger-btn-mobile mr-2"
-                    (click)="commandPaletteService.open()"
+                    (click)="onOpenCommandPalette()"
                 >
                     <i class="pi pi-search"></i>
                 </button>
@@ -58,13 +58,14 @@
             } @else if (isAuthenticated() && currentUser()) {
                 <div
                     class="flex align-items-center gap-2"
-                    [style]="{ marginRight: screenSize.isCompact() ? '1rem' : 'unset' }"
+                    [style]="{ marginRight: isCompact() ? '1rem' : 'unset' }"
                 >
                     <span class="font-medium text-sm text-color-secondary">{{
                         currentUser()!.email
                     }}</span>
-                    @if (!screenSize.isCompact()) {
+                    @if (!isCompact()) {
                         <app-color-toggle class="ml-2"></app-color-toggle>
+                        <app-snow-toggle class="ml-2"></app-snow-toggle>
                         <app-theme-toggle class="ml-2"></app-theme-toggle>
                         <app-language-selector></app-language-selector>
                     }
@@ -84,10 +85,10 @@
                         (keydown.enter)="menu.toggle($event)"
                         (click)="menu.toggle($event)"
                     />
-                    @if (userAvatar() && !screenSize.isCompact()) {
+                    @if (userAvatar() && !isCompact()) {
                         <button
                             class="avatar-zoom-btn flex align-items-center justify-content-center"
-                            [title]="'MESSAGES.PREVIEW_AVATAR' | translate"
+                            [pTooltip]="'MESSAGES.PREVIEW_AVATAR' | translate"
                             (click)="isPreviewVisible.set(true)"
                         >
                             <i
@@ -104,7 +105,7 @@
                     [visible]="isPreviewVisible()"
                     [resizable]="false"
                     [modal]="true"
-                    [header]="translate.instant('NAV.PROFILE')"
+                    [header]="'NAV.PROFILE' | translate"
                     [dismissableMask]="true"
                     (visibleChange)="isPreviewVisible.set($event)"
                 >
@@ -127,10 +128,13 @@
                     [model]="menuItems()"
                 >
                     <ng-template pTemplate="start">
-                        <div class="flex flex-column align-items-center gap-2">
-                            @if (screenSize.isCompact()) {
-                                <app-color-toggle class="ml-2"></app-color-toggle>
-                                <app-theme-toggle class="ml-2"></app-theme-toggle>
+                        <div
+                            class="flex flex-column align-items-center gap-2 p-2 border-bottom-1 surface-border"
+                        >
+                            @if (isCompact()) {
+                                <app-color-toggle></app-color-toggle>
+                                <app-snow-toggle></app-snow-toggle>
+                                <app-theme-toggle></app-theme-toggle>
                                 <app-language-selector></app-language-selector>
                             }
                         </div>
@@ -145,25 +149,52 @@
                     (change)="onFileSelected($event)"
                 />
             } @else {
-                <div class="flex align-items-center gap-3">
-                    <app-color-toggle></app-color-toggle>
-                    <app-theme-toggle></app-theme-toggle>
-                    <app-language-selector></app-language-selector>
-                    @if (!screenSize.isCompact()) {
-                        <div class="flex gap-2">
-                            <p-button
-                                size="small"
-                                severity="secondary"
-                                routerLink="/login"
-                                [outlined]="true"
-                                [label]="'NAV.LOGIN' | translate"
-                            />
-                            <p-button
-                                size="small"
-                                routerLink="/register"
-                                [label]="'NAV.REGISTER' | translate"
-                            />
+                <div class="flex align-items-center gap-2">
+                    @if (!isCompact()) {
+                        <div class="flex align-items-center gap-2">
+                            <app-color-toggle></app-color-toggle>
+                            <app-snow-toggle></app-snow-toggle>
+                            <app-theme-toggle></app-theme-toggle>
+                            <app-language-selector></app-language-selector>
+                            <div class="flex gap-2 ml-2">
+                                <p-button
+                                    size="small"
+                                    severity="secondary"
+                                    routerLink="/login"
+                                    [outlined]="true"
+                                    [label]="'NAV.LOGIN' | translate"
+                                />
+                                <p-button
+                                    size="small"
+                                    routerLink="/register"
+                                    [label]="'NAV.REGISTER' | translate"
+                                />
+                            </div>
                         </div>
+                    } @else {
+                        <p-button
+                            severity="secondary"
+                            icon="pi pi-bars"
+                            [text]="true"
+                            (click)="guestMenu.toggle($event)"
+                        />
+                        <p-menu
+                            appendTo="body"
+                            #guestMenu
+                            [popup]="true"
+                            [model]="guestMenuItems()"
+                        >
+                            <ng-template pTemplate="start">
+                                <div
+                                    class="flex flex-column align-items-center gap-2 p-2 border-bottom-1 surface-border"
+                                >
+                                    <app-color-toggle></app-color-toggle>
+                                    <app-snow-toggle></app-snow-toggle>
+                                    <app-theme-toggle></app-theme-toggle>
+                                    <app-language-selector></app-language-selector>
+                                </div>
+                            </ng-template>
+                        </p-menu>
                     }
                 </div>
             }

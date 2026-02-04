@@ -62,26 +62,84 @@ All major operations are managed via the root `Makefile`.
 
 ### Frontend (TypeScript/Angular)
 
-- **Framework:** Angular (Standalone Components) with PrimeNG UI library.
-- **Imports:** Preferred order: 1. Angular core/common, 2. Third-party libraries, 3. Shared/Core services, 4. Local models/components.
+- **Framework:** Angular with PrimeNG UI library.
+- **Components:** All components are standalone by default. Do NOT add `standalone: true` to `@Component` decorators as it is handled by Angular.
+- **Imports:** Preferred order: 1. Angular core/common, 2. Third-party libraries, 3. Shared/Core services, 4. Local models/components. Dont import CommonModule in components.
+- **Class Structure & Order:**
+
+  ```typescript
+  @Component({...})
+  export class PrzykladowyComponent {
+    // 1. Injects (readonly #private)
+    readonly #http = inject(HttpClient);
+    readonly #store = inject(Store);
+
+    // 2. Static constants
+    static readonly STALA = 'wartosc';
+
+    // 3. Decorators input()
+    dane! = input.required<Data>();
+    config = input<Config | null>();
+
+    // 4. Decorators output()
+    save = output<TodoCreate>();
+
+    // 5. Decorators viewChild/viewChildren
+    searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
+
+    // 6. Signals (always readonly)
+    readonly daneSygnalu = signal<string[]>([]);
+    readonly status = signal<'active' | 'inactive'>('active');
+
+    // 7. Readonly variables
+    readonly nazwaKomponentu = 'PrzykladowyComponent';
+
+    // 8. Private variables (use # prefix)
+    #innaPrivate: number;
+
+    // 9. Public variables
+    publicData: any;
+
+    // 10. Constructor
+    constructor() { }
+
+    // 11. Lifecycle methods
+    ngOnInit(): void { }
+    ngOnDestroy(): void { }
+
+    // 12. Private methods (use # prefix)
+    #metodaPrywatna(): void { }
+
+    // 13. Public methods
+    publicMethod(): void { }
+
+    // 14. Event handlers (use 'on' prefix)
+    onSubmit(): void { }
+
+    // 15. Getters and Setters
+    get wartosc(): string { return this.#prywatnaZmienna; }
+  }
+  ```
+
+- **Rules & Best Practices:**
+  - **Private Fields:** Use the `#` prefix for private fields and methods (native private syntax).
+  - **Signals:** Signals must always be `readonly`.
+  - **Injects:** Place `inject()` calls at the very top of the class as `readonly #private` fields.
+  - **Event Handlers:** Use the `on` prefix for methods handling events (e.g., `onSubmit()`, `onDelete()`).
+  - **Access Modifiers:** Within each section, maintain order: `public` -> `protected` -> `private`.
+  - **Grouping:** Group functionally related elements together.
+  - **Readability:** Add empty lines between different sections.
 - **Naming:**
-  - Components/Services/Classes: `PascalCase` (e.g., `TodoService`, `TodoListComponent`).
+  - Components/Services/Classes: `PascalCase`.
   - Variables/Methods: `camelCase`.
   - Interfaces/Models: suffix with `.model.ts`.
 - **Data Models:** Use auto-generated OpenAPI models from `@api`. Do NOT manually define interfaces for API resources.
-- **Styling:** Use SCSS partials in `src/app/shared/global-styling` (layout, typography, forms). Avoid duplicating styles in components.
-- **Formatting:** Single quotes for strings. 2-space indentation. 100 char line limit (see `frontend/package.json`).
-- **State Management:** Use Signal-based stores:
-  - `AuthStore` (`core/store/auth.store.ts`) for authentication state
-  - `TodoStore` (`features/todos/store/todo.store.ts`) for todos state
-  - `IndexedDBService` for local persistence
-- **API Communication:** Use `HttpClient` in Services. Centralize API URL logic in services using `window.location` for environment awareness.
-- **Routing:** Use Angular Router for navigation. Use `AuthGuard` for authentication.
-- **Translations:** Use `ngx-translate` for translations. Use `TranslationService` for translations. Add new translations to `src/assets/i18n/en.json` and `src/assets/i18n/pl.json`.
-- **SSR mode:** Angular is running in SSR mode. Use `window.location` for environment awareness. Remember to add correct routes with params in `app.routes.server.ts` file.
-- **OpenAPI:** Use auto-generated OpenAPI models from `@api`. Do NOT manually define interfaces for API resources. Command to generate: `npm run generate-api` inside frontend folder.
-- **Error Handling:** Use `catchError` in RxJS pipes. Transform errors into user-friendly messages using a centralized `handleError` method in services. The `notificationInterceptor` will automatically display toasts for responses containing `messageCode` (errors) or `message` (success codes starting with `AUTH_`, `TODO_`, or `USER_`).
-  - Add translations for new `ApiMessages` codes to `src/assets/i18n/en.json` and `pl.json` under the `API_MESSAGES` key.
+- **Styling:** Use SCSS partials in `src/app/shared/global-styling`.
+- **Formatting:** Single quotes, 2-space indentation, 100 char line limit.
+- **State Management:** Use Signal-based stores (`AuthStore`, `TodoStore`).
+- **Translations:** Use `ngx-translate`. Add translations to `src/assets/i18n/en.json` and `pl.json` under `API_MESSAGES`.
+- **SSR mode:** Remember to add correct routes with params in `app.routes.server.ts`.
+- **Error Handling:** Use `catchError` and `handleError`. Toasts are handled by `notificationInterceptor`.
 
 ---
 

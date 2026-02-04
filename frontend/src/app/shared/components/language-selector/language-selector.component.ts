@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
 import { SelectModule } from 'primeng/select';
 import { LanguageService } from '../../../core/services/language.service';
 import { AuthStore } from '../../../core/store/auth.store';
@@ -8,64 +7,65 @@ import { AuthStore } from '../../../core/store/auth.store';
 @Component({
     selector: 'app-language-selector',
     imports: [FormsModule, SelectModule],
-    template: `
-        <div class="flex items-center gap-2">
-            <p-select
-                size="small"
-                optionValue="code"
-                optionLabel="name"
-                class="w-full md:w-36"
-                [options]="languages"
-                [ngModelOptions]="{ standalone: true }"
-                [(ngModel)]="selectedLanguage"
-                (onChange)="onLanguageChange($event)"
-            >
-                <ng-template pTemplate="selectedItem" let-selectedOption>
-                    @if (selectedOption) {
-                        <div class="flex items-center gap-2">
-                            <span>{{
-                                selectedOption.code === 'en' ? '🇺🇸' : '🇵🇱'
-                            }}</span>
-                            <div>{{ selectedOption.name }}</div>
-                        </div>
-                    }
-                </ng-template>
-                <ng-template pTemplate="item" let-country>
-                    <div class="flex items-center gap-2">
-                        <span>{{ country.code === 'en' ? '🇺🇸' : '🇵🇱' }}</span>
-                        <div>{{ country.name }}</div>
-                    </div>
-                </ng-template>
-            </p-select>
-        </div>
-    `,
-    styles: [
-        `
-            :host {
-                display: block;
-            }
-        `,
-    ],
+    templateUrl: './language-selector.component.html',
+    styleUrl: './language-selector.component.scss',
 })
 export class LanguageSelectorComponent {
-    languageService = inject(LanguageService);
-    authStore = inject(AuthStore);
+    // 1. Injects (readonly #private)
+    readonly #languageService = inject(LanguageService);
+    readonly #authStore = inject(AuthStore);
 
-    languages = [
+    // 2. Static constants
+    // (None)
+
+    // 3. Decorators input()
+    // (None)
+
+    // 4. Decorators output()
+    // (None)
+
+    // 5. Decorators viewChild/viewChildren
+    // (None)
+
+    // 6. Signals (always readonly)
+    readonly currentLang = this.#languageService.currentLang;
+
+    // 7. Readonly variables
+    // (None)
+
+    // 8. Private variables (use # prefix)
+    // (None)
+
+    // 9. Public variables
+    public readonly languages = [
         { name: 'English', code: 'en' },
         { name: 'Polski', code: 'pl' },
     ];
 
+    // 10. Constructor
+    // (None)
+
+    // 11. Lifecycle methods
+    // (None)
+
+    // 12. Private methods (use # prefix)
+    // (None)
+
+    // 13. Public methods
+    // (None)
+
+    // 14. Event handlers (use 'on' prefix)
+    onLanguageChange(event: { value: string }): void {
+        this.#languageService.setLanguage(event.value);
+        this.#authStore.syncLanguage(event.value);
+    }
+
+    // 15. Getters and Setters
     get selectedLanguage(): string {
-        return this.languageService.currentLang();
+        return this.currentLang();
     }
 
     set selectedLanguage(val: string) {
-        // Handled by onChange
-    }
-
-    onLanguageChange(event: { value: string }): void {
-        this.languageService.setLanguage(event.value);
-        this.authStore.syncLanguage(event.value);
+        // Handled by onLanguageChange
     }
 }

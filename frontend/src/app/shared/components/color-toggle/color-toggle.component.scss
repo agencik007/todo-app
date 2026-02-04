@@ -1,0 +1,93 @@
+.color-toggle {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.color-toggle-btn {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background: var(--p-surface-100);
+    color: var(--p-text-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
+}
+
+.color-toggle-btn:hover {
+    background: var(--p-surface-200);
+    transform: scale(1.1);
+}
+
+.color-toggle-btn.active {
+    border-color: var(--p-primary-color);
+    background: var(--p-primary-color);
+    color: var(--p-primary-contrast-color);
+}
+
+.color-toggle-btn:focus-visible {
+    outline: 2px solid var(--p-primary-color);
+    outline-offset: 2px;
+}
+
+/* Shared Icon Style */
+.color-toggle-btn i {
+    color: #ffffff !important;
+}
+
+/* Base button override */
+.color-toggle-btn ::ng-deep button {
+    color: #ffffff;
+    border: 1px solid transparent;
+}
+
+/* Ocean Depth - Cyan */
+.color-toggle-btn:nth-child(1) ::ng-deep button {
+    background: #0891b2;
+    border-color: #0891b2;
+}
+
+/* Sunset Gradient - Orange */
+.color-toggle-btn:nth-child(2) ::ng-deep button {
+    background: #f97316;
+    border-color: #f97316;
+}
+
+/* Forest Night - Emerald */
+.color-toggle-btn:nth-child(3) ::ng-deep button {
+    background: #059669;
+    border-color: #059669;
+}
+
+/* Royal Purple - Purple */
+.color-toggle-btn:nth-child(4) ::ng-deep button {
+    background: #9333ea;
+    border-color: #9333ea;
+}
+
+/* Cyberpunk - Pink */
+.color-toggle-btn:nth-child(5) ::ng-deep button {
+    background: #ec4899;
+    border-color: #ec4899;
+}
+
+/* Active State Enhancements */
+.color-toggle-btn.active ::ng-deep button {
+    outline: 2px solid var(--p-text-color);
+    outline-offset: 2px;
+}
+
+.dark {
+    .color-toggle-btn {
+        background: var(--p-surface-800);
+    }
+
+    .color-toggle-btn:hover {
+        background: var(--p-surface-700);
+    }
+}

@@ -8,7 +8,8 @@
     "PROFILE": "Profil",
     "ACCOUNT": "Konto",
     "CHANGE_AVATAR": "Zmień awatar",
-    "DELETE_AVATAR": "Usuń awatar"
+    "DELETE_AVATAR": "Usuń awatar",
+    "TOGGLE_SNOW": "Przełącz opady śniegu"
   },
   "LANGUAGE": {
     "SELECT": "Język",
@@ -207,9 +208,11 @@
       "COLOR_FOREST": "Leśna Noc",
       "COLOR_ROYAL": "Królewska Purpura",
       "COLOR_CYBER": "Cyberpunk",
+      "THEME_TOGGLE": "Przełącz motyw",
       "THEME_LIGHT": "Jasny Motyw",
       "THEME_DARK": "Ciemny Motyw",
       "THEME_SYSTEM": "Motyw Systemowy",
+      "LANG_TOGGLE": "Przełącz język",
       "LANG_EN": "Angielski",
       "LANG_PL": "Polski",
       "AVATAR_CHANGE": "Zmień Awatar",

@@ -8,7 +8,8 @@
     "PROFILE": "Profile",
     "ACCOUNT": "Account",
     "CHANGE_AVATAR": "Change Avatar",
-    "DELETE_AVATAR": "Delete Avatar"
+    "DELETE_AVATAR": "Delete Avatar",
+    "TOGGLE_SNOW": "Toggle snowfall"
   },
   "LANGUAGE": {
     "SELECT": "Language",
@@ -207,9 +208,11 @@
       "COLOR_FOREST": "Forest Night",
       "COLOR_ROYAL": "Royal Purple",
       "COLOR_CYBER": "Cyberpunk",
+      "THEME_TOGGLE": "Toggle Theme",
       "THEME_LIGHT": "Light Theme",
       "THEME_DARK": "Dark Theme",
       "THEME_SYSTEM": "System Theme",
+      "LANG_TOGGLE": "Toggle Language",
       "LANG_EN": "English",
       "LANG_PL": "Polish",
       "AVATAR_CHANGE": "Change Avatar",

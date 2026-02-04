@@ -4,6 +4,7 @@ import { ToastModule } from 'primeng/toast';
 import { AuthNavComponent } from './layout/auth-nav/auth-nav';
 
 import { CommandPaletteComponent } from './shared/components/command-palette/command-palette';
+import { SnowfallComponent } from './shared/components/snowfall/snowfall.component';
 
 @Component({
     selector: 'app-root',
@@ -13,6 +14,7 @@ import { CommandPaletteComponent } from './shared/components/command-palette/com
         AuthNavComponent,
         ToastModule,
         CommandPaletteComponent,
+        SnowfallComponent,
     ],
     templateUrl: './app.html',
     styleUrl: './app.scss',
