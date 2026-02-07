@@ -1,13 +1,14 @@
 .p-menu {
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  padding: 0.5rem 0;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 0;
 }
 
 .logout-item {
     .p-menuitem-link {
-        .p-menuitem-text, .p-menuitem-icon {
-             color: var(--p-red-500) !important;
+        .p-menuitem-text,
+        .p-menuitem-icon {
+            color: var(--p-red-500) !important;
         }
         &:hover {
             background: var(--p-red-50) !important;
@@ -16,5 +17,5 @@
 }
 
 .dark .logout-item .p-menuitem-link:hover {
-  background: rgba(239, 68, 68, 0.1) !important;
+    background: rgba(239, 68, 68, 0.1) !important;
 }

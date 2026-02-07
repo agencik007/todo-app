@@ -9,7 +9,12 @@
     "ACCOUNT": "Account",
     "CHANGE_AVATAR": "Change Avatar",
     "DELETE_AVATAR": "Delete Avatar",
-    "TOGGLE_SNOW": "Toggle snowfall"
+    "TOGGLE_SNOW": "Toggle snowfall",
+    "TOGGLE_BACKGROUND": "Toggle background",
+    "THEME": "Theme",
+    "LANGUAGE": "Language",
+    "GUEST": "Guest",
+    "WELCOME": "Welcome!"
   },
   "LANGUAGE": {
     "SELECT": "Language",
@@ -17,7 +22,10 @@
     "PL": "Polish"
   },
   "THEME": {
-    "TOGGLE": "Toggle theme"
+    "TOGGLE": "Toggle theme",
+    "LIGHT": "Light theme",
+    "DARK": "Dark theme",
+    "SYSTEM": "System theme"
   },
   "COLOR_PALETTES": {
     "OCEAN_DEPTH": "Ocean Depth",
@@ -25,7 +33,8 @@
     "FOREST_NIGHT": "Forest Night",
     "ROYAL_PURPLE": "Royal Purple",
     "CYBERPUNK": "Cyberpunk",
-    "SELECT_COLOR": "Select Color Palette"
+    "SELECT_COLOR": "Select Color Palette",
+    "TITLE": "Color Palette"
   },
   "AUTH": {
     "LOGIN": {
@@ -212,6 +221,7 @@
       "THEME_LIGHT": "Light Theme",
       "THEME_DARK": "Dark Theme",
       "THEME_SYSTEM": "System Theme",
+      "THEME_SNOW_TOGGLE": "Toggle Snowfall",
       "LANG_TOGGLE": "Toggle Language",
       "LANG_EN": "English",
       "LANG_PL": "Polish",

@@ -1,4 +1,6 @@
 .p-tooltip {
+    z-index: 1000000 !important;
+
     .p-tooltip-text {
         background: rgba(
             15,
@@ -18,7 +20,7 @@
         -webkit-backdrop-filter: blur(8px);
         border: 1px solid rgba(255, 255, 255, 0.1);
         white-space: nowrap;
-        z-index: 1000000;
+        z-index: 10000000000;
     }
 
     // Arrows

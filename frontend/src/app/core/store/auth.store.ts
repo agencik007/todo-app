@@ -51,9 +51,7 @@ export class AuthStore {
             const hasToken = this.authService.isAuthenticated();
             const hasUser = this._currentUser() !== null;
             if (!hasToken && hasUser) {
-                this._currentUser.set(null);
-                this._isAuthenticated.set(false);
-                this._userAvatar.set(null);
+                this.clearUser();
             }
         });
     }
@@ -91,11 +89,8 @@ export class AuthStore {
                         );
                     },
                     error: () => {
-                        this.authService.logout();
-                        this._currentUser.set(null);
-                        this._isAuthenticated.set(false);
+                        this.clearUser();
                         this._isLoading.set(false);
-                        this._userAvatar.set(null);
                         this._isInitialized.set(true);
                         resolve();
                     },
@@ -127,12 +122,28 @@ export class AuthStore {
         this.loadAvatarWithCacheCheck(user.avatar_url);
     }
 
+    /**
+     * Clear all user-related state signals and local tokens.
+     */
     clearUser(): void {
-        this.authService.logout();
+        this.authService.clearTokens();
         this._currentUser.set(null);
         this._isAuthenticated.set(false);
         this._error.set(null);
         this._userAvatar.set(null);
+    }
+
+    /**
+     * Performs a full logout:
+     * 1. Notifies backend (while tokens are still present)
+     * 2. Clears local tokens and signals
+     */
+    logout(): void {
+        // 1. Notify backend while tokens are still in localStorage
+        this.authService.logout().subscribe();
+
+        // 2. Clear signals and tokens immediately for UI responsiveness
+        this.clearUser();
     }
 
     // ==================== Avatar Management ====================

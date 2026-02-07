@@ -3,10 +3,9 @@
         size="small"
         optionValue="code"
         optionLabel="name"
-        class="w-full md:w-36"
-        [options]="languages"
-        [ngModelOptions]="{ standalone: true }"
-        [(ngModel)]="selectedLanguage"
+        class="w-full md:w-36 z-100000"
+        [options]="availableLanguages"
+        [ngModel]="currentLang()"
         (onChange)="onLanguageChange($event)"
     >
         <ng-template
@@ -15,7 +14,7 @@
         >
             @if (selectedOption) {
                 <div class="flex items-center gap-2">
-                    <span>{{ selectedOption.code === 'en' ? '🇺🇸' : '🇵🇱' }}</span>
+                    <span>{{ selectedOption.flag }}</span>
                     <div>{{ selectedOption.name }}</div>
                 </div>
             }
@@ -25,7 +24,7 @@
             let-country
         >
             <div class="flex items-center gap-2">
-                <span>{{ country.code === 'en' ? '🇺🇸' : '🇵🇱' }}</span>
+                <span>{{ country.flag }}</span>
                 <div>{{ country.name }}</div>
             </div>
         </ng-template>

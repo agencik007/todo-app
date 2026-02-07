@@ -11,37 +11,21 @@
     <div class="toggle-track">
         <div class="toggle-thumb"></div>
 
-        <div
-            tabindex="0"
-            class="toggle-icon sun"
-            [pTooltip]="'Light Mode'"
-            (keydown.space)="$event.stopPropagation(); onSetMode('light')"
-            (keydown.enter)="$event.stopPropagation(); onSetMode('light')"
-            (click)="$event.stopPropagation(); onSetMode('light')"
-        >
-            <i class="pi pi-sun"></i>
-        </div>
-
-        <div
-            tabindex="0"
-            class="toggle-icon system"
-            [pTooltip]="'System Preference'"
-            (keydown.space)="$event.stopPropagation(); onSetMode('system')"
-            (keydown.enter)="$event.stopPropagation(); onSetMode('system')"
-            (click)="$event.stopPropagation(); onSetMode('system')"
-        >
-            <i class="pi pi-desktop"></i>
-        </div>
-
-        <div
-            tabindex="0"
-            class="toggle-icon moon"
-            [pTooltip]="'Dark Mode'"
-            (keydown.space)="$event.stopPropagation(); onSetMode('dark')"
-            (keydown.enter)="$event.stopPropagation(); onSetMode('dark')"
-            (click)="$event.stopPropagation(); onSetMode('dark')"
-        >
-            <i class="pi pi-moon"></i>
-        </div>
+        @for (option of themeOptions(); track option.mode) {
+            <div
+                tabindex="0"
+                class="toggle-icon {{ option.class }}"
+                [tooltipPosition]="'left'"
+                [pTooltip]="option.tooltip"
+                (keydown.space)="$event.stopPropagation(); onSetMode(option.mode)"
+                (keydown.enter)="$event.stopPropagation(); onSetMode(option.mode)"
+                (click)="$event.stopPropagation(); onSetMode(option.mode)"
+            >
+                <i
+                    class="pi"
+                    [class]="option.icon"
+                ></i>
+            </div>
+        }
     </div>
 </div>

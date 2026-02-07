@@ -13,6 +13,7 @@ import { BASE_COMMANDS_CONFIG } from '../../shared/components/command-palette/co
 import { AuthStore } from '../store/auth.store';
 import { ColorPalette, ColorService } from './color.service';
 import { LanguageService } from './language.service';
+import { SnowService } from './snow.service';
 import { ThemeMode, ThemeService } from './theme.service';
 
 export type CommandCategory =
@@ -44,6 +45,7 @@ export class CommandPaletteService {
     readonly #colorService = inject(ColorService);
     readonly #themeService = inject(ThemeService);
     readonly #languageService = inject(LanguageService);
+    readonly #snowService = inject(SnowService);
     readonly #authStore = inject(AuthStore);
     readonly #todoStore = inject(TodoStore);
     readonly #router = inject(Router);
@@ -66,9 +68,6 @@ export class CommandPaletteService {
 
     #executeBaseCommand(id: string): void {
         switch (id) {
-            case 'theme-toggle':
-                this.#toggleTheme();
-                break;
             case 'theme-light':
                 this.changeTheme('light');
                 break;
@@ -78,8 +77,8 @@ export class CommandPaletteService {
             case 'theme-system':
                 this.changeTheme('system');
                 break;
-            case 'lang-toggle':
-                this.#toggleLanguage();
+            case 'theme-snow-toggle':
+                this.#toggleSnow();
                 break;
             case 'lang-en':
                 this.changeLanguage('en');
@@ -129,16 +128,9 @@ export class CommandPaletteService {
         return true;
     }
 
-    #toggleTheme(): void {
-        const currentMode = this.#themeService.mode();
-        const nextMode: ThemeMode = currentMode === 'light' ? 'dark' : 'light';
-        this.changeTheme(nextMode);
-    }
-
-    #toggleLanguage(): void {
-        const currentLang = this.#languageService.currentLang();
-        const nextLang = currentLang === 'en' ? 'pl' : 'en';
-        this.changeLanguage(nextLang);
+    #toggleSnow(): void {
+        this.#snowService.toggle();
+        this.close();
     }
 
     /**
@@ -147,29 +139,32 @@ export class CommandPaletteService {
      */
     getTaskCommands(query: string): Command[] {
         const queryLower = query.toLowerCase().trim();
-        if (!queryLower || !this.#authStore.isAuthenticated()) return [];
+        if (!this.#authStore.isAuthenticated()) return [];
 
-        const tasks = this.#todoStore
-            .todos()
-            .filter((t) => t.title.toLowerCase().includes(queryLower));
+        const allTodos = this.#todoStore.todos();
+        const tasks = queryLower
+            ? allTodos.filter((t) => t.title.toLowerCase().includes(queryLower))
+            : allTodos;
 
         const commands: Command[] = [];
 
         tasks.forEach((task) => {
-            // Edit Command
-            commands.push({
-                id: `task-edit-${task.id}`,
-                labelKey: 'COMMAND_PALETTE.COMMANDS.TASK_EDIT_DESC',
-                customLabel: task.title,
-                icon: 'pi pi-pencil',
-                category: 'task_action' as CommandCategory,
-                action: (): void => {
-                    this.#todoStore.showEditForm(task.id);
-                    this.close();
-                },
-            });
+            // Edit Command (only shown when searching)
+            if (queryLower) {
+                commands.push({
+                    id: `task-edit-${task.id}`,
+                    labelKey: 'COMMAND_PALETTE.COMMANDS.TASK_EDIT_DESC',
+                    customLabel: task.title,
+                    icon: 'pi pi-pencil',
+                    category: 'task_action' as CommandCategory,
+                    action: (): void => {
+                        this.#todoStore.showEditForm(task.id);
+                        this.close();
+                    },
+                });
+            }
 
-            // Toggle Command
+            // Toggle Command (always shown)
             commands.push({
                 id: `task-toggle-${task.id}`,
                 labelKey: task.completed
@@ -177,25 +172,29 @@ export class CommandPaletteService {
                     : 'COMMAND_PALETTE.COMMANDS.TASK_DONE_DESC',
                 customLabel: task.title,
                 icon: task.completed ? 'pi pi-circle' : 'pi pi-check-circle',
-                category: 'task_action' as CommandCategory,
+                category: queryLower
+                    ? ('task_action' as CommandCategory)
+                    : ('todo' as CommandCategory),
                 action: (): void => {
                     this.#todoStore.toggleTodo(task);
                     this.close();
                 },
             });
 
-            // Delete Command
-            commands.push({
-                id: `task-delete-${task.id}`,
-                labelKey: 'COMMAND_PALETTE.COMMANDS.TASK_DELETE_DESC',
-                customLabel: task.title,
-                icon: 'pi pi-trash',
-                category: 'task_action' as CommandCategory,
-                action: (): void => {
-                    this.#todoStore.deleteTodo(task.id);
-                    this.close();
-                },
-            });
+            // Delete Command (only shown when searching)
+            if (queryLower) {
+                commands.push({
+                    id: `task-delete-${task.id}`,
+                    labelKey: 'COMMAND_PALETTE.COMMANDS.TASK_DELETE_DESC',
+                    customLabel: task.title,
+                    icon: 'pi pi-trash',
+                    category: 'task_action' as CommandCategory,
+                    action: (): void => {
+                        this.#todoStore.deleteTodo(task.id);
+                        this.close();
+                    },
+                });
+            }
         });
 
         return commands;
@@ -274,7 +273,7 @@ export class CommandPaletteService {
     }
 
     private logout(): void {
-        this.#authStore.clearUser();
+        this.#authStore.logout();
         this.#router.navigate(['/login']);
         this.close();
     }

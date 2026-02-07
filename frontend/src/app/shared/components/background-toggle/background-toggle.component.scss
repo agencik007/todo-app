@@ -1,0 +1,21 @@
+:host {
+    display: block;
+}
+
+:host ::ng-deep .p-button {
+    background: var(--p-primary-color);
+    border: none;
+    color: white;
+
+    &.p-button-secondary {
+        background: var(--p-surface-200);
+        color: var(--p-surface-700);
+    }
+}
+
+:host-context(.dark) {
+    :host ::ng-deep .p-button.p-button-secondary {
+        background: var(--p-surface-800);
+        color: var(--p-surface-0);
+    }
+}

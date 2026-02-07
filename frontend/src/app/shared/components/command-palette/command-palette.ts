@@ -63,7 +63,7 @@ export class CommandPaletteComponent {
         const allVisibleCommands = [...baseCommands, ...taskCommands];
 
         if (!query) {
-            return baseCommands;
+            return allVisibleCommands;
         }
 
         return allVisibleCommands.filter((cmd) => {

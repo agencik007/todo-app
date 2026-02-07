@@ -139,7 +139,7 @@ export class AuthService {
         localStorage.setItem('refresh_token', token.refresh_token);
     }
 
-    private clearTokens(): void {
+    clearTokens(): void {
         if (typeof window === 'undefined') return;
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');

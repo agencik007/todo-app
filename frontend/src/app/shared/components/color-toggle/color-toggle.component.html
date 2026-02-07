@@ -3,6 +3,7 @@
         <p-button
             type="button"
             class="color-toggle-btn"
+            [tooltipPosition]="'left'"
             [pTooltip]="'COLOR_PALETTES.' + palette.translationKey | translate"
             [class.active]="currentPalette === palette.id"
             [attr.aria-label]="'COLOR_PALETTES.' + palette.translationKey | translate"

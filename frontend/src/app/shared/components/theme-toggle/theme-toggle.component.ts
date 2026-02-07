@@ -1,5 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Tooltip } from 'primeng/tooltip';
+import { LanguageService } from '../../../core/services/language.service';
 import { ThemeMode, ThemeService } from '../../../core/services/theme.service';
 
 @Component({
@@ -11,9 +13,35 @@ import { ThemeMode, ThemeService } from '../../../core/services/theme.service';
 export class ThemeToggleComponent {
     // 1. Injects (readonly #private)
     readonly #themeService = inject(ThemeService);
+    readonly #translateService = inject(TranslateService);
+    readonly #languageService = inject(LanguageService);
 
     // 2. Static constants
-    // (None)
+    private static readonly THEME_OPTIONS_CONFIG: {
+        mode: ThemeMode;
+        icon: string;
+        translationKey: string;
+        class: string;
+    }[] = [
+        {
+            mode: 'light',
+            icon: 'pi-sun',
+            translationKey: 'THEME.LIGHT',
+            class: 'sun',
+        },
+        {
+            mode: 'system',
+            icon: 'pi-desktop',
+            translationKey: 'THEME.SYSTEM',
+            class: 'system',
+        },
+        {
+            mode: 'dark',
+            icon: 'pi-moon',
+            translationKey: 'THEME.DARK',
+            class: 'moon',
+        },
+    ];
 
     // 3. Decorators input()
     // (None)
@@ -26,6 +54,16 @@ export class ThemeToggleComponent {
 
     // 6. Signals (always readonly)
     readonly mode = this.#themeService.mode;
+
+    readonly themeOptions = computed(() => {
+        // Access currentLang to trigger re-computation when language changes
+        this.#languageService.currentLang();
+
+        return ThemeToggleComponent.THEME_OPTIONS_CONFIG.map((option) => ({
+            ...option,
+            tooltip: this.#translateService.instant(option.translationKey),
+        }));
+    });
 
     // 7. Readonly variables
     // (None)
@@ -55,7 +93,9 @@ export class ThemeToggleComponent {
 
     onNextMode(): void {
         const current = this.#themeService.mode();
-        const modes: ThemeMode[] = ['light', 'system', 'dark'];
+        const modes = ThemeToggleComponent.THEME_OPTIONS_CONFIG.map(
+            (o) => o.mode,
+        );
         const currentIndex = modes.indexOf(current);
         const nextIndex = (currentIndex + 1) % modes.length;
         this.onSetMode(modes[nextIndex]);

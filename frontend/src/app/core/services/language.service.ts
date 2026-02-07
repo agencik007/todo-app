@@ -11,9 +11,14 @@ export class LanguageService {
 
     currentLang = signal<string>('en');
 
+    availableLanguages: { code: string; name: string; flag: string }[] = [
+        { code: 'en', name: 'English', flag: '🇺🇸' },
+        { code: 'pl', name: 'Polski', flag: '🇵🇱' },
+    ];
+
     constructor() {
         // Set available languages
-        this.translate.addLangs(['en', 'pl']);
+        this.translate.addLangs(this.availableLanguages.map((l) => l.code));
     }
 
     init(): Promise<void> {

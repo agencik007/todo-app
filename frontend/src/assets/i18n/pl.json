@@ -9,7 +9,12 @@
     "ACCOUNT": "Konto",
     "CHANGE_AVATAR": "Zmień awatar",
     "DELETE_AVATAR": "Usuń awatar",
-    "TOGGLE_SNOW": "Przełącz opady śniegu"
+    "TOGGLE_SNOW": "Przełącz opady śniegu",
+    "TOGGLE_BACKGROUND": "Przełącz tło",
+    "THEME": "Motyw",
+    "LANGUAGE": "Język",
+    "GUEST": "Gość",
+    "WELCOME": "Witaj!"
   },
   "LANGUAGE": {
     "SELECT": "Język",
@@ -17,7 +22,10 @@
     "PL": "Polski"
   },
   "THEME": {
-    "TOGGLE": "Przełącz motyw"
+    "TOGGLE": "Przełącz motyw",
+    "LIGHT": "Jasny motyw",
+    "DARK": "Ciemny motyw",
+    "SYSTEM": "Motyw systemowy"
   },
   "COLOR_PALETTES": {
     "OCEAN_DEPTH": "Głębia Oceanu",
@@ -25,7 +33,8 @@
     "FOREST_NIGHT": "Leśna Noc",
     "ROYAL_PURPLE": "Królewska Purpura",
     "CYBERPUNK": "Cyberpunk",
-    "SELECT_COLOR": "Wybierz Paletę Kolorów"
+    "SELECT_COLOR": "Wybierz Paletę Kolorów",
+    "TITLE": "Paleta kolorów"
   },
   "AUTH": {
     "LOGIN": {
@@ -212,6 +221,7 @@
       "THEME_LIGHT": "Jasny Motyw",
       "THEME_DARK": "Ciemny Motyw",
       "THEME_SYSTEM": "Motyw Systemowy",
+      "THEME_SNOW_TOGGLE": "Przełącz opady śniegu",
       "LANG_TOGGLE": "Przełącz język",
       "LANG_EN": "Angielski",
       "LANG_PL": "Polski",

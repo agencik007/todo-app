@@ -1,9 +1,7 @@
-<p-menubar
-    class="auth-menubar"
-    [model]="[]"
->
+<p-menubar class="auth-menubar">
     <ng-template #start>
-        <div class="flex align-items-center justify-content-between w-full menubar-inner">
+        <div class="flex align-items-center w-full menubar-inner">
+            <!-- Left: Title -->
             <a
                 style="text-decoration: none"
                 routerLink="/todos"
@@ -12,8 +10,8 @@
                 <span class="font-semibold text-xl">📝 {{ 'NAV.HOME' | translate }}</span>
             </a>
 
-            <!-- Search Button - Centered via Flexbox on Desktop -->
-            @if (!isCompact()) {
+            <!-- Center: Command Palette (Desktop) -->
+            @if (!isCompact() && (isAuthenticated() || !isAuthPage())) {
                 <div class="search-container-desktop">
                     <button
                         type="button"
@@ -35,12 +33,9 @@
     </ng-template>
 
     <ng-template #end>
-        <div
-            class="flex align-items-center"
-            [class.gap-2]="!isCompact()"
-        >
+        <div class="flex align-items-center gap-3">
             <!-- Mobile Search Icon -->
-            @if (isCompact()) {
+            @if (isCompact() && (isAuthenticated() || !isAuthPage())) {
                 <button
                     type="button"
                     class="search-trigger-btn-mobile mr-2"
@@ -55,146 +50,27 @@
                     strokeWidth="4"
                     [style]="{ width: '24px', height: '24px' }"
                 />
-            } @else if (isAuthenticated() && currentUser()) {
-                <div
-                    class="flex align-items-center gap-2"
-                    [style]="{ marginRight: isCompact() ? '1rem' : 'unset' }"
-                >
-                    <span class="font-medium text-sm text-color-secondary">{{
-                        currentUser()!.email
-                    }}</span>
-                    @if (!isCompact()) {
-                        <app-color-toggle class="ml-2"></app-color-toggle>
-                        <app-snow-toggle class="ml-2"></app-snow-toggle>
-                        <app-theme-toggle class="ml-2"></app-theme-toggle>
-                        <app-language-selector></app-language-selector>
-                    }
-                </div>
-
-                <div class="relative avatar-wrapper">
-                    <p-avatar
-                        tabindex="0"
-                        size="normal"
-                        shape="circle"
-                        class="cursor-pointer border-1 surface-border hover:surface-200 transition-colors"
-                        [label]="
-                            !userAvatar() ? currentUser()!.email.charAt(0).toUpperCase() : undefined
-                        "
-                        [image]="sanitizedAvatarUrl()"
-                        (keydown.space)="menu.toggle($event)"
-                        (keydown.enter)="menu.toggle($event)"
-                        (click)="menu.toggle($event)"
-                    />
-                    @if (userAvatar() && !isCompact()) {
-                        <button
-                            class="avatar-zoom-btn flex align-items-center justify-content-center"
-                            [pTooltip]="'MESSAGES.PREVIEW_AVATAR' | translate"
-                            (click)="isPreviewVisible.set(true)"
-                        >
-                            <i
-                                style="font-size: 0.6rem"
-                                class="pi pi-search-plus"
-                            ></i>
-                        </button>
-                    }
-                </div>
-
-                <p-dialog
-                    styleClass="avatar-preview-dialog"
-                    appendTo="body"
-                    [visible]="isPreviewVisible()"
-                    [resizable]="false"
-                    [modal]="true"
-                    [header]="'NAV.PROFILE' | translate"
-                    [dismissableMask]="true"
-                    (visibleChange)="isPreviewVisible.set($event)"
-                >
-                    <div class="flex justify-content-center p-3">
-                        @if (sanitizedAvatarUrl()) {
-                            <img
-                                style="max-height: 50vh; max-width: 50vh; object-fit: contain"
-                                class="max-w-full border-round shadow-4"
-                                [src]="sanitizedAvatarUrl()"
-                                [alt]="'NAV.PROFILE' | translate"
-                            />
-                        }
-                    </div>
-                </p-dialog>
-
-                <p-menu
-                    appendTo="body"
-                    #menu
-                    [popup]="true"
-                    [model]="menuItems()"
-                >
-                    <ng-template pTemplate="start">
-                        <div
-                            class="flex flex-column align-items-center gap-2 p-2 border-bottom-1 surface-border"
-                        >
-                            @if (isCompact()) {
-                                <app-color-toggle></app-color-toggle>
-                                <app-snow-toggle></app-snow-toggle>
-                                <app-theme-toggle></app-theme-toggle>
-                                <app-language-selector></app-language-selector>
-                            }
-                        </div>
-                    </ng-template>
-                </p-menu>
-
-                <input
-                    type="file"
-                    style="display: none"
-                    id="avatarInput"
-                    accept="image/*"
-                    (change)="onFileSelected($event)"
-                />
             } @else {
                 <div class="flex align-items-center gap-2">
-                    @if (!isCompact()) {
-                        <div class="flex align-items-center gap-2">
-                            <app-color-toggle></app-color-toggle>
-                            <app-snow-toggle></app-snow-toggle>
-                            <app-theme-toggle></app-theme-toggle>
-                            <app-language-selector></app-language-selector>
-                            <div class="flex gap-2 ml-2">
-                                <p-button
-                                    size="small"
-                                    severity="secondary"
-                                    routerLink="/login"
-                                    [outlined]="true"
-                                    [label]="'NAV.LOGIN' | translate"
-                                />
-                                <p-button
-                                    size="small"
-                                    routerLink="/register"
-                                    [label]="'NAV.REGISTER' | translate"
-                                />
-                            </div>
+                    <!-- User/Settings Menu (Always visible) -->
+                    <app-user-profile></app-user-profile>
+
+                    <!-- Primary Actions for Guests (Desktop) -->
+                    @if (!isAuthenticated() && !isCompact() && !isAuthPage()) {
+                        <div class="flex gap-2 ml-1">
+                            <p-button
+                                size="small"
+                                severity="secondary"
+                                routerLink="/login"
+                                [outlined]="true"
+                                [label]="'NAV.LOGIN' | translate"
+                            />
+                            <p-button
+                                size="small"
+                                routerLink="/register"
+                                [label]="'NAV.REGISTER' | translate"
+                            />
                         </div>
-                    } @else {
-                        <p-button
-                            severity="secondary"
-                            icon="pi pi-bars"
-                            [text]="true"
-                            (click)="guestMenu.toggle($event)"
-                        />
-                        <p-menu
-                            appendTo="body"
-                            #guestMenu
-                            [popup]="true"
-                            [model]="guestMenuItems()"
-                        >
-                            <ng-template pTemplate="start">
-                                <div
-                                    class="flex flex-column align-items-center gap-2 p-2 border-bottom-1 surface-border"
-                                >
-                                    <app-color-toggle></app-color-toggle>
-                                    <app-snow-toggle></app-snow-toggle>
-                                    <app-theme-toggle></app-theme-toggle>
-                                    <app-language-selector></app-language-selector>
-                                </div>
-                            </ng-template>
-                        </p-menu>
                     }
                 </div>
             }

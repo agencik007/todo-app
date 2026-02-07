@@ -3,12 +3,6 @@ import { CommandCategory } from '../../../core/services/command-palette.service'
 export const BASE_COMMANDS_CONFIG = [
     // Theme Commands
     {
-        id: 'theme-toggle',
-        labelKey: 'COMMAND_PALETTE.COMMANDS.THEME_TOGGLE',
-        icon: 'pi pi-sync',
-        category: 'theme' as CommandCategory,
-    },
-    {
         id: 'theme-light',
         labelKey: 'COMMAND_PALETTE.COMMANDS.THEME_LIGHT',
         icon: 'pi pi-sun',
@@ -26,25 +20,11 @@ export const BASE_COMMANDS_CONFIG = [
         icon: 'pi pi-desktop',
         category: 'theme' as CommandCategory,
     },
-
-    // Language Commands
     {
-        id: 'lang-toggle',
-        labelKey: 'COMMAND_PALETTE.COMMANDS.LANG_TOGGLE',
-        icon: 'pi pi-language',
-        category: 'language' as CommandCategory,
-    },
-    {
-        id: 'lang-en',
-        labelKey: 'COMMAND_PALETTE.COMMANDS.LANG_EN',
-        icon: 'pi pi-flag',
-        category: 'language' as CommandCategory,
-    },
-    {
-        id: 'lang-pl',
-        labelKey: 'COMMAND_PALETTE.COMMANDS.LANG_PL',
-        icon: 'pi pi-flag',
-        category: 'language' as CommandCategory,
+        id: 'theme-snow-toggle',
+        labelKey: 'COMMAND_PALETTE.COMMANDS.THEME_SNOW_TOGGLE',
+        icon: 'pi pi-cloud',
+        category: 'theme' as CommandCategory,
     },
 
     // Color Palette Commands
@@ -77,6 +57,20 @@ export const BASE_COMMANDS_CONFIG = [
         labelKey: 'COMMAND_PALETTE.COMMANDS.COLOR_CYBER',
         icon: 'pi pi-palette',
         category: 'color' as CommandCategory,
+    },
+
+    // Language Commands
+    {
+        id: 'lang-en',
+        labelKey: 'COMMAND_PALETTE.COMMANDS.LANG_EN',
+        icon: 'pi pi-flag',
+        category: 'language' as CommandCategory,
+    },
+    {
+        id: 'lang-pl',
+        labelKey: 'COMMAND_PALETTE.COMMANDS.LANG_PL',
+        icon: 'pi pi-flag',
+        category: 'language' as CommandCategory,
     },
 
     // Avatar Commands

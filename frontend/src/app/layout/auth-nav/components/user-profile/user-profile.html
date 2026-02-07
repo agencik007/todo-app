@@ -1,0 +1,207 @@
+<div class="user-profile-container relative flex align-items-center">
+    <!-- Avatar with Menu (Trigger) -->
+    <button
+        type="button"
+        class="profile-trigger flex align-items-center gap-3 px-3 py-2 border-round-xl cursor-pointer transition-all"
+        #trigger
+        [class.active]="isMenuOpen()"
+        (click)="onToggleMenu()"
+    >
+        <div class="relative avatar-wrapper">
+            <p-avatar
+                size="normal"
+                shape="circle"
+                class="profile-avatar shadow-1"
+                [label]="
+                    isAuthenticated() && !userAvatar()
+                        ? currentUser()?.email?.charAt(0)?.toUpperCase() || 'U'
+                        : undefined
+                "
+                [image]="sanitizedAvatarUrl()"
+                [icon]="!isAuthenticated() ? 'pi pi-user' : undefined"
+            />
+            @if (isAuthenticated() && userAvatar() && !isCompact()) {
+                <button
+                    type="button"
+                    class="avatar-zoom-btn flex align-items-center justify-content-center"
+                    [tooltipPosition]="'left'"
+                    [pTooltip]="'MESSAGES.PREVIEW_AVATAR' | translate"
+                    (click)="isPreviewVisible.set(true); $event.stopPropagation()"
+                >
+                    <i
+                        style="font-size: 0.6rem"
+                        class="pi pi-search-plus"
+                    ></i>
+                </button>
+            }
+        </div>
+
+        <div class="flex flex-column align-items-start hidden md:flex text-left">
+            <span class="user-email font-semibold text-xs text-color">
+                {{ isAuthenticated() ? currentUser()?.email : ('NAV.GUEST' | translate) }}
+            </span>
+            <span
+                style="font-size: 0.65rem; line-height: 1"
+                class="text-xs text-color-secondary"
+            >
+                {{ isAuthenticated() ? ('NAV.ACCOUNT' | translate) : ('NAV.WELCOME' | translate) }}
+            </span>
+        </div>
+
+        <i
+            class="pi pi-chevron-down text-xs text-color-secondary ml-1 transition-all"
+            [style.transform]="isMenuOpen() ? 'rotate(180deg)' : 'rotate(0)'"
+        ></i>
+    </button>
+
+    <!-- Custom Dropdown Menu -->
+    @if (isMenuOpen()) {
+        <div
+            class="custom-dropdown-menu shadow-5 border-round-xl border-1 surface-border animate-fadein animate-duration-200"
+        >
+            <!-- Header -->
+            <div class="menu-header flex flex-column gap-3 p-3 surface-ground border-round-top-xl">
+                <!-- User/Guest Info Header -->
+                <div class="flex align-items-center gap-3 mb-1">
+                    <p-avatar
+                        size="large"
+                        shape="circle"
+                        class="border-1 surface-border shadow-2"
+                        [label]="
+                            isAuthenticated() && !userAvatar()
+                                ? currentUser()?.email?.charAt(0)?.toUpperCase() || 'U'
+                                : undefined
+                        "
+                        [image]="sanitizedAvatarUrl()"
+                        [icon]="!isAuthenticated() ? 'pi pi-user' : undefined"
+                    />
+                    <div class="flex flex-column overflow-hidden text-left">
+                        <span class="font-semibold text-base truncate-text">
+                            {{
+                                isAuthenticated() ? currentUser()?.email : ('NAV.GUEST' | translate)
+                            }}
+                        </span>
+                        <span class="text-xs text-color-secondary">
+                            {{
+                                isAuthenticated()
+                                    ? ('NAV.ACCOUNT' | translate)
+                                    : ('NAV.WELCOME' | translate)
+                            }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Switches Grouped -->
+                <div class="flex flex-column gap-3 py-1">
+                    <div class="flex align-items-center justify-content-between px-1">
+                        <span class="text-sm font-medium">{{
+                            'COLOR_PALETTES.TITLE' | translate
+                        }}</span>
+                        <app-color-toggle></app-color-toggle>
+                    </div>
+                    <div class="flex align-items-center justify-content-between px-1">
+                        <span class="text-sm font-medium">{{ 'NAV.TOGGLE_SNOW' | translate }}</span>
+                        <app-snow-toggle></app-snow-toggle>
+                    </div>
+                    <div class="flex align-items-center justify-content-between px-1">
+                        <span class="text-sm font-medium">{{
+                            'NAV.TOGGLE_BACKGROUND' | translate
+                        }}</span>
+                        <app-background-toggle></app-background-toggle>
+                    </div>
+                    <div class="flex align-items-center justify-content-between px-1">
+                        <span class="text-sm font-medium">{{ 'NAV.THEME' | translate }}</span>
+                        <app-theme-toggle></app-theme-toggle>
+                    </div>
+                    <div class="flex align-items-center justify-content-between px-1">
+                        <span class="text-sm font-medium">{{ 'NAV.LANGUAGE' | translate }}</span>
+                        <app-language-selector></app-language-selector>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Items -->
+            <div class="menu-actions p-2 surface-0 border-round-bottom-xl">
+                @if (isAuthenticated()) {
+                    <div class="menu-section-label">{{ 'NAV.PROFILE' | translate }}</div>
+                    <button
+                        class="menu-item-btn"
+                        (click)="onTriggerFileUpload()"
+                    >
+                        <i class="pi pi-upload mr-3"></i>
+                        <span>{{ 'NAV.CHANGE_AVATAR' | translate }}</span>
+                    </button>
+                    @if (userAvatar()) {
+                        <button
+                            class="menu-item-btn"
+                            (click)="onDeleteAvatar()"
+                        >
+                            <i class="pi pi-trash mr-3 text-red-500"></i>
+                            <span class="text-red-500">{{ 'NAV.DELETE_AVATAR' | translate }}</span>
+                        </button>
+                    }
+
+                    <div class="divider my-2"></div>
+
+                    <button
+                        class="menu-item-btn logout-btn"
+                        (click)="onLogout()"
+                    >
+                        <i class="pi pi-sign-out mr-3"></i>
+                        <span>{{ 'NAV.LOGOUT' | translate }}</span>
+                    </button>
+                } @else if (!isAuthPage()) {
+                    <a
+                        routerLink="/login"
+                        class="menu-item-btn"
+                        (click)="isMenuOpen.set(false)"
+                    >
+                        <i class="pi pi-sign-in mr-3"></i>
+                        <span>{{ 'NAV.LOGIN' | translate }}</span>
+                    </a>
+                    <a
+                        routerLink="/register"
+                        class="menu-item-btn"
+                        (click)="isMenuOpen.set(false)"
+                    >
+                        <i class="pi pi-user-plus mr-3"></i>
+                        <span>{{ 'NAV.REGISTER' | translate }}</span>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Avatar Preview Dialog -->
+    <p-dialog
+        styleClass="avatar-preview-dialog"
+        appendTo="body"
+        [visible]="isPreviewVisible()"
+        [resizable]="false"
+        [modal]="true"
+        [header]="'NAV.PROFILE' | translate"
+        [dismissableMask]="true"
+        (visibleChange)="isPreviewVisible.set($event)"
+    >
+        <div class="flex justify-content-center p-3">
+            @if (sanitizedAvatarUrl()) {
+                <img
+                    style="max-height: 50vh; max-width: 50vh; object-fit: contain"
+                    class="max-w-full border-round shadow-4"
+                    [src]="sanitizedAvatarUrl()"
+                    [alt]="'NAV.PROFILE' | translate"
+                />
+            }
+        </div>
+    </p-dialog>
+
+    <input
+        type="file"
+        style="display: none"
+        id="avatarInput"
+        accept="image/*"
+        (change)="onFileSelected($event)"
+    />
+</div>

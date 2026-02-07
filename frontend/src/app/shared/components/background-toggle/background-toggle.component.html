@@ -1,0 +1,11 @@
+<p-button
+    tooltipPosition="bottom"
+    [tooltipPosition]="'left'"
+    [text]="!isEnabled()"
+    [style]="{ width: '2.5rem', height: '2.5rem', padding: '0' }"
+    [severity]="isEnabled() ? 'primary' : 'secondary'"
+    [rounded]="true"
+    [pTooltip]="'NAV.TOGGLE_BACKGROUND' | translate"
+    [icon]="isEnabled() ? 'pi pi-image' : 'pi pi-stop'"
+    (click)="onToggleBackground()"
+/>

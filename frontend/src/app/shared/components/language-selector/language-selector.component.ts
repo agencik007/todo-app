@@ -37,10 +37,7 @@ export class LanguageSelectorComponent {
     // (None)
 
     // 9. Public variables
-    public readonly languages = [
-        { name: 'English', code: 'en' },
-        { name: 'Polski', code: 'pl' },
-    ];
+    readonly availableLanguages = this.#languageService.availableLanguages;
 
     // 10. Constructor
     // (None)
@@ -61,11 +58,4 @@ export class LanguageSelectorComponent {
     }
 
     // 15. Getters and Setters
-    get selectedLanguage(): string {
-        return this.currentLang();
-    }
-
-    set selectedLanguage(val: string) {
-        // Handled by onLanguageChange
-    }
 }
