@@ -316,7 +316,7 @@
           "todos"
         ],
         "summary": "Get Todos",
-        "description": "Get all todos for current user (own todos + public todos).\n\nArgs:\n    skip: Number of records to skip (pagination).\n    limit: Maximum number of records to return.\n    db: Database session.\n    current_user: Current authenticated user.\n    \nReturns:\n    List[Todo]: List of todo items.",
+        "description": "Get all todos for current user (own todos + public todos).\n\nArgs:\n    skip: Number of records to skip (pagination).\n    limit: Maximum number of records to return.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    List[Todo]: List of todo items.",
         "operationId": "get_todos_todos_get",
         "security": [
           {
@@ -377,7 +377,7 @@
           "todos"
         ],
         "summary": "Create Todo",
-        "description": "Create a new todo.\n\nArgs:\n    todo: Todo data to create.\n    db: Database session.\n    current_user: Current authenticated user.\n    \nReturns:\n    Todo: The created todo item.",
+        "description": "Create a new todo.\n\nArgs:\n    todo: Todo data to create.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The created todo item.",
         "operationId": "create_todo_todos_post",
         "security": [
           {
@@ -424,7 +424,7 @@
           "todos"
         ],
         "summary": "Get Todo",
-        "description": "Get a specific todo by ID.\n\nArgs:\n    todo_id: ID of the todo to retrieve.\n    db: Database session.\n    current_user: Current authenticated user.\n    \nReturns:\n    Todo: The requested todo item.\n    \nRaises:\n    HTTPException: If todo not found or user doesn't have access.",
+        "description": "Get a specific todo by ID.\n\nArgs:\n    todo_id: ID of the todo to retrieve.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The requested todo item.\n\nRaises:\n    HTTPException: If todo not found or user doesn't have access.",
         "operationId": "get_todo_todos__todo_id__get",
         "security": [
           {
@@ -470,7 +470,7 @@
           "todos"
         ],
         "summary": "Update Todo",
-        "description": "Update an existing todo.\n\nArgs:\n    todo_id: ID of the todo to update.\n    todo_update: Updated todo data.\n    db: Database session.\n    current_user: Current authenticated user.\n    \nReturns:\n    Todo: The updated todo item.\n    \nRaises:\n    HTTPException: If todo not found or user is not the owner.",
+        "description": "Update an existing todo.\n\nArgs:\n    todo_id: ID of the todo to update.\n    todo_update: Updated todo data.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The updated todo item.\n\nRaises:\n    HTTPException: If todo not found or user is not the owner.",
         "operationId": "update_todo_todos__todo_id__put",
         "security": [
           {
@@ -526,7 +526,7 @@
           "todos"
         ],
         "summary": "Delete Todo",
-        "description": "Delete a todo.\n\nArgs:\n    todo_id: ID of the todo to delete.\n    db: Database session.\n    current_user: Current authenticated user.\n    \nReturns:\n    dict: Success message.\n    \nRaises:\n    HTTPException: If todo not found or user is not the owner.",
+        "description": "Delete a todo.\n\nArgs:\n    todo_id: ID of the todo to delete.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    dict: Success message.\n\nRaises:\n    HTTPException: If todo not found or user is not the owner.",
         "operationId": "delete_todo_todos__todo_id__delete",
         "security": [
           {
@@ -553,6 +553,64 @@
                   "type": "object",
                   "additionalProperties": true,
                   "title": "Response Delete Todo Todos  Todo Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/todos/{todo_id}/reorder": {
+      "patch": {
+        "tags": [
+          "todos"
+        ],
+        "summary": "Reorder Todo",
+        "description": "Update the index of a todo for drag-and-drop reordering.\n\nArgs:\n    todo_id: ID of the todo to reorder.\n    reorder_data: Contains the new index.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The reordered todo item.\n\nRaises:\n    HTTPException: If todo not found, user is not owner, or invalid index.",
+        "operationId": "reorder_todo_todos__todo_id__reorder_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "todo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Todo Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TodoUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
                 }
               }
             }
@@ -832,6 +890,11 @@
             "title": "Is Public",
             "default": false
           },
+          "index": {
+            "type": "integer",
+            "title": "Index",
+            "default": 0
+          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -901,6 +964,11 @@
             "type": "boolean",
             "title": "Is Public",
             "default": false
+          },
+          "index": {
+            "type": "integer",
+            "title": "Index",
+            "default": 0
           }
         },
         "type": "object",
@@ -955,6 +1023,17 @@
               }
             ],
             "title": "Is Public"
+          },
+          "index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index"
           }
         },
         "type": "object",

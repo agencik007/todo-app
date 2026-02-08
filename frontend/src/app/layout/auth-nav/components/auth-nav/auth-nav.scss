@@ -12,6 +12,10 @@
         border-bottom: 1px solid var(--p-surface-border);
         border-radius: 0;
 
+        @media (max-width: 767px) {
+            padding: 0.25rem 0.75rem;
+        }
+
         .p-menubar-start {
             width: 100%;
         }

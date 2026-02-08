@@ -7,11 +7,11 @@ import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { filter, startWith } from 'rxjs';
-import { CommandPaletteService } from '../../core/services/command-palette.service';
-import { LanguageService } from '../../core/services/language.service';
-import { ScreenSizeService } from '../../core/services/screen-size.service';
-import { AuthStore } from '../../core/store/auth.store';
-import { UserProfileComponent } from './components/user-profile/user-profile';
+import { CommandPaletteService } from 'src/app/core/services/command-palette.service';
+import { LanguageService } from 'src/app/core/services/language.service';
+import { ScreenSizeService } from 'src/app/core/services/screen-size.service';
+import { AuthStore } from 'src/app/core/store/auth.store';
+import { UserProfileComponent } from '../user-profile/user-profile';
 
 @Component({
     selector: 'app-auth-nav',
@@ -38,6 +38,7 @@ export class AuthNavComponent {
     // 6. Signals (always readonly)
     readonly isAuthenticated = this.authStore.isAuthenticated;
     readonly isLoading = this.authStore.isLoading;
+    readonly isInitialized = this.authStore.isInitialized;
 
     readonly #currentUrl = signal(this.router.url);
 

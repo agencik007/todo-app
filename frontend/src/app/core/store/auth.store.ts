@@ -60,7 +60,8 @@ export class AuthStore {
 
     async initializeAuth(): Promise<void> {
         if (typeof window === 'undefined') {
-            this._isInitialized.set(true);
+            // During SSR, we don't mark as initialized to avoid flickering
+            // as we can't determine the auth state without localStorage.
             return;
         }
 

@@ -28,7 +28,9 @@ export type CommandCategory =
 export interface Command {
     id: string;
     labelKey: string; // Translation key
+    label?: string; // Translated label
     descriptionKey?: string; // Translation key for description
+    description?: string; // Translated description
     icon: string; // PrimeNG icon class
     category: CommandCategory;
     action: () => void;

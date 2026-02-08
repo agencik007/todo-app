@@ -1,6 +1,13 @@
+import {
+    CdkDragDrop,
+    CdkDragMove,
+    DragDropModule,
+} from '@angular/cdk/drag-drop';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { isPlatformBrowser } from '@angular/common';
 import {
     Component,
+    ElementRef,
     inject,
     OnInit,
     PLATFORM_ID,
@@ -38,6 +45,8 @@ import { TodoFormComponent } from '../todo-form/todo-form';
         MessageModule,
         ConfirmDialogModule,
         TranslatePipe,
+        DragDropModule,
+        ScrollingModule,
     ],
     providers: [ConfirmationService],
     templateUrl: './todo-list.html',
@@ -65,6 +74,10 @@ export class TodoListComponent implements OnInit {
     readonly totalTodos = this.store.totalCount;
 
     addButton = viewChild<Button>('addButton');
+    scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
+
+    #scrollSpeed = 0;
+    #scrollAnimationId: number | null = null;
 
     get currentUser(): UserResponse | null {
         return this.authStore.currentUser();
@@ -152,6 +165,77 @@ export class TodoListComponent implements OnInit {
     canEditTodo(todo: Todo): boolean {
         const user = this.currentUser;
         return !!user && user.id === todo.user_id;
+    }
+
+    onDrop(event: CdkDragDrop<Todo[]>): void {
+        this.#stopScrollLoop();
+        if (event.previousContainer === event.container) {
+            if (event.previousIndex === event.currentIndex) {
+                return;
+            }
+            const todoToMove = this.todos()[event.previousIndex];
+            this.store.reorderTodo(todoToMove.id, event.currentIndex);
+        }
+    }
+
+    onDragMoved(event: CdkDragMove): void {
+        const container = this.scrollContainer()?.nativeElement;
+        if (!container) return;
+
+        const rect = container.getBoundingClientRect();
+        const pointerY = event.pointerPosition.y;
+
+        const threshold = 100; // px from top/bottom to start scrolling
+        const maxSpeed = 15; // px per frame
+
+        if (pointerY < rect.top + threshold) {
+            // Scroll Up
+            const distance = rect.top + threshold - pointerY;
+            this.#scrollSpeed = -Math.min(
+                maxSpeed,
+                (distance / threshold) * maxSpeed,
+            );
+            this.#startScrollLoop();
+        } else if (pointerY > rect.bottom - threshold) {
+            // Scroll Down
+            const distance = pointerY - (rect.bottom - threshold);
+            this.#scrollSpeed = Math.min(
+                maxSpeed,
+                (distance / threshold) * maxSpeed,
+            );
+            this.#startScrollLoop();
+        } else {
+            this.#scrollSpeed = 0;
+            this.#stopScrollLoop();
+        }
+    }
+
+    onDragEnded(): void {
+        this.#stopScrollLoop();
+    }
+
+    #startScrollLoop(): void {
+        if (this.#scrollAnimationId !== null) return;
+
+        const loop = (): void => {
+            const container = this.scrollContainer()?.nativeElement;
+            if (container && this.#scrollSpeed !== 0) {
+                container.scrollTop += this.#scrollSpeed;
+                this.#scrollAnimationId = requestAnimationFrame(loop);
+            } else {
+                this.#scrollAnimationId = null;
+            }
+        };
+
+        this.#scrollAnimationId = requestAnimationFrame(loop);
+    }
+
+    #stopScrollLoop(): void {
+        if (this.#scrollAnimationId !== null) {
+            cancelAnimationFrame(this.#scrollAnimationId);
+            this.#scrollAnimationId = null;
+        }
+        this.#scrollSpeed = 0;
     }
 
     clearError(): void {

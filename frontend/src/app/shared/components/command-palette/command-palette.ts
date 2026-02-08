@@ -10,13 +10,14 @@ import {
     viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from 'primeng/dialog';
 import {
     Command,
     CommandCategory,
     CommandPaletteService,
 } from '../../../core/services/command-palette.service';
+import { LanguageService } from '../../../core/services/language.service';
 
 interface CommandGroup {
     category: CommandCategory;
@@ -34,6 +35,8 @@ export class CommandPaletteComponent {
     // 1. Injects (readonly #private)
     readonly #commandPaletteService = inject(CommandPaletteService);
     readonly #platformId = inject(PLATFORM_ID);
+    readonly #translateService = inject(TranslateService);
+    readonly #languageService = inject(LanguageService);
 
     // 2. Static constants
     // (None)
@@ -54,10 +57,25 @@ export class CommandPaletteComponent {
     readonly selectedIndex = signal(0);
     readonly isOpen = this.#commandPaletteService.isOpen;
 
+    // Reactively translate all commands when language or base commands change
+    readonly translatedCommands = computed<Command[]>(() => {
+        // Track current language to trigger update
+        this.#languageService.currentLang();
+        const commands = this.#commandPaletteService.commands();
+
+        return commands.map((cmd) => ({
+            ...cmd,
+            label: this.#translateService.instant(cmd.labelKey),
+            description: cmd.descriptionKey
+                ? this.#translateService.instant(cmd.descriptionKey)
+                : undefined,
+        }));
+    });
+
     // Filter commands based on search query
     readonly filteredCommands = computed(() => {
         const query = this.searchQuery().toLowerCase().trim();
-        const baseCommands = this.#commandPaletteService.commands();
+        const baseCommands = this.translatedCommands();
         const taskCommands = this.#commandPaletteService.getTaskCommands(query);
 
         const allVisibleCommands = [...baseCommands, ...taskCommands];
@@ -67,11 +85,12 @@ export class CommandPaletteComponent {
         }
 
         return allVisibleCommands.filter((cmd) => {
-            const labelMatch = cmd.labelKey.toLowerCase().includes(query);
+            const labelMatch = cmd.label?.toLowerCase().includes(query);
+            const keyMatch = cmd.labelKey.toLowerCase().includes(query);
             const customLabelMatch = cmd.customLabel
                 ?.toLowerCase()
                 .includes(query);
-            return labelMatch || customLabelMatch;
+            return labelMatch || keyMatch || customLabelMatch;
         });
     });
 

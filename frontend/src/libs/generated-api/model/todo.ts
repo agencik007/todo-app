@@ -20,6 +20,7 @@ export interface Todo {
     description?: string | null;
     completed?: boolean;
     is_public?: boolean;
+    index?: number;
     id: number;
     user_id: number;
     owner_email?: string | null;

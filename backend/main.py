@@ -24,8 +24,11 @@ load_dotenv()
 
 # Constants
 UPLOAD_DIR = "uploadedFiles"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:4200").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS").split(",")
+
+print("ALLOWED_HOSTS", ALLOWED_HOSTS)
+print("CORS_ORIGINS", CORS_ORIGINS)
 
 
 @asynccontextmanager
@@ -46,10 +49,7 @@ app = FastAPI(
 )
 
 # Initialize rate limiter
-limiter = Limiter(
-    key_func=get_remote_address,
-    enabled=os.getenv("TESTING") != "1"
-)
+limiter = Limiter(key_func=get_remote_address, enabled=os.getenv("TESTING") != "1")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -61,7 +61,9 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Strict-Transport-Security"] = (
+        "max-age=31536000; includeSubDomains"
+    )
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "

@@ -11,7 +11,7 @@
             </a>
 
             <!-- Center: Command Palette (Desktop) -->
-            @if (!isCompact() && (isAuthenticated() || !isAuthPage())) {
+            @if (isInitialized() && !isCompact() && (isAuthenticated() || !isAuthPage())) {
                 <div class="search-container-desktop">
                     <button
                         type="button"
@@ -35,7 +35,7 @@
     <ng-template #end>
         <div class="flex align-items-center gap-3">
             <!-- Mobile Search Icon -->
-            @if (isCompact() && (isAuthenticated() || !isAuthPage())) {
+            @if (isInitialized() && isCompact() && (isAuthenticated() || !isAuthPage())) {
                 <button
                     type="button"
                     class="search-trigger-btn-mobile mr-2"
@@ -45,7 +45,7 @@
                 </button>
             }
 
-            @if (isLoading()) {
+            @if (isLoading() || !isInitialized()) {
                 <p-progressSpinner
                     strokeWidth="4"
                     [style]="{ width: '24px', height: '24px' }"

@@ -183,6 +183,8 @@
         "TITLE_REQUIRED": "Tytuł jest wymagany"
       }
     },
+    "DRAG_HANDLE": "Przeciągnij aby zmienić kolejność",
+    "TRASH_DROP_CONFIRM": "Usunąć '{{title}}'?",
     "MESSAGES": {
       "DELETE_CONFIRM_TITLE": "Potwierdź usunięcie",
       "DELETE_CONFIRM_MESSAGE": "Czy na pewno chcesz usunąć zadanie \"{{title}}\"?",
@@ -280,6 +282,8 @@
     "USER_AVATAR_INVALID_EXTENSION": "Nieprawidłowe rozszerzenie pliku",
     "USER_AVATAR_SAVE_ERROR": "Nie udało się zapisać obrazu awatara",
     "USER_AVATAR_DELETED": "Awatar został usunięty",
-    "USER_LANGUAGE_UPDATED": "Preferencje językowe zostały zaktualizowane"
+    "USER_LANGUAGE_UPDATED": "Preferencje językowe zostały zaktualizowane",
+    "TODO_REORDER_SUCCESS": "Kolejność zadania zaktualizowana pomyślnie",
+    "TODO_INVALID_INDEX": "Nieprawidłowy indeks zadania"
   }
 }

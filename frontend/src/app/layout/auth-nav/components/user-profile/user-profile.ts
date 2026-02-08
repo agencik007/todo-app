@@ -97,6 +97,11 @@ export class UserProfileComponent {
         }
     }
 
+    @HostListener('window:delete-avatar-command')
+    onDeleteAvatarCommand(): void {
+        this.onDeleteAvatar();
+    }
+
     // 13. Public methods
     onToggleMenu(): void {
         this.isMenuOpen.update((v) => !v);

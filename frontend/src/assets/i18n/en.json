@@ -183,6 +183,8 @@
         "TITLE_REQUIRED": "Title is required"
       }
     },
+    "DRAG_HANDLE": "Drag to reorder",
+    "TRASH_DROP_CONFIRM": "Delete '{{title}}'?",
     "MESSAGES": {
       "DELETE_CONFIRM_TITLE": "Confirm deletion",
       "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete the task \"{{title}}\"?",
@@ -280,6 +282,8 @@
     "USER_AVATAR_INVALID_EXTENSION": "Invalid file extension",
     "USER_AVATAR_SAVE_ERROR": "Failed to save avatar image",
     "USER_AVATAR_DELETED": "Avatar deleted successfully",
-    "USER_LANGUAGE_UPDATED": "Language preference updated successfully"
+    "USER_LANGUAGE_UPDATED": "Language updated successfully",
+    "TODO_REORDER_SUCCESS": "Todo order updated successfully",
+    "TODO_INVALID_INDEX": "Invalid todo index"
   }
 }

@@ -61,6 +61,13 @@ export class TodoService {
         );
     }
 
+    // Reorder todo
+    reorderTodo(id: number, index: number): Observable<Todo> {
+        return this.todosService
+            .reorderTodoTodosTodoIdReorderPatch(id, { index })
+            .pipe(catchError(this.handleError));
+    }
+
     private handleError(error: HttpErrorResponse): Observable<never> {
         let errorMessage = 'An unknown error occurred!';
 

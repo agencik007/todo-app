@@ -5,7 +5,7 @@ Todo routes - CRUD operations for todo items.
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from sqlalchemy.orm import Session
 
 from config.auth import get_current_verified_user
@@ -41,6 +41,7 @@ def get_todos(
         db.query(TodoModel, User.email)
         .join(User, TodoModel.user_id == User.id)
         .filter(or_(TodoModel.user_id == current_user.id, TodoModel.is_public))
+        .order_by(TodoModel.index.asc())
         .offset(skip)
         .limit(limit)
         .all()
@@ -118,6 +119,14 @@ def create_todo(
     """
     todo_data = todo.model_dump()
     todo_data["user_id"] = current_user.id
+
+    max_index = (
+        db.query(func.max(TodoModel.index))
+        .filter(TodoModel.user_id == current_user.id)
+        .scalar()
+    )
+    max_index = max_index if max_index is not None else -1
+    todo_data["index"] = max_index + 1
 
     db_todo = TodoModel(**todo_data)
     db.add(db_todo)
@@ -214,3 +223,75 @@ def delete_todo(
     db.delete(todo)
     db.commit()
     return api_success(ApiMessages.TODO_DELETED_SUCCESS)
+
+
+@router.patch("/{todo_id}/reorder", response_model=Todo)
+def reorder_todo(
+    todo_id: int,
+    reorder_data: TodoUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_verified_user),
+) -> Todo:
+    """
+    Update the index of a todo for drag-and-drop reordering.
+
+    Args:
+        todo_id: ID of the todo to reorder.
+        reorder_data: Contains the new index.
+        db: Database session.
+        current_user: Current authenticated user.
+
+    Returns:
+        Todo: The reordered todo item.
+
+    Raises:
+        HTTPException: If todo not found, user is not owner, or invalid index.
+    """
+    if reorder_data.index is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=api_error(ApiMessages.TODO_INVALID_INDEX),
+        )
+
+    todo = db.query(TodoModel).filter(TodoModel.id == todo_id).first()
+
+    if todo is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.TODO_NOT_FOUND),
+        )
+
+    # Check if user is the owner
+    if todo.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=api_error(ApiMessages.TODO_NO_UPDATE_PERMISSION),
+        )
+
+    old_index = todo.index
+    new_index = reorder_data.index
+
+    if old_index != new_index:
+        if old_index < new_index:
+            # Moving down: shift items between old and new index up (decrement index)
+            db.query(TodoModel).filter(
+                TodoModel.user_id == current_user.id,
+                TodoModel.index > old_index,
+                TodoModel.index <= new_index,
+            ).update({TodoModel.index: TodoModel.index - 1}, synchronize_session=False)
+        else:
+            # Moving up: shift items between new and old index down (increment index)
+            db.query(TodoModel).filter(
+                TodoModel.user_id == current_user.id,
+                TodoModel.index >= new_index,
+                TodoModel.index < old_index,
+            ).update({TodoModel.index: TodoModel.index + 1}, synchronize_session=False)
+
+        todo.index = new_index
+        db.commit()
+
+    db.refresh(todo)
+
+    # We might want to re-fetch email if needed, but for simplicity:
+    todo.owner_email = current_user.email
+    return todo

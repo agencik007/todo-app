@@ -24,7 +24,6 @@ export class TodoStore {
     private readonly _error = signal<string | null>(null);
     private readonly _editingTodoId = signal<number | null>(null);
     private readonly _formVisible = signal(false);
-
     // Public readonly signals (exposed to components)
     readonly todos = this._todos.asReadonly();
     readonly loading = this._loading.asReadonly();
@@ -127,6 +126,42 @@ export class TodoStore {
                     );
                 },
             });
+    }
+
+    reorderTodo(id: number, newIndex: number): void {
+        const currentTodos = this._todos();
+        const todoIndex = currentTodos.findIndex((t) => t.id === id);
+        if (todoIndex === -1) return;
+
+        const updatedTodos = [...currentTodos];
+        const [todoToMove] = updatedTodos.splice(todoIndex, 1);
+
+        // Re-index all todos for full consistency
+        updatedTodos.splice(newIndex, 0, todoToMove);
+        const finalTodos = updatedTodos.map((t, idx) => ({ ...t, index: idx }));
+
+        this._todos.set(finalTodos);
+
+        this.todoService.reorderTodo(id, newIndex).subscribe({
+            next: (updatedTodo) => {
+                // Synchronization after successful reorder
+                this._todos.update((todos) =>
+                    todos.map((t) =>
+                        t.id === id ? { ...t, index: updatedTodo.index } : t,
+                    ),
+                );
+            },
+            error: (err) => {
+                const errorDetail = err.error?.detail;
+                const messageCode =
+                    errorDetail?.messageCode || err.error?.messageCode;
+                this._error.set(
+                    messageCode || err.message || 'An error occurred',
+                );
+                // Rollback on error
+                this._todos.set(currentTodos);
+            },
+        });
     }
 
     // ==================== UI State Actions ====================
