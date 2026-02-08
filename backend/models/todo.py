@@ -11,24 +11,24 @@ from config.database import Base
 
 class Todo(Base):
     """Todo model for task management."""
-    
+
     __tablename__ = "todos"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
     completed = Column(Boolean, default=False)
+    index = Column(Integer, default=0, nullable=False)
     is_public = Column(Boolean, default=False, index=True)
     user_id = Column(
-        Integer, 
-        ForeignKey("users.id", ondelete="CASCADE"), 
-        nullable=False, 
-        index=True
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     # Relationships
     owner = relationship("User", back_populates="todos")

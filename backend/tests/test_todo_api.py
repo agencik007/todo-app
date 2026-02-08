@@ -9,7 +9,6 @@ These tests verify that our REST API works correctly:
 - DELETE /todos/{id} - delete todo
 """
 
-import pytest
 from fastapi.testclient import TestClient
 
 
@@ -30,7 +29,7 @@ class TestTodoAPI:
         todo_data = {
             "title": "Test Todo",
             "description": "This is a test todo",
-            "completed": False
+            "completed": False,
         }
 
         response = authenticated_client.post("/todos", json=todo_data)
@@ -42,7 +41,7 @@ class TestTodoAPI:
         assert data["id"] is not None
         assert data["title"] == "Test Todo"
         assert data["description"] == "This is a test todo"
-        assert data["completed"] == False
+        assert not data["completed"]
         assert "created_at" in data
         assert "updated_at" in data
         assert "user_id" in data  # Should have user_id
@@ -58,7 +57,7 @@ class TestTodoAPI:
 
         assert data["title"] == "Minimal Todo"
         assert data["description"] is None
-        assert data["completed"] == False
+        assert not data["completed"]
 
     def test_create_todo_validation_error(self, authenticated_client: TestClient):
         """Test POST /todos rejects invalid data."""
@@ -105,8 +104,7 @@ class TestTodoAPI:
 
         assert response.status_code == 404
         data = response.json()
-        assert "detail" in data
-        assert "not found" in data["detail"].lower()
+        assert data["detail"]["messageCode"] == "TODO_NOT_FOUND"
 
     def test_update_todo(self, authenticated_client: TestClient):
         """Test PUT /todos/{id} updates existing todo."""
@@ -119,7 +117,7 @@ class TestTodoAPI:
         update_data = {
             "title": "Updated Title",
             "description": "Updated description",
-            "completed": True
+            "completed": True,
         }
         response = authenticated_client.put(f"/todos/{todo_id}", json=update_data)
 
@@ -128,12 +126,16 @@ class TestTodoAPI:
         assert data["id"] == todo_id
         assert data["title"] == "Updated Title"
         assert data["description"] == "Updated description"
-        assert data["completed"] == True
+        assert data["completed"]
 
     def test_partial_update_todo(self, authenticated_client: TestClient):
         """Test PUT /todos/{id} allows partial updates."""
         # Create a todo first
-        todo_data = {"title": "Original", "description": "Original desc", "completed": False}
+        todo_data = {
+            "title": "Original",
+            "description": "Original desc",
+            "completed": False,
+        }
         create_response = authenticated_client.post("/todos", json=todo_data)
         todo_id = create_response.json()["id"]
 
@@ -145,7 +147,7 @@ class TestTodoAPI:
         data = response.json()
         assert data["title"] == "Only Title Changed"
         assert data["description"] == "Original desc"  # Should remain unchanged
-        assert data["completed"] == False  # Should remain unchanged
+        assert not data["completed"]  # Should remain unchanged
 
     def test_update_nonexistent_todo(self, authenticated_client: TestClient):
         """Test PUT /todos/{id} returns 404 for non-existent todo."""
@@ -165,6 +167,8 @@ class TestTodoAPI:
         response = authenticated_client.delete(f"/todos/{todo_id}")
 
         assert response.status_code == 200
+        data = response.json()
+        assert data["message"] == "TODO_DELETED_SUCCESS"
 
         # Verify it's gone
         get_response = authenticated_client.get(f"/todos/{todo_id}")
@@ -180,6 +184,8 @@ class TestTodoAPI:
         response = authenticated_client.delete("/todos/999")
 
         assert response.status_code == 404
+        data = response.json()
+        assert data["detail"]["messageCode"] == "TODO_NOT_FOUND"
 
     def test_health_endpoint(self, client: TestClient):
         """Test GET /health endpoint."""

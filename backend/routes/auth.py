@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from config.auth import get_current_active_user
 from config.database import get_db
+from config.api_messages import ApiMessages, api_error, api_success
 from models.user import User
 from models.schemas import (
     UserCreate,
@@ -93,7 +94,8 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=api_error(ApiMessages.AUTH_EMAIL_ALREADY_REGISTERED),
         )
 
     # Create new user with verification token
@@ -121,6 +123,7 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
 
         logging.getLogger(__name__).exception("Failed to send verification email")
 
+    new_user.message = ApiMessages.AUTH_REGISTER_SUCCESS.value
     return new_user
 
 
@@ -157,7 +160,8 @@ async def login(
             password = body.get("password", "")
         except Exception:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON body"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=api_error(ApiMessages.AUTH_INVALID_JSON_BODY),
             )
     else:
         # Parse form data
@@ -167,13 +171,14 @@ async def login(
             password = form.get("password", "")
         except Exception:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid form data"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=api_error(ApiMessages.AUTH_INVALID_FORM_DATA),
             )
 
     if not email or not password:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Email and password are required",
+            detail=api_error(ApiMessages.AUTH_EMAIL_PASSWORD_REQUIRED),
         )
 
     user = authenticate_user(db, email, password)
@@ -181,22 +186,25 @@ async def login(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail=api_error(ApiMessages.AUTH_INVALID_CREDENTIALS),
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=api_error(ApiMessages.AUTH_INACTIVE_USER),
         )
 
     if not user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Email not verified. Please check your inbox and verify your email before logging in.",
+            detail=api_error(ApiMessages.AUTH_EMAIL_NOT_VERIFIED),
         )
 
-    return _create_tokens(user)
+    tokens = _create_tokens(user)
+    tokens["message"] = ApiMessages.AUTH_LOGIN_SUCCESS.value
+    return tokens
 
 
 @router.post("/refresh", response_model=Token)
@@ -219,14 +227,15 @@ def refresh_access_token(request: RefreshTokenRequest, db: Session = Depends(get
     if payload is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired refresh token",
+            detail=api_error(ApiMessages.AUTH_INVALID_REFRESH_TOKEN),
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     user_id = payload.get("sub")
     if user_id is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=api_error(ApiMessages.AUTH_INVALID_TOKEN_PAYLOAD),
         )
 
     # Verify user still exists and is active
@@ -234,7 +243,7 @@ def refresh_access_token(request: RefreshTokenRequest, db: Session = Depends(get
     if not user or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found or inactive",
+            detail=api_error(ApiMessages.AUTH_USER_NOT_FOUND_OR_INACTIVE),
         )
 
     return _create_tokens(user)
@@ -290,7 +299,7 @@ def forgot_password(
         except Exception:
             logger.exception("Error sending password reset email")
 
-    return {"message": "If the email exists, a password reset link has been sent"}
+    return api_success(ApiMessages.AUTH_PASSWORD_RESET_SENT)
 
 
 @router.post("/reset-password")
@@ -325,7 +334,7 @@ def reset_password(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired reset token",
+            detail=api_error(ApiMessages.AUTH_INVALID_RESET_TOKEN),
         )
 
     # Update password and clear reset token
@@ -334,7 +343,7 @@ def reset_password(
     user.password_reset_expires_at = None
     db.commit()
 
-    return {"message": "Password has been reset successfully"}
+    return api_success(ApiMessages.AUTH_PASSWORD_RESET_SUCCESS)
 
 
 @router.get("/verify-email/{token}")
@@ -364,7 +373,7 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired verification token",
+            detail=api_error(ApiMessages.AUTH_INVALID_VERIFICATION_TOKEN),
         )
 
     user.is_verified = True
@@ -372,7 +381,7 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     user.email_verification_expires_at = None
     db.commit()
 
-    return {"message": "Email verified successfully"}
+    return api_success(ApiMessages.AUTH_EMAIL_VERIFIED_SUCCESS)
 
 
 @router.post("/resend-verification")
@@ -394,7 +403,7 @@ def resend_verification(
         dict: Success message.
     """
     if current_user.is_verified:
-        return {"message": "Email already verified"}
+        return api_success(ApiMessages.AUTH_EMAIL_ALREADY_VERIFIED)
 
     token = _create_verification_token()
     current_user.email_verification_token = token
@@ -412,7 +421,7 @@ def resend_verification(
 
         logging.getLogger(__name__).exception("Failed to send verification email")
 
-    return {"message": "Verification email sent"}
+    return api_success(ApiMessages.AUTH_VERIFICATION_EMAIL_SENT)
 
 
 @router.post("/logout")
@@ -428,4 +437,4 @@ def logout(current_user: User = Depends(get_current_active_user)):
     Returns:
         dict: Success message.
     """
-    return {"message": "Logged out successfully"}
+    return api_success(ApiMessages.AUTH_LOGOUT_SUCCESS)

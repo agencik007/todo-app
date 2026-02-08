@@ -8,7 +8,13 @@
     "PROFILE": "Profile",
     "ACCOUNT": "Account",
     "CHANGE_AVATAR": "Change Avatar",
-    "DELETE_AVATAR": "Delete Avatar"
+    "DELETE_AVATAR": "Delete Avatar",
+    "TOGGLE_SNOW": "Toggle snowfall",
+    "TOGGLE_BACKGROUND": "Toggle background",
+    "THEME": "Theme",
+    "LANGUAGE": "Language",
+    "GUEST": "Guest",
+    "WELCOME": "Welcome!"
   },
   "LANGUAGE": {
     "SELECT": "Language",
@@ -16,7 +22,19 @@
     "PL": "Polish"
   },
   "THEME": {
-    "TOGGLE": "Toggle theme"
+    "TOGGLE": "Toggle theme",
+    "LIGHT": "Light theme",
+    "DARK": "Dark theme",
+    "SYSTEM": "System theme"
+  },
+  "COLOR_PALETTES": {
+    "OCEAN_DEPTH": "Ocean Depth",
+    "SUNSET_GRADIENT": "Sunset Gradient",
+    "FOREST_NIGHT": "Forest Night",
+    "ROYAL_PURPLE": "Royal Purple",
+    "CYBERPUNK": "Cyberpunk",
+    "SELECT_COLOR": "Select Color Palette",
+    "TITLE": "Color Palette"
   },
   "AUTH": {
     "LOGIN": {
@@ -27,7 +45,7 @@
       "PASSWORD_PLACEHOLDER": "Minimum 8 characters",
       "SUBMIT": "Login",
       "FORGOT_PASSWORD": "Forgot password?",
-      "NO_ACCOUNT": "Don't have an account? Register",
+      "NO_ACCOUNT": "Register",
       "ERRORS": {
         "EMAIL_REQUIRED": "E-mail is required",
         "EMAIL_FORMAT": "Invalid E-mail format",
@@ -137,7 +155,12 @@
     "STATS": {
       "ALL": "All",
       "PENDING": "To do",
-      "COMPLETED": "Completed"
+      "COMPLETED": "Completed",
+      "SUMMARY_TOOLTIP": "Total / Pending / Completed tasks"
+    },
+    "MENU": {
+      "COLLAPSE": "Collapse menu",
+      "EXPAND": "Expand menu"
     },
     "LIST": {
       "STATUS_COMPLETED": "Completed",
@@ -165,6 +188,8 @@
         "TITLE_REQUIRED": "Title is required"
       }
     },
+    "DRAG_HANDLE": "Drag to reorder",
+    "TRASH_DROP_CONFIRM": "Delete '{{title}}'?",
     "MESSAGES": {
       "DELETE_CONFIRM_TITLE": "Confirm deletion",
       "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete the task \"{{title}}\"?",
@@ -179,12 +204,91 @@
       "ERROR_NO_PERM_DELETE": "You do not have permission to delete this task"
     }
   },
+  "COMMAND_PALETTE": {
+    "SEARCH": "Search",
+    "SEARCH_PLACEHOLDER": "Search commands or tasks",
+    "NO_RESULTS": "No results found",
+    "NO_RECENT": "No recent searches",
+    "CATEGORIES": {
+      "COLOR": "Color Palettes",
+      "THEME": "Theme",
+      "LANGUAGE": "Language",
+      "AVATAR": "Avatar",
+      "ACCOUNT": "Account",
+      "TODO": "Tasks",
+      "TASK_ACTION": "Task Actions"
+    },
+    "COMMANDS": {
+      "COLOR_OCEAN": "Ocean Depth",
+      "COLOR_SUNSET": "Sunset Gradient",
+      "COLOR_FOREST": "Forest Night",
+      "COLOR_ROYAL": "Royal Purple",
+      "COLOR_CYBER": "Cyberpunk",
+      "THEME_TOGGLE": "Toggle Theme",
+      "THEME_LIGHT": "Light Theme",
+      "THEME_DARK": "Dark Theme",
+      "THEME_SYSTEM": "System Theme",
+      "THEME_SNOW_TOGGLE": "Toggle Snowfall",
+      "LANG_TOGGLE": "Toggle Language",
+      "LANG_EN": "English",
+      "LANG_PL": "Polish",
+      "AVATAR_CHANGE": "Change Avatar",
+      "AVATAR_DELETE": "Delete Avatar",
+      "LOGOUT": "Logout",
+      "TODO_ADD": "Add Task",
+      "TASK_EDIT_DESC": "Edit",
+      "TASK_DELETE_DESC": "Delete",
+      "TASK_DONE_DESC": "Mark as done",
+      "TASK_UNDO_DESC": "Mark as undone"
+    },
+    "SHORTCUTS": {
+      "SELECT": "to select",
+      "NAVIGATE": "to navigate",
+      "CLOSE": "to close"
+    }
+  },
   "MESSAGES": {
     "SUCCESS": "Success",
     "ERROR": "Error",
     "AVATAR_UPLOAD_SUCCESS": "Avatar updated successfully",
     "AVATAR_UPLOAD_ERROR": "Failed to upload avatar",
     "AVATAR_DELETE_SUCCESS": "Avatar removed successfully",
-    "AVATAR_DELETE_ERROR": "Failed to remove avatar"
+    "AVATAR_DELETE_ERROR": "Failed to remove avatar",
+    "PREVIEW_AVATAR": "Preview avatar"
+  },
+  "API_MESSAGES": {
+    "AUTH_EMAIL_ALREADY_REGISTERED": "This email is already registered",
+    "AUTH_INVALID_JSON_BODY": "Invalid JSON body",
+    "AUTH_INVALID_FORM_DATA": "Invalid form data",
+    "AUTH_EMAIL_PASSWORD_REQUIRED": "Email and password are required",
+    "AUTH_INVALID_CREDENTIALS": "Invalid email or password",
+    "AUTH_INACTIVE_USER": "Your account is inactive",
+    "AUTH_EMAIL_NOT_VERIFIED": "Email address not verified. Please check your inbox.",
+    "AUTH_INVALID_REFRESH_TOKEN": "Session expired, please login again",
+    "AUTH_INVALID_TOKEN_PAYLOAD": "Invalid session data",
+    "AUTH_USER_NOT_FOUND_OR_INACTIVE": "User not found or account is inactive",
+    "AUTH_PASSWORD_RESET_SENT": "If the email exists, a password reset link has been sent",
+    "AUTH_INVALID_RESET_TOKEN": "Invalid or expired password reset token",
+    "AUTH_PASSWORD_RESET_SUCCESS": "Password has been reset successfully",
+    "AUTH_INVALID_VERIFICATION_TOKEN": "Invalid or expired verification token",
+    "AUTH_EMAIL_VERIFIED_SUCCESS": "Email verified successfully",
+    "AUTH_EMAIL_ALREADY_VERIFIED": "Email is already verified",
+    "AUTH_VERIFICATION_EMAIL_SENT": "Verification email has been sent",
+    "AUTH_LOGOUT_SUCCESS": "Logged out successfully",
+    "AUTH_LOGIN_SUCCESS": "Logged in successfully",
+    "AUTH_REGISTER_SUCCESS": "Registered successfully. Please check your email.",
+    "TODO_NOT_FOUND": "Task not found",
+    "TODO_NO_ACCESS": "You don't have access to this task",
+    "TODO_NO_UPDATE_PERMISSION": "You don't have permission to update this task",
+    "TODO_NO_DELETE_PERMISSION": "You don't have permission to delete this task",
+    "TODO_DELETED_SUCCESS": "Task deleted successfully",
+    "USER_AVATAR_INVALID_TYPE": "Invalid file type. Only images are allowed.",
+    "USER_AVATAR_TOO_LARGE": "File is too large (max 5MB)",
+    "USER_AVATAR_INVALID_EXTENSION": "Invalid file extension",
+    "USER_AVATAR_SAVE_ERROR": "Failed to save avatar image",
+    "USER_AVATAR_DELETED": "Avatar deleted successfully",
+    "USER_LANGUAGE_UPDATED": "Language updated successfully",
+    "TODO_REORDER_SUCCESS": "Todo order updated successfully",
+    "TODO_INVALID_INDEX": "Invalid todo index"
   }
 }

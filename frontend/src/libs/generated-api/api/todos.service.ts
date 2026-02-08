@@ -43,7 +43,7 @@ export class TodosService extends BaseService {
 
     /**
      * Create Todo
-     * Create a new todo.  Args:     todo: Todo data to create.     db: Database session.     current_user: Current authenticated user.      Returns:     Todo: The created todo item.
+     * Create a new todo.  Args:     todo: Todo data to create.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The created todo item.
      * @endpoint post /todos
      * @param todoCreate 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -113,7 +113,7 @@ export class TodosService extends BaseService {
 
     /**
      * Delete Todo
-     * Delete a todo.  Args:     todo_id: ID of the todo to delete.     db: Database session.     current_user: Current authenticated user.      Returns:     dict: Success message.      Raises:     HTTPException: If todo not found or user is not the owner.
+     * Delete a todo.  Args:     todo_id: ID of the todo to delete.     db: Database session.     current_user: Current authenticated user.  Returns:     dict: Success message.  Raises:     HTTPException: If todo not found or user is not the owner.
      * @endpoint delete /todos/{todo_id}
      * @param todoId 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -173,7 +173,7 @@ export class TodosService extends BaseService {
 
     /**
      * Get Todo
-     * Get a specific todo by ID.  Args:     todo_id: ID of the todo to retrieve.     db: Database session.     current_user: Current authenticated user.      Returns:     Todo: The requested todo item.      Raises:     HTTPException: If todo not found or user doesn\&#39;t have access.
+     * Get a specific todo by ID.  Args:     todo_id: ID of the todo to retrieve.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The requested todo item.  Raises:     HTTPException: If todo not found or user doesn\&#39;t have access.
      * @endpoint get /todos/{todo_id}
      * @param todoId 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -233,7 +233,7 @@ export class TodosService extends BaseService {
 
     /**
      * Get Todos
-     * Get all todos for current user (own todos + public todos).  Args:     skip: Number of records to skip (pagination).     limit: Maximum number of records to return.     db: Database session.     current_user: Current authenticated user.      Returns:     List[Todo]: List of todo items.
+     * Get all todos for current user (own todos + public todos).  Args:     skip: Number of records to skip (pagination).     limit: Maximum number of records to return.     db: Database session.     current_user: Current authenticated user.  Returns:     List[Todo]: List of todo items.
      * @endpoint get /todos
      * @param skip 
      * @param limit 
@@ -311,8 +311,82 @@ export class TodosService extends BaseService {
     }
 
     /**
+     * Reorder Todo
+     * Update the index of a todo for drag-and-drop reordering.  Args:     todo_id: ID of the todo to reorder.     reorder_data: Contains the new index.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The reordered todo item.  Raises:     HTTPException: If todo not found, user is not owner, or invalid index.
+     * @endpoint patch /todos/{todo_id}/reorder
+     * @param todoId 
+     * @param todoUpdate 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public reorderTodoTodosTodoIdReorderPatch(todoId: number, todoUpdate: TodoUpdate, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Todo>;
+    public reorderTodoTodosTodoIdReorderPatch(todoId: number, todoUpdate: TodoUpdate, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Todo>>;
+    public reorderTodoTodosTodoIdReorderPatch(todoId: number, todoUpdate: TodoUpdate, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Todo>>;
+    public reorderTodoTodosTodoIdReorderPatch(todoId: number, todoUpdate: TodoUpdate, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (todoId === null || todoId === undefined) {
+            throw new Error('Required parameter todoId was null or undefined when calling reorderTodoTodosTodoIdReorderPatch.');
+        }
+        if (todoUpdate === null || todoUpdate === undefined) {
+            throw new Error('Required parameter todoUpdate was null or undefined when calling reorderTodoTodosTodoIdReorderPatch.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (OAuth2PasswordBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('OAuth2PasswordBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/todos/${this.configuration.encodeParam({name: "todoId", value: todoId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/reorder`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<Todo>('patch', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: todoUpdate,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Update Todo
-     * Update an existing todo.  Args:     todo_id: ID of the todo to update.     todo_update: Updated todo data.     db: Database session.     current_user: Current authenticated user.      Returns:     Todo: The updated todo item.      Raises:     HTTPException: If todo not found or user is not the owner.
+     * Update an existing todo.  Args:     todo_id: ID of the todo to update.     todo_update: Updated todo data.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The updated todo item.  Raises:     HTTPException: If todo not found or user is not the owner.
      * @endpoint put /todos/{todo_id}
      * @param todoId 
      * @param todoUpdate 

@@ -1,40 +1,103 @@
 @use './variables';
+@use './responsive';
 
-html, body {
-  height: 100%;
-  margin: 0;
-  background-color: var(--p-surface-ground);
-  color: var(--p-text-color);
+html,
+body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background-color: var(--p-surface-ground);
+    color: var(--p-text-color);
+}
+
+.app-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+}
+
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    padding-right: 1rem;
+    padding-left: 1rem;
+
+    @include responsive.min-width(responsive.$sm) {
+        max-width: responsive.$container-sm;
+    }
+
+    @include responsive.min-width(responsive.$md) {
+        max-width: responsive.$container-md;
+    }
+
+    @include responsive.min-width(responsive.$lg) {
+        max-width: responsive.$container-lg;
+    }
+
+    @include responsive.min-width(responsive.$xl) {
+        max-width: responsive.$container-xl;
+    }
 }
 
 .auth-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
 }
 
 // Flex utilities
-.flex { display: flex; }
-.flex-column { flex-direction: column; }
-.justify-content-center { justify-content: center; }
-.justify-content-between { justify-content: space-between; }
-.justify-content-end { justify-content: flex-end; }
-.align-center, .align-items-center { align-items: center; }
-.flex-grow-1 { flex-grow: 1; }
+.flex {
+    display: flex;
+}
+.flex-column {
+    flex-direction: column;
+}
+.justify-content-center {
+    justify-content: center;
+}
+.justify-content-between {
+    justify-content: space-between;
+}
+.justify-content-end {
+    justify-content: flex-end;
+}
+.align-center,
+.align-items-center {
+    align-items: center;
+}
+.flex-grow-1 {
+    flex-grow: 1;
+}
 
 // Spacing & Sizing
-.w-full { width: 100%; }
-.block { display: block; }
-.gap-2 { gap: 0.5rem; }
-.gap-3 { gap: 1rem; }
+.w-full {
+    width: 100%;
+}
+.block {
+    display: block;
+}
+.gap-1 {
+    gap: 0.25rem;
+}
+.gap-2 {
+    gap: 0.5rem;
+}
+.gap-3 {
+    gap: 1rem;
+}
 
 // Card spacing
-.p-card { margin-bottom: 1rem; }
+.p-card {
+    margin-bottom: 1rem;
+}

@@ -9,7 +9,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PasswordReset } from '@api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
@@ -25,7 +25,7 @@ import { AuthService } from '../../services/auth.service';
         PasswordModule,
         ButtonModule,
         MessageModule,
-        TranslateModule,
+        TranslatePipe,
     ],
     templateUrl: './reset-password.html',
     styleUrl: './reset-password.scss',
@@ -121,10 +121,18 @@ export class ResetPasswordComponent {
                     this.router.navigate(['/login']);
                 }, 2000);
             },
-            error: () => {
-                this.error.set(
-                    this.translate.instant('AUTH.RESET_PASSWORD.ERRORS.FAILED'),
-                );
+            error: (err) => {
+                const errorDetail = err.error?.detail;
+                const messageCode =
+                    errorDetail?.messageCode || err.error?.messageCode;
+
+                const errorMsg = messageCode
+                    ? this.translate.instant(`API_MESSAGES.${messageCode}`)
+                    : this.translate.instant(
+                          'AUTH.RESET_PASSWORD.ERRORS.FAILED',
+                      );
+
+                this.error.set(errorMsg);
                 this.isLoading.set(false);
             },
         });

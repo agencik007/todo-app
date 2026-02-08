@@ -1,0 +1,92 @@
+<p-dialog
+    styleClass="command-palette-dialog"
+    appendTo="body"
+    [visible]="isOpen()"
+    [resizable]="false"
+    [modal]="true"
+    [draggable]="false"
+    [dismissableMask]="true"
+    [contentStyle]="{ padding: '0', overflow: 'hidden' }"
+    [baseZIndex]="1000"
+    [autoZIndex]="true"
+    (visibleChange)="onVisibleChange($event)"
+>
+    <div class="command-palette-container">
+        <!-- Search Input -->
+        <div class="search-wrapper">
+            <i class="pi pi-search search-icon"></i>
+            <input
+                type="text"
+                class="search-input"
+                #searchInput
+                [placeholder]="'COMMAND_PALETTE.SEARCH_PLACEHOLDER' | translate"
+                [(ngModel)]="searchQuery"
+                (keydown)="onKeyboard($event)"
+            />
+        </div>
+
+        <!-- Results / Commands List -->
+        <div
+            class="commands-list"
+            #commandsList
+        >
+            @if (filteredCommands().length === 0 && searchQuery() === '') {
+                <div class="empty-state">
+                    {{ 'COMMAND_PALETTE.NO_RECENT' | translate }}
+                </div>
+            } @else if (filteredCommands().length === 0) {
+                <div class="empty-state">
+                    {{ 'COMMAND_PALETTE.NO_RESULTS' | translate }}
+                </div>
+            } @else {
+                @for (group of groupedCommands(); track group.category) {
+                    <div class="command-group">
+                        <div class="category-label">
+                            {{ group.categoryLabelKey | translate }}
+                        </div>
+                        @for (cmd of group.commands; track trackByCommandId($index, cmd)) {
+                            <div
+                                tabindex="0"
+                                class="command-item"
+                                [class.selected]="selectedIndex() === getCommandIndex(cmd)"
+                                (mouseenter)="selectedIndex.set(getCommandIndex(cmd))"
+                                (keydown.enter)="onExecuteCommand(cmd)"
+                                (click)="onExecuteCommand(cmd)"
+                            >
+                                <i [class]="cmd.icon + ' command-icon'"></i>
+                                <span class="command-label">
+                                    @if (cmd.customLabel) {
+                                        <span class="custom-label">{{ cmd.customLabel }}: </span>
+                                    }
+                                    {{ cmd.labelKey | translate }}
+                                </span>
+                                @if (cmd.keyboardShortcut) {
+                                    <kbd class="shortcut-badge">{{ cmd.keyboardShortcut }}</kbd>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Footer with hints -->
+        <div class="palette-footer">
+            <div class="shortcuts-hint">
+                <span class="hint-item">
+                    <kbd>↵</kbd>
+                    {{ 'COMMAND_PALETTE.SHORTCUTS.SELECT' | translate }}
+                </span>
+                <span class="hint-item">
+                    <kbd>↑</kbd>
+                    <kbd>↓</kbd>
+                    {{ 'COMMAND_PALETTE.SHORTCUTS.NAVIGATE' | translate }}
+                </span>
+                <span class="hint-item">
+                    <kbd>esc</kbd>
+                    {{ 'COMMAND_PALETTE.SHORTCUTS.CLOSE' | translate }}
+                </span>
+            </div>
+        </div>
+    </div>
+</p-dialog>

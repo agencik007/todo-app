@@ -9,7 +9,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { UserCreate as LoginRequest } from '@api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -30,7 +30,7 @@ import { AuthService } from '../../services/auth.service';
         ButtonModule,
         MessageModule,
         NgClass,
-        TranslateModule,
+        TranslatePipe,
     ],
     templateUrl: './login.html',
     styleUrl: './login.scss',
@@ -102,11 +102,16 @@ export class LoginComponent {
                 });
             },
             error: (err) => {
-                const errorMsg =
-                    err.message ||
-                    this.translate.instant(
-                        'AUTH.LOGIN.ERRORS.INVALID_CREDENTIALS',
-                    );
+                const errorDetail = err.error?.detail;
+                const messageCode =
+                    errorDetail?.messageCode || err.error?.messageCode;
+
+                const errorMsg = messageCode
+                    ? this.translate.instant(`API_MESSAGES.${messageCode}`)
+                    : this.translate.instant(
+                          'AUTH.LOGIN.ERRORS.INVALID_CREDENTIALS',
+                      );
+
                 this.error.set(errorMsg);
                 this.isLoading.set(false);
 

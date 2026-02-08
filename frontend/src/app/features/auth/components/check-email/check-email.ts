@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
@@ -12,7 +12,7 @@ import { MessageModule } from 'primeng/message';
         CardModule,
         ButtonModule,
         MessageModule,
-        TranslateModule,
+        TranslatePipe,
     ],
     templateUrl: './check-email.html',
     styleUrl: './check-email.scss',

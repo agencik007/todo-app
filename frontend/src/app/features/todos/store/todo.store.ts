@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Todo, TodoCreate, TodoUpdate } from '@api';
+import { delay } from 'rxjs';
 import { TodoService } from '../services/todo.service';
 
 /**
@@ -23,7 +24,6 @@ export class TodoStore {
     private readonly _error = signal<string | null>(null);
     private readonly _editingTodoId = signal<number | null>(null);
     private readonly _formVisible = signal(false);
-
     // Public readonly signals (exposed to components)
     readonly todos = this._todos.asReadonly();
     readonly loading = this._loading.asReadonly();
@@ -51,16 +51,24 @@ export class TodoStore {
         this._loading.set(true);
         this._error.set(null);
 
-        this.todoService.getTodos().subscribe({
-            next: (todos) => {
-                this._todos.set(todos);
-                this._loading.set(false);
-            },
-            error: (err: Error) => {
-                this._error.set(err.message);
-                this._loading.set(false);
-            },
-        });
+        this.todoService
+            .getTodos()
+            .pipe(delay(1000))
+            .subscribe({
+                next: (todos) => {
+                    this._todos.set(todos);
+                    this._loading.set(false);
+                },
+                error: (err) => {
+                    const errorDetail = err.error?.detail;
+                    const messageCode =
+                        errorDetail?.messageCode || err.error?.messageCode;
+                    this._error.set(
+                        messageCode || err.message || 'An error occurred',
+                    );
+                    this._loading.set(false);
+                },
+            });
     }
 
     createTodo(todoData: TodoCreate): void {
@@ -109,10 +117,51 @@ export class TodoStore {
                         todos.map((t) => (t.id === todo.id ? updated : t)),
                     );
                 },
-                error: (err: Error) => {
-                    this._error.set(err.message);
+                error: (err) => {
+                    const errorDetail = err.error?.detail;
+                    const messageCode =
+                        errorDetail?.messageCode || err.error?.messageCode;
+                    this._error.set(
+                        messageCode || err.message || 'An error occurred',
+                    );
                 },
             });
+    }
+
+    reorderTodo(id: number, newIndex: number): void {
+        const currentTodos = this._todos();
+        const todoIndex = currentTodos.findIndex((t) => t.id === id);
+        if (todoIndex === -1) return;
+
+        const updatedTodos = [...currentTodos];
+        const [todoToMove] = updatedTodos.splice(todoIndex, 1);
+
+        // Re-index all todos for full consistency
+        updatedTodos.splice(newIndex, 0, todoToMove);
+        const finalTodos = updatedTodos.map((t, idx) => ({ ...t, index: idx }));
+
+        this._todos.set(finalTodos);
+
+        this.todoService.reorderTodo(id, newIndex).subscribe({
+            next: (updatedTodo) => {
+                // Synchronization after successful reorder
+                this._todos.update((todos) =>
+                    todos.map((t) =>
+                        t.id === id ? { ...t, index: updatedTodo.index } : t,
+                    ),
+                );
+            },
+            error: (err) => {
+                const errorDetail = err.error?.detail;
+                const messageCode =
+                    errorDetail?.messageCode || err.error?.messageCode;
+                this._error.set(
+                    messageCode || err.message || 'An error occurred',
+                );
+                // Rollback on error
+                this._todos.set(currentTodos);
+            },
+        });
     }
 
     // ==================== UI State Actions ====================

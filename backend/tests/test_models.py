@@ -8,11 +8,8 @@ These tests verify that our SQLAlchemy models work correctly:
 - Relationships work properly
 """
 
-import pytest
 from models.todo import Todo
-from models.user import User
-from services.auth_service import hash_password
-from datetime import datetime, timezone
+from datetime import datetime
 
 
 class TestTodoModel:
@@ -24,7 +21,7 @@ class TestTodoModel:
             title="Test Todo",
             description="This is a test",
             completed=False,
-            user_id=test_user.id
+            user_id=test_user.id,
         )
 
         # Add to database
@@ -36,35 +33,33 @@ class TestTodoModel:
         assert todo.id is not None
         assert todo.title == "Test Todo"
         assert todo.description == "This is a test"
-        assert todo.completed == False
+        assert not todo.completed
         assert isinstance(todo.created_at, datetime)
         assert isinstance(todo.updated_at, datetime)
 
     def test_todo_default_values(self, test_db, test_user):
         """Test that Todo has correct default values."""
-        todo = Todo(title="Simple Todo", user_id=test_user.id)  # No description or completed status
+        todo = Todo(
+            title="Simple Todo", user_id=test_user.id
+        )  # No description or completed status
 
         test_db.add(todo)
         test_db.commit()
         test_db.refresh(todo)
 
         assert todo.description is None  # Should be None when not provided
-        assert todo.completed == False  # Should default to False
-        assert todo.is_public == False  # Should default to False
+        assert not todo.completed  # Should default to False
+        assert not todo.is_public  # Should default to False
 
     def test_todo_completed_field(self, test_db, test_user):
         """Test the completed field can be set to True."""
-        todo = Todo(
-            title="Completed Todo",
-            completed=True,
-            user_id=test_user.id
-        )
+        todo = Todo(title="Completed Todo", completed=True, user_id=test_user.id)
 
         test_db.add(todo)
         test_db.commit()
         test_db.refresh(todo)
 
-        assert todo.completed == True
+        assert todo.completed
 
     def test_todo_timestamps(self, test_db, test_user):
         """Test that timestamps are automatically set."""
@@ -90,7 +85,7 @@ class TestTodoModel:
         todo = Todo(
             title="String Test",
             description="Testing string conversion",
-            user_id=test_user.id
+            user_id=test_user.id,
         )
 
         # SQLAlchemy models don't have __str__ by default,

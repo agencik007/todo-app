@@ -1,0 +1,10 @@
+<p-button
+    type="button"
+    class="snow-toggle-btn"
+    [pTooltip]="'NAV.TOGGLE_SNOW' | translate"
+    [class.active]="isSnowing()"
+    [attr.aria-label]="'NAV.TOGGLE_SNOW' | translate"
+    (onClick)="onToggleSnow()"
+>
+    <i class="pi pi-cloud"></i>
+</p-button>

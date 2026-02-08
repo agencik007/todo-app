@@ -12,7 +12,7 @@
           "auth"
         ],
         "summary": "Register",
-        "description": "Register a new user.\n\nArgs:\n    request: FastAPI request object (for rate limiting).\n    user_data: User registration data.\n    db: Database session.\n    \nReturns:\n    UserResponse: The created user.\n    \nRaises:\n    HTTPException: If email is already registered.",
+        "description": "Register a new user.\n\nArgs:\n    request: FastAPI request object (for rate limiting).\n    user_data: User registration data.\n    db: Database session.\n\nReturns:\n    UserResponse: The created user.\n\nRaises:\n    HTTPException: If email is already registered.",
         "operationId": "register_auth_register_post",
         "requestBody": {
           "content": {
@@ -54,7 +54,7 @@
           "auth"
         ],
         "summary": "Login",
-        "description": "Login endpoint - accepts both form data and JSON.\n\nSupports two formats:\n- **Form data**: `username` (email) and `password` fields (OAuth2 standard)\n- **JSON body**: `{\"email\": \"...\", \"password\": \"...\"}` (frontend-friendly)\n\nArgs:\n    request: FastAPI request object.\n    db: Database session.\n    \nReturns:\n    Token: Access and refresh tokens.\n    \nRaises:\n    HTTPException: If credentials are invalid or user is inactive.",
+        "description": "Login endpoint - accepts both form data and JSON.\n\nSupports two formats:\n- **Form data**: `username` (email) and `password` fields (OAuth2 standard)\n- **JSON body**: `{\"email\": \"...\", \"password\": \"...\"}` (frontend-friendly)\n\nArgs:\n    request: FastAPI request object.\n    db: Database session.\n\nReturns:\n    Token: Access and refresh tokens.\n\nRaises:\n    HTTPException: If credentials are invalid or user is inactive.",
         "operationId": "login_auth_login_post",
         "responses": {
           "200": {
@@ -76,7 +76,7 @@
           "auth"
         ],
         "summary": "Refresh Access Token",
-        "description": "Refresh access token using refresh token.\n\nArgs:\n    request: Refresh token request.\n    db: Database session.\n    \nReturns:\n    Token: New access and refresh tokens.\n    \nRaises:\n    HTTPException: If refresh token is invalid or user not found.",
+        "description": "Refresh access token using refresh token.\n\nArgs:\n    request: Refresh token request.\n    db: Database session.\n\nReturns:\n    Token: New access and refresh tokens.\n\nRaises:\n    HTTPException: If refresh token is invalid or user not found.",
         "operationId": "refresh_access_token_auth_refresh_post",
         "requestBody": {
           "content": {
@@ -118,7 +118,7 @@
           "auth"
         ],
         "summary": "Get Current User Info",
-        "description": "Get current user information.\n\nArgs:\n    current_user: Current authenticated user.\n    \nReturns:\n    UserResponse: Current user's profile information.",
+        "description": "Get current user information.\n\nArgs:\n    current_user: Current authenticated user.\n\nReturns:\n    UserResponse: Current user's profile information.",
         "operationId": "get_current_user_info_auth_me_get",
         "responses": {
           "200": {
@@ -145,7 +145,7 @@
           "auth"
         ],
         "summary": "Forgot Password",
-        "description": "Request password reset.\n\nAlways returns success to prevent email enumeration attacks.\n\nArgs:\n    request: FastAPI request object (for rate limiting).\n    reset_request: Password reset request with email.\n    db: Database session.\n    \nReturns:\n    dict: Generic success message.",
+        "description": "Request password reset.\n\nAlways returns success to prevent email enumeration attacks.\n\nArgs:\n    request: FastAPI request object (for rate limiting).\n    reset_request: Password reset request with email.\n    db: Database session.\n\nReturns:\n    dict: Generic success message.",
         "operationId": "forgot_password_auth_forgot_password_post",
         "requestBody": {
           "content": {
@@ -185,7 +185,7 @@
           "auth"
         ],
         "summary": "Reset Password",
-        "description": "Reset password with token.\n\nArgs:\n    request: FastAPI request object (for rate limiting).\n    reset_data: Reset data with token and new password.\n    db: Database session.\n    \nReturns:\n    dict: Success message.\n    \nRaises:\n    HTTPException: If token is invalid or expired.",
+        "description": "Reset password with token.\n\nArgs:\n    request: FastAPI request object (for rate limiting).\n    reset_data: Reset data with token and new password.\n    db: Database session.\n\nReturns:\n    dict: Success message.\n\nRaises:\n    HTTPException: If token is invalid or expired.",
         "operationId": "reset_password_auth_reset_password_post",
         "requestBody": {
           "content": {
@@ -225,7 +225,7 @@
           "auth"
         ],
         "summary": "Verify Email",
-        "description": "Verify email address with token.\n\nArgs:\n    token: Email verification token.\n    db: Database session.\n    \nReturns:\n    dict: Success message.\n    \nRaises:\n    HTTPException: If token is invalid or expired.",
+        "description": "Verify email address with token.\n\nArgs:\n    token: Email verification token.\n    db: Database session.\n\nReturns:\n    dict: Success message.\n\nRaises:\n    HTTPException: If token is invalid or expired.",
         "operationId": "verify_email_auth_verify_email__token__get",
         "parameters": [
           {
@@ -266,7 +266,7 @@
           "auth"
         ],
         "summary": "Resend Verification",
-        "description": "Resend verification email to current user.\n\nArgs:\n    request: FastAPI request object (for rate limiting).\n    current_user: Current authenticated user.\n    db: Database session.\n    \nReturns:\n    dict: Success message.",
+        "description": "Resend verification email to current user.\n\nArgs:\n    request: FastAPI request object (for rate limiting).\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    dict: Success message.",
         "operationId": "resend_verification_auth_resend_verification_post",
         "responses": {
           "200": {
@@ -291,7 +291,7 @@
           "auth"
         ],
         "summary": "Logout",
-        "description": "Logout endpoint.\n\nNote: With JWT tokens, logout is handled client-side by discarding tokens.\n\nArgs:\n    current_user: Current authenticated user.\n    \nReturns:\n    dict: Success message.",
+        "description": "Logout endpoint.\n\nNote: With JWT tokens, logout is handled client-side by discarding tokens.\n\nArgs:\n    current_user: Current authenticated user.\n\nReturns:\n    dict: Success message.",
         "operationId": "logout_auth_logout_post",
         "responses": {
           "200": {
@@ -316,7 +316,7 @@
           "todos"
         ],
         "summary": "Get Todos",
-        "description": "Get all todos for current user (own todos + public todos).\n\nArgs:\n    skip: Number of records to skip (pagination).\n    limit: Maximum number of records to return.\n    db: Database session.\n    current_user: Current authenticated user.\n    \nReturns:\n    List[Todo]: List of todo items.",
+        "description": "Get all todos for current user (own todos + public todos).\n\nArgs:\n    skip: Number of records to skip (pagination).\n    limit: Maximum number of records to return.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    List[Todo]: List of todo items.",
         "operationId": "get_todos_todos_get",
         "security": [
           {
@@ -377,7 +377,7 @@
           "todos"
         ],
         "summary": "Create Todo",
-        "description": "Create a new todo.\n\nArgs:\n    todo: Todo data to create.\n    db: Database session.\n    current_user: Current authenticated user.\n    \nReturns:\n    Todo: The created todo item.",
+        "description": "Create a new todo.\n\nArgs:\n    todo: Todo data to create.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The created todo item.",
         "operationId": "create_todo_todos_post",
         "security": [
           {
@@ -424,7 +424,7 @@
           "todos"
         ],
         "summary": "Get Todo",
-        "description": "Get a specific todo by ID.\n\nArgs:\n    todo_id: ID of the todo to retrieve.\n    db: Database session.\n    current_user: Current authenticated user.\n    \nReturns:\n    Todo: The requested todo item.\n    \nRaises:\n    HTTPException: If todo not found or user doesn't have access.",
+        "description": "Get a specific todo by ID.\n\nArgs:\n    todo_id: ID of the todo to retrieve.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The requested todo item.\n\nRaises:\n    HTTPException: If todo not found or user doesn't have access.",
         "operationId": "get_todo_todos__todo_id__get",
         "security": [
           {
@@ -470,7 +470,7 @@
           "todos"
         ],
         "summary": "Update Todo",
-        "description": "Update an existing todo.\n\nArgs:\n    todo_id: ID of the todo to update.\n    todo_update: Updated todo data.\n    db: Database session.\n    current_user: Current authenticated user.\n    \nReturns:\n    Todo: The updated todo item.\n    \nRaises:\n    HTTPException: If todo not found or user is not the owner.",
+        "description": "Update an existing todo.\n\nArgs:\n    todo_id: ID of the todo to update.\n    todo_update: Updated todo data.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The updated todo item.\n\nRaises:\n    HTTPException: If todo not found or user is not the owner.",
         "operationId": "update_todo_todos__todo_id__put",
         "security": [
           {
@@ -526,7 +526,7 @@
           "todos"
         ],
         "summary": "Delete Todo",
-        "description": "Delete a todo.\n\nArgs:\n    todo_id: ID of the todo to delete.\n    db: Database session.\n    current_user: Current authenticated user.\n    \nReturns:\n    dict: Success message.\n    \nRaises:\n    HTTPException: If todo not found or user is not the owner.",
+        "description": "Delete a todo.\n\nArgs:\n    todo_id: ID of the todo to delete.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    dict: Success message.\n\nRaises:\n    HTTPException: If todo not found or user is not the owner.",
         "operationId": "delete_todo_todos__todo_id__delete",
         "security": [
           {
@@ -570,13 +570,71 @@
         }
       }
     },
+    "/todos/{todo_id}/reorder": {
+      "patch": {
+        "tags": [
+          "todos"
+        ],
+        "summary": "Reorder Todo",
+        "description": "Update the index of a todo for drag-and-drop reordering.\n\nArgs:\n    todo_id: ID of the todo to reorder.\n    reorder_data: Contains the new index.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The reordered todo item.\n\nRaises:\n    HTTPException: If todo not found, user is not owner, or invalid index.",
+        "operationId": "reorder_todo_todos__todo_id__reorder_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "todo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Todo Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TodoUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/me/avatar": {
       "post": {
         "tags": [
           "users"
         ],
         "summary": "Upload Avatar",
-        "description": "Upload user avatar image.\n\nArgs:\n    file: Image file to upload.\n    current_user: Current authenticated user.\n    db: Database session.\n    \nReturns:\n    dict: URL of the uploaded avatar.\n    \nRaises:\n    HTTPException: If file is not an image or upload fails.",
+        "description": "Upload user avatar image.\n\nArgs:\n    file: Image file to upload.\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    dict: URL of the uploaded avatar.\n\nRaises:\n    HTTPException: If file is not an image or upload fails.",
         "operationId": "upload_avatar_users_me_avatar_post",
         "requestBody": {
           "content": {
@@ -619,7 +677,7 @@
           "users"
         ],
         "summary": "Delete Avatar",
-        "description": "Delete user avatar.\n\nArgs:\n    current_user: Current authenticated user.\n    db: Database session.\n    \nReturns:\n    dict: Success message.",
+        "description": "Delete user avatar.\n\nArgs:\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    dict: Success message.",
         "operationId": "delete_avatar_users_me_avatar_delete",
         "responses": {
           "200": {
@@ -832,6 +890,11 @@
             "title": "Is Public",
             "default": false
           },
+          "index": {
+            "type": "integer",
+            "title": "Index",
+            "default": 0
+          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -901,6 +964,11 @@
             "type": "boolean",
             "title": "Is Public",
             "default": false
+          },
+          "index": {
+            "type": "integer",
+            "title": "Index",
+            "default": 0
           }
         },
         "type": "object",
@@ -955,6 +1023,17 @@
               }
             ],
             "title": "Is Public"
+          },
+          "index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index"
           }
         },
         "type": "object",
@@ -975,6 +1054,17 @@
             "type": "string",
             "title": "Token Type",
             "default": "bearer"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
           }
         },
         "type": "object",
@@ -1055,6 +1145,17 @@
           "language": {
             "type": "string",
             "title": "Language"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
           },
           "created_at": {
             "type": "string",

@@ -1,0 +1,19 @@
+@if (isSnowing()) {
+    <div
+        class="snow-container"
+        [class.dark-mode]="isDark()"
+    >
+        @for (flake of flakes; track $index) {
+            <div
+                class="snowflake"
+                [style.opacity]="flake.opacity"
+                [style.left]="flake.left + '%'"
+                [style.font-size]="flake.size + 'px'"
+                [style.animation-duration]="flake.duration + 's'"
+                [style.animation-delay]="flake.delay + 's'"
+            >
+                ❄
+            </div>
+        }
+    </div>
+}

@@ -22,14 +22,14 @@ class TestTodoCreateSchema:
         todo_data = {
             "title": "Test Todo",
             "description": "Test description",
-            "completed": False
+            "completed": False,
         }
 
         todo = TodoCreate(**todo_data)
 
         assert todo.title == "Test Todo"
         assert todo.description == "Test description"
-        assert todo.completed == False
+        assert not todo.completed
 
     def test_todo_create_minimal(self):
         """Test creating a TodoCreate with minimal data (only title required)."""
@@ -39,20 +39,17 @@ class TestTodoCreateSchema:
 
         assert todo.title == "Minimal Todo"
         assert todo.description is None  # Should be None when not provided
-        assert todo.completed == False  # Should default to False
+        assert not todo.completed  # Should default to False
 
     def test_todo_create_without_description(self):
         """Test creating a TodoCreate without description."""
-        todo_data = {
-            "title": "Todo without description",
-            "completed": True
-        }
+        todo_data = {"title": "Todo without description", "completed": True}
 
         todo = TodoCreate(**todo_data)
 
         assert todo.title == "Todo without description"
         assert todo.description is None
-        assert todo.completed == True
+        assert todo.completed
 
     def test_todo_create_validation_error(self):
         """Test that TodoCreate rejects invalid data."""
@@ -77,14 +74,14 @@ class TestTodoUpdateSchema:
         update_data = {
             "title": "Updated Title",
             "description": "Updated description",
-            "completed": True
+            "completed": True,
         }
 
         update = TodoUpdate(**update_data)
 
         assert update.title == "Updated Title"
         assert update.description == "Updated description"
-        assert update.completed == True
+        assert update.completed
 
     def test_todo_update_partial(self):
         """Test that TodoUpdate allows partial updates (all fields optional)."""
@@ -97,7 +94,7 @@ class TestTodoUpdateSchema:
         # Only completed status
         update = TodoUpdate(completed=True)
         assert update.title is None
-        assert update.completed == True
+        assert update.completed
 
         # Only description
         update = TodoUpdate(description="New description")
@@ -124,7 +121,7 @@ class TestTodoResponseSchema:
             "is_public": False,
             "user_id": 1,
             "created_at": datetime(2023, 1, 1, 12, 0, 0),
-            "updated_at": datetime(2023, 1, 1, 12, 0, 0)
+            "updated_at": datetime(2023, 1, 1, 12, 0, 0),
         }
 
         todo = Todo(**todo_data)
@@ -132,7 +129,7 @@ class TestTodoResponseSchema:
         assert todo.id == 1
         assert todo.title == "Response Todo"
         assert todo.description == "Response description"
-        assert todo.completed == False
+        assert not todo.completed
         assert todo.user_id == 1
         assert isinstance(todo.created_at, datetime)
         assert isinstance(todo.updated_at, datetime)
@@ -148,7 +145,7 @@ class TestTodoResponseSchema:
             "is_public": sample_todo.is_public,
             "user_id": sample_todo.user_id,
             "created_at": sample_todo.created_at,
-            "updated_at": sample_todo.updated_at
+            "updated_at": sample_todo.updated_at,
         }
 
         todo = Todo(**todo_data)

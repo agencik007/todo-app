@@ -20,6 +20,7 @@ class TodoBase(BaseModel):
     description: Optional[str] = None
     completed: bool = False
     is_public: bool = False
+    index: int = 0
 
 
 class TodoCreate(TodoBase):
@@ -35,6 +36,7 @@ class TodoUpdate(BaseModel):
     description: Optional[str] = None
     completed: Optional[bool] = None
     is_public: Optional[bool] = None
+    index: Optional[int] = None
 
 
 class Todo(TodoBase):
@@ -76,9 +78,9 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     is_verified: bool
-    is_verified: bool
     avatar_url: Optional[str] = None
     language: str
+    message: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -100,6 +102,7 @@ class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+    message: Optional[str] = None
 
 
 class TokenData(BaseModel):

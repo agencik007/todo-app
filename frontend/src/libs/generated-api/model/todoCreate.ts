@@ -20,5 +20,6 @@ export interface TodoCreate {
     description?: string | null;
     completed?: boolean;
     is_public?: boolean;
+    index?: number;
 }
 

@@ -39,7 +39,7 @@ export class UsersService extends BaseService {
 
     /**
      * Delete Avatar
-     * Delete user avatar.  Args:     current_user: Current authenticated user.     db: Database session.      Returns:     dict: Success message.
+     * Delete user avatar.  Args:     current_user: Current authenticated user.     db: Database session.  Returns:     dict: Success message.
      * @endpoint delete /users/me/avatar
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -165,7 +165,7 @@ export class UsersService extends BaseService {
 
     /**
      * Upload Avatar
-     * Upload user avatar image.  Args:     file: Image file to upload.     current_user: Current authenticated user.     db: Database session.      Returns:     dict: URL of the uploaded avatar.      Raises:     HTTPException: If file is not an image or upload fails.
+     * Upload user avatar image.  Args:     file: Image file to upload.     current_user: Current authenticated user.     db: Database session.  Returns:     dict: URL of the uploaded avatar.  Raises:     HTTPException: If file is not an image or upload fails.
      * @endpoint post /users/me/avatar
      * @param file 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

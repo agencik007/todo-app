@@ -1,8 +1,18 @@
-<!-- Toast notifications container -->
-<p-toast></p-toast>
+<div class="app-shell">
+    <!-- Dynamic Background -->
+    <app-dynamic-background />
 
-<!-- Navigation bar -->
-<app-auth-nav></app-auth-nav>
+    <!-- Toast notifications container -->
+    <p-toast position="bottom-left"></p-toast>
 
-<!-- Target for routed components -->
-<router-outlet></router-outlet>
+    <!-- Navigation bar -->
+    <app-auth-nav></app-auth-nav>
+
+    <!-- Target for routed components -->
+    <main class="main-content">
+        <router-outlet></router-outlet>
+    </main>
+
+    <app-command-palette></app-command-palette>
+    <app-snowfall />
+</div>

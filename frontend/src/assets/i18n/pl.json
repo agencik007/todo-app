@@ -8,7 +8,13 @@
     "PROFILE": "Profil",
     "ACCOUNT": "Konto",
     "CHANGE_AVATAR": "Zmień awatar",
-    "DELETE_AVATAR": "Usuń awatar"
+    "DELETE_AVATAR": "Usuń awatar",
+    "TOGGLE_SNOW": "Przełącz opady śniegu",
+    "TOGGLE_BACKGROUND": "Przełącz tło",
+    "THEME": "Motyw",
+    "LANGUAGE": "Język",
+    "GUEST": "Gość",
+    "WELCOME": "Witaj!"
   },
   "LANGUAGE": {
     "SELECT": "Język",
@@ -16,7 +22,19 @@
     "PL": "Polski"
   },
   "THEME": {
-    "TOGGLE": "Przełącz motyw"
+    "TOGGLE": "Przełącz motyw",
+    "LIGHT": "Jasny motyw",
+    "DARK": "Ciemny motyw",
+    "SYSTEM": "Motyw systemowy"
+  },
+  "COLOR_PALETTES": {
+    "OCEAN_DEPTH": "Głębia Oceanu",
+    "SUNSET_GRADIENT": "Zachód Słońca",
+    "FOREST_NIGHT": "Leśna Noc",
+    "ROYAL_PURPLE": "Królewska Purpura",
+    "CYBERPUNK": "Cyberpunk",
+    "SELECT_COLOR": "Wybierz Paletę Kolorów",
+    "TITLE": "Paleta kolorów"
   },
   "AUTH": {
     "LOGIN": {
@@ -27,7 +45,7 @@
       "PASSWORD_PLACEHOLDER": "Minimum 8 znaków",
       "SUBMIT": "Zaloguj się",
       "FORGOT_PASSWORD": "Zapomniałeś hasła?",
-      "NO_ACCOUNT": "Nie masz konta? Zarejestruj się",
+      "NO_ACCOUNT": "Zarejestruj się",
       "ERRORS": {
         "EMAIL_REQUIRED": "E-mail jest wymagany",
         "EMAIL_FORMAT": "Nieprawidłowy format E-mail",
@@ -137,7 +155,12 @@
     "STATS": {
       "ALL": "Wszystkie",
       "PENDING": "Do wykonania",
-      "COMPLETED": "Ukończone"
+      "COMPLETED": "Ukończone",
+      "SUMMARY_TOOLTIP": "Wszystkie / Do zrobienia / Ukończone zadania"
+    },
+    "MENU": {
+      "COLLAPSE": "Zwiń menu",
+      "EXPAND": "Rozwiń menu"
     },
     "LIST": {
       "STATUS_COMPLETED": "Ukończone",
@@ -165,6 +188,8 @@
         "TITLE_REQUIRED": "Tytuł jest wymagany"
       }
     },
+    "DRAG_HANDLE": "Przeciągnij aby zmienić kolejność",
+    "TRASH_DROP_CONFIRM": "Usunąć '{{title}}'?",
     "MESSAGES": {
       "DELETE_CONFIRM_TITLE": "Potwierdź usunięcie",
       "DELETE_CONFIRM_MESSAGE": "Czy na pewno chcesz usunąć zadanie \"{{title}}\"?",
@@ -179,12 +204,91 @@
       "ERROR_NO_PERM_DELETE": "Nie masz uprawnień do usunięcia tego zadania"
     }
   },
+  "COMMAND_PALETTE": {
+    "SEARCH": "Szukaj",
+    "SEARCH_PLACEHOLDER": "Szukaj poleceń lub zadań",
+    "NO_RESULTS": "Nie znaleziono wyników",
+    "NO_RECENT": "Brak ostatnich wyszukiwań",
+    "CATEGORIES": {
+      "COLOR": "Palety Kolorów",
+      "THEME": "Motyw",
+      "LANGUAGE": "Język",
+      "AVATAR": "Awatar",
+      "ACCOUNT": "Konto",
+      "TODO": "Zadania",
+      "TASK_ACTION": "Akcje zadań"
+    },
+    "COMMANDS": {
+      "COLOR_OCEAN": "Głębia Oceanu",
+      "COLOR_SUNSET": "Zachód Słońca",
+      "COLOR_FOREST": "Leśna Noc",
+      "COLOR_ROYAL": "Królewska Purpura",
+      "COLOR_CYBER": "Cyberpunk",
+      "THEME_TOGGLE": "Przełącz motyw",
+      "THEME_LIGHT": "Jasny Motyw",
+      "THEME_DARK": "Ciemny Motyw",
+      "THEME_SYSTEM": "Motyw Systemowy",
+      "THEME_SNOW_TOGGLE": "Przełącz opady śniegu",
+      "LANG_TOGGLE": "Przełącz język",
+      "LANG_EN": "Angielski",
+      "LANG_PL": "Polski",
+      "AVATAR_CHANGE": "Zmień Awatar",
+      "AVATAR_DELETE": "Usuń Awatar",
+      "LOGOUT": "Wyloguj",
+      "TODO_ADD": "Dodaj Zadanie",
+      "TASK_EDIT_DESC": "Edytuj",
+      "TASK_DELETE_DESC": "Usuń",
+      "TASK_DONE_DESC": "Oznacz jako zrobione",
+      "TASK_UNDO_DESC": "Oznacz jako niezrobione"
+    },
+    "SHORTCUTS": {
+      "SELECT": "aby wybrać",
+      "NAVIGATE": "aby nawigować",
+      "CLOSE": "aby zamknąć"
+    }
+  },
   "MESSAGES": {
     "SUCCESS": "Sukces",
     "ERROR": "Błąd",
     "AVATAR_UPLOAD_SUCCESS": "Awatar został zaktualizowany",
     "AVATAR_UPLOAD_ERROR": "Nie udało się wgrać awatara",
     "AVATAR_DELETE_SUCCESS": "Awatar został usunięty",
-    "AVATAR_DELETE_ERROR": "Nie udało się usunąć awatara"
+    "AVATAR_DELETE_ERROR": "Nie udało się usunąć awatara",
+    "PREVIEW_AVATAR": "Podgląd awatara"
+  },
+  "API_MESSAGES": {
+    "AUTH_EMAIL_ALREADY_REGISTERED": "Ten adres e-mail jest już zarejestrowany",
+    "AUTH_INVALID_JSON_BODY": "Nieprawidłowy korpus żądania JSON",
+    "AUTH_INVALID_FORM_DATA": "Nieprawidłowe dane formularza",
+    "AUTH_EMAIL_PASSWORD_REQUIRED": "E-mail i hasło są wymagane",
+    "AUTH_INVALID_CREDENTIALS": "Nieprawidłowy e-mail lub hasło",
+    "AUTH_INACTIVE_USER": "Twoje konto jest nieaktywne",
+    "AUTH_EMAIL_NOT_VERIFIED": "Adres e-mail nie został zweryfikowany. Sprawdź swoją skrzynkę.",
+    "AUTH_INVALID_REFRESH_TOKEN": "Sesja wygasła, zaloguj się ponownie",
+    "AUTH_INVALID_TOKEN_PAYLOAD": "Nieprawidłowe dane sesji",
+    "AUTH_USER_NOT_FOUND_OR_INACTIVE": "Użytkownik nie znaleziony lub konto jest nieaktywne",
+    "AUTH_PASSWORD_RESET_SENT": "Jeśli e-mail istnieje, link do resetowania hasła został wysłany",
+    "AUTH_INVALID_RESET_TOKEN": "Nieprawidłowy lub wygasły token resetowania hasła",
+    "AUTH_PASSWORD_RESET_SUCCESS": "Hasło zostało pomyślnie zresetowane",
+    "AUTH_INVALID_VERIFICATION_TOKEN": "Nieprawidłowy lub wygasły token weryfikacyjny",
+    "AUTH_EMAIL_VERIFIED_SUCCESS": "E-mail zweryfikowany pomyślnie",
+    "AUTH_EMAIL_ALREADY_VERIFIED": "E-mail jest już zweryfikowany",
+    "AUTH_VERIFICATION_EMAIL_SENT": "E-mail weryfikacyjny został wysłany",
+    "AUTH_LOGOUT_SUCCESS": "Wylogowano pomyślnie",
+    "AUTH_LOGIN_SUCCESS": "Zalogowano pomyślnie",
+    "AUTH_REGISTER_SUCCESS": "Zarejestrowano pomyślnie. Sprawdź swoją skrzynkę e-mail.",
+    "TODO_NOT_FOUND": "Nie znaleziono zadania",
+    "TODO_NO_ACCESS": "Nie masz dostępu do tego zadania",
+    "TODO_NO_UPDATE_PERMISSION": "Nie masz uprawnień do edycji tego zadania",
+    "TODO_NO_DELETE_PERMISSION": "Nie masz uprawnień do usunięcia tego zadania",
+    "TODO_DELETED_SUCCESS": "Zadanie zostało usunięte",
+    "USER_AVATAR_INVALID_TYPE": "Nieprawidłowy typ pliku. Dozwolone są tylko obrazy.",
+    "USER_AVATAR_TOO_LARGE": "Plik jest zbyt duży (max 5MB)",
+    "USER_AVATAR_INVALID_EXTENSION": "Nieprawidłowe rozszerzenie pliku",
+    "USER_AVATAR_SAVE_ERROR": "Nie udało się zapisać obrazu awatara",
+    "USER_AVATAR_DELETED": "Awatar został usunięty",
+    "USER_LANGUAGE_UPDATED": "Preferencje językowe zostały zaktualizowane",
+    "TODO_REORDER_SUCCESS": "Kolejność zadania zaktualizowana pomyślnie",
+    "TODO_INVALID_INDEX": "Nieprawidłowy indeks zadania"
   }
 }

@@ -1,0 +1,15 @@
+<div class="color-toggle">
+    @for (palette of palettes; track palette.id) {
+        <p-button
+            type="button"
+            class="color-toggle-btn"
+            [tooltipPosition]="'left'"
+            [pTooltip]="'COLOR_PALETTES.' + palette.translationKey | translate"
+            [class.active]="currentPalette === palette.id"
+            [attr.aria-label]="'COLOR_PALETTES.' + palette.translationKey | translate"
+            (click)="$event.stopPropagation(); onSetPalette(palette.id)"
+        >
+            <i [class]="'pi ' + palette.icon"></i>
+        </p-button>
+    }
+</div>

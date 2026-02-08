@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -16,7 +16,7 @@ import { AuthService } from '../../services/auth.service';
         ButtonModule,
         ProgressSpinnerModule,
         MessageModule,
-        TranslateModule,
+        TranslatePipe,
     ],
     templateUrl: './verify-email.html',
     styleUrl: './verify-email.scss',

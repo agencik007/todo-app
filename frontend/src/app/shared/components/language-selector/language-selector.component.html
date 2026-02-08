@@ -1,0 +1,32 @@
+<div class="flex items-center gap-2">
+    <p-select
+        size="small"
+        optionValue="code"
+        optionLabel="name"
+        class="w-full md:w-36 z-100000"
+        [options]="availableLanguages"
+        [ngModel]="currentLang()"
+        (onChange)="onLanguageChange($event)"
+    >
+        <ng-template
+            pTemplate="selectedItem"
+            let-selectedOption
+        >
+            @if (selectedOption) {
+                <div class="flex items-center gap-2">
+                    <span>{{ selectedOption.flag }}</span>
+                    <div>{{ selectedOption.name }}</div>
+                </div>
+            }
+        </ng-template>
+        <ng-template
+            pTemplate="item"
+            let-country
+        >
+            <div class="flex items-center gap-2">
+                <span>{{ country.flag }}</span>
+                <div>{{ country.name }}</div>
+            </div>
+        </ng-template>
+    </p-select>
+</div>

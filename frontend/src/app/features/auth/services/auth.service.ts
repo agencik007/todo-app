@@ -1,6 +1,8 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import {
+    AuthService as ApiAuthService,
+    UsersService as ApiUsersService,
     UserCreate as LoginRequest,
     PasswordReset,
     PasswordResetRequest,
@@ -19,16 +21,20 @@ import { IndexedDbService } from '../../../core/services/indexed-db.service';
 })
 export class AuthService {
     private http = inject(HttpClient);
+    private apiAuthService = inject(ApiAuthService);
+    private apiUsersService = inject(ApiUsersService);
     private indexedDbService = inject(IndexedDbService);
     private apiUrl = `${environment.apiUrl}/auth`;
 
     register(userData: RegisterRequest): Observable<User> {
-        return this.http
-            .post<User>(`${this.apiUrl}/register`, userData)
+        return this.apiAuthService
+            .registerAuthRegisterPost(userData)
             .pipe(catchError(this.handleError));
     }
 
     login(loginData: LoginRequest): Observable<Token> {
+        // Keeping manual login for now due to generated API missing body param for this endpoint
+        // (FastAPI signature issue with supporting both JSON and Form Data)
         return this.http.post<Token>(`${this.apiUrl}/login`, loginData).pipe(
             tap((token) => this.setTokens(token)),
             catchError(this.handleError),
@@ -37,21 +43,22 @@ export class AuthService {
 
     refreshToken(refreshToken: string): Observable<Token> {
         const request: RefreshTokenRequest = { refresh_token: refreshToken };
-        return this.http.post<Token>(`${this.apiUrl}/refresh`, request).pipe(
-            tap((token) => this.setTokens(token)),
-            catchError(this.handleError),
-        );
+        return this.apiAuthService
+            .refreshAccessTokenAuthRefreshPost(request)
+            .pipe(
+                tap((token) => this.setTokens(token)),
+                catchError(this.handleError),
+            );
     }
 
     getCurrentUser(): Observable<User> {
-        return this.http
-            .get<User>(`${this.apiUrl}/me`)
+        return this.apiAuthService
+            .getCurrentUserInfoAuthMeGet()
             .pipe(catchError(this.handleError));
     }
 
     fetchAndCacheAvatar(url: string): Observable<Blob> {
-        const baseUrl = this.apiUrl.replace('/auth', '');
-        const fullUrl = `${baseUrl}${url}`;
+        const fullUrl = `${environment.apiUrl}${url}`;
         return this.http.get(fullUrl, { responseType: 'blob' }).pipe(
             tap((blob) => {
                 // Save both the blob and the URL for cache validation
@@ -65,59 +72,55 @@ export class AuthService {
     forgotPassword(
         request: PasswordResetRequest,
     ): Observable<{ message: string }> {
-        return this.http
-            .post<{
-                message: string;
-            }>(`${this.apiUrl}/forgot-password`, request)
+        return this.apiAuthService
+            .forgotPasswordAuthForgotPasswordPost(request)
             .pipe(catchError(this.handleError));
     }
 
     resetPassword(resetData: PasswordReset): Observable<{ message: string }> {
-        return this.http
-            .post<{
-                message: string;
-            }>(`${this.apiUrl}/reset-password`, resetData)
+        return this.apiAuthService
+            .resetPasswordAuthResetPasswordPost(resetData)
             .pipe(catchError(this.handleError));
     }
 
     verifyEmail(token: string): Observable<{ message: string }> {
-        return this.http
-            .get<{ message: string }>(`${this.apiUrl}/verify-email/${token}`)
+        return this.apiAuthService
+            .verifyEmailAuthVerifyEmailTokenGet(token)
             .pipe(catchError(this.handleError));
     }
 
     resendVerification(): Observable<{ message: string }> {
-        return this.http
-            .post<{ message: string }>(`${this.apiUrl}/resend-verification`, {})
+        return this.apiAuthService
+            .resendVerificationAuthResendVerificationPost()
             .pipe(catchError(this.handleError));
     }
 
     uploadAvatar(file: File): Observable<{ avatar_url: string }> {
-        const formData = new FormData();
-        formData.append('file', file);
-        const baseUrl = this.apiUrl.replace('/auth', '');
-        return this.http
-            .post<{
-                avatar_url: string;
-            }>(`${baseUrl}/users/me/avatar`, formData)
-            .pipe(
-                tap((response) => {
-                    if (response.avatar_url)
-                        this.indexedDbService.saveAvatar(file);
-                }),
-            );
+        return this.apiUsersService.uploadAvatarUsersMeAvatarPost(file).pipe(
+            tap((response) => {
+                if (response.avatar_url) this.indexedDbService.saveAvatar(file);
+            }),
+            catchError(this.handleError),
+        );
     }
 
     deleteAvatar(): Observable<{ message: string }> {
-        const baseUrl = this.apiUrl.replace('/auth', '');
-        return this.http
-            .delete<{ message: string }>(`${baseUrl}/users/me/avatar`)
-            .pipe(tap(() => this.indexedDbService.deleteAvatar()));
+        return this.apiUsersService.deleteAvatarUsersMeAvatarDelete().pipe(
+            tap(() => this.indexedDbService.deleteAvatar()),
+            catchError(this.handleError),
+        );
     }
 
-    logout(): void {
-        this.clearTokens();
-        this.indexedDbService.deleteAvatar();
+    logout(): Observable<any> {
+        return this.apiAuthService.logoutAuthLogoutPost().pipe(
+            tap(() => {
+                this.clearTokens();
+            }),
+            catchError((err) => {
+                this.clearTokens();
+                return throwError(() => err);
+            }),
+        );
     }
 
     getAccessToken(): string | null {
@@ -136,7 +139,7 @@ export class AuthService {
         localStorage.setItem('refresh_token', token.refresh_token);
     }
 
-    private clearTokens(): void {
+    clearTokens(): void {
         if (typeof window === 'undefined') return;
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
