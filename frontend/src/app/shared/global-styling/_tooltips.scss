@@ -27,7 +27,7 @@
         @media screen and (max-width: 768px) {
             white-space: normal;
             word-break: break-word;
-            // max-width: 200px;
+            max-width: calc(80vw - 100px);
         }
     }
 

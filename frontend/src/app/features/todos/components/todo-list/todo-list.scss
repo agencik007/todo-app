@@ -133,6 +133,21 @@
     &:hover .drag-handle {
         opacity: 0.5;
     }
+
+    @media (max-width: 768px) {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.75rem !important;
+
+        .flex-grow-1 {
+            width: 100%;
+        }
+
+        .justify-content-end {
+            justify-content: space-between !important;
+            width: 100%;
+        }
+    }
 }
 
 .drag-preview-item {

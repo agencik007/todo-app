@@ -101,10 +101,14 @@
                         }}</span>
                         <app-color-toggle></app-color-toggle>
                     </div>
-                    <div class="flex align-items-center justify-content-between px-1">
-                        <span class="text-sm font-medium">{{ 'NAV.TOGGLE_SNOW' | translate }}</span>
-                        <app-snow-toggle></app-snow-toggle>
-                    </div>
+                    @if (!isCompact()) {
+                        <div class="flex align-items-center justify-content-between px-1">
+                            <span class="text-sm font-medium">{{
+                                'NAV.TOGGLE_SNOW' | translate
+                            }}</span>
+                            <app-snow-toggle></app-snow-toggle>
+                        </div>
+                    }
                     <div class="flex align-items-center justify-content-between px-1">
                         <span class="text-sm font-medium">{{
                             'NAV.TOGGLE_BACKGROUND' | translate
