@@ -1,74 +1,134 @@
 @if (isBrowser()) {
     <div class="container">
-        <!-- Header -->
-        <div
-            class="flex justify-content-between align-items-center mb-3 md:mb-4 flex-column-mobile gap-2 md:gap-3"
-        >
-            <div class="w-full-mobile">
-                <h1 class="m-0 text-2xl md:text-5xl">📝 {{ 'TODOS.TITLE' | translate }}</h1>
-                <p class="text-color-secondary mt-1 mb-0">
-                    {{ 'TODOS.SUBTITLE' | translate }}
-                </p>
+        @if (!isMenuCollapsed()) {
+            <!-- Header -->
+            <div
+                class="flex justify-content-between align-items-center mb-3 md:mb-4 flex-column-mobile gap-2 md:gap-3"
+            >
+                <div class="w-full-mobile">
+                    <h1 class="m-0 text-2xl md:text-5xl">📝 {{ 'TODOS.TITLE' | translate }}</h1>
+                    <p class="text-color-secondary mt-1 mb-0">
+                        {{ 'TODOS.SUBTITLE' | translate }}
+                    </p>
+                </div>
+                <div class="flex align-items-center gap-2 w-full-mobile">
+                    <p-button
+                        styleClass="w-full-mobile"
+                        size="small"
+                        icon="pi pi-plus"
+                        class="w-full-mobile flex-grow-1"
+                        #addButton
+                        [label]="'TODOS.ADD_BUTTON' | translate"
+                        [autofocus]="true"
+                        (onClick)="showCreateForm()"
+                    />
+                    <p-button
+                        size="small"
+                        severity="secondary"
+                        [text]="true"
+                        [rounded]="true"
+                        [pTooltip]="
+                            (isMenuCollapsed() ? 'TODOS.MENU.EXPAND' : 'TODOS.MENU.COLLAPSE')
+                                | translate
+                        "
+                        [icon]="isMenuCollapsed() ? 'pi pi-chevron-down' : 'pi pi-chevron-up'"
+                        (onClick)="toggleMenu()"
+                    />
+                </div>
             </div>
-            <p-button
-                styleClass="w-full-mobile"
-                size="small"
-                icon="pi pi-plus"
-                class="w-full-mobile"
-                #addButton
-                [label]="'TODOS.ADD_BUTTON' | translate"
-                [autofocus]="true"
-                (onClick)="showCreateForm()"
-            />
-        </div>
 
-        <!-- Stats -->
-        <div
-            class="flex mb-3 md:mb-4"
-            [class.gap-3]="!screenSize.isCompact()"
-            [class.gap-2]="screenSize.isCompact()"
-        >
-            <p-card
-                styleClass="p-0 compact-stats-card"
-                class="w-full"
-                [style]="{ flex: 1, textAlign: 'center' }"
+            <!-- Stats -->
+            <div
+                class="flex mb-3 md:mb-4"
+                [class.gap-3]="!screenSize.isCompact()"
+                [class.gap-2]="screenSize.isCompact()"
             >
-                <div class="text-xl md:text-3xl font-bold">{{ totalTodos() }}</div>
-                <div class="text-xs md:text-sm text-color-secondary">
-                    {{ 'TODOS.STATS.ALL' | translate }}
-                </div>
-            </p-card>
-            <p-card
-                styleClass="p-0 compact-stats-card"
-                class="w-full"
-                [style]="{ flex: 1, textAlign: 'center' }"
-            >
-                <div
-                    style="color: var(--p-orange-500)"
-                    class="text-xl md:text-3xl font-bold"
+                <p-card
+                    styleClass="p-0 compact-stats-card"
+                    class="w-full"
+                    [style]="{ flex: 1, textAlign: 'center' }"
                 >
-                    {{ pendingTodos().length }}
-                </div>
-                <div class="text-xs md:text-sm text-color-secondary">
-                    {{ 'TODOS.STATS.PENDING' | translate }}
-                </div>
-            </p-card>
-            <p-card
-                styleClass="p-0 compact-stats-card"
-                class="w-full"
-                [style]="{ flex: 1, textAlign: 'center' }"
-            >
-                <div
-                    style="color: var(--p-green-500)"
-                    class="text-xl md:text-3xl font-bold"
+                    <div class="text-xl md:text-3xl font-bold">{{ totalTodos() }}</div>
+                    <div class="text-xs md:text-sm text-color-secondary">
+                        {{ 'TODOS.STATS.ALL' | translate }}
+                    </div>
+                </p-card>
+                <p-card
+                    styleClass="p-0 compact-stats-card"
+                    class="w-full"
+                    [style]="{ flex: 1, textAlign: 'center' }"
                 >
-                    {{ completedTodos().length }}
+                    <div
+                        style="color: var(--p-orange-500)"
+                        class="text-xl md:text-3xl font-bold"
+                    >
+                        {{ pendingTodos().length }}
+                    </div>
+                    <div class="text-xs md:text-sm text-color-secondary">
+                        {{ 'TODOS.STATS.PENDING' | translate }}
+                    </div>
+                </p-card>
+                <p-card
+                    styleClass="p-0 compact-stats-card"
+                    class="w-full"
+                    [style]="{ flex: 1, textAlign: 'center' }"
+                >
+                    <div
+                        style="color: var(--p-green-500)"
+                        class="text-xl md:text-3xl font-bold"
+                    >
+                        {{ completedTodos().length }}
+                    </div>
+                    <div class="text-xs md:text-sm text-color-secondary">
+                        {{ 'TODOS.STATS.COMPLETED' | translate }}
+                    </div>
+                </p-card>
+            </div>
+        } @else {
+            <!-- Collapsed view -->
+            <div
+                class="collapsed-header flex align-items-center justify-content-between mb-3 px-2 py-1 surface-card border-round shadow-1"
+            >
+                <div class="flex align-items-center gap-3">
+                    <span class="text-xl">📝</span>
+                    <span
+                        tooltipPosition="bottom"
+                        class="stats-summary font-bold text-lg cursor-help"
+                        [pTooltip]="'TODOS.STATS.SUMMARY_TOOLTIP' | translate"
+                    >
+                        {{ totalTodos() }} /
+                        <span style="color: var(--p-orange-500)">{{ pendingTodos().length }}</span>
+                        /
+                        <span style="color: var(--p-green-500)">{{ completedTodos().length }}</span>
+                    </span>
                 </div>
-                <div class="text-xs md:text-sm text-color-secondary">
-                    {{ 'TODOS.STATS.COMPLETED' | translate }}
+                <div class="flex align-items-center gap-1">
+                    <p-button
+                        tooltipPosition="left"
+                        severity="success"
+                        icon="pi pi-plus"
+                        #addButtonCollapsed
+                        [text]="true"
+                        [rounded]="true"
+                        [pTooltip]="'TODOS.ADD_BUTTON' | translate"
+                        [autofocus]="true"
+                        (onClick)="showCreateForm()"
+                    />
+                    <p-button
+                        size="small"
+                        severity="secondary"
+                        [text]="true"
+                        [rounded]="true"
+                        [pTooltip]="
+                            (isMenuCollapsed() ? 'TODOS.MENU.EXPAND' : 'TODOS.MENU.COLLAPSE')
+                                | translate
+                        "
+                        [icon]="isMenuCollapsed() ? 'pi pi-chevron-down' : 'pi pi-chevron-up'"
+                        (onClick)="toggleMenu()"
+                    />
                 </div>
-            </p-card>
-        </div>
+            </div>
+        }
 
         <!-- Error Message -->
         @if (error()) {
@@ -257,13 +317,13 @@
             [header]="
                 (editingTodo() ? 'TODOS.FORM.TITLE_EDIT' : 'TODOS.FORM.TITLE_ADD') | translate
             "
-            (onHide)="hideForm()"
-            (keydown.escape)="hideForm()"
+            (visibleChange)="onVisibleChange($event)"
+            (onHide)="onDialogHide()"
         >
             <app-todo-form
                 [todo]="editingTodo()"
                 (save)="saveTodo($event)"
-                (cancelTodo)="hideForm()"
+                (cancelTodo)="closeForm()"
             >
             </app-todo-form>
         </p-dialog>

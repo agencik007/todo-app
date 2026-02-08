@@ -155,7 +155,12 @@
     "STATS": {
       "ALL": "Wszystkie",
       "PENDING": "Do wykonania",
-      "COMPLETED": "Ukończone"
+      "COMPLETED": "Ukończone",
+      "SUMMARY_TOOLTIP": "Wszystkie / Do zrobienia / Ukończone zadania"
+    },
+    "MENU": {
+      "COLLAPSE": "Zwiń menu",
+      "EXPAND": "Rozwiń menu"
     },
     "LIST": {
       "STATUS_COMPLETED": "Ukończone",

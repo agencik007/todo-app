@@ -18,7 +18,7 @@
         padding: 0.5rem 0.75rem;
 
         h1 {
-            font-size: 1.5rem !important; // Reduce H1 on mobile
+            font-size: 1.5rem !important;
         }
 
         p {
@@ -30,6 +30,25 @@
             margin-bottom: 0.75rem !important; // Reduce spacing between sections
         }
     }
+}
+
+.collapsed-header {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    min-height: 50px;
+    border-radius: 12px;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+}
+
+.stats-summary {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    letter-spacing: 1px;
 }
 
 .scrollable-area {

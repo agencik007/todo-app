@@ -7,6 +7,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { isPlatformBrowser } from '@angular/common';
 import {
     Component,
+    effect,
     ElementRef,
     inject,
     OnInit,
@@ -26,6 +27,7 @@ import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { TodoStore } from '../../store/todo.store';
@@ -47,6 +49,7 @@ import { TodoFormComponent } from '../todo-form/todo-form';
         TranslatePipe,
         DragDropModule,
         ScrollingModule,
+        TooltipModule,
     ],
     providers: [ConfirmationService],
     templateUrl: './todo-list.html',
@@ -62,6 +65,7 @@ export class TodoListComponent implements OnInit {
     public screenSize = inject(ScreenSizeService);
 
     isBrowser = signal(false);
+    isMenuCollapsed = signal(false);
 
     // Expose store signals directly to template
     readonly todos = this.store.todos;
@@ -74,6 +78,7 @@ export class TodoListComponent implements OnInit {
     readonly totalTodos = this.store.totalCount;
 
     addButton = viewChild<Button>('addButton');
+    addButtonCollapsed = viewChild<Button>('addButtonCollapsed');
     scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
 
     #scrollSpeed = 0;
@@ -83,10 +88,26 @@ export class TodoListComponent implements OnInit {
         return this.authStore.currentUser();
     }
 
+    constructor() {
+        effect(() => {
+            if (this.isBrowser()) {
+                localStorage.setItem(
+                    'todo_menu_collapsed',
+                    JSON.stringify(this.isMenuCollapsed()),
+                );
+            }
+        });
+    }
+
     ngOnInit(): void {
         this.isBrowser.set(isPlatformBrowser(this.platformId));
         if (this.isBrowser()) {
             this.store.loadTodos();
+
+            const saved = localStorage.getItem('todo_menu_collapsed');
+            if (saved !== null) {
+                this.isMenuCollapsed.set(JSON.parse(saved));
+            }
         }
     }
 
@@ -104,15 +125,30 @@ export class TodoListComponent implements OnInit {
         this.store.showEditForm(todo.id);
     }
 
-    hideForm(): void {
-        this.store.hideForm();
+    // Called when the user attempts to close the dialog (e.g. clicking mask/X)
+    onVisibleChange(isVisible: boolean): void {
+        if (!isVisible) {
+            this.store.hideForm();
+        }
+    }
 
+    // Called when the dialog actually hides (animation complete)
+    onDialogHide(): void {
+        this.restoreFocus();
+    }
+
+    // Called by the Cancel button in the form
+    closeForm(): void {
+        this.store.hideForm();
+    }
+
+    restoreFocus(): void {
         // Restore focus to the add button after dialog is hidden
+        // Use a timeout to ensure dialog animation finishes and element is focusable
         setTimeout(() => {
-            const buttonEl = this.addButton();
+            const buttonEl = this.addButton() || this.addButtonCollapsed();
             if (buttonEl?.el?.nativeElement) {
                 // p-button component wraps a native <button> element
-                // We need to find and focus the actual button inside
                 const nativeButton =
                     buttonEl.el.nativeElement.querySelector('button');
                 if (nativeButton) {
@@ -133,6 +169,10 @@ export class TodoListComponent implements OnInit {
 
     toggleTodoCompletion(todo: Todo): void {
         this.store.toggleTodo(todo);
+    }
+
+    toggleMenu(): void {
+        this.isMenuCollapsed.update((val) => !val);
     }
 
     deleteTodo(todo: Todo): void {
