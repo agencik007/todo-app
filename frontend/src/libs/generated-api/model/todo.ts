@@ -7,6 +7,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Group } from './group';
 
 
 /**
@@ -21,10 +22,12 @@ export interface Todo {
     completed?: boolean;
     is_public?: boolean;
     index?: number;
+    group_id?: number | null;
     id: number;
     user_id: number;
     owner_email?: string | null;
     created_at: string;
     updated_at: string;
+    group?: Group | null;
 }
 

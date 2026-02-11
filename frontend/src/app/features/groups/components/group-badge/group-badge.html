@@ -1,0 +1,21 @@
+<span
+    tabindex="0"
+    [style.border-color]="colorConfig().hex"
+    [class]="{
+        badge: true,
+        'size-sm': size() === 'sm',
+        'size-md': size() === 'md',
+        'size-lg': size() === 'lg',
+        clickable: clickable(),
+    }"
+    [attr.aria-label]="group()?.name"
+    (keydown.space)="onClick()"
+    (keydown.enter)="onClick()"
+    (click)="onClick()"
+>
+    <span
+        class="dot"
+        [class]="colorConfig().cssClass"
+    ></span>
+    <span class="badge-text">{{ group()?.name }}</span>
+</span>

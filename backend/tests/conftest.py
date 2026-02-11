@@ -8,21 +8,17 @@ os.environ["ALLOWED_HOSTS"] = "localhost,127.0.0.1,testserver"
 import pytest  # noqa: E402
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 from config.database import Base, get_db
 from models.todo import Todo
 from models.user import User
 from services.auth_service import hash_password
 
-# Test database URL - use SQLite for testing
-TEST_DATABASE_URL = "sqlite:///./test.db"
+# Test database URL - use PostgreSQL for testing (same as production)
+# This ensures tests match production environment
+TEST_DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create test engine
-test_engine = create_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
+test_engine = create_engine(TEST_DATABASE_URL)
 
 # Create test session
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)

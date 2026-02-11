@@ -13,10 +13,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session
 load_dotenv()
 
 # Database configuration
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://todo_user:todo_password@localhost:5432/todo_db"
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create SQLAlchemy engine
 engine = create_engine(DATABASE_URL)
@@ -31,7 +28,7 @@ Base = declarative_base()
 def get_db() -> Generator[Session, None, None]:
     """
     Dependency to get database session.
-    
+
     Yields:
         Session: SQLAlchemy database session.
     """
@@ -46,7 +43,7 @@ def get_db() -> Generator[Session, None, None]:
 def get_db_context() -> Generator[Session, None, None]:
     """
     Context manager for database session (for use outside of FastAPI).
-    
+
     Yields:
         Session: SQLAlchemy database session.
     """

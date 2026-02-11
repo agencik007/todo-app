@@ -1,3 +1,7 @@
+export * from './group';
+export * from './groupColor';
+export * from './groupCreate';
+export * from './groupUpdate';
 export * from './hTTPValidationError';
 export * from './locationInner';
 export * from './passwordReset';

@@ -13,15 +13,45 @@ from config.database import get_db
 from config.api_messages import ApiMessages, api_error, api_success
 from models.todo import Todo as TodoModel
 from models.user import User
+from models.group import Group as GroupModel
 from models.schemas import Todo, TodoCreate, TodoUpdate
 
 router = APIRouter(prefix="/todos", tags=["todos"])
+
+
+def validate_group_ownership(db: Session, group_id: int | None, user_id: int) -> None:
+    """
+    Validate that the group belongs to the user.
+
+    Args:
+        db: Database session.
+        group_id: ID of the group to validate.
+        user_id: ID of the user who should own the group.
+
+    Raises:
+        HTTPException: If group not found or doesn't belong to user.
+    """
+    if group_id is None:
+        return
+
+    group = db.query(GroupModel).filter(GroupModel.id == group_id).first()
+    if group is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.GROUP_NOT_FOUND),
+        )
+    if group.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=api_error(ApiMessages.GROUP_NO_ACCESS),
+        )
 
 
 @router.get("", response_model=List[Todo])
 def get_todos(
     skip: int = 0,
     limit: int = 100,
+    group_id: int | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
 ) -> List[Todo]:
@@ -37,15 +67,17 @@ def get_todos(
     Returns:
         List[Todo]: List of todo items.
     """
-    results = (
+    query = (
         db.query(TodoModel, User.email)
         .join(User, TodoModel.user_id == User.id)
         .filter(or_(TodoModel.user_id == current_user.id, TodoModel.is_public))
-        .order_by(TodoModel.index.asc())
-        .offset(skip)
-        .limit(limit)
-        .all()
     )
+
+    # Filter by group_id if provided
+    if group_id is not None:
+        query = query.filter(TodoModel.group_id == group_id)
+
+    results = query.order_by(TodoModel.index.asc()).offset(skip).limit(limit).all()
 
     todos = []
     for todo, email in results:
@@ -120,6 +152,9 @@ def create_todo(
     todo_data = todo.model_dump()
     todo_data["user_id"] = current_user.id
 
+    # Validate group ownership if group_id provided
+    validate_group_ownership(db, todo_data.get("group_id"), current_user.id)
+
     max_index = (
         db.query(func.max(TodoModel.index))
         .filter(TodoModel.user_id == current_user.id)
@@ -176,6 +211,11 @@ def update_todo(
 
     # Update only provided fields
     update_data = todo_update.model_dump(exclude_unset=True)
+
+    # Validate group ownership if group_id is being updated
+    if "group_id" in update_data:
+        validate_group_ownership(db, update_data.get("group_id"), current_user.id)
+
     for field, value in update_data.items():
         setattr(todo, field, value)
 

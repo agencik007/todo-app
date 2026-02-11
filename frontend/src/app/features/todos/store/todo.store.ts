@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Todo, TodoCreate, TodoUpdate } from '@api';
 import { delay } from 'rxjs';
+import { GroupStore } from '../../groups/store/group.store';
 import { TodoService } from '../services/todo.service';
 
 /**
@@ -17,6 +18,7 @@ import { TodoService } from '../services/todo.service';
 })
 export class TodoStore {
     private todoService = inject(TodoService);
+    private groupStore = inject(GroupStore);
 
     // Private writable state signals
     private readonly _todos = signal<Todo[]>([]);
@@ -30,16 +32,31 @@ export class TodoStore {
     readonly error = this._error.asReadonly();
     readonly formVisible = this._formVisible.asReadonly();
 
+    // Reactive filtering based on GroupStore selection
+    // If no groups are selected, show all todos
+    readonly filteredTodos = computed(() => {
+        const selectedIds = this.groupStore.selectedGroupIds();
+        const allTodos = this._todos();
+
+        if (selectedIds.length === 0) {
+            return allTodos;
+        }
+
+        return allTodos.filter(
+            (t) => t.group_id && selectedIds.includes(t.group_id),
+        );
+    });
+
     // Computed signals for derived state
     readonly completedTodos = computed(() =>
-        this._todos().filter((todo) => todo.completed),
+        this.filteredTodos().filter((todo) => todo.completed),
     );
 
     readonly pendingTodos = computed(() =>
-        this._todos().filter((todo) => !todo.completed),
+        this.filteredTodos().filter((todo) => !todo.completed),
     );
 
-    readonly totalCount = computed(() => this._todos().length);
+    readonly totalCount = computed(() => this.filteredTodos().length);
 
     readonly editingTodo = computed(
         () => this._todos().find((t) => t.id === this._editingTodoId()) ?? null,

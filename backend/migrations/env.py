@@ -26,7 +26,9 @@ if config.config_file_name is not None:
 from config.database import Base  # noqa: E402
 
 # Import all models to ensure they are registered with Base.metadata
-# from models.password_reset_token import PasswordResetToken # Removed as requested
+from models.user import User  # noqa: E402, F401
+from models.todo import Todo  # noqa: E402, F401
+from models.group import Group  # noqa: E402, F401
 
 target_metadata = Base.metadata
 

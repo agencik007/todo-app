@@ -21,5 +21,6 @@ export interface TodoCreate {
     completed?: boolean;
     is_public?: boolean;
     index?: number;
+    group_id?: number | null;
 }
 

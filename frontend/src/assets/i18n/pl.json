@@ -27,6 +27,18 @@
     "DARK": "Ciemny motyw",
     "SYSTEM": "Motyw systemowy"
   },
+  "COLORS": {
+    "BLUE": "Niebieski",
+    "GREEN": "Zielony",
+    "RED": "Czerwony",
+    "YELLOW": "Żółty",
+    "PURPLE": "Fioletowy",
+    "PINK": "Różowy",
+    "ORANGE": "Pomarańczowy",
+    "TEAL": "Turkusowy",
+    "INDIGO": "Indygo",
+    "GRAY": "Szary"
+  },
   "COLOR_PALETTES": {
     "OCEAN_DEPTH": "Głębia Oceanu",
     "SUNSET_GRADIENT": "Zachód Słońca",
@@ -178,6 +190,8 @@
       "FIELD_TITLE_PLACEHOLDER": "Wpisz tytuł zadania...",
       "FIELD_DESCRIPTION": "Opis",
       "FIELD_DESCRIPTION_PLACEHOLDER": "Dodaj opcjonalny opis...",
+      "FIELD_GROUP": "Grupa",
+      "FIELD_GROUP_HINT": "Opcjonalne - organizuj zadania w grupy",
       "FIELD_PUBLIC": "Publiczne",
       "PUBLIC_INFO": "Zadanie publiczne będzie widoczne dla wszystkich użytkowników",
       "CANCEL": "Anuluj",
@@ -290,5 +304,36 @@
     "USER_LANGUAGE_UPDATED": "Preferencje językowe zostały zaktualizowane",
     "TODO_REORDER_SUCCESS": "Kolejność zadania zaktualizowana pomyślnie",
     "TODO_INVALID_INDEX": "Nieprawidłowy indeks zadania"
+  },
+  "GROUPS": {
+    "SIDEBAR": {
+      "APP_TITLE": "Zadania",
+      "GROUPS": "Grupy",
+      "ADD_GROUP": "Dodaj grupę",
+      "EDIT_GROUP": "Edytuj grupę",
+      "DELETE_GROUP": "Usuń grupę",
+      "CLEAR_SELECTION": "Wyczyść wybór",
+      "COLLAPSE": "Zwiń",
+      "EXPAND": "Rozwiń",
+      "EMPTY_HINT": "Brak grup"
+    },
+    "FORM": {
+      "TITLE_CREATE": "Nowa grupa",
+      "TITLE_EDIT": "Edytuj grupę",
+      "NAME_LABEL": "Nazwa grupy",
+      "NAME_PLACEHOLDER": "Wpisz nazwę...",
+      "COLOR_LABEL": "Kolor",
+      "CREATE": "Stwórz grupę",
+      "UPDATE": "Zaktualizuj",
+      "CANCEL": "Anuluj",
+      "SUBMIT_DELETE": "Usuń",
+      "ERRORS": {
+        "NAME_REQUIRED": "Nazwa grupy jest wymagana"
+      }
+    },
+    "MESSAGES": {
+      "DELETE_CONFIRM_TITLE": "Usuń grupę",
+      "DELETE_CONFIRM_MESSAGE": "Czy na pewno chcesz usunąć grupę \"{{name}}\"? Zadania z tej grupy staną się niezgrupowane."
+    }
   }
 }

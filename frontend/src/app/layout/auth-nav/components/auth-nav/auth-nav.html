@@ -1,6 +1,17 @@
 <p-menubar class="auth-menubar">
     <ng-template #start>
         <div class="flex align-items-center w-full menubar-inner">
+            <!-- Mobile Hamburger -->
+            @if (isInitialized() && isMobile() && isAuthenticated()) {
+                <button
+                    type="button"
+                    class="hamburger-btn mr-3"
+                    (click)="onToggleSidebar()"
+                >
+                    <i class="pi pi-bars"></i>
+                </button>
+            }
+
             <!-- Left: Title -->
             <a
                 style="text-decoration: none"

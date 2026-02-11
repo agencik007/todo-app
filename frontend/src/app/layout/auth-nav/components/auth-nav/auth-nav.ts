@@ -10,6 +10,7 @@ import { filter, startWith } from 'rxjs';
 import { CommandPaletteService } from 'src/app/core/services/command-palette.service';
 import { LanguageService } from 'src/app/core/services/language.service';
 import { ScreenSizeService } from 'src/app/core/services/screen-size.service';
+import { SidebarService } from 'src/app/core/services/sidebar.service';
 import { AuthStore } from 'src/app/core/store/auth.store';
 import { UserProfileComponent } from '../user-profile/user-profile';
 
@@ -34,6 +35,7 @@ export class AuthNavComponent {
     private readonly languageService = inject(LanguageService);
     private readonly screenSize = inject(ScreenSizeService);
     private readonly commandPaletteService = inject(CommandPaletteService);
+    private readonly sidebarService = inject(SidebarService);
 
     // 6. Signals (always readonly)
     readonly isAuthenticated = this.authStore.isAuthenticated;
@@ -55,6 +57,7 @@ export class AuthNavComponent {
 
     // Defer signal access to computed to ensure services are fully initialized
     readonly isCompact = computed(() => this.screenSize.isCompact());
+    readonly isMobile = computed(() => this.screenSize.isMobile());
     readonly isAuthPage = computed(() => {
         const url = this.#currentUrl();
         return url.includes('/login') || url.includes('/register');
@@ -81,5 +84,9 @@ export class AuthNavComponent {
     // 14. Event handlers (use 'on' prefix)
     onOpenCommandPalette(): void {
         this.commandPaletteService.open();
+    }
+
+    onToggleSidebar(): void {
+        this.sidebarService.toggleMobile();
     }
 }

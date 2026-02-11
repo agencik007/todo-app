@@ -27,6 +27,18 @@
     "DARK": "Dark theme",
     "SYSTEM": "System theme"
   },
+  "COLORS": {
+    "BLUE": "Blue",
+    "GREEN": "Green",
+    "RED": "Red",
+    "YELLOW": "Yellow",
+    "PURPLE": "Purple",
+    "PINK": "Pink",
+    "ORANGE": "Orange",
+    "TEAL": "Teal",
+    "INDIGO": "Indigo",
+    "GRAY": "Gray"
+  },
   "COLOR_PALETTES": {
     "OCEAN_DEPTH": "Ocean Depth",
     "SUNSET_GRADIENT": "Sunset Gradient",
@@ -178,6 +190,8 @@
       "FIELD_TITLE_PLACEHOLDER": "Enter task title...",
       "FIELD_DESCRIPTION": "Description",
       "FIELD_DESCRIPTION_PLACEHOLDER": "Add optional description...",
+      "FIELD_GROUP": "Group",
+      "FIELD_GROUP_HINT": "Optional - organize your tasks by group",
       "FIELD_PUBLIC": "Public",
       "PUBLIC_INFO": "A public task will be visible to all users",
       "CANCEL": "Cancel",
@@ -290,5 +304,36 @@
     "USER_LANGUAGE_UPDATED": "Language updated successfully",
     "TODO_REORDER_SUCCESS": "Todo order updated successfully",
     "TODO_INVALID_INDEX": "Invalid todo index"
+  },
+  "GROUPS": {
+    "SIDEBAR": {
+      "APP_TITLE": "Tasks",
+      "GROUPS": "Groups",
+      "ADD_GROUP": "Add Group",
+      "EDIT_GROUP": "Edit Group",
+      "DELETE_GROUP": "Delete Group",
+      "CLEAR_SELECTION": "Clear selection",
+      "COLLAPSE": "Collapse",
+      "EXPAND": "Expand",
+      "EMPTY_HINT": "No groups yet"
+    },
+    "FORM": {
+      "TITLE_CREATE": "New Group",
+      "TITLE_EDIT": "Edit Group",
+      "NAME_LABEL": "Group Name",
+      "NAME_PLACEHOLDER": "Enter name...",
+      "COLOR_LABEL": "Color",
+      "CREATE": "Create Group",
+      "UPDATE": "Update Group",
+      "CANCEL": "Cancel",
+      "SUBMIT_DELETE": "Delete",
+      "ERRORS": {
+        "NAME_REQUIRED": "Group name is required"
+      }
+    },
+    "MESSAGES": {
+      "DELETE_CONFIRM_TITLE": "Delete Group",
+      "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete \"{{name}}\"? Tasks in this group will become ungrouped."
+    }
   }
 }

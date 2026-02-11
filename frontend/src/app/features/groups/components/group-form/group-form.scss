@@ -1,0 +1,10 @@
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep {
+    .p-inputtext {
+        width: 100%;
+    }
+}

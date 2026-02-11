@@ -18,5 +18,6 @@ export interface TodoUpdate {
     completed?: boolean | null;
     is_public?: boolean | null;
     index?: number | null;
+    group_id?: number | null;
 }
 

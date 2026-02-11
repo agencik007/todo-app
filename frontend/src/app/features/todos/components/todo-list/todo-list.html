@@ -1,334 +1,355 @@
 @if (isBrowser()) {
-    <div class="container">
-        @if (!isMenuCollapsed()) {
-            <!-- Header -->
-            <div
-                class="flex justify-content-between align-items-center mb-3 md:mb-4 flex-column-mobile gap-2 md:gap-3"
-            >
-                <div class="w-full-mobile">
-                    <h1 class="m-0 text-2xl md:text-5xl">📝 {{ 'TODOS.TITLE' | translate }}</h1>
-                    <p class="text-color-secondary mt-1 mb-0">
-                        {{ 'TODOS.SUBTITLE' | translate }}
-                    </p>
-                </div>
-                <div class="flex align-items-center gap-2 w-full-mobile">
-                    <p-button
-                        styleClass="w-full-mobile"
-                        size="small"
-                        icon="pi pi-plus"
-                        class="w-full-mobile flex-grow-1"
-                        #addButton
-                        [label]="'TODOS.ADD_BUTTON' | translate"
-                        [autofocus]="true"
-                        (onClick)="showCreateForm()"
-                    />
-                    <p-button
-                        size="small"
-                        severity="secondary"
-                        [text]="true"
-                        [rounded]="true"
-                        [pTooltip]="
-                            (isMenuCollapsed() ? 'TODOS.MENU.EXPAND' : 'TODOS.MENU.COLLAPSE')
-                                | translate
-                        "
-                        [icon]="isMenuCollapsed() ? 'pi pi-chevron-down' : 'pi pi-chevron-up'"
-                        (onClick)="toggleMenu()"
-                    />
-                </div>
-            </div>
+    <div class="flex h-full overflow-hidden relative">
+        <!-- Sidebar -->
+        <app-sidebar class="h-full" />
 
-            <!-- Stats -->
-            <div
-                class="flex mb-3 md:mb-4"
-                [class.gap-3]="!screenSize.isCompact()"
-                [class.gap-2]="screenSize.isCompact()"
-            >
-                <p-card
-                    styleClass="p-0 compact-stats-card"
-                    class="w-full"
-                    [style]="{ flex: 1, textAlign: 'center' }"
+        <div class="container flex-grow-1 overflow-y-auto">
+            @if (!isMenuCollapsed()) {
+                <!-- Header -->
+                <div
+                    class="flex justify-content-between align-items-center mb-3 md:mb-4 flex-column-mobile gap-2 md:gap-3"
                 >
-                    <div class="text-xl md:text-3xl font-bold">{{ totalTodos() }}</div>
-                    <div class="text-xs md:text-sm text-color-secondary">
-                        {{ 'TODOS.STATS.ALL' | translate }}
+                    <div class="w-full-mobile">
+                        <h1 class="m-0 text-2xl md:text-5xl">📝 {{ 'TODOS.TITLE' | translate }}</h1>
+                        <p class="text-color-secondary mt-1 mb-0">
+                            {{ 'TODOS.SUBTITLE' | translate }}
+                        </p>
                     </div>
-                </p-card>
-                <p-card
-                    styleClass="p-0 compact-stats-card"
-                    class="w-full"
-                    [style]="{ flex: 1, textAlign: 'center' }"
-                >
-                    <div
-                        style="color: var(--p-orange-500)"
-                        class="text-xl md:text-3xl font-bold"
-                    >
-                        {{ pendingTodos().length }}
+                    <div class="flex align-items-center gap-2 w-full-mobile">
+                        <p-button
+                            styleClass="w-full-mobile"
+                            size="small"
+                            icon="pi pi-plus"
+                            class="w-full-mobile flex-grow-1"
+                            #addButton
+                            [label]="'TODOS.ADD_BUTTON' | translate"
+                            [autofocus]="true"
+                            (onClick)="showCreateForm()"
+                        />
+                        <p-button
+                            size="small"
+                            severity="secondary"
+                            [text]="true"
+                            [rounded]="true"
+                            [pTooltip]="
+                                (isMenuCollapsed() ? 'TODOS.MENU.EXPAND' : 'TODOS.MENU.COLLAPSE')
+                                    | translate
+                            "
+                            [icon]="isMenuCollapsed() ? 'pi pi-chevron-down' : 'pi pi-chevron-up'"
+                            (onClick)="toggleMenu()"
+                        />
                     </div>
-                    <div class="text-xs md:text-sm text-color-secondary">
-                        {{ 'TODOS.STATS.PENDING' | translate }}
-                    </div>
-                </p-card>
-                <p-card
-                    styleClass="p-0 compact-stats-card"
-                    class="w-full"
-                    [style]="{ flex: 1, textAlign: 'center' }"
-                >
-                    <div
-                        style="color: var(--p-green-500)"
-                        class="text-xl md:text-3xl font-bold"
-                    >
-                        {{ completedTodos().length }}
-                    </div>
-                    <div class="text-xs md:text-sm text-color-secondary">
-                        {{ 'TODOS.STATS.COMPLETED' | translate }}
-                    </div>
-                </p-card>
-            </div>
-        } @else {
-            <!-- Collapsed view -->
-            <div
-                class="collapsed-header flex align-items-center justify-content-between mb-3 px-2 py-1 surface-card border-round shadow-1"
-            >
-                <div class="flex align-items-center gap-3">
-                    <span class="text-xl">📝</span>
-                    <span
-                        tooltipPosition="bottom"
-                        class="stats-summary font-bold text-lg cursor-help"
-                        [pTooltip]="'TODOS.STATS.SUMMARY_TOOLTIP' | translate"
-                    >
-                        {{ totalTodos() }} /
-                        <span style="color: var(--p-orange-500)">{{ pendingTodos().length }}</span>
-                        /
-                        <span style="color: var(--p-green-500)">{{ completedTodos().length }}</span>
-                    </span>
                 </div>
-                <div class="flex align-items-center gap-1">
-                    <p-button
-                        tooltipPosition="left"
-                        severity="success"
-                        icon="pi pi-plus"
-                        #addButtonCollapsed
-                        [text]="true"
-                        [rounded]="true"
-                        [pTooltip]="'TODOS.ADD_BUTTON' | translate"
-                        [autofocus]="true"
-                        (onClick)="showCreateForm()"
-                    />
-                    <p-button
-                        size="small"
-                        severity="secondary"
-                        [text]="true"
-                        [rounded]="true"
-                        [pTooltip]="
-                            (isMenuCollapsed() ? 'TODOS.MENU.EXPAND' : 'TODOS.MENU.COLLAPSE')
-                                | translate
-                        "
-                        [icon]="isMenuCollapsed() ? 'pi pi-chevron-down' : 'pi pi-chevron-up'"
-                        (onClick)="toggleMenu()"
-                    />
+
+                <!-- Stats -->
+                <div
+                    class="flex mb-3 md:mb-4"
+                    [class.gap-3]="!screenSize.isCompact()"
+                    [class.gap-2]="screenSize.isCompact()"
+                >
+                    <p-card
+                        styleClass="p-0 compact-stats-card"
+                        class="w-full"
+                        [style]="{ flex: 1, textAlign: 'center' }"
+                    >
+                        <div class="text-xl md:text-3xl font-bold">{{ totalTodos() }}</div>
+                        <div class="text-xs md:text-sm text-color-secondary">
+                            {{ 'TODOS.STATS.ALL' | translate }}
+                        </div>
+                    </p-card>
+                    <p-card
+                        styleClass="p-0 compact-stats-card"
+                        class="w-full"
+                        [style]="{ flex: 1, textAlign: 'center' }"
+                    >
+                        <div
+                            style="color: var(--p-orange-500)"
+                            class="text-xl md:text-3xl font-bold"
+                        >
+                            {{ pendingTodos().length }}
+                        </div>
+                        <div class="text-xs md:text-sm text-color-secondary">
+                            {{ 'TODOS.STATS.PENDING' | translate }}
+                        </div>
+                    </p-card>
+                    <p-card
+                        styleClass="p-0 compact-stats-card"
+                        class="w-full"
+                        [style]="{ flex: 1, textAlign: 'center' }"
+                    >
+                        <div
+                            style="color: var(--p-green-500)"
+                            class="text-xl md:text-3xl font-bold"
+                        >
+                            {{ completedTodos().length }}
+                        </div>
+                        <div class="text-xs md:text-sm text-color-secondary">
+                            {{ 'TODOS.STATS.COMPLETED' | translate }}
+                        </div>
+                    </p-card>
                 </div>
-            </div>
-        }
-
-        <!-- Error Message -->
-        @if (error()) {
-            <p-message
-                styleClass="mb-3 w-full"
-                severity="error"
-                [closable]="true"
-                (onClose)="clearError()"
-            >
-                {{ error() }}
-            </p-message>
-        }
-
-        <div
-            class="scrollable-area"
-            cdkScrollable
-            #scrollContainer
-        >
-            <!-- Loading State (Skeletons) -->
-            @if (loading()) {
-                <div class="flex flex-column gap-2">
-                    @for (i of [1, 2, 3]; track i) {
-                        <p-card>
-                            <div class="flex align-items-center gap-3">
-                                <p-skeleton
-                                    size="24px"
-                                    shape="circle"
-                                />
-                                <div class="flex-grow-1">
-                                    <p-skeleton
-                                        width="60%"
-                                        height="1.2rem"
-                                        class="mb-2"
-                                    />
-                                    <p-skeleton
-                                        width="40%"
-                                        height="0.8rem"
-                                    />
-                                </div>
-                                <div class="flex align-items-center gap-2">
-                                    <p-skeleton
-                                        width="80px"
-                                        height="2rem"
-                                        borderRadius="16px"
-                                    />
-                                    <p-skeleton
-                                        size="2.5rem"
-                                        shape="circle"
-                                    />
-                                    <p-skeleton
-                                        size="2.5rem"
-                                        shape="circle"
-                                    />
-                                </div>
-                            </div>
-                        </p-card>
-                    }
+            } @else {
+                <!-- Collapsed view -->
+                <div
+                    class="collapsed-header flex align-items-center justify-content-between mb-3 px-2 py-1 surface-card border-round shadow-1"
+                >
+                    <div class="flex align-items-center gap-3">
+                        <span class="text-xl">📝</span>
+                        <span
+                            tooltipPosition="bottom"
+                            class="stats-summary font-bold text-lg cursor-help"
+                            [pTooltip]="'TODOS.STATS.SUMMARY_TOOLTIP' | translate"
+                        >
+                            {{ totalTodos() }} /
+                            <span style="color: var(--p-orange-500)">{{
+                                pendingTodos().length
+                            }}</span>
+                            /
+                            <span style="color: var(--p-green-500)">{{
+                                completedTodos().length
+                            }}</span>
+                        </span>
+                    </div>
+                    <div class="flex align-items-center gap-1">
+                        <p-button
+                            tooltipPosition="left"
+                            icon="pi pi-plus"
+                            #addButtonCollapsed
+                            [text]="true"
+                            [rounded]="true"
+                            [pTooltip]="'TODOS.ADD_BUTTON' | translate"
+                            [autofocus]="true"
+                            (onClick)="showCreateForm()"
+                        />
+                        <p-button
+                            size="small"
+                            severity="secondary"
+                            [text]="true"
+                            [rounded]="true"
+                            [pTooltip]="
+                                (isMenuCollapsed() ? 'TODOS.MENU.EXPAND' : 'TODOS.MENU.COLLAPSE')
+                                    | translate
+                            "
+                            [icon]="isMenuCollapsed() ? 'pi pi-chevron-down' : 'pi pi-chevron-up'"
+                            (onClick)="toggleMenu()"
+                        />
+                    </div>
                 </div>
             }
 
-            <!-- Todo List -->
-            @if (!loading() && todos().length > 0) {
-                <div
-                    id="todoList"
-                    class="flex flex-column gap-2"
-                    cdkDropList
-                    (cdkDropListDropped)="onDrop($event)"
+            <!-- Error Message -->
+            @if (error()) {
+                <p-message
+                    styleClass="mb-3 w-full"
+                    severity="error"
+                    [closable]="true"
+                    (onClose)="clearError()"
                 >
-                    @for (todo of todos(); track todo.id) {
-                        <p-card
-                            cdkDrag
-                            [cdkDragDisabled]="!canEditTodo(todo)"
-                            [cdkDragData]="todo"
-                            (cdkDragMoved)="onDragMoved($event)"
-                            (cdkDragEnded)="onDragEnded()"
-                        >
-                            <div class="flex align-items-center gap-3 relative todo-item-content">
-                                <div class="flex align-items-center gap-3 w-full">
-                                    @if (canEditTodo(todo)) {
-                                        <div class="flex flex-column align-items-center gap-1 mt-2">
-                                            <!-- Drag Handle -->
-                                            <div
-                                                class="drag-handle p-1 cursor-move text-color-secondary"
-                                                cdkDragHandle
-                                                [title]="'TODOS.DRAG_HANDLE' | translate"
-                                            >
-                                                <i class="pi pi-bars text-xs"></i>
-                                            </div>
+                    {{ error() }}
+                </p-message>
+            }
 
-                                            <p-checkbox
-                                                [ngModel]="todo.completed"
-                                                [binary]="true"
-                                                (onChange)="toggleTodoCompletion(todo)"
+            <div
+                class="scrollable-area"
+                cdkScrollable
+                #scrollContainer
+            >
+                <!-- Loading State (Skeletons) -->
+                @if (loading()) {
+                    <div class="flex flex-column gap-2">
+                        @for (i of [1, 2, 3]; track i) {
+                            <p-card>
+                                <div class="flex align-items-center gap-3">
+                                    <p-skeleton
+                                        size="24px"
+                                        shape="circle"
+                                    />
+                                    <div class="flex-grow-1">
+                                        <p-skeleton
+                                            width="60%"
+                                            height="1.2rem"
+                                            class="mb-2"
+                                        />
+                                        <p-skeleton
+                                            width="40%"
+                                            height="0.8rem"
+                                        />
+                                    </div>
+                                    <div class="flex align-items-center gap-2">
+                                        <p-skeleton
+                                            width="80px"
+                                            height="2rem"
+                                            borderRadius="16px"
+                                        />
+                                        <p-skeleton
+                                            size="2.5rem"
+                                            shape="circle"
+                                        />
+                                        <p-skeleton
+                                            size="2.5rem"
+                                            shape="circle"
+                                        />
+                                    </div>
+                                </div>
+                            </p-card>
+                        }
+                    </div>
+                }
+
+                <!-- Todo List -->
+                @if (!loading() && todos().length > 0) {
+                    <div
+                        id="todoList"
+                        class="flex flex-column gap-2"
+                        cdkDropList
+                        (cdkDropListDropped)="onDrop($event)"
+                    >
+                        @for (todo of todos(); track todo.id) {
+                            <p-card
+                                cdkDrag
+                                [cdkDragDisabled]="!canEditTodo(todo)"
+                                [cdkDragData]="todo"
+                                (cdkDragMoved)="onDragMoved($event)"
+                                (cdkDragEnded)="onDragEnded()"
+                            >
+                                <div
+                                    class="flex align-items-center gap-3 relative todo-item-content"
+                                >
+                                    <div class="flex align-items-center gap-3 w-full">
+                                        @if (canEditTodo(todo)) {
+                                            <div
+                                                class="flex flex-column align-items-center gap-1 mt-2"
+                                            >
+                                                <!-- Drag Handle -->
+                                                <div
+                                                    class="drag-handle p-1 cursor-move text-color-secondary"
+                                                    cdkDragHandle
+                                                    [title]="'TODOS.DRAG_HANDLE' | translate"
+                                                >
+                                                    <i class="pi pi-bars text-xs"></i>
+                                                </div>
+
+                                                <p-checkbox
+                                                    [ngModel]="todo.completed"
+                                                    [binary]="true"
+                                                    (onChange)="toggleTodoCompletion(todo)"
+                                                />
+                                            </div>
+                                        }
+                                        <div
+                                            style="min-width: 0"
+                                            class="flex-grow-1"
+                                        >
+                                            <div
+                                                style="word-break: break-word"
+                                                class="font-semibold"
+                                                [class.text-color-secondary]="todo.completed"
+                                                [class.line-through]="todo.completed"
+                                            >
+                                                {{ todo.title }}
+                                            </div>
+                                            @if (todo.description) {
+                                                <div class="text-sm text-color-secondary mt-1">
+                                                    {{ todo.description }}
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    @if (todo.group_id && getGroupById(todo.group_id)) {
+                                        <div class="group-badge-container">
+                                            <app-group-badge
+                                                size="md"
+                                                [group]="getGroupById(todo.group_id)"
                                             />
                                         </div>
                                     }
+
                                     <div
-                                        style="min-width: 0"
-                                        class="flex-grow-1"
+                                        class="flex align-items-center gap-1 flex-wrap"
+                                        [class.w-full]="screenSize.isCompact()"
+                                        [class.justify-content-end]="screenSize.isCompact()"
                                     >
-                                        <div
-                                            style="word-break: break-word"
-                                            class="font-semibold"
-                                            [class.text-color-secondary]="todo.completed"
-                                            [class.line-through]="todo.completed"
-                                        >
-                                            {{ todo.title }}
-                                        </div>
-                                        @if (todo.description) {
-                                            <div class="text-sm text-color-secondary mt-1">
-                                                {{ todo.description }}
+                                        <p-tag
+                                            [value]="
+                                                (todo.completed
+                                                    ? 'TODOS.LIST.STATUS_COMPLETED'
+                                                    : 'TODOS.LIST.STATUS_PENDING'
+                                                ) | translate
+                                            "
+                                            [severity]="todo.completed ? 'success' : 'warn'"
+                                        />
+                                        @if (todo.is_public) {
+                                            <p-tag
+                                                severity="info"
+                                                [value]="'TODOS.LIST.PUBLIC' | translate"
+                                            />
+                                        }
+                                        @if (canEditTodo(todo)) {
+                                            <div class="flex gap-1">
+                                                <p-button
+                                                    severity="secondary"
+                                                    icon="pi pi-pencil"
+                                                    [text]="true"
+                                                    [rounded]="true"
+                                                    (onClick)="editTodo(todo)"
+                                                />
+                                                <p-button
+                                                    severity="danger"
+                                                    icon="pi pi-trash"
+                                                    [text]="true"
+                                                    [rounded]="true"
+                                                    (onClick)="deleteTodo(todo)"
+                                                />
                                             </div>
                                         }
                                     </div>
                                 </div>
-
-                                <div
-                                    class="flex align-items-center gap-1 flex-wrap"
-                                    [class.w-full]="screenSize.isCompact()"
-                                    [class.justify-content-end]="screenSize.isCompact()"
-                                >
-                                    <p-tag
-                                        [value]="
-                                            (todo.completed
-                                                ? 'TODOS.LIST.STATUS_COMPLETED'
-                                                : 'TODOS.LIST.STATUS_PENDING'
-                                            ) | translate
-                                        "
-                                        [severity]="todo.completed ? 'success' : 'warn'"
-                                    />
-                                    @if (todo.is_public) {
-                                        <p-tag
-                                            severity="info"
-                                            [value]="'TODOS.LIST.PUBLIC' | translate"
-                                        />
-                                    }
-                                    @if (canEditTodo(todo)) {
-                                        <div class="flex gap-1">
-                                            <p-button
-                                                severity="secondary"
-                                                icon="pi pi-pencil"
-                                                [text]="true"
-                                                [rounded]="true"
-                                                (onClick)="editTodo(todo)"
-                                            />
-                                            <p-button
-                                                severity="danger"
-                                                icon="pi pi-trash"
-                                                [text]="true"
-                                                [rounded]="true"
-                                                (onClick)="deleteTodo(todo)"
-                                            />
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </p-card>
-                    }
-                </div>
-            }
-
-            <!-- Empty State -->
-            @if (!loading() && todos().length === 0) {
-                <p-card>
-                    <div class="flex flex-column align-items-center py-6">
-                        <span class="text-6xl mb-3">📝</span>
-                        <h3 class="m-0 mb-2">{{ 'TODOS.LIST.EMPTY_TITLE' | translate }}</h3>
-                        <p class="text-color-secondary mb-3">
-                            {{ 'TODOS.LIST.EMPTY_MESSAGE' | translate }}
-                        </p>
-                        <p-button
-                            icon="pi pi-plus"
-                            [label]="'TODOS.LIST.ADD_FIRST' | translate"
-                            (onClick)="showCreateForm()"
-                        />
+                            </p-card>
+                        }
                     </div>
-                </p-card>
-            }
-        </div>
+                }
 
-        <!-- Todo Form Dialog -->
-        <p-dialog
-            [visible]="formVisible()"
-            [style]="{ width: 'auto' }"
-            [modal]="true"
-            [header]="
-                (editingTodo() ? 'TODOS.FORM.TITLE_EDIT' : 'TODOS.FORM.TITLE_ADD') | translate
-            "
-            (visibleChange)="onVisibleChange($event)"
-            (onHide)="onDialogHide()"
-        >
-            <app-todo-form
-                [todo]="editingTodo()"
-                (save)="saveTodo($event)"
-                (cancelTodo)="closeForm()"
+                <!-- Empty State -->
+                @if (!loading() && todos().length === 0) {
+                    <p-card>
+                        <div class="flex flex-column align-items-center py-6">
+                            <span class="text-6xl mb-3">📝</span>
+                            <h3 class="m-0 mb-2">{{ 'TODOS.LIST.EMPTY_TITLE' | translate }}</h3>
+                            <p class="text-color-secondary mb-3">
+                                {{ 'TODOS.LIST.EMPTY_MESSAGE' | translate }}
+                            </p>
+                            <p-button
+                                icon="pi pi-plus"
+                                [label]="'TODOS.LIST.ADD_FIRST' | translate"
+                                (onClick)="showCreateForm()"
+                            />
+                        </div>
+                    </p-card>
+                }
+            </div>
+
+            <!-- Todo Form Dialog -->
+            <p-dialog
+                [visible]="formVisible()"
+                [style]="{ width: 'auto' }"
+                [modal]="true"
+                [header]="
+                    (editingTodo() ? 'TODOS.FORM.TITLE_EDIT' : 'TODOS.FORM.TITLE_ADD') | translate
+                "
+                (visibleChange)="onVisibleChange($event)"
+                (onHide)="onDialogHide()"
             >
-            </app-todo-form>
-        </p-dialog>
+                <app-todo-form
+                    [todo]="editingTodo()"
+                    (save)="saveTodo($event)"
+                    (cancelTodo)="closeForm()"
+                >
+                </app-todo-form>
+            </p-dialog>
 
-        <!-- Confirm Delete Dialog -->
-        <p-confirmDialog />
+            <!-- Confirm Delete Dialog -->
+            <p-confirmDialog />
+        </div>
     </div>
 }

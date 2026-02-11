@@ -3,7 +3,6 @@ import {
     CdkDragMove,
     DragDropModule,
 } from '@angular/cdk/drag-drop';
-import { ScrollingModule } from '@angular/cdk/scrolling';
 import { isPlatformBrowser } from '@angular/common';
 import {
     Component,
@@ -30,6 +29,9 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { AuthStore } from '../../../../core/store/auth.store';
+import { GroupBadgeComponent } from '../../../groups/components/group-badge/group-badge.component';
+import { SidebarComponent } from '../../../groups/components/sidebar/sidebar.component';
+import { GroupStore } from '../../../groups/store/group.store';
 import { TodoStore } from '../../store/todo.store';
 import { TodoFormComponent } from '../todo-form/todo-form';
 
@@ -48,8 +50,9 @@ import { TodoFormComponent } from '../todo-form/todo-form';
         ConfirmDialogModule,
         TranslatePipe,
         DragDropModule,
-        ScrollingModule,
         TooltipModule,
+        SidebarComponent,
+        GroupBadgeComponent,
     ],
     providers: [ConfirmationService],
     templateUrl: './todo-list.html',
@@ -59,6 +62,7 @@ export class TodoListComponent implements OnInit {
     // Inject TodoStore for centralized state management
     readonly store = inject(TodoStore);
     private authStore = inject(AuthStore);
+    private groupStore = inject(GroupStore);
     private confirmationService = inject(ConfirmationService);
     private platformId = inject(PLATFORM_ID);
     private translate = inject(TranslateService);
@@ -68,7 +72,7 @@ export class TodoListComponent implements OnInit {
     isMenuCollapsed = signal(false);
 
     // Expose store signals directly to template
-    readonly todos = this.store.todos;
+    readonly todos = this.store.filteredTodos;
     readonly loading = this.store.loading;
     readonly error = this.store.error;
     readonly editingTodo = this.store.editingTodo;
@@ -103,6 +107,7 @@ export class TodoListComponent implements OnInit {
         this.isBrowser.set(isPlatformBrowser(this.platformId));
         if (this.isBrowser()) {
             this.store.loadTodos();
+            this.groupStore.loadGroups();
 
             const saved = localStorage.getItem('todo_menu_collapsed');
             if (saved !== null) {
@@ -280,5 +285,10 @@ export class TodoListComponent implements OnInit {
 
     clearError(): void {
         this.store.clearError();
+    }
+
+    getGroupById(groupId: number | null | undefined): any {
+        if (!groupId) return undefined;
+        return this.groupStore.groups().find((g) => g.id === groupId);
     }
 }

@@ -4,6 +4,7 @@ api.base.service.ts
 api.module.ts
 api/api.ts
 api/auth.service.ts
+api/groups.service.ts
 api/health.service.ts
 api/todos.service.ts
 api/users.service.ts
@@ -11,6 +12,10 @@ configuration.ts
 encoder.ts
 git_push.sh
 index.ts
+model/group.ts
+model/groupColor.ts
+model/groupCreate.ts
+model/groupUpdate.ts
 model/hTTPValidationError.ts
 model/locationInner.ts
 model/models.ts

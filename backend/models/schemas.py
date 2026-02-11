@@ -7,6 +7,44 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 
+from models.group import GroupColor
+
+
+# =============================================================================
+# Group Schemas
+# =============================================================================
+
+
+class GroupBase(BaseModel):
+    """Base schema for groups."""
+
+    name: str = Field(..., min_length=1, max_length=50, description="Group name")
+    color: GroupColor = GroupColor.BLUE
+
+
+class GroupCreate(GroupBase):
+    """Schema for creating a new group."""
+
+    pass
+
+
+class GroupUpdate(BaseModel):
+    """Schema for updating a group."""
+
+    name: Optional[str] = Field(None, min_length=1, max_length=50)
+    color: Optional[GroupColor] = None
+
+
+class Group(GroupBase):
+    """Schema for group API responses."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+
 
 # =============================================================================
 # Todo Schemas
@@ -21,6 +59,7 @@ class TodoBase(BaseModel):
     completed: bool = False
     is_public: bool = False
     index: int = 0
+    group_id: Optional[int] = None
 
 
 class TodoCreate(TodoBase):
@@ -37,6 +76,7 @@ class TodoUpdate(BaseModel):
     completed: Optional[bool] = None
     is_public: Optional[bool] = None
     index: Optional[int] = None
+    group_id: Optional[int] = None
 
 
 class Todo(TodoBase):
@@ -49,6 +89,7 @@ class Todo(TodoBase):
     owner_email: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    group: Optional[Group] = None
 
 
 # =============================================================================
