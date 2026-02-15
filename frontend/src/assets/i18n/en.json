@@ -230,7 +230,9 @@
       "AVATAR": "Avatar",
       "ACCOUNT": "Account",
       "TODO": "Tasks",
-      "TASK_ACTION": "Task Actions"
+      "TASK_ACTION": "Task Actions",
+      "GROUP": "Groups",
+      "GROUP_ACTION": "Group Actions"
     },
     "COMMANDS": {
       "COLOR_OCEAN": "Ocean Depth",
@@ -253,7 +255,11 @@
       "TASK_EDIT_DESC": "Edit",
       "TASK_DELETE_DESC": "Delete",
       "TASK_DONE_DESC": "Mark as done",
-      "TASK_UNDO_DESC": "Mark as undone"
+      "TASK_UNDO_DESC": "Mark as undone",
+      "GROUP_ADD": "Add group",
+      "GROUP_SELECT": "Select group",
+      "GROUP_UNSELECT": "Unselect group",
+      "GROUP_DELETE_DESC": "Delete"
     },
     "SHORTCUTS": {
       "SELECT": "to select",
@@ -315,7 +321,8 @@
       "CLEAR_SELECTION": "Clear selection",
       "COLLAPSE": "Collapse",
       "EXPAND": "Expand",
-      "EMPTY_HINT": "No groups yet"
+      "EMPTY_HINT": "No groups yet",
+      "ALL_TASKS": "All tasks"
     },
     "FORM": {
       "TITLE_CREATE": "New Group",

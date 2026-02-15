@@ -8,6 +8,7 @@ import {
     signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { GroupStore } from '../../features/groups/store/group.store';
 import { TodoStore } from '../../features/todos/store/todo.store';
 import { BASE_COMMANDS_CONFIG } from '../../shared/components/command-palette/commands';
 import { AuthStore } from '../store/auth.store';
@@ -23,7 +24,9 @@ export type CommandCategory =
     | 'avatar'
     | 'account'
     | 'todo'
-    | 'task_action';
+    | 'task_action'
+    | 'group'
+    | 'group_action';
 
 export interface Command {
     id: string;
@@ -50,6 +53,7 @@ export class CommandPaletteService {
     readonly #snowService = inject(SnowService);
     readonly #authStore = inject(AuthStore);
     readonly #todoStore = inject(TodoStore);
+    readonly #groupStore = inject(GroupStore);
     readonly #router = inject(Router);
 
     // State signals
@@ -115,6 +119,9 @@ export class CommandPaletteService {
             case 'todo-add':
                 this.addTodo();
                 break;
+            case 'group-add-static':
+                this.addGroup();
+                break;
         }
     }
 
@@ -127,6 +134,7 @@ export class CommandPaletteService {
         if (id === 'avatar-delete') return isAuthenticated && hasAvatar;
         if (id === 'logout') return isAuthenticated;
         if (id === 'todo-add') return isAuthenticated;
+        if (id === 'group-add-static') return isAuthenticated;
         return true;
     }
 
@@ -144,29 +152,29 @@ export class CommandPaletteService {
         if (!this.#authStore.isAuthenticated()) return [];
 
         const allTodos = this.#todoStore.todos();
-        const tasks = queryLower
-            ? allTodos.filter((t) => t.title.toLowerCase().includes(queryLower))
-            : allTodos;
-
+        const allGroups = this.#groupStore.groups();
         const commands: Command[] = [];
 
-        tasks.forEach((task) => {
-            // Edit Command (only shown when searching)
-            if (queryLower) {
-                commands.push({
-                    id: `task-edit-${task.id}`,
-                    labelKey: 'COMMAND_PALETTE.COMMANDS.TASK_EDIT_DESC',
-                    customLabel: task.title,
-                    icon: 'pi pi-pencil',
-                    category: 'task_action' as CommandCategory,
-                    action: (): void => {
-                        this.#todoStore.showEditForm(task.id);
-                        this.close();
-                    },
-                });
-            }
+        // --- Task Commands ---
+        const tasks = queryLower
+            ? allTodos.filter((t) => t.title.toLowerCase().includes(queryLower))
+            : []; // Only show tasks when searching in palette to avoid clutter
 
-            // Toggle Command (always shown)
+        tasks.forEach((task) => {
+            // Edit Command
+            commands.push({
+                id: `task-edit-${task.id}`,
+                labelKey: 'COMMAND_PALETTE.COMMANDS.TASK_EDIT_DESC',
+                customLabel: task.title,
+                icon: 'pi pi-pencil',
+                category: 'task_action' as CommandCategory,
+                action: (): void => {
+                    this.#todoStore.showEditForm(task.id);
+                    this.close();
+                },
+            });
+
+            // Toggle Command
             commands.push({
                 id: `task-toggle-${task.id}`,
                 labelKey: task.completed
@@ -174,30 +182,87 @@ export class CommandPaletteService {
                     : 'COMMAND_PALETTE.COMMANDS.TASK_DONE_DESC',
                 customLabel: task.title,
                 icon: task.completed ? 'pi pi-circle' : 'pi pi-check-circle',
-                category: queryLower
-                    ? ('task_action' as CommandCategory)
-                    : ('todo' as CommandCategory),
+                category: 'task_action' as CommandCategory,
                 action: (): void => {
                     this.#todoStore.toggleTodo(task);
                     this.close();
                 },
             });
 
-            // Delete Command (only shown when searching)
+            // Delete Command
+            commands.push({
+                id: `task-delete-${task.id}`,
+                labelKey: 'COMMAND_PALETTE.COMMANDS.TASK_DELETE_DESC',
+                customLabel: task.title,
+                icon: 'pi pi-trash',
+                category: 'task_action' as CommandCategory,
+                action: (): void => {
+                    this.#todoStore.deleteTodo(task.id);
+                    this.close();
+                },
+            });
+        });
+
+        // --- Group Commands ---
+        const matchedGroups = queryLower
+            ? allGroups.filter((g) => g.name.toLowerCase().includes(queryLower))
+            : allGroups;
+
+        matchedGroups.forEach((group) => {
+            const isSelected = this.#groupStore
+                .selectedGroupIds()
+                .includes(group.id);
+
+            // Select/Unselect Group
+            commands.push({
+                id: `group-select-${group.id}`,
+                labelKey: isSelected
+                    ? 'COMMAND_PALETTE.COMMANDS.GROUP_UNSELECT'
+                    : 'COMMAND_PALETTE.COMMANDS.GROUP_SELECT',
+                customLabel: group.name,
+                icon: isSelected ? 'pi pi-check-square' : 'pi pi-stop',
+                category: queryLower
+                    ? ('group_action' as CommandCategory)
+                    : ('group' as CommandCategory),
+                action: (): void => {
+                    this.#groupStore.toggleGroupSelection(group.id);
+                    if (queryLower) this.close();
+                },
+            });
+
+            // Delete Group (only when searching)
             if (queryLower) {
                 commands.push({
-                    id: `task-delete-${task.id}`,
-                    labelKey: 'COMMAND_PALETTE.COMMANDS.TASK_DELETE_DESC',
-                    customLabel: task.title,
+                    id: `group-delete-${group.id}`,
+                    labelKey: 'COMMAND_PALETTE.COMMANDS.GROUP_DELETE_DESC',
+                    customLabel: group.name,
                     icon: 'pi pi-trash',
-                    category: 'task_action' as CommandCategory,
+                    category: 'group_action' as CommandCategory,
                     action: (): void => {
-                        this.#todoStore.deleteTodo(task.id);
+                        this.#groupStore.deleteGroup(group.id);
                         this.close();
                     },
                 });
             }
         });
+
+        // --- "Add Group" Command ---
+        if (
+            queryLower &&
+            !allGroups.some((g) => g.name.toLowerCase() === queryLower)
+        ) {
+            commands.push({
+                id: 'group-add-dynamic',
+                labelKey: 'COMMAND_PALETTE.COMMANDS.GROUP_ADD',
+                customLabel: queryLower,
+                icon: 'pi pi-plus-circle',
+                category: 'group' as CommandCategory,
+                action: (): void => {
+                    this.#groupStore.createGroup({ name: queryLower });
+                    this.close();
+                },
+            });
+        }
 
         return commands;
     }
@@ -283,5 +348,10 @@ export class CommandPaletteService {
     private addTodo(): void {
         this.#todoStore.showCreateForm();
         this.close();
+    }
+
+    private addGroup(): void {
+        // Just focus search for now as we have dynamic "Add" action
+        this.open();
     }
 }

@@ -8,7 +8,7 @@
         'size-lg': size() === 'lg',
         clickable: clickable(),
     }"
-    [attr.aria-label]="group()?.name"
+    [attr.aria-label]="group().name"
     (keydown.space)="onClick()"
     (keydown.enter)="onClick()"
     (click)="onClick()"
@@ -17,5 +17,5 @@
         class="dot"
         [class]="colorConfig().cssClass"
     ></span>
-    <span class="badge-text">{{ group()?.name }}</span>
+    <span class="badge-text">{{ group().name }}</span>
 </span>

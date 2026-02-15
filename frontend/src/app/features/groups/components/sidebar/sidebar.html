@@ -59,72 +59,110 @@
         role="menu"
         class="sidebar-nav"
     >
+        <!-- All Tasks Button -->
+        <button
+            type="button"
+            tooltipPosition="right"
+            class="nav-item"
+            [pTooltip]="isCollapsed() ? ('GROUPS.SIDEBAR.ALL_TASKS' | translate) : null"
+            [class.active]="!hasSelection()"
+            (click)="clearSelection($event)"
+        >
+            <i
+                class="pi pi-inbox"
+                aria-hidden="true"
+            ></i>
+            @if (!isCollapsed() || screenSize.isMobile()) {
+                <span class="nav-label">{{ 'GROUPS.SIDEBAR.ALL_TASKS' | translate }}</span>
+            }
+        </button>
         <!-- Groups Section -->
         <div class="nav-section">
             <!-- Section Header -->
             <div class="section-header">
-                <button
-                    type="button"
-                    tooltipPosition="right"
-                    class="section-toggle"
-                    aria-controls="groups-list"
-                    [pTooltip]="isCollapsed() ? ('GROUPS.SIDEBAR.GROUPS' | translate) : null"
-                    [attr.aria-expanded]="groupsExpanded()"
-                    (click)="toggleGroups($event)"
-                >
-                    <i
-                        aria-hidden="true"
-                        [class]="
-                            isCollapsed()
-                                ? 'pi pi-folder'
-                                : groupsExpanded()
-                                  ? 'pi pi-chevron-down'
-                                  : 'pi pi-chevron-right'
-                        "
-                        [class.expand-icon]="!isCollapsed()"
-                    ></i>
-                    <!-- Expansion indicator for collapsed mode -->
-                    @if (isCollapsed() && groupsExpanded()) {
-                        <span class="expansion-dot"></span>
-                    }
-                    @if (!isCollapsed() || screenSize.isMobile()) {
-                        <span class="section-label">{{ 'GROUPS.SIDEBAR.GROUPS' | translate }}</span>
-                    }
-                </button>
+                @if (isCollapsed() && groups().length === 0 && !screenSize.isMobile()) {
+                    <button
+                        type="button"
+                        tooltipPosition="right"
+                        class="section-toggle"
+                        [pTooltip]="'GROUPS.SIDEBAR.ADD_GROUP' | translate"
+                        [attr.aria-label]="'GROUPS.SIDEBAR.ADD_GROUP' | translate"
+                        (click)="showAddDialog($event)"
+                    >
+                        <i
+                            class="pi pi-plus"
+                            aria-hidden="true"
+                        ></i>
+                    </button>
+                } @else {
+                    <button
+                        type="button"
+                        tooltipPosition="right"
+                        class="section-toggle"
+                        aria-controls="groups-list"
+                        [pTooltip]="isCollapsed() ? ('GROUPS.SIDEBAR.GROUPS' | translate) : null"
+                        [attr.aria-expanded]="groupsExpanded()"
+                        (click)="toggleGroups($event)"
+                    >
+                        <i
+                            aria-hidden="true"
+                            [class]="
+                                isCollapsed()
+                                    ? 'pi pi-folder'
+                                    : groupsExpanded()
+                                      ? 'pi pi-chevron-down'
+                                      : 'pi pi-chevron-right'
+                            "
+                            [class.expand-icon]="!isCollapsed()"
+                        ></i>
+                        <!-- Expansion indicator for collapsed mode -->
+                        @if (isCollapsed() && groupsExpanded()) {
+                            <span class="expansion-dot"></span>
+                        }
+                        @if (isCollapsed() && !groupsExpanded() && hasSelection()) {
+                            <span class="selection-indicator"></span>
+                        }
+                        @if (!isCollapsed() || screenSize.isMobile()) {
+                            <span class="section-label">{{
+                                'GROUPS.SIDEBAR.GROUPS' | translate
+                            }}</span>
+                        }
+                    </button>
 
-                @if (!isCollapsed() || screenSize.isMobile()) {
-                    <div class="section-actions">
-                        <!-- Clear selection button -->
-                        @if (hasSelection()) {
+                    @if (!isCollapsed() || screenSize.isMobile()) {
+                        <div class="section-actions">
+                            <!-- Clear selection button -->
+                            @if (hasSelection()) {
+                                <button
+                                    type="button"
+                                    tooltipPosition="top"
+                                    class="btn-clear"
+                                    [pTooltip]="'GROUPS.SIDEBAR.CLEAR_SELECTION' | translate"
+                                    [attr.aria-label]="'GROUPS.SIDEBAR.CLEAR_SELECTION' | translate"
+                                    (click)="clearSelection($event)"
+                                >
+                                    <i
+                                        class="pi pi-times"
+                                        aria-hidden="true"
+                                    ></i>
+                                </button>
+                            }
+                            <!-- Add group button -->
                             <button
                                 type="button"
                                 tooltipPosition="top"
-                                class="btn-clear"
-                                [pTooltip]="'GROUPS.SIDEBAR.CLEAR_SELECTION' | translate"
-                                [attr.aria-label]="'GROUPS.SIDEBAR.CLEAR_SELECTION' | translate"
-                                (click)="clearSelection($event)"
+                                class="btn-add"
+                                [pTooltip]="'GROUPS.SIDEBAR.ADD_GROUP' | translate"
+                                [attr.aria-label]="'GROUPS.SIDEBAR.ADD_GROUP' | translate"
+                                (click)="showAddDialog($event)"
                             >
                                 <i
-                                    class="pi pi-times"
+                                    class="pi pi-plus"
                                     aria-hidden="true"
                                 ></i>
                             </button>
-                        }
-                        <!-- Add group button -->
-                        <button
-                            type="button"
-                            tooltipPosition="top"
-                            class="btn-add"
-                            [pTooltip]="'GROUPS.SIDEBAR.ADD_GROUP' | translate"
-                            [attr.aria-label]="'GROUPS.SIDEBAR.ADD_GROUP' | translate"
-                            (click)="showAddDialog($event)"
-                        >
-                            <i
-                                class="pi pi-plus"
-                                aria-hidden="true"
-                            ></i>
-                        </button>
-                    </div>
+                        </div>
+                    }
                 }
             </div>
 
@@ -221,7 +259,7 @@
                             }
                         </li>
                     } @empty {
-                        @if (!loading()) {
+                        @if (!loading() && (!isCollapsed() || screenSize.isMobile())) {
                             <li
                                 role="presentation"
                                 class="empty-hint"
@@ -259,11 +297,26 @@
     [style]="{ width: '400px', maxWidth: '95vw' }"
     [resizable]="false"
     [modal]="true"
-    [header]="dialogTitle | translate"
     [draggable]="false"
     [(visible)]="isDialogVisible"
 >
+    <ng-template pTemplate="header">
+        <span class="p-dialog-title">{{ dialogTitle | translate }}</span>
+        <div class="dialog-header-actions">
+            <p-button
+                type="button"
+                size="small"
+                icon="pi pi-check"
+                [loading]="gf.isSubmitting()"
+                [label]="(editingGroup() ? 'GROUPS.FORM.UPDATE' : 'GROUPS.FORM.CREATE') | translate"
+                [disabled]="!gf.name().trim() || gf.isSubmitting()"
+                (onClick)="gf.onSubmit()"
+            />
+        </div>
+    </ng-template>
+
     <app-group-form
+        #gf
         [group]="editingGroup()"
         (saveGroup)="onSaveGroup($event)"
         (formCancel)="hideDialog()"

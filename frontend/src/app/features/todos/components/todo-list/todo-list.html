@@ -331,16 +331,38 @@
 
             <!-- Todo Form Dialog -->
             <p-dialog
+                styleClass="premium-dialog"
                 [visible]="formVisible()"
-                [style]="{ width: 'auto' }"
+                [style]="{ width: '400px', maxWidth: '95vw' }"
                 [modal]="true"
-                [header]="
-                    (editingTodo() ? 'TODOS.FORM.TITLE_EDIT' : 'TODOS.FORM.TITLE_ADD') | translate
-                "
                 (visibleChange)="onVisibleChange($event)"
                 (onHide)="onDialogHide()"
             >
+                <ng-template pTemplate="header">
+                    <span class="p-dialog-title">
+                        {{
+                            (editingTodo() ? 'TODOS.FORM.TITLE_EDIT' : 'TODOS.FORM.TITLE_ADD')
+                                | translate
+                        }}
+                    </span>
+                    <div class="dialog-header-actions">
+                        <p-button
+                            type="button"
+                            size="small"
+                            [loading]="tf.isSubmitting()"
+                            [label]="
+                                (editingTodo() ? 'TODOS.FORM.SUBMIT_SAVE' : 'TODOS.FORM.SUBMIT_ADD')
+                                    | translate
+                            "
+                            [icon]="editingTodo() ? 'pi pi-save' : 'pi pi-plus'"
+                            [disabled]="tf.isSubmitting() || !tf.title().trim()"
+                            (onClick)="tf.onSubmit()"
+                        />
+                    </div>
+                </ng-template>
+
                 <app-todo-form
+                    #tf
                     [todo]="editingTodo()"
                     (save)="saveTodo($event)"
                     (cancelTodo)="closeForm()"

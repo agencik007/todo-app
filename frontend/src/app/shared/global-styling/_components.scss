@@ -19,3 +19,28 @@
 .dark .logout-item .p-menuitem-link:hover {
     background: rgba(239, 68, 68, 0.1) !important;
 }
+
+.premium-dialog {
+    .p-dialog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 1.5rem;
+        gap: 1rem;
+
+        .p-dialog-title {
+            margin-right: auto;
+        }
+
+        .dialog-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: 1rem;
+        }
+
+        .p-dialog-header-actions {
+            margin-left: 0;
+        }
+    }
+}

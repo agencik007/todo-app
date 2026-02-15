@@ -230,7 +230,9 @@
       "AVATAR": "Awatar",
       "ACCOUNT": "Konto",
       "TODO": "Zadania",
-      "TASK_ACTION": "Akcje zadań"
+      "TASK_ACTION": "Akcje zadań",
+      "GROUP": "Grupy",
+      "GROUP_ACTION": "Akcje grup"
     },
     "COMMANDS": {
       "COLOR_OCEAN": "Głębia Oceanu",
@@ -253,7 +255,11 @@
       "TASK_EDIT_DESC": "Edytuj",
       "TASK_DELETE_DESC": "Usuń",
       "TASK_DONE_DESC": "Oznacz jako zrobione",
-      "TASK_UNDO_DESC": "Oznacz jako niezrobione"
+      "TASK_UNDO_DESC": "Oznacz jako niezrobione",
+      "GROUP_ADD": "Dodaj grupę",
+      "GROUP_SELECT": "Zaznacz grupę",
+      "GROUP_UNSELECT": "Odznacz grupę",
+      "GROUP_DELETE_DESC": "Usuń"
     },
     "SHORTCUTS": {
       "SELECT": "aby wybrać",
@@ -315,7 +321,8 @@
       "CLEAR_SELECTION": "Wyczyść wybór",
       "COLLAPSE": "Zwiń",
       "EXPAND": "Rozwiń",
-      "EMPTY_HINT": "Brak grup"
+      "EMPTY_HINT": "Brak grup",
+      "ALL_TASKS": "Wszystkie zadania"
     },
     "FORM": {
       "TITLE_CREATE": "Nowa grupa",

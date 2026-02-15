@@ -452,6 +452,20 @@
     animation: fadeIn 0.3s ease-out;
 }
 
+.selection-indicator {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    background: var(--p-primary-color);
+    border: 2px solid var(--p-surface-0); // Create a ring effect
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--p-primary-color);
+    animation: fadeIn 0.3s ease-out;
+    z-index: 2;
+}
+
 .section-label {
     white-space: nowrap;
 }

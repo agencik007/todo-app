@@ -12,7 +12,8 @@ Aplikacja Todo zbudowana w technologii **Angular 20** + **Python FastAPI** + **P
 - ✅ **Frontend Angular 20** - Signals, Control Flow, Standalone Components, SSR
 - ✅ **Docker** - Pełna konteneryzacja, multi-stage builds, production ready
 - ✅ **Baza danych** - PostgreSQL z persistent storage
-- ✅ **Testy backendu** - 29 testów jednostkowych z coverage
+- ✅ **Testy backendu** - 81 testów jednostkowych i integracyjnych z coverage
+- ✅ **Izolacja testów** - Osobna baza danych `todo_db_test` (nie niszczy danych dev)
 - ✅ **CI/CD** - GitHub Actions z automatycznym buildem i deployem
 
 ### 🚀 Jak uruchomić (3 proste kroki):
@@ -238,22 +239,28 @@ curl -X POST http://localhost:8000/todos \
   -d '{"title": "Moje pierwsze zadanie", "description": "Opis zadania", "completed": false}'
 ```
 
-## 🧪 Testowanie
+### Backend - Testy (Pytest)
 
-### Backend - Testy jednostkowe
+Aplikacja posiada rozbudowany zestaw testów (obecnie **81**), w tym testy API dla Todo, Autentykacji oraz Grup.
 
 ```bash
 cd backend
 
-# Uruchom testy
+# Uruchom wszystkie testy
 pytest
+
+# Uruchom konkretny plik testów (np. dla grup)
+pytest tests/test_groups.py -v
 
 # Z pokryciem kodu
 pytest --cov=. --cov-report=html
 ```
 
+> [!IMPORTANT]
+> **Izolacja Bazy Danych:** Testy automatycznie korzystają z osobnej bazy danych `todo_db_test`. Dzięki temu możesz bezpiecznie uruchamiać testy bez obawy o utratę zadań wprowadzonych ręcznie w aplikacji (`todo_db`).
+
 > [!NOTE]
-> **Rate Limiting:** Podczas uruchamiania testów (pytest), ograniczanie liczby żądań (rate limiting) jest automatycznie wyłączane za pomocą zmiennej środowiskowej `TESTING=1`. Pozwala to na szybkie wykonywanie testów bez blokowania żądań.
+> **Rate Limiting:** Podczas uruchamiania testów ograniczanie liczby żądań jest wyłączane (`TESTING=1`), co pozwala na szybkie wykonywanie testów.
 
 ### Frontend - Testy jednostkowe
 

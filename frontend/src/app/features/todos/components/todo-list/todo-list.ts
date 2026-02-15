@@ -84,6 +84,7 @@ export class TodoListComponent implements OnInit {
     addButton = viewChild<Button>('addButton');
     addButtonCollapsed = viewChild<Button>('addButtonCollapsed');
     scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
+    todoForm = viewChild(TodoFormComponent);
 
     #scrollSpeed = 0;
     #scrollAnimationId: number | null = null;

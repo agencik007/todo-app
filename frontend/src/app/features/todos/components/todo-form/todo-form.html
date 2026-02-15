@@ -1,4 +1,5 @@
 <form
+    novalidate
     class="flex flex-column gap-3"
     (ngSubmit)="onSubmit()"
 >
@@ -11,14 +12,15 @@
         <input
             type="text"
             pInputText
-            name="title"
             id="title"
             class="w-full"
             [placeholder]="'TODOS.FORM.FIELD_TITLE_PLACEHOLDER' | translate"
-            [(ngModel)]="title"
+            [formField]="todoForm.title"
         />
-        @if (!title().trim()) {
-            <small class="p-error">{{ 'TODOS.FORM.ERRORS.TITLE_REQUIRED' | translate }}</small>
+        @if (todoForm.title().touched() && todoForm.title().invalid()) {
+            @for (error of todoForm.title().errors(); track error) {
+                <small class="p-error">{{ error.message }}</small>
+            }
         }
     </div>
 
@@ -31,11 +33,10 @@
         <textarea
             rows="4"
             pTextarea
-            name="description"
             id="description"
             class="w-full"
             [placeholder]="'TODOS.FORM.FIELD_DESCRIPTION_PLACEHOLDER' | translate"
-            [(ngModel)]="description"
+            [formField]="todoForm.description"
         >
         </textarea>
     </div>
@@ -52,6 +53,7 @@
             name="group"
             inputId="group"
             class="w-full"
+            [showClear]="true"
             [options]="groups()"
             [(ngModel)]="groupId"
         />
@@ -71,22 +73,5 @@
         <p class="text-xs text-color-secondary mt-1 ml-6">
             {{ 'TODOS.FORM.PUBLIC_INFO' | translate }}
         </p>
-    </div>
-
-    <div class="flex gap-2 justify-content-end">
-        <p-button
-            type="button"
-            severity="secondary"
-            [outlined]="true"
-            [label]="'TODOS.FORM.CANCEL' | translate"
-            (click)="onCancel()"
-        />
-        <p-button
-            type="submit"
-            [loading]="isSubmitting()"
-            [label]="(todo() ? 'TODOS.FORM.SUBMIT_SAVE' : 'TODOS.FORM.SUBMIT_ADD') | translate"
-            [icon]="todo() ? 'pi pi-save' : 'pi pi-plus'"
-            [disabled]="isSubmitting() || !title().trim()"
-        />
     </div>
 </form>

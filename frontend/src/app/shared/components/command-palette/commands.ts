@@ -102,4 +102,12 @@ export const BASE_COMMANDS_CONFIG = [
         icon: 'pi pi-plus',
         category: 'todo' as CommandCategory,
     },
+
+    // Group Commands
+    {
+        id: 'group-add-static',
+        labelKey: 'COMMAND_PALETTE.COMMANDS.GROUP_ADD',
+        icon: 'pi pi-plus-circle',
+        category: 'group' as CommandCategory,
+    },
 ];

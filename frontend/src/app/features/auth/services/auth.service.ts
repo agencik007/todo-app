@@ -13,8 +13,8 @@ import {
 } from '@api';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { environment } from '../../../../environments/environment';
 import { IndexedDbService } from '../../../core/services/indexed-db.service';
+import { API_URL } from '../../../core/tokens/api-url.token';
 
 @Injectable({
     providedIn: 'root',
@@ -24,7 +24,8 @@ export class AuthService {
     private apiAuthService = inject(ApiAuthService);
     private apiUsersService = inject(ApiUsersService);
     private indexedDbService = inject(IndexedDbService);
-    private apiUrl = `${environment.apiUrl}/auth`;
+    private baseApiUrl = inject(API_URL);
+    private apiUrl = `${this.baseApiUrl}/auth`;
 
     register(userData: RegisterRequest): Observable<User> {
         return this.apiAuthService
@@ -58,7 +59,7 @@ export class AuthService {
     }
 
     fetchAndCacheAvatar(url: string): Observable<Blob> {
-        const fullUrl = `${environment.apiUrl}${url}`;
+        const fullUrl = `${this.baseApiUrl}${url}`;
         return this.http.get(fullUrl, { responseType: 'blob' }).pipe(
             tap((blob) => {
                 // Save both the blob and the URL for cache validation

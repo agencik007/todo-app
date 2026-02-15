@@ -114,6 +114,8 @@ export class CommandPaletteComponent {
             account: 'COMMAND_PALETTE.CATEGORIES.ACCOUNT',
             todo: 'COMMAND_PALETTE.CATEGORIES.TODO',
             task_action: 'COMMAND_PALETTE.CATEGORIES.TASK_ACTION',
+            group: 'COMMAND_PALETTE.CATEGORIES.GROUP',
+            group_action: 'COMMAND_PALETTE.CATEGORIES.GROUP_ACTION',
         };
 
         return Array.from(groups.entries()).map(([category, cmds]) => ({

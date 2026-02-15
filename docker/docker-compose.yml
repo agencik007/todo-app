@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # PostgreSQL Database
@@ -12,12 +12,13 @@ services:
       POSTGRES_DB: todo_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     ports:
       - "5432:5432"
     networks:
       - todo-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U todo_user -d todo_db" ]
+      test: ["CMD-SHELL", "pg_isready -U todo_user -d todo_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -32,6 +33,7 @@ services:
     restart: unless-stopped
     environment:
       - DATABASE_URL=postgresql://todo_user:todo_password@db:5432/todo_db
+      - DATABASE_TEST_URL=postgresql://todo_user:todo_password@db:5432/todo_db_test
       - DEBUG=False
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
       - EMAIL_FROM=${EMAIL_FROM:-noreply@example.com}
@@ -51,7 +53,13 @@ services:
     networks:
       - todo-network
     healthcheck:
-      test: [ "CMD", "python", "-c", "import socket; s = socket.socket(); s.connect(('localhost', 8000)); s.close()" ]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import socket; s = socket.socket(); s.connect(('localhost', 8000)); s.close()",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -79,7 +87,7 @@ services:
     networks:
       - todo-network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:4200/" ]
+      test: ["CMD", "curl", "-f", "http://localhost:4200/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -96,7 +104,15 @@ services:
     networks:
       - todo-network
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025" ]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8025",
+        ]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -110,7 +126,7 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin123
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_SERVER_MODE: "False"
     ports:
       - "5050:80"
     depends_on:

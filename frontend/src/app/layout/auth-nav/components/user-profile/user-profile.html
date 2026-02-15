@@ -180,15 +180,18 @@
 
     <!-- Avatar Preview Dialog -->
     <p-dialog
-        styleClass="avatar-preview-dialog"
+        styleClass="premium-dialog avatar-preview-dialog"
         appendTo="body"
         [visible]="isPreviewVisible()"
         [resizable]="false"
         [modal]="true"
-        [header]="'NAV.PROFILE' | translate"
         [dismissableMask]="true"
         (visibleChange)="isPreviewVisible.set($event)"
     >
+        <ng-template pTemplate="header">
+            <span class="p-dialog-title">{{ 'NAV.PROFILE' | translate }}</span>
+        </ng-template>
+
         <div class="flex justify-content-center p-3">
             @if (sanitizedAvatarUrl()) {
                 <img
