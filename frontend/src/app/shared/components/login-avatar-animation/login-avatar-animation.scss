@@ -1,7 +1,5 @@
-$avatar-size: 120px;
-$ring-size: 160px;
-$fly-duration: 0.5s;
-$center-duration: 1s;
+$avatar-size: 122px;
+$ring-size: 172px;
 
 .login-avatar-overlay {
     position: fixed;
@@ -13,98 +11,126 @@ $center-duration: 1s;
     pointer-events: none;
 }
 
-// ---- Backdrop ----
 .backdrop {
     position: absolute;
     inset: 0;
-    background: radial-gradient(
-        circle at center,
-        rgba(0, 0, 0, 0.5) 0%,
-        rgba(0, 0, 0, 0.7) 100%
-    );
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(76, 29, 149, 0.2),
+            transparent 58%
+        ),
+        radial-gradient(
+            circle at center,
+            rgba(0, 0, 0, 0.35),
+            rgba(0, 0, 0, 0.74)
+        );
     opacity: 0;
-    transition: opacity 0.4s ease;
+    transition: opacity 260ms ease;
 }
 
 .phase-enter .backdrop,
-.phase-center .backdrop {
+.phase-center .backdrop,
+.phase-burst .backdrop {
     opacity: 1;
 }
 
-.phase-fly .backdrop,
 .phase-done .backdrop {
     opacity: 0;
-    transition: opacity 0.5s ease 0.1s;
 }
 
-// ---- Avatar Stage ----
 .avatar-stage {
     position: relative;
     width: $ring-size;
     height: $ring-size;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    // Start invisible
+    display: grid;
+    place-items: center;
     opacity: 0;
-    transform: scale(0.3);
-    transition: none;
+    transform: scale(0.58) translateY(16px);
 }
 
-// Phase: Enter – scale in from small
 .phase-enter .avatar-stage {
-    animation: avatarEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    animation: avatarEnter 450ms cubic-bezier(0.2, 0.88, 0.33, 1.32) forwards;
 }
 
-@keyframes avatarEnter {
-    0% {
-        opacity: 0;
-        transform: scale(0.3);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-// Phase: Center – pulse while showing
 .phase-center .avatar-stage {
     opacity: 1;
     transform: scale(1);
-    animation: avatarPulse 1.2s ease-in-out infinite;
+    animation: avatarFloat 900ms ease-in-out infinite alternate;
 }
 
-@keyframes avatarPulse {
-    0%,
-    100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.06);
-    }
+.phase-burst .avatar-stage {
+    opacity: 1;
+    transform: scale(1.08);
+    animation: avatarBurst 550ms cubic-bezier(0.18, 0.82, 0.29, 1) forwards;
 }
 
 .phase-done .avatar-stage {
     opacity: 0;
     transform: scale(0.8);
-    transition:
-        opacity 0.3s ease,
-        transform 0.3s ease;
+    transition: all 350ms ease;
 }
 
-// ---- Avatar Image ----
+.aura {
+    position: absolute;
+    width: calc($avatar-size + 48px);
+    height: calc($avatar-size + 48px);
+    border-radius: 50%;
+    background:
+        radial-gradient(
+            circle at 30% 30%,
+            rgba(255, 255, 255, 0.72),
+            transparent 45%
+        ),
+        radial-gradient(
+            circle,
+            rgba(var(--p-primary-400-rgb, 129, 140, 248), 0.48),
+            transparent 68%
+        );
+    filter: blur(8px);
+    opacity: 0;
+}
+
+.phase-center .aura {
+    opacity: 1;
+    animation: auraPulse 1.1s ease-in-out infinite;
+}
+
+.phase-burst .aura {
+    opacity: 1;
+    animation: auraBurst 550ms ease-out forwards;
+}
+
 .avatar-container {
     width: $avatar-size;
     height: $avatar-size;
     border-radius: 50%;
     overflow: hidden;
     position: relative;
-    z-index: 2;
+    z-index: 3;
+    border: 3px solid rgba(255, 255, 255, 0.34);
     box-shadow:
-        0 0 30px rgba(var(--p-primary-500-rgb, 99, 102, 241), 0.5),
-        0 0 60px rgba(var(--p-primary-500-rgb, 99, 102, 241), 0.25),
-        0 10px 40px rgba(0, 0, 0, 0.4);
-    border: 3px solid rgba(255, 255, 255, 0.3);
+        0 0 26px rgba(var(--p-primary-500-rgb, 99, 102, 241), 0.48),
+        0 0 54px rgba(var(--p-primary-400-rgb, 129, 140, 248), 0.3),
+        0 16px 32px rgba(0, 0, 0, 0.36);
+}
+
+.avatar-container::after {
+    content: '';
+    position: absolute;
+    inset: -60%;
+    background: linear-gradient(
+        130deg,
+        transparent 45%,
+        rgba(255, 255, 255, 0.6),
+        transparent 55%
+    );
+    transform: translateX(-30%) rotate(8deg);
+    opacity: 0;
+}
+
+.phase-center .avatar-container::after {
+    animation: shineSweep 1s linear infinite;
 }
 
 .avatar-img {
@@ -114,14 +140,12 @@ $center-duration: 1s;
     display: block;
 }
 
-// ---- Spinning Rings ----
 .ring {
     position: absolute;
     border-radius: 50%;
     border: 2px solid transparent;
     top: 50%;
     left: 50%;
-    pointer-events: none;
 }
 
 .ring-1 {
@@ -129,113 +153,242 @@ $center-duration: 1s;
     height: $ring-size;
     margin-top: calc($ring-size / -2);
     margin-left: calc($ring-size / -2);
-    border-top-color: var(--p-primary-400, #818cf8);
-    border-right-color: transparent;
-    border-bottom-color: var(--p-primary-300, #a5b4fc);
-    border-left-color: transparent;
-    animation: ringRotate1 1.5s linear infinite;
-    filter: drop-shadow(
-        0 0 6px rgba(var(--p-primary-500-rgb, 99, 102, 241), 0.6)
-    );
+    border-top-color: var(--p-primary-300, #a5b4fc);
+    border-bottom-color: var(--p-primary-500, #6366f1);
+    animation: ringRotate 1.5s linear infinite;
 }
 
 .ring-2 {
-    width: calc($ring-size + 20px);
-    height: calc($ring-size + 20px);
-    margin-top: calc(($ring-size + 20px) / -2);
-    margin-left: calc(($ring-size + 20px) / -2);
-    border-top-color: transparent;
-    border-right-color: var(--p-primary-200, #c7d2fe);
-    border-bottom-color: transparent;
-    border-left-color: var(--p-primary-400, #818cf8);
-    animation: ringRotate2 2s linear infinite;
-    opacity: 0.7;
-    filter: drop-shadow(
-        0 0 8px rgba(var(--p-primary-400-rgb, 129, 140, 248), 0.4)
-    );
+    width: calc($ring-size + 22px);
+    height: calc($ring-size + 22px);
+    margin-top: calc(($ring-size + 22px) / -2);
+    margin-left: calc(($ring-size + 22px) / -2);
+    border-left-color: var(--p-primary-200, #c7d2fe);
+    border-right-color: var(--p-primary-400, #818cf8);
+    opacity: 0.72;
+    animation: ringRotateReverse 2s linear infinite;
 }
 
 .ring-3 {
-    width: calc($ring-size + 40px);
-    height: calc($ring-size + 40px);
-    margin-top: calc(($ring-size + 40px) / -2);
-    margin-left: calc(($ring-size + 40px) / -2);
+    width: calc($ring-size + 42px);
+    height: calc($ring-size + 42px);
+    margin-top: calc(($ring-size + 42px) / -2);
+    margin-left: calc(($ring-size + 42px) / -2);
     border-width: 1px;
-    border-top-color: var(--p-primary-300, #a5b4fc);
-    border-right-color: transparent;
-    border-bottom-color: transparent;
-    border-left-color: var(--p-primary-200, #c7d2fe);
-    animation: ringRotate1 3s linear infinite reverse;
+    border-top-color: rgba(255, 255, 255, 0.8);
+    border-left-color: rgba(var(--p-primary-300-rgb, 165, 180, 252), 0.8);
     opacity: 0.4;
+    animation: ringRotate 3s linear infinite reverse;
 }
 
-@keyframes ringRotate1 {
+.shockwave {
+    position: absolute;
+    width: $avatar-size;
+    height: $avatar-size;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.75);
+    opacity: 0;
+}
+
+.phase-burst .shockwave {
+    animation: shockwave 550ms ease-out forwards;
+}
+
+.beam {
+    position: absolute;
+    width: 7px;
+    height: 54px;
+    border-radius: 999px;
+    background: linear-gradient(
+        to top,
+        transparent,
+        rgba(255, 255, 255, 0.95),
+        transparent
+    );
+    opacity: 0;
+    transform-origin: center 120px;
+}
+
+.beam-1 {
+    transform: rotate(0deg) translateY(-112px);
+}
+
+.beam-2 {
+    transform: rotate(120deg) translateY(-112px);
+}
+
+.beam-3 {
+    transform: rotate(240deg) translateY(-112px);
+}
+
+.phase-burst .beam {
+    animation: beamFlash 550ms ease-out;
+}
+
+.sparkle {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: var(--p-primary-200, #c7d2fe);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    opacity: 0;
+    box-shadow: 0 0 8px var(--p-primary-400, #818cf8);
+}
+
+.phase-enter .sparkle,
+.phase-center .sparkle,
+.phase-burst .sparkle {
+    animation: sparkleFloat 1.8s ease-in-out infinite;
+}
+
+.sparkle-1 {
+    --sparkle-x: -90px;
+    --sparkle-y: -30px;
+}
+.sparkle-2 {
+    animation-delay: 0.24s;
+    --sparkle-x: 86px;
+    --sparkle-y: -56px;
+}
+.sparkle-3 {
+    animation-delay: 0.48s;
+    --sparkle-x: -64px;
+    --sparkle-y: 76px;
+}
+.sparkle-4 {
+    animation-delay: 0.72s;
+    --sparkle-x: 72px;
+    --sparkle-y: 68px;
+}
+.sparkle-5 {
+    animation-delay: 0.12s;
+    --sparkle-x: 0px;
+    --sparkle-y: -102px;
+}
+.sparkle-6 {
+    animation-delay: 0.36s;
+    --sparkle-x: -94px;
+    --sparkle-y: 18px;
+}
+
+.phase-done .ring,
+.phase-done .sparkle,
+.phase-done .aura,
+.phase-done .shockwave,
+.phase-done .beam {
+    opacity: 0;
+}
+
+@keyframes avatarEnter {
+    from {
+        opacity: 0;
+        transform: scale(0.58) translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes avatarFloat {
+    from {
+        transform: scale(1) translateY(0);
+    }
+    to {
+        transform: scale(1.05) translateY(-4px);
+    }
+}
+
+@keyframes avatarBurst {
+    0% {
+        transform: scale(1.02);
+    }
+    60% {
+        transform: scale(1.14);
+    }
+    100% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes auraPulse {
+    0%,
+    100% {
+        transform: scale(0.95);
+        opacity: 0.55;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.95;
+    }
+}
+
+@keyframes auraBurst {
+    from {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+    to {
+        transform: scale(1.7);
+        opacity: 0;
+    }
+}
+
+@keyframes shineSweep {
+    0% {
+        opacity: 0;
+        transform: translateX(-42%) rotate(8deg);
+    }
+    25% {
+        opacity: 0.9;
+    }
+    60% {
+        opacity: 0.35;
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(42%) rotate(8deg);
+    }
+}
+
+@keyframes ringRotate {
     to {
         transform: rotate(360deg);
     }
 }
 
-@keyframes ringRotate2 {
+@keyframes ringRotateReverse {
     to {
         transform: rotate(-360deg);
     }
 }
 
-// Hide rings during fly
-.phase-fly .ring,
-.phase-done .ring {
-    opacity: 0;
-    transition: opacity 0.3s ease;
+@keyframes shockwave {
+    from {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(2.35);
+    }
 }
 
-// ---- Sparkle Particles ----
-.sparkle {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: var(--p-primary-300, #a5b4fc);
-    border-radius: 50%;
-    top: 50%;
-    left: 50%;
-    opacity: 0;
-    z-index: 1;
-    box-shadow: 0 0 6px var(--p-primary-400, #818cf8);
-}
-
-.phase-enter .sparkle,
-.phase-center .sparkle {
-    animation: sparkleFloat 2s ease-in-out infinite;
-}
-
-.sparkle-1 {
-    animation-delay: 0s;
-    --sparkle-x: -90px;
-    --sparkle-y: -30px;
-}
-.sparkle-2 {
-    animation-delay: 0.3s;
-    --sparkle-x: 80px;
-    --sparkle-y: -50px;
-}
-.sparkle-3 {
-    animation-delay: 0.6s;
-    --sparkle-x: -60px;
-    --sparkle-y: 70px;
-}
-.sparkle-4 {
-    animation-delay: 0.9s;
-    --sparkle-x: 70px;
-    --sparkle-y: 60px;
-}
-.sparkle-5 {
-    animation-delay: 0.15s;
-    --sparkle-x: 0px;
-    --sparkle-y: -95px;
-}
-.sparkle-6 {
-    animation-delay: 0.45s;
-    --sparkle-x: -85px;
-    --sparkle-y: 15px;
+@keyframes beamFlash {
+    0% {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+    20% {
+        opacity: 0.95;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.25);
+    }
 }
 
 @keyframes sparkleFloat {
@@ -243,30 +396,24 @@ $center-duration: 1s;
         opacity: 0;
         transform: translate(0, 0) scale(0);
     }
-    20% {
+    25% {
         opacity: 1;
         transform: translate(
-                calc(var(--sparkle-x) * 0.5),
-                calc(var(--sparkle-y) * 0.5)
+                calc(var(--sparkle-x) * 0.46),
+                calc(var(--sparkle-y) * 0.46)
             )
             scale(1);
     }
-    80% {
-        opacity: 0.8;
+    75% {
+        opacity: 0.9;
         transform: translate(var(--sparkle-x), var(--sparkle-y)) scale(0.8);
     }
     100% {
         opacity: 0;
         transform: translate(
-                calc(var(--sparkle-x) * 1.2),
-                calc(var(--sparkle-y) * 1.2)
+                calc(var(--sparkle-x) * 1.18),
+                calc(var(--sparkle-y) * 1.18)
             )
             scale(0);
     }
-}
-
-.phase-fly .sparkle,
-.phase-done .sparkle {
-    animation: none;
-    opacity: 0;
 }
