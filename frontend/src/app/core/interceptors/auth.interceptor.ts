@@ -9,14 +9,16 @@ import { AuthService } from '../../features/auth/services/auth.service';
 import { AuthStore } from '../store/auth.store';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-    const authService = inject(AuthService);
-    const translateService = inject(TranslateService);
+    // Lazy inject AuthService to avoid circular dependency (AuthService -> HttpClient -> AuthInterceptor -> AuthService)
     const injector = inject(Injector);
+    const translateService = inject(TranslateService);
     const messageService = inject(MessageService);
     const router = inject(Router);
     const platformId = inject(PLATFORM_ID);
     const isBrowser = isPlatformBrowser(platformId);
 
+    // Get AuthService lazily
+    const authService = injector.get(AuthService);
     const accessToken = authService.getAccessToken();
 
     if (

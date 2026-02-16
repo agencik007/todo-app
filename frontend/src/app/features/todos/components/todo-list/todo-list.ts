@@ -6,7 +6,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import {
     Component,
-    effect,
+    computed,
     ElementRef,
     inject,
     OnInit,
@@ -69,7 +69,13 @@ export class TodoListComponent implements OnInit {
     public screenSize = inject(ScreenSizeService);
 
     isBrowser = signal(false);
-    isMenuCollapsed = signal(false);
+
+    // Computed username from email (e.g. john.doe@... -> john.doe)
+    userName = computed(() => {
+        const user = this.currentUser;
+        if (!user || !user.email) return '';
+        return user.email.split('@')[0];
+    });
 
     // Expose store signals directly to template
     readonly todos = this.store.filteredTodos;
@@ -81,8 +87,11 @@ export class TodoListComponent implements OnInit {
     readonly pendingTodos = this.store.pendingTodos;
     readonly totalTodos = this.store.totalCount;
 
+    // Group selection indicator signals
+    readonly selectedGroups = this.groupStore.selectedGroups;
+    readonly hasGroupSelection = this.groupStore.hasSelection;
+
     addButton = viewChild<Button>('addButton');
-    addButtonCollapsed = viewChild<Button>('addButtonCollapsed');
     scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
     todoForm = viewChild(TodoFormComponent);
 
@@ -93,27 +102,10 @@ export class TodoListComponent implements OnInit {
         return this.authStore.currentUser();
     }
 
-    constructor() {
-        effect(() => {
-            if (this.isBrowser()) {
-                localStorage.setItem(
-                    'todo_menu_collapsed',
-                    JSON.stringify(this.isMenuCollapsed()),
-                );
-            }
-        });
-    }
-
     ngOnInit(): void {
         this.isBrowser.set(isPlatformBrowser(this.platformId));
         if (this.isBrowser()) {
-            this.store.loadTodos();
             this.groupStore.loadGroups();
-
-            const saved = localStorage.getItem('todo_menu_collapsed');
-            if (saved !== null) {
-                this.isMenuCollapsed.set(JSON.parse(saved));
-            }
         }
     }
 
@@ -152,7 +144,7 @@ export class TodoListComponent implements OnInit {
         // Restore focus to the add button after dialog is hidden
         // Use a timeout to ensure dialog animation finishes and element is focusable
         setTimeout(() => {
-            const buttonEl = this.addButton() || this.addButtonCollapsed();
+            const buttonEl = this.addButton();
             if (buttonEl?.el?.nativeElement) {
                 // p-button component wraps a native <button> element
                 const nativeButton =
@@ -175,10 +167,6 @@ export class TodoListComponent implements OnInit {
 
     toggleTodoCompletion(todo: Todo): void {
         this.store.toggleTodo(todo);
-    }
-
-    toggleMenu(): void {
-        this.isMenuCollapsed.update((val) => !val);
     }
 
     deleteTodo(todo: Todo): void {

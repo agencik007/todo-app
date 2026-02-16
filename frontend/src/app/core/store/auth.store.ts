@@ -109,7 +109,7 @@ export class AuthStore {
 
     // ==================== User Management ====================
 
-    setUser(user: User): void {
+    async setUser(user: User): Promise<string | null> {
         this._currentUser.set(user);
         this._isAuthenticated.set(true);
         this._error.set(null);
@@ -119,8 +119,9 @@ export class AuthStore {
             this.languageService.setLanguage(user.language);
         }
 
-        // Load avatar with cache check
-        this.loadAvatarWithCacheCheck(user.avatar_url);
+        // Load avatar with cache check and return the URL
+        await this.loadAvatarWithCacheCheck(user.avatar_url);
+        return this._userAvatar();
     }
 
     /**

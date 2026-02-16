@@ -10,12 +10,11 @@ import {
 import { FormsModule } from '@angular/forms';
 import { form, FormField, required } from '@angular/forms/signals';
 import { Todo, TodoCreate } from '@api';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { TextareaModule } from 'primeng/textarea';
+import { Select } from 'primeng/select';
 import { GroupStore } from '../../../groups/store/group.store';
 
 interface TodoFormModel {
@@ -31,10 +30,9 @@ interface TodoFormModel {
         FormsModule,
         FormField,
         InputTextModule,
-        TextareaModule,
         CheckboxModule,
         ButtonModule,
-        SelectModule,
+        Select,
         TranslatePipe,
     ],
     templateUrl: './todo-form.html',
@@ -42,6 +40,7 @@ interface TodoFormModel {
 })
 export class TodoFormComponent {
     readonly #groupStore = inject(GroupStore);
+    readonly #translateService = inject(TranslateService);
 
     todo = input<Todo | null>(null);
 
@@ -59,23 +58,17 @@ export class TodoFormComponent {
     });
 
     readonly todoForm = form(this.todoModel, (s) => {
-        required(s.title, { message: 'Title is required' });
+        required(s.title, {
+            message: this.#translateService.instant(
+                'TODOS.FORM.ERRORS.TITLE_REQUIRED',
+            ),
+        });
     });
 
     readonly isSubmitting = signal(false);
 
     readonly groups = this.#groupStore.groups;
     readonly loadingGroups = this.#groupStore.loading;
-
-    readonly isPublic = linkedSignal<TodoFormModel, boolean>({
-        source: this.todoModel,
-        computation: (model) => model.is_public,
-    });
-
-    readonly groupId = linkedSignal<TodoFormModel, number | null>({
-        source: this.todoModel,
-        computation: (model) => model.group_id,
-    });
 
     readonly title = computed(() => this.todoModel().title);
 
@@ -88,8 +81,8 @@ export class TodoFormComponent {
         const todoData: TodoCreate = {
             title: model.title.trim(),
             description: model.description.trim() || undefined,
-            is_public: this.isPublic(),
-            group_id: this.groupId(),
+            is_public: model.is_public,
+            group_id: model.group_id,
         };
 
         this.save.emit(todoData);
@@ -101,8 +94,6 @@ export class TodoFormComponent {
                 is_public: false,
                 group_id: null,
             });
-            this.isPublic.set(false);
-            this.groupId.set(null);
         }
 
         this.isSubmitting.set(false);

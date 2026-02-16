@@ -163,6 +163,7 @@
   "TODOS": {
     "TITLE": "My Todo List",
     "SUBTITLE": "Manage your tasks in a simple and effective way",
+    "GREETING": "Hello {{name}}, have a great day",
     "ADD_BUTTON": "Add task",
     "STATS": {
       "ALL": "All",
@@ -178,6 +179,7 @@
       "STATUS_COMPLETED": "Completed",
       "STATUS_PENDING": "To do",
       "PUBLIC": "Public",
+      "FILTER_LABEL": "View:",
       "OWNER_INFO": "This task belongs to user {{email}}",
       "EMPTY_TITLE": "No tasks",
       "EMPTY_MESSAGE": "You don't have any tasks yet. Add your first task to start!",
@@ -342,5 +344,9 @@
       "DELETE_CONFIRM_TITLE": "Delete Group",
       "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete \"{{name}}\"? Tasks in this group will become ungrouped."
     }
+  },
+  "WEATHER": {
+    "TEMP": "Temp",
+    "WIND": "Wind"
   }
 }

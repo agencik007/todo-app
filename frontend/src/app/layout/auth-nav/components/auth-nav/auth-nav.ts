@@ -12,6 +12,7 @@ import { LanguageService } from 'src/app/core/services/language.service';
 import { ScreenSizeService } from 'src/app/core/services/screen-size.service';
 import { SidebarService } from 'src/app/core/services/sidebar.service';
 import { AuthStore } from 'src/app/core/store/auth.store';
+import { WeatherWidgetComponent } from '../../../../shared/components/weather-widget/weather-widget.component';
 import { UserProfileComponent } from '../user-profile/user-profile';
 
 @Component({
@@ -24,6 +25,7 @@ import { UserProfileComponent } from '../user-profile/user-profile';
         MenuModule,
         TranslatePipe,
         UserProfileComponent,
+        WeatherWidgetComponent,
     ],
     templateUrl: './auth-nav.html',
     styleUrl: './auth-nav.scss',

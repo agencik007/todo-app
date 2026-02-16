@@ -163,6 +163,7 @@
   "TODOS": {
     "TITLE": "Moja Lista Zadań",
     "SUBTITLE": "Zarządzaj swoimi zadaniami w prosty i efektywny sposób",
+    "GREETING": "Witaj {{name}}, życzymy miłego dnia",
     "ADD_BUTTON": "Dodaj zadanie",
     "STATS": {
       "ALL": "Wszystkie",
@@ -178,6 +179,7 @@
       "STATUS_COMPLETED": "Ukończone",
       "STATUS_PENDING": "Do zrobienia",
       "PUBLIC": "Publiczne",
+      "FILTER_LABEL": "Widok:",
       "OWNER_INFO": "To zadanie jest usera {{email}}",
       "EMPTY_TITLE": "Brak zadań",
       "EMPTY_MESSAGE": "Nie masz jeszcze żadnych zadań. Dodaj pierwsze zadanie, aby zacząć!",
@@ -342,5 +344,9 @@
       "DELETE_CONFIRM_TITLE": "Usuń grupę",
       "DELETE_CONFIRM_MESSAGE": "Czy na pewno chcesz usunąć grupę \"{{name}}\"? Zadania z tej grupy staną się niezgrupowane."
     }
+  },
+  "WEATHER": {
+    "TEMP": "Temp",
+    "WIND": "Wiatr"
   }
 }

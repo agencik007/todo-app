@@ -1,3 +1,8 @@
 import { InjectionToken } from '@angular/core';
 
-export const API_URL = new InjectionToken<string>('API_URL');
+import { environment } from '../../../environments/environment';
+
+export const API_URL = new InjectionToken<string>('API_URL', {
+    providedIn: 'root',
+    factory: (): string => environment.apiUrl,
+});

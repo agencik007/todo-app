@@ -63,6 +63,11 @@
                 />
             } @else {
                 <div class="flex align-items-center gap-2">
+                    <!-- Weather Widget -->
+                    @if (isAuthenticated()) {
+                        <app-weather-widget />
+                    }
+
                     <!-- User/Settings Menu (Always visible) -->
                     <app-user-profile></app-user-profile>
 

@@ -16,6 +16,7 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
+import { LoginAvatarAnimationService } from '../../../../core/services/login-avatar-animation.service';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { AuthService } from '../../services/auth.service';
 
@@ -43,6 +44,7 @@ export class LoginComponent {
     private route = inject(ActivatedRoute);
     private messageService = inject(MessageService);
     private translate = inject(TranslateService);
+    private loginAvatarAnimationService = inject(LoginAvatarAnimationService);
 
     loginForm: FormGroup;
     error = signal<string | null>(null);
@@ -83,9 +85,14 @@ export class LoginComponent {
         this.authService.login(loginData).subscribe({
             next: () => {
                 this.authService.getCurrentUser().subscribe({
-                    next: (user) => {
-                        this.authStore.setUser(user);
+                    next: async (user) => {
+                        const avatarUrl = await this.authStore.setUser(user);
                         this.isLoading.set(false);
+
+                        if (avatarUrl) {
+                            this.loginAvatarAnimationService.trigger(avatarUrl);
+                        }
+
                         const returnUrl =
                             this.route.snapshot.queryParams['returnUrl'] ||
                             '/todos';
