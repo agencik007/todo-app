@@ -27,6 +27,7 @@ $ring-size: 172px;
         );
     opacity: 0;
     transition: opacity 320ms ease-out;
+    will-change: opacity;
 }
 
 .phase-enter .backdrop,
@@ -37,7 +38,7 @@ $ring-size: 172px;
 
 .phase-done .backdrop {
     opacity: 0;
-    transition-duration: 520ms;
+    transition-duration: 620ms;
     transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -49,6 +50,7 @@ $ring-size: 172px;
     place-items: center;
     opacity: 0;
     transform: scale(0.58) translateY(16px);
+    will-change: transform, opacity;
 }
 
 .phase-enter .avatar-stage {
@@ -69,12 +71,10 @@ $ring-size: 172px;
 
 .phase-done .avatar-stage {
     opacity: 0;
-    transform: scale(0.74) translateY(14px);
-    filter: blur(1.5px);
+    transform: scale(0.82) translateY(10px);
     transition:
-        opacity 520ms cubic-bezier(0.16, 1, 0.3, 1),
-        transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
-        filter 520ms ease-out;
+        opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .aura {
@@ -285,7 +285,8 @@ $ring-size: 172px;
 .phase-done .shockwave,
 .phase-done .beam {
     opacity: 0;
-    transition: opacity 420ms ease-out;
+    transition: opacity 520ms ease-out;
+    animation-play-state: paused;
 }
 
 .phase-done .avatar-container {
@@ -293,7 +294,7 @@ $ring-size: 172px;
         0 0 12px rgba(var(--p-primary-500-rgb, 99, 102, 241), 0.2),
         0 0 24px rgba(var(--p-primary-400-rgb, 129, 140, 248), 0.15),
         0 8px 16px rgba(0, 0, 0, 0.2);
-    transition: box-shadow 520ms ease-out;
+    transition: box-shadow 620ms ease-out;
 }
 
 @keyframes avatarEnter {

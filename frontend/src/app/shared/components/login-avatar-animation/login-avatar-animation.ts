@@ -44,7 +44,7 @@ export class LoginAvatarAnimationComponent {
                 this.#queue(550, () => {
                     this.phase.set('done');
 
-                    this.#queue(520, () => {
+                    this.#queue(680, () => {
                         this.#animationService.done();
                         this.phase.set('idle');
                     });
