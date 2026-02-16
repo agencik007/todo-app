@@ -1,27 +1,39 @@
 @use './variables';
 
 .form-group {
-  margin-bottom: 1rem;
+    margin-bottom: 1rem;
 }
 
 .p-inputtext,
 .p-password {
-  width: 100%;
+    width: 100%;
 }
 
 .p-error {
-  color: var(--p-red-500);
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-  display: block;
+    color: var(--p-red-500);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
 }
 
 .p-link {
-  color: var(--p-primary-color);
-  text-decoration: none;
-  cursor: pointer;
+    color: var(
+        --p-primary-700,
+        #0e7490
+    ); // Fallback to Cyan-700 if variable doesn't exist
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: color 0.2s;
 
-  &:hover {
-    text-decoration: underline;
-  }
+    &:hover {
+        color: var(--p-primary-800, #155e75);
+        text-decoration: underline;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--p-primary-color);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
 }

@@ -1,12 +1,20 @@
-<div class="auth-container">
-    <p-card
-        [style]="{ width: '100%', maxWidth: '400px' }"
-        [header]="'AUTH.REGISTER.TITLE' | translate"
-    >
+<main class="auth-container">
+    <p-card [style]="{ width: '100%', maxWidth: '400px' }">
+        <ng-template pTemplate="header">
+            <h1
+                style="text-align: center; margin-top: 0.5rem"
+                class="text-2xl font-bold m-0"
+            >
+                {{ 'AUTH.REGISTER.TITLE' | translate }}
+            </h1>
+        </ng-template>
+
         @if (error()) {
             <p-message
                 styleClass="mb-3 w-full"
                 severity="error"
+                role="alert"
+                aria-live="polite"
             >
                 {{ error() }}
             </p-message>
@@ -20,20 +28,29 @@
             <div class="form-group">
                 <label
                     for="email"
-                    class="block mb-2"
-                    >{{ 'AUTH.REGISTER.EMAIL_LABEL' | translate }}</label
+                    class="flex align-items-center mb-2 font-medium"
                 >
+                    <i
+                        style="margin-right: 0.5rem"
+                        class="pi pi-envelope"
+                    ></i>
+                    {{ 'AUTH.REGISTER.EMAIL_LABEL' | translate }}
+                </label>
                 <input
                     type="email"
                     pInputText
                     id="email"
                     formControlName="email"
                     class="w-full"
+                    autocomplete="email"
                     [placeholder]="'AUTH.REGISTER.EMAIL_PLACEHOLDER' | translate"
                     [class]="{ 'ng-invalid ng-dirty': email?.invalid && email?.touched }"
                 />
                 @if (email?.invalid && email?.touched) {
-                    <small class="p-error">
+                    <small
+                        role="alert"
+                        class="p-error"
+                    >
                         @if (email?.errors?.['required']) {
                             {{ 'AUTH.REGISTER.ERRORS.EMAIL_REQUIRED' | translate }}
                         } @else if (email?.errors?.['email']) {
@@ -46,20 +63,29 @@
             <div class="form-group">
                 <label
                     for="password"
-                    class="block mb-2"
-                    >{{ 'AUTH.REGISTER.PASSWORD_LABEL' | translate }}</label
+                    class="flex align-items-center mb-2 font-medium"
                 >
+                    <i
+                        style="margin-right: 0.5rem"
+                        class="pi pi-lock"
+                    ></i>
+                    {{ 'AUTH.REGISTER.PASSWORD_LABEL' | translate }}
+                </label>
                 <p-password
                     inputStyleClass="w-full"
-                    id="password"
+                    inputId="password"
                     formControlName="password"
                     class="w-full"
+                    autocomplete="new-password"
                     [toggleMask]="true"
                     [placeholder]="'AUTH.REGISTER.PASSWORD_PLACEHOLDER' | translate"
                     [feedback]="true"
                 />
                 @if (password?.invalid && password?.touched) {
-                    <small class="p-error">
+                    <small
+                        role="alert"
+                        class="p-error"
+                    >
                         @if (password?.errors?.['required']) {
                             {{ 'AUTH.REGISTER.ERRORS.PASSWORD_REQUIRED' | translate }}
                         } @else if (password?.errors?.['minlength']) {
@@ -72,28 +98,40 @@
             <div class="form-group">
                 <label
                     for="confirmPassword"
-                    class="block mb-2"
-                    >{{ 'AUTH.REGISTER.CONFIRM_PASSWORD_LABEL' | translate }}</label
+                    class="flex align-items-center mb-2 font-medium"
                 >
+                    <i
+                        style="margin-right: 0.5rem"
+                        class="pi pi-lock"
+                    ></i>
+                    {{ 'AUTH.REGISTER.CONFIRM_PASSWORD_LABEL' | translate }}
+                </label>
                 <p-password
                     inputStyleClass="w-full"
-                    id="confirmPassword"
+                    inputId="confirmPassword"
                     formControlName="confirmPassword"
                     class="w-full"
+                    autocomplete="new-password"
                     [toggleMask]="true"
                     [placeholder]="'AUTH.REGISTER.CONFIRM_PASSWORD_PLACEHOLDER' | translate"
                     [feedback]="false"
                 />
 
                 @if (confirmPassword?.invalid && confirmPassword?.touched) {
-                    <small class="p-error">
+                    <small
+                        role="alert"
+                        class="p-error"
+                    >
                         @if (confirmPassword?.errors?.['required']) {
                             {{ 'AUTH.REGISTER.ERRORS.CONFIRM_REQUIRED' | translate }}
                         }
                     </small>
                 }
                 @if (passwordMismatch) {
-                    <small class="p-error">
+                    <small
+                        role="alert"
+                        class="p-error"
+                    >
                         {{ 'AUTH.REGISTER.ERRORS.MISMATCH' | translate }}
                     </small>
                 }
@@ -116,4 +154,4 @@
             >
         </div>
     </p-card>
-</div>
+</main>

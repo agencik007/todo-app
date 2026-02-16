@@ -1,12 +1,20 @@
-<div class="auth-container">
-    <p-card
-        [style]="{ width: '100%', maxWidth: '400px' }"
-        [header]="'AUTH.LOGIN.TITLE' | translate"
-    >
+<main class="auth-container">
+    <p-card [style]="{ width: '100%', maxWidth: '400px' }">
+        <ng-template pTemplate="header">
+            <h1
+                style="text-align: center; margin-top: 0.5rem"
+                class="text-2xl font-bold m-0"
+            >
+                {{ 'AUTH.LOGIN.TITLE' | translate }}
+            </h1>
+        </ng-template>
+
         @if (error()) {
             <p-message
                 severity="error"
+                role="alert"
                 class="mb-3 w-full"
+                aria-live="polite"
             >
                 {{ error() }}
             </p-message>
@@ -20,20 +28,31 @@
             <div class="form-group">
                 <label
                     for="email"
-                    class="block mb-2"
-                    >{{ 'AUTH.LOGIN.EMAIL_LABEL' | translate }}</label
+                    class="flex align-items-center mb-2 font-medium"
                 >
+                    <i
+                        style="margin-right: 0.5rem"
+                        class="pi pi-envelope"
+                    ></i>
+                    {{ 'AUTH.LOGIN.EMAIL_LABEL' | translate }}
+                </label>
                 <input
                     type="email"
                     pInputText
                     id="email"
                     formControlName="email"
                     class="w-full"
+                    autocomplete="email"
                     [placeholder]="'AUTH.LOGIN.EMAIL_PLACEHOLDER' | translate"
-                    [ngClass]="{ 'ng-invalid ng-dirty': email?.invalid && email?.touched }"
+                    [ngClass]="{
+                        'ng-invalid ng-dirty': email?.invalid && email?.touched,
+                    }"
                 />
                 @if (email?.invalid && email?.touched) {
-                    <small class="p-error">
+                    <small
+                        role="alert"
+                        class="p-error"
+                    >
                         @if (email?.errors?.['required']) {
                             {{ 'AUTH.LOGIN.ERRORS.EMAIL_REQUIRED' | translate }}
                         } @else if (email?.errors?.['email']) {
@@ -46,20 +65,29 @@
             <div class="form-group">
                 <label
                     for="password"
-                    class="block mb-2"
-                    >{{ 'AUTH.LOGIN.PASSWORD_LABEL' | translate }}</label
+                    class="flex align-items-center mb-2 font-medium"
                 >
+                    <i
+                        style="margin-right: 0.5rem"
+                        class="pi pi-lock"
+                    ></i>
+                    {{ 'AUTH.LOGIN.PASSWORD_LABEL' | translate }}
+                </label>
                 <p-password
                     inputStyleClass="w-full"
-                    id="password"
+                    inputId="password"
                     formControlName="password"
                     class="w-full"
+                    autocomplete="current-password"
                     [toggleMask]="true"
                     [placeholder]="'AUTH.LOGIN.PASSWORD_PLACEHOLDER' | translate"
                     [feedback]="false"
                 />
                 @if (password?.invalid && password?.touched) {
-                    <small class="p-error">
+                    <small
+                        role="alert"
+                        class="p-error"
+                    >
                         @if (password?.errors?.['required']) {
                             {{ 'AUTH.LOGIN.ERRORS.PASSWORD_REQUIRED' | translate }}
                         } @else if (password?.errors?.['minlength']) {
@@ -78,17 +106,17 @@
             />
         </form>
 
-        <div class="flex justify-content-between mt-4">
+        <div class="flex flex-column gap-2 mt-4 text-center">
             <a
                 routerLink="/forgot-password"
-                class="p-link"
+                class="p-link text-sm"
                 >{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}</a
             >
             <a
                 routerLink="/register"
-                class="p-link"
+                class="p-link text-sm font-medium"
                 >{{ 'AUTH.LOGIN.NO_ACCOUNT' | translate }}</a
             >
         </div>
     </p-card>
-</div>
+</main>
