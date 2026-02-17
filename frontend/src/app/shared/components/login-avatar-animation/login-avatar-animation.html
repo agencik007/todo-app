@@ -1,6 +1,9 @@
 @if (isAnimating()) {
     <div
         class="login-avatar-overlay"
+        #overlay
+        [style.--target-y.px]="targetPosition().y"
+        [style.--target-x.px]="targetPosition().x"
         [class.phase-enter]="phase() === 'enter'"
         [class.phase-done]="phase() === 'done'"
         [class.phase-center]="phase() === 'center'"
@@ -33,6 +36,19 @@
                     [src]="avatarUrl()"
                 />
             </div>
+        </div>
+
+        <div class="loading-messages">
+            <div class="loading-message">{{ 'LOGIN_ANIMATION.LOADING_TODOS' | translate }}</div>
+            <div class="loading-message">{{ 'LOGIN_ANIMATION.LOADING_SETTINGS' | translate }}</div>
+            <div class="loading-message">{{ 'LOGIN_ANIMATION.LOADING_GROUPS' | translate }}</div>
+            <div class="loading-message">
+                {{ 'LOGIN_ANIMATION.LOADING_NOTIFICATIONS' | translate }}
+            </div>
+            <div class="loading-message">
+                {{ 'LOGIN_ANIMATION.LOADING_STATISTICS' | translate }}
+            </div>
+            <div class="loading-message">{{ 'LOGIN_ANIMATION.FINALIZING' | translate }}</div>
         </div>
     </div>
 }

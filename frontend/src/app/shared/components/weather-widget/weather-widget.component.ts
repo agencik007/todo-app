@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TooltipModule } from 'primeng/tooltip';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, of, switchMap } from 'rxjs';
 import {
     WeatherData,
     WeatherService,
@@ -108,32 +108,37 @@ export class WeatherWidgetComponent implements OnInit {
     weather = signal<WeatherData | null>(null);
 
     ngOnInit(): void {
-        this.#weatherService.getGeolocation().subscribe({
-            next: (position) => {
-                this.visible.set(true);
-                this.loadWeather(
-                    position.coords.latitude,
-                    position.coords.longitude,
-                );
-            },
-            error: (err) => {
-                console.warn('Geolocation denied or error:', err);
-                this.visible.set(false);
-            },
-        });
-    }
+        this.#weatherService
+            .getGeolocation()
+            .pipe(
+                switchMap((position) => {
+                    this.visible.set(true);
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
 
-    private loadWeather(lat: number, lon: number): void {
-        forkJoin({
-            weather: this.#weatherService.getCurrentWeather(lat, lon),
-            city: this.#weatherService.getCityName(lat, lon),
-        }).subscribe({
-            next: ({ weather, city }) => {
-                this.weather.set({ ...weather, cityName: city });
-            },
-            error: (err) =>
-                console.error('Failed to load weather or city name', err),
-        });
+                    return forkJoin({
+                        weather: this.#weatherService.getCurrentWeather(
+                            lat,
+                            lon,
+                        ),
+                        city: this.#weatherService.getCityName(lat, lon).pipe(
+                            catchError((err) => {
+                                console.warn('Failed to load city name', err);
+                                return of('Unknown');
+                            }),
+                        ),
+                    });
+                }),
+            )
+            .subscribe({
+                next: ({ weather, city }) => {
+                    this.weather.set({ ...weather, cityName: city });
+                },
+                error: (err) => {
+                    console.error('Weather widget error:', err);
+                    this.visible.set(false);
+                },
+            });
     }
 
     get weatherType(): string {

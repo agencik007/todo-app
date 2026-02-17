@@ -348,5 +348,13 @@
   "WEATHER": {
     "TEMP": "Temp",
     "WIND": "Wiatr"
+  },
+  "LOGIN_ANIMATION": {
+    "LOADING_TODOS": "Ładowanie zadań...",
+    "LOADING_SETTINGS": "Ładowanie ustawień użytkownika...",
+    "LOADING_GROUPS": "Ładowanie grup...",
+    "LOADING_NOTIFICATIONS": "Ładowanie powiadomień...",
+    "LOADING_STATISTICS": "Ładowanie statystyk...",
+    "FINALIZING": "Finalizowanie..."
   }
 }
