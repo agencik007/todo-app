@@ -45,30 +45,27 @@ export class SidebarComponent {
     readonly hasSelection = this.#groupStore.hasSelection;
     readonly loading = this.#groupStore.loading;
 
-    isDialogVisible = signal(false);
+    isDialogVisible = this.#groupStore.dialogVisible;
     isCollapsed = signal(false);
     groupsExpanded = signal(true);
 
     // For edit mode
-    editingGroup = signal<Group | null>(null);
+    editingGroup = this.#groupStore.editingGroup;
 
     // ==================== Dialog methods ====================
 
     showAddDialog(event: Event): void {
         event.stopPropagation();
-        this.editingGroup.set(null);
-        this.isDialogVisible.set(true);
+        this.#groupStore.showCreateDialog();
     }
 
     showEditDialog(event: Event, group: Group): void {
         event.stopPropagation();
-        this.editingGroup.set(group);
-        this.isDialogVisible.set(true);
+        this.#groupStore.showEditDialog(group);
     }
 
     hideDialog(): void {
-        this.isDialogVisible.set(false);
-        this.editingGroup.set(null);
+        this.#groupStore.closeDialog();
     }
 
     onSaveGroup(data: GroupCreate | GroupUpdate): void {
@@ -78,7 +75,6 @@ export class SidebarComponent {
         } else {
             this.#groupStore.createGroup(data as GroupCreate);
         }
-        this.hideDialog();
     }
 
     // ==================== Delete methods ====================

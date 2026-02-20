@@ -225,7 +225,7 @@
           "auth"
         ],
         "summary": "Verify Email",
-        "description": "Verify email address with token.\n\nArgs:\n    token: Email verification token.\n    db: Database session.\n\nReturns:\n    dict: Success message.\n\nRaises:\n    HTTPException: If token is invalid or expired.",
+        "description": "Verify email with token.",
         "operationId": "verify_email_auth_verify_email__token__get",
         "parameters": [
           {
@@ -243,7 +243,11 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Verify Email Auth Verify Email  Token  Get"
+                }
               }
             }
           },
@@ -345,7 +349,7 @@
             }
           },
           {
-            "name": "group_id",
+            "name": "groupId",
             "in": "query",
             "required": false,
             "schema": {
@@ -357,7 +361,7 @@
                   "type": "null"
                 }
               ],
-              "title": "Group Id"
+              "title": "Groupid"
             }
           }
         ],
@@ -434,14 +438,14 @@
         }
       }
     },
-    "/todos/{todo_id}": {
+    "/todos/{todoId}": {
       "get": {
         "tags": [
           "todos"
         ],
-        "summary": "Get Todo",
-        "description": "Get a specific todo by ID.\n\nArgs:\n    todo_id: ID of the todo to retrieve.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The requested todo item.\n\nRaises:\n    HTTPException: If todo not found or user doesn't have access.",
-        "operationId": "get_todo_todos__todo_id__get",
+        "summary": "Read Todo",
+        "description": "Get a specific todo by ID.\n\nArgs:\n    todoId: ID of the todo to retrieve.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The requested todo item.\n\nRaises:\n    HTTPException: If todo not found or user doesn't have access.",
+        "operationId": "read_todo_todos__todoId__get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -449,12 +453,12 @@
         ],
         "parameters": [
           {
-            "name": "todo_id",
+            "name": "todoId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "integer",
-              "title": "Todo Id"
+              "title": "Todoid"
             }
           }
         ],
@@ -486,8 +490,8 @@
           "todos"
         ],
         "summary": "Update Todo",
-        "description": "Update an existing todo.\n\nArgs:\n    todo_id: ID of the todo to update.\n    todo_update: Updated todo data.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The updated todo item.\n\nRaises:\n    HTTPException: If todo not found or user is not the owner.",
-        "operationId": "update_todo_todos__todo_id__put",
+        "description": "Update an existing todo.\n\nArgs:\n    todoId: ID of the todo to update.\n    todo_update: Updated todo data.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The updated todo item.\n\nRaises:\n    HTTPException: If todo not found or user is not the owner.",
+        "operationId": "update_todo_todos__todoId__put",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -495,12 +499,12 @@
         ],
         "parameters": [
           {
-            "name": "todo_id",
+            "name": "todoId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "integer",
-              "title": "Todo Id"
+              "title": "Todoid"
             }
           }
         ],
@@ -542,8 +546,8 @@
           "todos"
         ],
         "summary": "Delete Todo",
-        "description": "Delete a todo.\n\nArgs:\n    todo_id: ID of the todo to delete.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    dict: Success message.\n\nRaises:\n    HTTPException: If todo not found or user is not the owner.",
-        "operationId": "delete_todo_todos__todo_id__delete",
+        "description": "Delete a todo.\n\nArgs:\n    todoId: ID of the todo to delete.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    dict: Success message.\n\nRaises:\n    HTTPException: If todo not found or user is not the owner.",
+        "operationId": "delete_todo_todos__todoId__delete",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -551,12 +555,12 @@
         ],
         "parameters": [
           {
-            "name": "todo_id",
+            "name": "todoId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "integer",
-              "title": "Todo Id"
+              "title": "Todoid"
             }
           }
         ],
@@ -568,7 +572,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Delete Todo Todos  Todo Id  Delete"
+                  "title": "Response Delete Todo Todos  Todoid  Delete"
                 }
               }
             }
@@ -586,14 +590,14 @@
         }
       }
     },
-    "/todos/{todo_id}/reorder": {
+    "/todos/{todoId}/reorder": {
       "patch": {
         "tags": [
           "todos"
         ],
         "summary": "Reorder Todo",
-        "description": "Update the index of a todo for drag-and-drop reordering.\n\nArgs:\n    todo_id: ID of the todo to reorder.\n    reorder_data: Contains the new index.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The reordered todo item.\n\nRaises:\n    HTTPException: If todo not found, user is not owner, or invalid index.",
-        "operationId": "reorder_todo_todos__todo_id__reorder_patch",
+        "description": "Update the index of a todo for drag-and-drop reordering.\n\nArgs:\n    todoId: ID of the todo to reorder.\n    reorder_data: Contains the new index.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The reordered todo item.\n\nRaises:\n    HTTPException: If todo not found, user is not owner, or invalid index.",
+        "operationId": "reorder_todo_todos__todoId__reorder_patch",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -601,12 +605,12 @@
         ],
         "parameters": [
           {
-            "name": "todo_id",
+            "name": "todoId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "integer",
-              "title": "Todo Id"
+              "title": "Todoid"
             }
           }
         ],
@@ -833,14 +837,14 @@
         ]
       }
     },
-    "/groups/{group_id}": {
+    "/groups/{groupId}": {
       "get": {
         "tags": [
           "groups"
         ],
-        "summary": "Get Group",
-        "description": "Get a specific group by ID.\n\nArgs:\n    group_id: ID of the group to retrieve.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Group: The requested group.\n\nRaises:\n    HTTPException: If group not found or user doesn't have access.",
-        "operationId": "get_group_groups__group_id__get",
+        "summary": "Read Group",
+        "description": "Get a specific group by ID.\n\nArgs:\n    groupId: ID of the group to retrieve.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Group: The requested group.\n\nRaises:\n    HTTPException: If group not found or user doesn't have access.",
+        "operationId": "read_group_groups__groupId__get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -848,12 +852,12 @@
         ],
         "parameters": [
           {
-            "name": "group_id",
+            "name": "groupId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "integer",
-              "title": "Group Id"
+              "title": "Groupid"
             }
           }
         ],
@@ -885,8 +889,8 @@
           "groups"
         ],
         "summary": "Update Group",
-        "description": "Update an existing group.\n\nArgs:\n    group_id: ID of the group to update.\n    group_update: Updated group data.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Group: The updated group.\n\nRaises:\n    HTTPException: If group not found or user is not the owner.",
-        "operationId": "update_group_groups__group_id__put",
+        "description": "Update an existing group.\n\nArgs:\n    groupId: ID of the group to update.\n    group_update: Updated group data.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Group: The updated group.\n\nRaises:\n    HTTPException: If group not found or user is not the owner.",
+        "operationId": "update_group_groups__groupId__put",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -894,12 +898,12 @@
         ],
         "parameters": [
           {
-            "name": "group_id",
+            "name": "groupId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "integer",
-              "title": "Group Id"
+              "title": "Groupid"
             }
           }
         ],
@@ -941,8 +945,8 @@
           "groups"
         ],
         "summary": "Delete Group",
-        "description": "Delete a group.\n\nNote: Todos associated with this group will have their group_id set to NULL.\n\nArgs:\n    group_id: ID of the group to delete.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    dict: Success message.\n\nRaises:\n    HTTPException: If group not found or user is not the owner.",
-        "operationId": "delete_group_groups__group_id__delete",
+        "description": "Delete a group.\n\nNote: Todos associated with this group will have their group_id set to NULL.\n\nArgs:\n    groupId: ID of the group to delete.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    dict: Success message.\n\nRaises:\n    HTTPException: If group not found or user is not the owner.",
+        "operationId": "delete_group_groups__groupId__delete",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -950,12 +954,12 @@
         ],
         "parameters": [
           {
-            "name": "group_id",
+            "name": "groupId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "integer",
-              "title": "Group Id"
+              "title": "Groupid"
             }
           }
         ],
@@ -967,7 +971,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Delete Group Groups  Group Id  Delete"
+                  "title": "Response Delete Group Groups  Groupid  Delete"
                 }
               }
             }
@@ -1059,28 +1063,28 @@
             "type": "integer",
             "title": "Id"
           },
-          "user_id": {
+          "userId": {
             "type": "integer",
-            "title": "User Id"
+            "title": "Userid"
           },
-          "created_at": {
+          "createdAt": {
             "type": "string",
             "format": "date-time",
-            "title": "Created At"
+            "title": "Createdat"
           },
-          "updated_at": {
+          "updatedAt": {
             "type": "string",
             "format": "date-time",
-            "title": "Updated At"
+            "title": "Updatedat"
           }
         },
         "type": "object",
         "required": [
           "name",
           "id",
-          "user_id",
-          "created_at",
-          "updated_at"
+          "userId",
+          "createdAt",
+          "updatedAt"
         ],
         "title": "Group",
         "description": "Schema for group API responses."
@@ -1172,17 +1176,17 @@
             "type": "string",
             "title": "Token"
           },
-          "new_password": {
+          "newPassword": {
             "type": "string",
             "minLength": 8,
-            "title": "New Password",
+            "title": "Newpassword",
             "description": "Password must be at least 8 characters"
           }
         },
         "type": "object",
         "required": [
           "token",
-          "new_password"
+          "newPassword"
         ],
         "title": "PasswordReset",
         "description": "Schema for password reset with token."
@@ -1204,14 +1208,14 @@
       },
       "RefreshTokenRequest": {
         "properties": {
-          "refresh_token": {
+          "refreshToken": {
             "type": "string",
-            "title": "Refresh Token"
+            "title": "Refreshtoken"
           }
         },
         "type": "object",
         "required": [
-          "refresh_token"
+          "refreshToken"
         ],
         "title": "RefreshTokenRequest",
         "description": "Schema for token refresh request."
@@ -1240,9 +1244,9 @@
             "title": "Completed",
             "default": false
           },
-          "is_public": {
+          "isPublic": {
             "type": "boolean",
-            "title": "Is Public",
+            "title": "Ispublic",
             "default": false
           },
           "index": {
@@ -1250,7 +1254,7 @@
             "title": "Index",
             "default": 0
           },
-          "group_id": {
+          "groupId": {
             "anyOf": [
               {
                 "type": "integer"
@@ -1259,17 +1263,17 @@
                 "type": "null"
               }
             ],
-            "title": "Group Id"
+            "title": "Groupid"
           },
           "id": {
             "type": "integer",
             "title": "Id"
           },
-          "user_id": {
+          "userId": {
             "type": "integer",
-            "title": "User Id"
+            "title": "Userid"
           },
-          "owner_email": {
+          "ownerEmail": {
             "anyOf": [
               {
                 "type": "string"
@@ -1278,17 +1282,17 @@
                 "type": "null"
               }
             ],
-            "title": "Owner Email"
+            "title": "Owneremail"
           },
-          "created_at": {
+          "createdAt": {
             "type": "string",
             "format": "date-time",
-            "title": "Created At"
+            "title": "Createdat"
           },
-          "updated_at": {
+          "updatedAt": {
             "type": "string",
             "format": "date-time",
-            "title": "Updated At"
+            "title": "Updatedat"
           },
           "group": {
             "anyOf": [
@@ -1305,9 +1309,9 @@
         "required": [
           "title",
           "id",
-          "user_id",
-          "created_at",
-          "updated_at"
+          "userId",
+          "createdAt",
+          "updatedAt"
         ],
         "title": "Todo",
         "description": "Schema for todo API responses (includes id and timestamps)."
@@ -1336,9 +1340,9 @@
             "title": "Completed",
             "default": false
           },
-          "is_public": {
+          "isPublic": {
             "type": "boolean",
-            "title": "Is Public",
+            "title": "Ispublic",
             "default": false
           },
           "index": {
@@ -1346,7 +1350,7 @@
             "title": "Index",
             "default": 0
           },
-          "group_id": {
+          "groupId": {
             "anyOf": [
               {
                 "type": "integer"
@@ -1355,7 +1359,7 @@
                 "type": "null"
               }
             ],
-            "title": "Group Id"
+            "title": "Groupid"
           }
         },
         "type": "object",
@@ -1400,7 +1404,7 @@
             ],
             "title": "Completed"
           },
-          "is_public": {
+          "isPublic": {
             "anyOf": [
               {
                 "type": "boolean"
@@ -1409,7 +1413,7 @@
                 "type": "null"
               }
             ],
-            "title": "Is Public"
+            "title": "Ispublic"
           },
           "index": {
             "anyOf": [
@@ -1422,7 +1426,7 @@
             ],
             "title": "Index"
           },
-          "group_id": {
+          "groupId": {
             "anyOf": [
               {
                 "type": "integer"
@@ -1431,7 +1435,7 @@
                 "type": "null"
               }
             ],
-            "title": "Group Id"
+            "title": "Groupid"
           }
         },
         "type": "object",
@@ -1440,17 +1444,17 @@
       },
       "Token": {
         "properties": {
-          "access_token": {
+          "accessToken": {
             "type": "string",
-            "title": "Access Token"
+            "title": "Accesstoken"
           },
-          "refresh_token": {
+          "refreshToken": {
             "type": "string",
-            "title": "Refresh Token"
+            "title": "Refreshtoken"
           },
-          "token_type": {
+          "tokenType": {
             "type": "string",
-            "title": "Token Type",
+            "title": "Tokentype",
             "default": "bearer"
           },
           "message": {
@@ -1467,8 +1471,8 @@
         },
         "type": "object",
         "required": [
-          "access_token",
-          "refresh_token"
+          "accessToken",
+          "refreshToken"
         ],
         "title": "Token",
         "description": "Schema for JWT token response."
@@ -1521,15 +1525,15 @@
             "type": "integer",
             "title": "Id"
           },
-          "is_active": {
+          "isActive": {
             "type": "boolean",
-            "title": "Is Active"
+            "title": "Isactive"
           },
-          "is_verified": {
+          "isVerified": {
             "type": "boolean",
-            "title": "Is Verified"
+            "title": "Isverified"
           },
-          "avatar_url": {
+          "avatarUrl": {
             "anyOf": [
               {
                 "type": "string"
@@ -1538,7 +1542,7 @@
                 "type": "null"
               }
             ],
-            "title": "Avatar Url"
+            "title": "Avatarurl"
           },
           "language": {
             "type": "string",
@@ -1555,26 +1559,26 @@
             ],
             "title": "Message"
           },
-          "created_at": {
+          "createdAt": {
             "type": "string",
             "format": "date-time",
-            "title": "Created At"
+            "title": "Createdat"
           },
-          "updated_at": {
+          "updatedAt": {
             "type": "string",
             "format": "date-time",
-            "title": "Updated At"
+            "title": "Updatedat"
           }
         },
         "type": "object",
         "required": [
           "email",
           "id",
-          "is_active",
-          "is_verified",
+          "isActive",
+          "isVerified",
           "language",
-          "created_at",
-          "updated_at"
+          "createdAt",
+          "updatedAt"
         ],
         "title": "UserResponse",
         "description": "Schema for user API responses."

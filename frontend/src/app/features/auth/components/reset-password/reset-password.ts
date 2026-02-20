@@ -110,7 +110,7 @@ export class ResetPasswordComponent {
 
         const resetData: PasswordReset = {
             token: this.token()!,
-            new_password: this.resetPasswordForm.value.password,
+            newPassword: this.resetPasswordForm.value.password,
         };
 
         this.authService.resetPassword(resetData).subscribe({

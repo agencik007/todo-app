@@ -20,9 +20,9 @@ export interface Group {
     name: string;
     color?: GroupColor;
     id: number;
-    user_id: number;
-    created_at: string;
-    updated_at: string;
+    userId: number;
+    createdAt: string;
+    updatedAt: string;
 }
 export namespace Group {
 }

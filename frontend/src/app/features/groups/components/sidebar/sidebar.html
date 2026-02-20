@@ -7,6 +7,11 @@
     ></div>
 }
 
+<div
+    class="sidebar-placeholder"
+    [class.collapsed]="isCollapsed()"
+></div>
+
 <aside
     role="navigation"
     class="sidebar"
@@ -18,10 +23,59 @@
     <header class="sidebar-header">
         @if (!isCollapsed() || screenSize.isMobile()) {
             <div class="brand">
-                <i
-                    class="pi pi-list-check"
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 32 32"
+                    fill="none"
+                    class="brand-todo-icon"
                     aria-hidden="true"
-                ></i>
+                >
+                    <g class="icon-layer layer-1">
+                        <path
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M4 8 L8 12 L14 5"
+                        />
+                        <path
+                            stroke-width="3.5"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M18 8.5 H28"
+                        />
+                    </g>
+                    <g class="icon-layer layer-2">
+                        <path
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M4 17 L8 21 L14 14"
+                        />
+                        <path
+                            stroke-width="3.5"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M18 17.5 H28"
+                        />
+                    </g>
+                    <g class="icon-layer layer-3">
+                        <path
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M4 26 L8 30 L14 23"
+                        />
+                        <path
+                            stroke-width="3.5"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M18 26.5 H28"
+                        />
+                    </g>
+                </svg>
                 <span class="brand-text">{{ 'GROUPS.SIDEBAR.APP_TITLE' | translate }}</span>
             </div>
             <button
@@ -46,10 +100,59 @@
                 [attr.aria-label]="'GROUPS.SIDEBAR.EXPAND' | translate"
                 (click)="toggleCollapse()"
             >
-                <i
-                    class="pi pi-list-check"
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 32 32"
+                    fill="none"
+                    class="brand-todo-icon"
                     aria-hidden="true"
-                ></i>
+                >
+                    <g class="icon-layer layer-1">
+                        <path
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M4 8 L8 12 L14 5"
+                        />
+                        <path
+                            stroke-width="3.5"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M18 8.5 H28"
+                        />
+                    </g>
+                    <g class="icon-layer layer-2">
+                        <path
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M4 17 L8 21 L14 14"
+                        />
+                        <path
+                            stroke-width="3.5"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M18 17.5 H28"
+                        />
+                    </g>
+                    <g class="icon-layer layer-3">
+                        <path
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M4 26 L8 30 L14 23"
+                        />
+                        <path
+                            stroke-width="3.5"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M18 26.5 H28"
+                        />
+                    </g>
+                </svg>
             </button>
         }
     </header>
@@ -294,11 +397,12 @@
 <!-- Group Dialog (Add/Edit) -->
 <p-dialog
     styleClass="premium-dialog"
+    [visible]="isDialogVisible()"
     [style]="{ width: '400px', maxWidth: '95vw' }"
     [resizable]="false"
     [modal]="true"
     [draggable]="false"
-    [(visible)]="isDialogVisible"
+    (visibleChange)="!$event && hideDialog()"
 >
     <ng-template pTemplate="header">
         <span class="p-dialog-title">{{ dialogTitle | translate }}</span>

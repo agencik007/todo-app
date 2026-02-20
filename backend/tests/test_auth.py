@@ -31,8 +31,8 @@ class TestAuthAPI:
 
         assert data["email"] == "newuser@example.com"
         assert data["id"] is not None
-        assert data["is_active"]
-        assert not data["is_verified"]
+        assert data["isActive"]
+        assert not data["isVerified"]
         assert "hashed_password" not in data  # Password should not be in response
 
     def test_register_duplicate_email(self, client: TestClient, test_user):
@@ -76,11 +76,11 @@ class TestAuthAPI:
         assert response.status_code == 200
         data = response.json()
 
-        assert "access_token" in data
-        assert "refresh_token" in data
-        assert data["token_type"] == "bearer"
-        assert len(data["access_token"]) > 0
-        assert len(data["refresh_token"]) > 0
+        assert "accessToken" in data
+        assert "refreshToken" in data
+        assert data["tokenType"] == "bearer"
+        assert len(data["accessToken"]) > 0
+        assert len(data["refreshToken"]) > 0
 
     def test_login_json_endpoint(self, client: TestClient, test_user):
         """Test POST /auth/login with JSON payload (instead of form data)."""
@@ -91,9 +91,9 @@ class TestAuthAPI:
         assert response.status_code == 200
         data = response.json()
 
-        assert "access_token" in data
-        assert "refresh_token" in data
-        assert data["token_type"] == "bearer"
+        assert "accessToken" in data
+        assert "refreshToken" in data
+        assert data["tokenType"] == "bearer"
 
     def test_login_wrong_password(self, client: TestClient, test_user):
         """Test POST /auth/login with wrong password."""
@@ -145,8 +145,8 @@ class TestAuthAPI:
 
         assert "email" in data
         assert "id" in data
-        assert "is_active" in data
-        assert "is_verified" in data
+        assert "isActive" in data
+        assert "isVerified" in data
         assert "hashed_password" not in data
 
     def test_get_current_user_unauthorized(self, client: TestClient):
@@ -169,18 +169,18 @@ class TestAuthAPI:
             data={"sub": test_user.id, "email": test_user.email}
         )
 
-        response = client.post("/auth/refresh", json={"refresh_token": refresh_token})
+        response = client.post("/auth/refresh", json={"refreshToken": refresh_token})
 
         assert response.status_code == 200
         data = response.json()
 
-        assert "access_token" in data
-        assert "refresh_token" in data
-        assert data["token_type"] == "bearer"
+        assert "accessToken" in data
+        assert "refreshToken" in data
+        assert data["tokenType"] == "bearer"
 
     def test_refresh_token_invalid(self, client: TestClient):
         """Test POST /auth/refresh with invalid token."""
-        response = client.post("/auth/refresh", json={"refresh_token": "invalid_token"})
+        response = client.post("/auth/refresh", json={"refreshToken": "invalid_token"})
 
         assert response.status_code == 401
         data = response.json()

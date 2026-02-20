@@ -20,8 +20,8 @@ import { GroupStore } from '../../../groups/store/group.store';
 interface TodoFormModel {
     title: string;
     description: string;
-    is_public: boolean;
-    group_id: number | null;
+    isPublic: boolean;
+    groupId: number | null;
 }
 
 @Component({
@@ -52,8 +52,8 @@ export class TodoFormComponent {
         computation: (todo) => ({
             title: todo?.title ?? '',
             description: todo?.description ?? '',
-            is_public: todo?.is_public ?? false,
-            group_id: todo?.group_id ?? null,
+            isPublic: todo?.isPublic ?? false,
+            groupId: todo?.groupId ?? null,
         }),
     });
 
@@ -81,8 +81,8 @@ export class TodoFormComponent {
         const todoData: TodoCreate = {
             title: model.title.trim(),
             description: model.description.trim() || undefined,
-            is_public: model.is_public,
-            group_id: model.group_id,
+            isPublic: model.isPublic,
+            groupId: model.groupId,
         };
 
         this.save.emit(todoData);
@@ -91,8 +91,8 @@ export class TodoFormComponent {
             this.todoModel.set({
                 title: '',
                 description: '',
-                is_public: false,
-                group_id: null,
+                isPublic: false,
+                groupId: null,
             });
         }
 

@@ -1,7 +1,7 @@
 $avatar-size: 122px;
 $ring-size: 172px;
 
-.login-avatar-overlay {
+.login-animation-overlay {
     position: fixed;
     inset: 0;
     z-index: 99999;
@@ -140,11 +140,48 @@ $ring-size: 172px;
     animation: shineSweep 1s linear infinite;
 }
 
-.avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+.todo-icon {
+    width: 80%;
+    height: 80%;
+    position: absolute;
+    top: 46%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--p-primary-500, #6366f1);
+}
+
+.icon-layer {
+    opacity: 0;
+    transform: translateY(10px) scale(0.8);
+    transform-origin: center;
+}
+
+.phase-center .icon-layer.layer-1,
+.phase-burst .icon-layer.layer-1,
+.phase-done .icon-layer.layer-1 {
+    animation: layerPop 400ms cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    animation-delay: 200ms;
+}
+
+.phase-center .icon-layer.layer-2,
+.phase-burst .icon-layer.layer-2,
+.phase-done .icon-layer.layer-2 {
+    animation: layerPop 400ms cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    animation-delay: 400ms;
+}
+
+.phase-center .icon-layer.layer-3,
+.phase-burst .icon-layer.layer-3,
+.phase-done .icon-layer.layer-3 {
+    animation: layerPop 400ms cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    animation-delay: 600ms;
+}
+
+@keyframes layerPop {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .ring {

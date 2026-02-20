@@ -45,9 +45,9 @@ def get_groups(
     return groups
 
 
-@router.get("/{group_id}", response_model=Group)
-def get_group(
-    group_id: int,
+@router.get("/{groupId}", response_model=Group)
+def read_group(
+    groupId: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
 ) -> Group:
@@ -55,7 +55,7 @@ def get_group(
     Get a specific group by ID.
 
     Args:
-        group_id: ID of the group to retrieve.
+        groupId: ID of the group to retrieve.
         db: Database session.
         current_user: Current authenticated user.
 
@@ -65,7 +65,7 @@ def get_group(
     Raises:
         HTTPException: If group not found or user doesn't have access.
     """
-    group = db.query(GroupModel).filter(GroupModel.id == group_id).first()
+    group = db.query(GroupModel).filter(GroupModel.id == groupId).first()
 
     if group is None:
         raise HTTPException(
@@ -128,9 +128,9 @@ def create_group(
     return db_group
 
 
-@router.put("/{group_id}", response_model=Group)
+@router.put("/{groupId}", response_model=Group)
 def update_group(
-    group_id: int,
+    groupId: int,
     group_update: GroupUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
@@ -139,7 +139,7 @@ def update_group(
     Update an existing group.
 
     Args:
-        group_id: ID of the group to update.
+        groupId: ID of the group to update.
         group_update: Updated group data.
         db: Database session.
         current_user: Current authenticated user.
@@ -150,7 +150,7 @@ def update_group(
     Raises:
         HTTPException: If group not found or user is not the owner.
     """
-    group = db.query(GroupModel).filter(GroupModel.id == group_id).first()
+    group = db.query(GroupModel).filter(GroupModel.id == groupId).first()
 
     if group is None:
         raise HTTPException(
@@ -175,9 +175,9 @@ def update_group(
     return group
 
 
-@router.delete("/{group_id}")
+@router.delete("/{groupId}")
 def delete_group(
-    group_id: int,
+    groupId: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
 ) -> dict:
@@ -187,7 +187,7 @@ def delete_group(
     Note: Todos associated with this group will have their group_id set to NULL.
 
     Args:
-        group_id: ID of the group to delete.
+        groupId: ID of the group to delete.
         db: Database session.
         current_user: Current authenticated user.
 
@@ -197,7 +197,7 @@ def delete_group(
     Raises:
         HTTPException: If group not found or user is not the owner.
     """
-    group = db.query(GroupModel).filter(GroupModel.id == group_id).first()
+    group = db.query(GroupModel).filter(GroupModel.id == groupId).first()
 
     if group is None:
         raise HTTPException(

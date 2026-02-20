@@ -16,8 +16,8 @@ export interface TodoUpdate {
     title?: string | null;
     description?: string | null;
     completed?: boolean | null;
-    is_public?: boolean | null;
+    isPublic?: boolean | null;
     index?: number | null;
-    group_id?: number | null;
+    groupId?: number | null;
 }
 

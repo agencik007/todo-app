@@ -13,9 +13,9 @@
  * Schema for JWT token response.
  */
 export interface Token { 
-    access_token: string;
-    refresh_token: string;
-    token_type?: string;
+    accessToken: string;
+    refreshToken: string;
+    tokenType?: string;
     message?: string | null;
 }
 

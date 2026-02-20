@@ -6,8 +6,19 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from pydantic.alias_generators import to_camel
 
 from models.group import GroupColor
+
+
+class CamelBaseModel(BaseModel):
+    """Base model with camelCase serialization."""
+
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+        from_attributes=True,
+    )
 
 
 # =============================================================================
@@ -15,7 +26,7 @@ from models.group import GroupColor
 # =============================================================================
 
 
-class GroupBase(BaseModel):
+class GroupBase(CamelBaseModel):
     """Base schema for groups."""
 
     name: str = Field(..., min_length=1, max_length=50, description="Group name")
@@ -28,7 +39,7 @@ class GroupCreate(GroupBase):
     pass
 
 
-class GroupUpdate(BaseModel):
+class GroupUpdate(CamelBaseModel):
     """Schema for updating a group."""
 
     name: Optional[str] = Field(None, min_length=1, max_length=50)
@@ -38,7 +49,7 @@ class GroupUpdate(BaseModel):
 class Group(GroupBase):
     """Schema for group API responses."""
 
-    model_config = ConfigDict(from_attributes=True)
+    # model_config = ConfigDict(from_attributes=True)  # Inherited from CamelBaseModel
 
     id: int
     user_id: int
@@ -51,7 +62,7 @@ class Group(GroupBase):
 # =============================================================================
 
 
-class TodoBase(BaseModel):
+class TodoBase(CamelBaseModel):
     """Base schema for todo items."""
 
     title: str = Field(..., min_length=1, description="Title must not be empty")
@@ -68,7 +79,7 @@ class TodoCreate(TodoBase):
     pass
 
 
-class TodoUpdate(BaseModel):
+class TodoUpdate(CamelBaseModel):
     """Schema for updating an existing todo (all fields optional)."""
 
     title: Optional[str] = None
@@ -82,7 +93,7 @@ class TodoUpdate(BaseModel):
 class Todo(TodoBase):
     """Schema for todo API responses (includes id and timestamps)."""
 
-    model_config = ConfigDict(from_attributes=True)
+    # model_config = ConfigDict(from_attributes=True)
 
     id: int
     user_id: int
@@ -97,7 +108,7 @@ class Todo(TodoBase):
 # =============================================================================
 
 
-class UserBase(BaseModel):
+class UserBase(CamelBaseModel):
     """Base schema for users."""
 
     email: EmailStr
@@ -114,7 +125,7 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
     """Schema for user API responses."""
 
-    model_config = ConfigDict(from_attributes=True)
+    # model_config = ConfigDict(from_attributes=True)
 
     id: int
     is_active: bool
@@ -126,7 +137,7 @@ class UserResponse(UserBase):
     updated_at: datetime
 
 
-class UserLanguageUpdate(BaseModel):
+class UserLanguageUpdate(CamelBaseModel):
     """Schema for updating user language."""
 
     language: str = Field(..., pattern="^(en|pl)$")
@@ -137,7 +148,7 @@ class UserLanguageUpdate(BaseModel):
 # =============================================================================
 
 
-class Token(BaseModel):
+class Token(CamelBaseModel):
     """Schema for JWT token response."""
 
     access_token: str
@@ -146,21 +157,21 @@ class Token(BaseModel):
     message: Optional[str] = None
 
 
-class TokenData(BaseModel):
+class TokenData(CamelBaseModel):
     """Schema for decoded token data."""
 
     user_id: Optional[int] = None
     email: Optional[str] = None
 
 
-class LoginRequest(BaseModel):
+class LoginRequest(CamelBaseModel):
     """Schema for JSON login request."""
 
     email: EmailStr
     password: str
 
 
-class RefreshTokenRequest(BaseModel):
+class RefreshTokenRequest(CamelBaseModel):
     """Schema for token refresh request."""
 
     refresh_token: str
@@ -171,13 +182,13 @@ class RefreshTokenRequest(BaseModel):
 # =============================================================================
 
 
-class PasswordResetRequest(BaseModel):
+class PasswordResetRequest(CamelBaseModel):
     """Schema for password reset request (forgot password)."""
 
     email: EmailStr
 
 
-class PasswordReset(BaseModel):
+class PasswordReset(CamelBaseModel):
     """Schema for password reset with token."""
 
     token: str

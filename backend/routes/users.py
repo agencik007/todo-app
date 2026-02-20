@@ -97,7 +97,7 @@ async def upload_avatar(
     db.commit()
     db.refresh(current_user)
 
-    return {"avatar_url": avatar_url}
+    return {"avatarUrl": avatar_url}
 
 
 @router.delete("/me/avatar")

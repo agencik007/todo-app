@@ -12,15 +12,7 @@
                 </button>
             }
 
-            <!-- Left: Title -->
-            <a
-                style="text-decoration: none"
-                routerLink="/todos"
-                class="flex align-items-center gap-2 p-link mr-4 logo-link"
-            >
-                <span class="font-semibold text-xl">📝 {{ 'NAV.HOME' | translate }}</span>
-            </a>
-
+            <!-- Left: Title removed -->
             <!-- Center: Command Palette (Desktop) -->
             @if (isInitialized() && !isCompact() && (isAuthenticated() || !isAuthPage())) {
                 <div class="search-container-desktop">

@@ -135,6 +135,7 @@ export class CommandPaletteService {
         if (id === 'logout') return isAuthenticated;
         if (id === 'todo-add') return isAuthenticated;
         if (id === 'group-add-static') return isAuthenticated;
+
         return true;
     }
 
@@ -258,7 +259,7 @@ export class CommandPaletteService {
                 icon: 'pi pi-plus-circle',
                 category: 'group' as CommandCategory,
                 action: (): void => {
-                    this.#groupStore.createGroup({ name: queryLower });
+                    this.#groupStore.createGroup({ name: query.trim() });
                     this.close();
                 },
             });
@@ -351,7 +352,7 @@ export class CommandPaletteService {
     }
 
     private addGroup(): void {
-        // Just focus search for now as we have dynamic "Add" action
-        this.open();
+        this.#groupStore.showCreateDialog();
+        this.close();
     }
 }

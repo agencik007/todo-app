@@ -59,7 +59,7 @@ export class TodoStore {
         }
 
         return allTodos.filter(
-            (t) => t.group_id && selectedIds.includes(t.group_id),
+            (t) => t.groupId && selectedIds.includes(t.groupId),
         );
     });
 

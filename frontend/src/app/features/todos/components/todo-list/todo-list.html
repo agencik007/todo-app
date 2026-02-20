@@ -222,11 +222,11 @@
                                         </div>
                                     </div>
 
-                                    @if (todo.group_id && getGroupById(todo.group_id)) {
+                                    @if (todo.groupId && getGroupById(todo.groupId)) {
                                         <div class="group-badge-container">
                                             <app-group-badge
                                                 size="md"
-                                                [group]="getGroupById(todo.group_id)"
+                                                [group]="getGroupById(todo.groupId)"
                                             />
                                         </div>
                                     }
@@ -245,7 +245,7 @@
                                             "
                                             [severity]="todo.completed ? 'success' : 'warn'"
                                         />
-                                        @if (todo.is_public) {
+                                        @if (todo.isPublic) {
                                             <p-tag
                                                 severity="info"
                                                 [value]="'TODOS.LIST.PUBLIC' | translate"

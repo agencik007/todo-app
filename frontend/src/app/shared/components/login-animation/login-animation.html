@@ -1,0 +1,101 @@
+@if (isAnimating()) {
+    <div
+        class="login-animation-overlay"
+        #overlay
+        [style.--target-y.px]="targetPosition().y"
+        [style.--target-x.px]="targetPosition().x"
+        [class.phase-enter]="phase() === 'enter'"
+        [class.phase-done]="phase() === 'done'"
+        [class.phase-center]="phase() === 'center'"
+        [class.phase-burst]="phase() === 'burst'"
+    >
+        <div class="backdrop"></div>
+
+        <div class="avatar-stage">
+            <div class="aura"></div>
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+            <div class="ring ring-3"></div>
+            <div class="shockwave"></div>
+
+            <div class="beam beam-1"></div>
+            <div class="beam beam-2"></div>
+            <div class="beam beam-3"></div>
+
+            <div class="sparkle sparkle-1"></div>
+            <div class="sparkle sparkle-2"></div>
+            <div class="sparkle sparkle-3"></div>
+            <div class="sparkle sparkle-4"></div>
+            <div class="sparkle sparkle-5"></div>
+            <div class="sparkle sparkle-6"></div>
+
+            <div class="avatar-container">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 32 32"
+                    fill="none"
+                    class="todo-icon"
+                >
+                    <g class="icon-layer layer-1">
+                        <path
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M4 8 L8 12 L14 5"
+                        />
+                        <path
+                            stroke-width="3.5"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M18 8.5 H28"
+                        />
+                    </g>
+                    <g class="icon-layer layer-2">
+                        <path
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M4 17 L8 21 L14 14"
+                        />
+                        <path
+                            stroke-width="3.5"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M18 17.5 H28"
+                        />
+                    </g>
+                    <g class="icon-layer layer-3">
+                        <path
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M4 26 L8 30 L14 23"
+                        />
+                        <path
+                            stroke-width="3.5"
+                            stroke-linecap="round"
+                            stroke="currentColor"
+                            d="M18 26.5 H28"
+                        />
+                    </g>
+                </svg>
+            </div>
+        </div>
+
+        <div class="loading-messages">
+            <div class="loading-message">{{ 'LOGIN_ANIMATION.LOADING_TODOS' | translate }}</div>
+            <div class="loading-message">{{ 'LOGIN_ANIMATION.LOADING_SETTINGS' | translate }}</div>
+            <div class="loading-message">{{ 'LOGIN_ANIMATION.LOADING_GROUPS' | translate }}</div>
+            <div class="loading-message">
+                {{ 'LOGIN_ANIMATION.LOADING_NOTIFICATIONS' | translate }}
+            </div>
+            <div class="loading-message">
+                {{ 'LOGIN_ANIMATION.LOADING_STATISTICS' | translate }}
+            </div>
+            <div class="loading-message">{{ 'LOGIN_ANIMATION.FINALIZING' | translate }}</div>
+        </div>
+    </div>
+}

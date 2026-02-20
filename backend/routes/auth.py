@@ -346,20 +346,10 @@ def reset_password(
     return api_success(ApiMessages.AUTH_PASSWORD_RESET_SUCCESS)
 
 
-@router.get("/verify-email/{token}")
+@router.get("/verify-email/{token}", response_model=dict)
 def verify_email(token: str, db: Session = Depends(get_db)):
     """
-    Verify email address with token.
-
-    Args:
-        token: Email verification token.
-        db: Database session.
-
-    Returns:
-        dict: Success message.
-
-    Raises:
-        HTTPException: If token is invalid or expired.
+    Verify email with token.
     """
     user = (
         db.query(User)

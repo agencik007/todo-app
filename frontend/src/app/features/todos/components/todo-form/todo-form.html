@@ -54,7 +54,7 @@
             class="w-full"
             [showClear]="true"
             [options]="groups()"
-            [(ngModel)]="todoModel().group_id"
+            [(ngModel)]="todoModel().groupId"
         />
         <small class="text-color-secondary">{{ 'TODOS.FORM.FIELD_GROUP_HINT' | translate }}</small>
     </div>
@@ -65,7 +65,7 @@
                 name="isPublic"
                 id="isPublic"
                 [binary]="true"
-                [(ngModel)]="todoModel().is_public"
+                [(ngModel)]="todoModel().isPublic"
             />
             <label for="isPublic">{{ 'TODOS.FORM.FIELD_PUBLIC' | translate }}</label>
         </div>

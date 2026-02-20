@@ -3,17 +3,17 @@ import { Injectable, signal } from '@angular/core';
 @Injectable({
     providedIn: 'root',
 })
-export class LoginAvatarAnimationService {
-    readonly avatarUrl = signal<string | null>(null);
+@Injectable({
+    providedIn: 'root',
+})
+export class LoginAnimationService {
     readonly isAnimating = signal(false);
 
-    trigger(avatarUrl: string): void {
-        this.avatarUrl.set(avatarUrl);
+    trigger(): void {
         this.isAnimating.set(true);
     }
 
     done(): void {
-        this.avatarUrl.set(null);
         this.isAnimating.set(false);
     }
 }

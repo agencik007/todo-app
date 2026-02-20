@@ -81,7 +81,7 @@ export class AuthStore {
                         }
 
                         // Try to load avatar from cache first
-                        this.loadAvatarWithCacheCheck(user.avatar_url).then(
+                        this.loadAvatarWithCacheCheck(user.avatarUrl).then(
                             () => {
                                 this._isLoading.set(false);
                                 this._isInitialized.set(true);
@@ -120,7 +120,7 @@ export class AuthStore {
         }
 
         // Load avatar with cache check and return the URL
-        await this.loadAvatarWithCacheCheck(user.avatar_url);
+        await this.loadAvatarWithCacheCheck(user.avatarUrl);
         return this._userAvatar();
     }
 

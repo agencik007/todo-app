@@ -6,7 +6,7 @@ import { ToastModule } from 'primeng/toast';
 import { AuthNavComponent } from './layout/auth-nav/components/auth-nav/auth-nav';
 import { CommandPaletteComponent } from './shared/components/command-palette/command-palette';
 import { DynamicBackgroundComponent } from './shared/components/dynamic-background/dynamic-background.component';
-import { LoginAvatarAnimationComponent } from './shared/components/login-avatar-animation/login-avatar-animation';
+import { LoginAnimationComponent } from './shared/components/login-animation/login-animation';
 import { SnowfallComponent } from './shared/components/snowfall/snowfall.component';
 
 @Component({
@@ -18,7 +18,7 @@ import { SnowfallComponent } from './shared/components/snowfall/snowfall.compone
         CommandPaletteComponent,
         SnowfallComponent,
         DynamicBackgroundComponent,
-        LoginAvatarAnimationComponent,
+        LoginAnimationComponent,
     ],
     templateUrl: './app.html',
     styleUrl: './app.scss',

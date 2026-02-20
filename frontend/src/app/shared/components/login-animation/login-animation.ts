@@ -8,7 +8,7 @@ import {
     viewChild,
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { LoginAvatarAnimationService } from '../../../core/services/login-avatar-animation.service';
+import { LoginAnimationService } from 'src/app/core/services/login-animation.service';
 
 type AnimationPhase = 'idle' | 'enter' | 'center' | 'burst' | 'done';
 
@@ -18,16 +18,15 @@ interface TargetPosition {
 }
 
 @Component({
-    selector: 'app-login-avatar-animation',
-    templateUrl: './login-avatar-animation.html',
-    styleUrl: './login-avatar-animation.scss',
+    selector: 'app-login-animation',
+    templateUrl: './login-animation.html',
+    styleUrl: './login-animation.scss',
     imports: [TranslatePipe],
 })
-export class LoginAvatarAnimationComponent {
-    readonly #animationService = inject(LoginAvatarAnimationService);
+export class LoginAnimationComponent {
+    readonly #animationService = inject(LoginAnimationService);
     readonly #destroyRef = inject(DestroyRef);
 
-    readonly avatarUrl = this.#animationService.avatarUrl;
     readonly isAnimating = this.#animationService.isAnimating;
     readonly phase = signal<AnimationPhase>('idle');
     readonly targetPosition = signal<TargetPosition>({ x: 550, y: -200 });

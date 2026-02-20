@@ -118,7 +118,7 @@ class TestTodoResponseSchema:
             "title": "Response Todo",
             "description": "Response description",
             "completed": False,
-            "is_public": False,
+            "isPublic": False,
             "user_id": 1,
             "created_at": datetime(2023, 1, 1, 12, 0, 0),
             "updated_at": datetime(2023, 1, 1, 12, 0, 0),

@@ -32,6 +32,13 @@ export class GroupStore {
         Array.from(this.#selectedGroupIds()),
     );
 
+    // Dialog state
+    readonly #dialogVisible = signal(false);
+    readonly #editingGroup = signal<Group | null>(null);
+
+    readonly dialogVisible = this.#dialogVisible.asReadonly();
+    readonly editingGroup = this.#editingGroup.asReadonly();
+
     // Check if any groups are selected
     readonly hasSelection = computed(() => this.#selectedGroupIds().size > 0);
 
@@ -77,6 +84,7 @@ export class GroupStore {
         this.#groupsService.createGroupGroupsPost(groupData).subscribe({
             next: (newGroup) => {
                 this.#groups.update((groups) => [...groups, newGroup]);
+                this.closeDialog();
             },
             error: (err: Error) => {
                 this.#error.set(err.message);
@@ -90,6 +98,7 @@ export class GroupStore {
                 this.#groups.update((groups) =>
                     groups.map((g) => (g.id === id ? updatedGroup : g)),
                 );
+                this.closeDialog();
             },
             error: (err: Error) => {
                 this.#error.set(err.message);
@@ -114,6 +123,23 @@ export class GroupStore {
                 this.#error.set(err.message);
             },
         });
+    }
+
+    // ==================== Dialog Actions ====================
+
+    showCreateDialog(): void {
+        this.#editingGroup.set(null);
+        this.#dialogVisible.set(true);
+    }
+
+    showEditDialog(group: Group): void {
+        this.#editingGroup.set(group);
+        this.#dialogVisible.set(true);
+    }
+
+    closeDialog(): void {
+        this.#dialogVisible.set(false);
+        this.#editingGroup.set(null);
     }
 
     // ==================== Selection Actions ====================

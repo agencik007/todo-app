@@ -1,51 +1,50 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { httpResource } from '@angular/common/http';
+import { computed, Injectable, signal } from '@angular/core';
+import { Observable } from 'rxjs';
 
 export interface WeatherData {
     temperature: number;
     windSpeed: number;
     weatherCode: number;
-    cityName?: string;
 }
 
 @Injectable({
     providedIn: 'root',
 })
 export class WeatherService {
-    readonly #http = inject(HttpClient);
     readonly #apiUrl = 'https://api.open-meteo.com/v1/forecast';
-    readonly #geoUrl = 'https://nominatim.openstreetmap.org/reverse';
 
-    getCurrentWeather(lat: number, lon: number): Observable<WeatherData> {
-        const weatherUrl = `${this.#apiUrl}?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,weather_code`;
+    // Internal state for location (coordinates)
+    readonly #location = signal<{ lat: number; lon: number } | null>(null);
 
-        return this.#http.get<any>(weatherUrl).pipe(
-            map((weatherResponse: any) => {
-                const data: WeatherData = {
-                    temperature: weatherResponse.current.temperature_2m,
-                    windSpeed: weatherResponse.current.wind_speed_10m,
-                    weatherCode: weatherResponse.current.weather_code,
-                };
-                return data;
-            }),
-        );
-    }
+    // Resource for fetching raw weather data
+    // It automatically refetches when #location signal changes
+    readonly #weatherResource = httpResource<any>(() => {
+        const loc = this.#location();
+        if (!loc) return undefined;
 
-    getCityName(lat: number, lon: number): Observable<string> {
-        const url = `${this.#geoUrl}?format=json&lat=${lat}&lon=${lon}`;
-        return this.#http.get<any>(url).pipe(
-            map((response: any) => {
-                const address = response.address;
-                return (
-                    address.city ||
-                    address.town ||
-                    address.village ||
-                    address.suburb ||
-                    'Unknown'
-                );
-            }),
-        );
+        // Construct URL only when location is available
+        return `${this.#apiUrl}?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,wind_speed_10m,weather_code`;
+    });
+
+    // Publicly exposed signal with transformed data
+    readonly weather = computed<WeatherData | null>(() => {
+        const raw = this.#weatherResource.value();
+        if (!raw) return null;
+
+        return {
+            temperature: raw.current.temperature_2m,
+            windSpeed: raw.current.wind_speed_10m,
+            weatherCode: raw.current.weather_code,
+        };
+    });
+
+    readonly isLoading = this.#weatherResource.isLoading;
+    readonly error = this.#weatherResource.error;
+
+    // Action to update location and trigger fetch
+    fetchWeather(lat: number, lon: number): void {
+        this.#location.set({ lat, lon });
     }
 
     getGeolocation(): Observable<GeolocationPosition> {

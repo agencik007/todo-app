@@ -1,17 +1,14 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TooltipModule } from 'primeng/tooltip';
-import { catchError, forkJoin, of, switchMap } from 'rxjs';
-import {
-    WeatherData,
-    WeatherService,
-} from '../../../core/services/weather.service';
+import { switchMap } from 'rxjs';
+import { WeatherService } from '../../../core/services/weather.service';
 
 @Component({
     selector: 'app-weather-widget',
     imports: [TooltipModule, TranslateModule],
     template: `
-        @if (weather()) {
+        @if (weatherService.weather()) {
             <div
                 tooltipPosition="bottom"
                 class="flex align-items-center gap-2 cursor-pointer weather-widget"
@@ -71,7 +68,7 @@ import {
                     }
                 </div>
                 <span class="font-bold text-sm"
-                    >{{ weather()?.temperature }}°C</span
+                    >{{ weatherService.weather()?.temperature }}°C</span
                 >
             </div>
         }
@@ -101,14 +98,13 @@ import {
     ],
 })
 export class WeatherWidgetComponent implements OnInit {
-    readonly #weatherService = inject(WeatherService);
+    readonly weatherService = inject(WeatherService);
     readonly #translateService = inject(TranslateService);
 
     visible = signal(false);
-    weather = signal<WeatherData | null>(null);
 
     ngOnInit(): void {
-        this.#weatherService
+        this.weatherService
             .getGeolocation()
             .pipe(
                 switchMap((position) => {
@@ -116,24 +112,11 @@ export class WeatherWidgetComponent implements OnInit {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
 
-                    return forkJoin({
-                        weather: this.#weatherService.getCurrentWeather(
-                            lat,
-                            lon,
-                        ),
-                        city: this.#weatherService.getCityName(lat, lon).pipe(
-                            catchError((err) => {
-                                console.warn('Failed to load city name', err);
-                                return of('Unknown');
-                            }),
-                        ),
-                    });
+                    this.weatherService.fetchWeather(lat, lon);
+                    return [];
                 }),
             )
             .subscribe({
-                next: ({ weather, city }) => {
-                    this.weather.set({ ...weather, cityName: city });
-                },
                 error: (err) => {
                     console.error('Weather widget error:', err);
                     this.visible.set(false);
@@ -142,7 +125,7 @@ export class WeatherWidgetComponent implements OnInit {
     }
 
     get weatherType(): string {
-        const code = this.weather()?.weatherCode;
+        const code = this.weatherService.weather()?.weatherCode;
         if (code === undefined) return 'unknown';
 
         // WMO Weather interpretation codes (WW)
@@ -161,13 +144,12 @@ export class WeatherWidgetComponent implements OnInit {
     }
 
     get tooltipText(): string {
-        const w = this.weather();
+        const w = this.weatherService.weather();
         if (!w) return '';
 
         const tempLabel = this.#translateService.instant('WEATHER.TEMP');
         const windLabel = this.#translateService.instant('WEATHER.WIND');
-        const cityPrefix = w.cityName ? `${w.cityName}: ` : '';
 
-        return `${cityPrefix}${tempLabel}: ${w.temperature}°C, ${windLabel}: ${w.windSpeed} km/h`;
+        return `${tempLabel}: ${w.temperature}°C, ${windLabel}: ${w.windSpeed} km/h`;
     }
 }

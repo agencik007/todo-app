@@ -20,14 +20,14 @@ export interface Todo {
     title: string;
     description?: string | null;
     completed?: boolean;
-    is_public?: boolean;
+    isPublic?: boolean;
     index?: number;
-    group_id?: number | null;
+    groupId?: number | null;
     id: number;
-    user_id: number;
-    owner_email?: string | null;
-    created_at: string;
-    updated_at: string;
+    userId: number;
+    ownerEmail?: string | null;
+    createdAt: string;
+    updatedAt: string;
     group?: Group | null;
 }
 

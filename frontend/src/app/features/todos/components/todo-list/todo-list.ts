@@ -198,7 +198,7 @@ export class TodoListComponent implements OnInit {
 
     canEditTodo(todo: Todo): boolean {
         const user = this.currentUser;
-        return !!user && user.id === todo.user_id;
+        return !!user && user.id === todo.userId;
     }
 
     onDrop(event: CdkDragDrop<Todo[]>): void {

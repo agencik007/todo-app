@@ -42,9 +42,9 @@ class TestTodoAPI:
         assert data["title"] == "Test Todo"
         assert data["description"] == "This is a test todo"
         assert not data["completed"]
-        assert "created_at" in data
-        assert "updated_at" in data
-        assert "user_id" in data  # Should have user_id
+        assert "createdAt" in data
+        assert "updatedAt" in data
+        assert "userId" in data  # Should have userId
 
     def test_create_todo_minimal(self, authenticated_client: TestClient):
         """Test POST /todos with minimal data (only title)."""
