@@ -17,6 +17,8 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Todo, TodoCreate, UserResponse } from '@api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import moment from 'moment';
+import 'moment/locale/pl';
 import { ConfirmationService } from 'primeng/api';
 import { Button, ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -279,5 +281,18 @@ export class TodoListComponent implements OnInit {
     getGroupById(groupId: number | null | undefined): any {
         if (!groupId) return undefined;
         return this.groupStore.groups().find((g) => g.id === groupId);
+    }
+
+    formatDate(dateString: string | undefined): string {
+        if (!dateString) return '';
+        return moment(dateString).format('DD.MM.YYYY HH:mm');
+    }
+
+    getRelativeTime(dateString: string | undefined): string {
+        if (!dateString) return '';
+        const lang =
+            this.translate.currentLang || this.translate.defaultLang || 'en';
+        moment.locale(lang);
+        return moment(dateString).fromNow();
     }
 }

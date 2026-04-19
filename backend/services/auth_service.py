@@ -3,6 +3,7 @@ Authentication service - Password hashing and JWT token management.
 """
 
 import os
+import hashlib
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -31,11 +32,11 @@ REFRESH_TOKEN_EXPIRE_HOURS = 24
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a password against its hash.
-    
+
     Args:
         plain_password: The plain text password to verify.
         hashed_password: The bcrypt hashed password.
-        
+
     Returns:
         bool: True if password matches, False otherwise.
     """
@@ -44,7 +45,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
             plain_password = plain_password.encode("utf-8")
         if isinstance(hashed_password, str):
             hashed_password = hashed_password.encode("utf-8")
-        
+
         return bcrypt.checkpw(plain_password, hashed_password)
     except Exception:
         return False
@@ -53,30 +54,30 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def hash_password(password: str) -> str:
     """
     Hash a password using bcrypt.
-    
+
     Args:
         password: The plain text password to hash.
-        
+
     Returns:
         str: The bcrypt hashed password.
     """
     if isinstance(password, str):
         password = password.encode("utf-8")
-    
+
     salt = bcrypt.gensalt(rounds=BCRYPT_ROUNDS)
     hashed = bcrypt.hashpw(password, salt)
-    
+
     return hashed.decode("utf-8")
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
     Create a JWT access token.
-    
+
     Args:
         data: Dictionary containing token payload (must include 'sub').
         expires_delta: Optional custom expiration time.
-        
+
     Returns:
         str: Encoded JWT token.
     """
@@ -89,7 +90,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+        )
 
     to_encode.update({"exp": int(expire.timestamp()), "type": "access"})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -98,10 +101,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 def create_refresh_token(data: dict) -> str:
     """
     Create a JWT refresh token.
-    
+
     Args:
         data: Dictionary containing token payload (must include 'sub').
-        
+
     Returns:
         str: Encoded JWT refresh token.
     """
@@ -116,14 +119,27 @@ def create_refresh_token(data: dict) -> str:
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
+def hash_one_time_token(token: str) -> str:
+    """
+    Hash one-time token for secure storage in database.
+
+    Args:
+        token: Raw token sent to user.
+
+    Returns:
+        str: SHA-256 hash of the token.
+    """
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
 def verify_token(token: str, token_type: str = "access") -> Optional[dict]:
     """
     Verify and decode a JWT token.
-    
+
     Args:
         token: The JWT token to verify.
         token_type: Expected token type ('access' or 'refresh').
-        
+
     Returns:
         Optional[dict]: Token payload if valid, None otherwise.
     """
@@ -141,12 +157,12 @@ def verify_token(token: str, token_type: str = "access") -> Optional[dict]:
 def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
     """
     Authenticate a user by email and password.
-    
+
     Args:
         db: Database session.
         email: User's email address.
         password: User's plain text password.
-        
+
     Returns:
         Optional[User]: The user if authentication succeeds, None otherwise.
     """

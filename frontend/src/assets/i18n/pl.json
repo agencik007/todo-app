@@ -181,6 +181,12 @@
       "PUBLIC": "Publiczne",
       "FILTER_LABEL": "Widok:",
       "OWNER_INFO": "To zadanie jest usera {{email}}",
+      "CREATED_AT": "Utworzono",
+      "UPDATED_AT": "Zaktualizowano",
+      "TOOLTIP_STATUS": "Status zadania",
+      "TOOLTIP_GROUP": "Grupa zadania",
+      "TOOLTIP_EDIT": "Edytuj zadanie",
+      "TOOLTIP_DELETE": "Usuń zadanie",
       "EMPTY_TITLE": "Brak zadań",
       "EMPTY_MESSAGE": "Nie masz jeszcze żadnych zadań. Dodaj pierwsze zadanie, aby zacząć!",
       "ADD_FIRST": "Dodaj pierwsze zadanie"

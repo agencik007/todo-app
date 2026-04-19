@@ -13,7 +13,11 @@ These tests verify that our authentication system works correctly:
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from models.user import User
-from services.auth_service import hash_password, create_refresh_token
+from services.auth_service import (
+    hash_password,
+    create_refresh_token,
+    hash_one_time_token,
+)
 from datetime import datetime, timedelta, timezone
 
 
@@ -214,7 +218,7 @@ class TestAuthAPI:
         expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
 
         user = test_db.query(User).filter(User.id == test_user.id).first()
-        user.password_reset_token = reset_token
+        user.password_reset_token = hash_one_time_token(reset_token)
         user.password_reset_expires_at = expires_at
         test_db.commit()
 
@@ -253,7 +257,7 @@ class TestAuthAPI:
         expires_at = datetime.now(timezone.utc) - timedelta(hours=1)  # Expired
 
         user = test_db.query(User).filter(User.id == test_user.id).first()
-        user.password_reset_token = reset_token
+        user.password_reset_token = hash_one_time_token(reset_token)
         user.password_reset_expires_at = expires_at
         test_db.commit()
 
@@ -292,7 +296,7 @@ class TestAuthAPI:
             email="unverified@example.com",
             hashed_password=hash_password("password123"),
             is_verified=False,
-            email_verification_token="test_token_123",
+            email_verification_token=hash_one_time_token("test_token_123"),
             email_verification_expires_at=datetime.now(timezone.utc)
             + timedelta(hours=1),
         )
@@ -314,7 +318,7 @@ class TestAuthAPI:
             email="expired@example.com",
             hashed_password=hash_password("password123"),
             is_verified=False,
-            email_verification_token="expired_token",
+            email_verification_token=hash_one_time_token("expired_token"),
             email_verification_expires_at=datetime.now(timezone.utc)
             - timedelta(hours=1),
         )

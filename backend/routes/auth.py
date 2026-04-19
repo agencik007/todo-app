@@ -26,6 +26,7 @@ from models.schemas import (
 )
 from services.auth_service import (
     hash_password,
+    hash_one_time_token,
     authenticate_user,
     create_access_token,
     create_refresh_token,
@@ -105,7 +106,7 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
         hashed_password=hash_password(user_data.password),
         is_active=True,
         is_verified=False,
-        email_verification_token=verification_token,
+        email_verification_token=hash_one_time_token(verification_token),
         email_verification_expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
     )
 
@@ -285,7 +286,8 @@ def forgot_password(
 
     if user:
         # Generate reset token with expiration
-        user.password_reset_token = secrets.token_urlsafe(32)
+        raw_reset_token = secrets.token_urlsafe(32)
+        user.password_reset_token = hash_one_time_token(raw_reset_token)
         user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(
             hours=PASSWORD_RESET_EXPIRY_HOURS
         )
@@ -294,7 +296,7 @@ def forgot_password(
         # Send reset email
         try:
             send_password_reset_email(
-                user.email, user.password_reset_token, language=user.language
+                user.email, raw_reset_token, language=user.language
             )
         except Exception:
             logger.exception("Error sending password reset email")
@@ -321,11 +323,13 @@ def reset_password(
     Raises:
         HTTPException: If token is invalid or expired.
     """
+    token_hash = hash_one_time_token(reset_data.token)
+
     # Find user with valid reset token
     user = (
         db.query(User)
         .filter(
-            User.password_reset_token == reset_data.token,
+            User.password_reset_token == token_hash,
             User.password_reset_expires_at > datetime.now(timezone.utc),
         )
         .first()
@@ -351,10 +355,12 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     """
     Verify email with token.
     """
+    token_hash = hash_one_time_token(token)
+
     user = (
         db.query(User)
         .filter(
-            User.email_verification_token == token,
+            User.email_verification_token == token_hash,
             User.email_verification_expires_at > datetime.now(timezone.utc),
         )
         .first()
@@ -396,7 +402,7 @@ def resend_verification(
         return api_success(ApiMessages.AUTH_EMAIL_ALREADY_VERIFIED)
 
     token = _create_verification_token()
-    current_user.email_verification_token = token
+    current_user.email_verification_token = hash_one_time_token(token)
     current_user.email_verification_expires_at = datetime.now(timezone.utc) + timedelta(
         hours=24
     )

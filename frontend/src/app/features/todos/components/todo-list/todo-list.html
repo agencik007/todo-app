@@ -96,20 +96,23 @@
             <div
                 class="flex align-items-center gap-2 mb-3 px-1 text-sm text-color-secondary overflow-x-auto whitespace-nowrap scrollbar-hide"
             >
-                <span class="font-semibold">{{ 'TODOS.LIST.FILTER_LABEL' | translate }}</span>
+                <span class="font-semibold flex align-items-center">{{
+                    'TODOS.LIST.FILTER_LABEL' | translate
+                }}</span>
                 @if (hasGroupSelection()) {
-                    <div class="flex gap-2">
+                    <div class="flex align-items-center gap-2">
                         @for (group of selectedGroups(); track group.id) {
                             <app-group-badge
                                 size="sm"
+                                class="flex"
                                 [group]="group"
                             />
                         }
                     </div>
                 } @else {
                     <p-tag
-                        styleClass="px-3"
                         icon="pi pi-list"
+                        class="flex px-3"
                         [value]="'GROUPS.SIDEBAR.ALL_TASKS' | translate"
                     />
                 }
@@ -179,18 +182,19 @@
                                 (cdkDragEnded)="onDragEnded()"
                             >
                                 <div
-                                    class="flex align-items-center gap-3 relative todo-item-content"
+                                    class="flex flex-column gap-3 relative todo-item-content w-full"
                                 >
-                                    <div class="flex align-items-center gap-3 w-full">
+                                    <div class="flex align-items-start gap-3 w-full">
                                         @if (canEditTodo(todo)) {
                                             <div
-                                                class="flex flex-column align-items-center gap-1 mt-2"
+                                                class="flex flex-column align-items-center gap-1 mt-1"
                                             >
                                                 <!-- Drag Handle -->
                                                 <div
+                                                    tooltipPosition="top"
                                                     class="drag-handle p-1 cursor-move text-color-secondary"
                                                     cdkDragHandle
-                                                    [title]="'TODOS.DRAG_HANDLE' | translate"
+                                                    [pTooltip]="'TODOS.DRAG_HANDLE' | translate"
                                                 >
                                                     <i class="pi pi-bars text-xs"></i>
                                                 </div>
@@ -206,9 +210,67 @@
                                             style="min-width: 0"
                                             class="flex-grow-1"
                                         >
+                                            <!-- Meta parameters (creator, dates) -->
+                                            <div
+                                                class="flex flex-wrap align-items-center justify-content-between mb-2 text-xs text-color-secondary w-full gap-2"
+                                            >
+                                                <!-- Left side: Owner -->
+                                                <div class="flex align-items-center gap-1">
+                                                    @if (todo.ownerEmail) {
+                                                        <div
+                                                            tooltipPosition="top"
+                                                            class="flex align-items-center gap-1"
+                                                            [pTooltip]="
+                                                                'TODOS.LIST.OWNER_INFO'
+                                                                    | translate
+                                                                        : { email: todo.ownerEmail }
+                                                            "
+                                                        >
+                                                            <i class="pi pi-user"></i>
+                                                            <span>{{ todo.ownerEmail }}</span>
+                                                        </div>
+                                                    }
+                                                </div>
+
+                                                <!-- Right side: Dates -->
+                                                <div class="flex align-items-center gap-3">
+                                                    <div
+                                                        tooltipPosition="top"
+                                                        class="flex align-items-center gap-1"
+                                                        [pTooltip]="
+                                                            ('TODOS.LIST.CREATED_AT' | translate) +
+                                                            ': ' +
+                                                            formatDate(todo.createdAt)
+                                                        "
+                                                    >
+                                                        <i class="pi pi-clock"></i>
+                                                        <span>{{
+                                                            getRelativeTime(todo.createdAt)
+                                                        }}</span>
+                                                    </div>
+                                                    @if (todo.updatedAt !== todo.createdAt) {
+                                                        <div
+                                                            tooltipPosition="top"
+                                                            class="flex align-items-center gap-1"
+                                                            [pTooltip]="
+                                                                ('TODOS.LIST.UPDATED_AT'
+                                                                    | translate) +
+                                                                ': ' +
+                                                                formatDate(todo.updatedAt)
+                                                            "
+                                                        >
+                                                            <i class="pi pi-pencil text-xs"></i>
+                                                            <span>{{
+                                                                getRelativeTime(todo.updatedAt)
+                                                            }}</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+
                                             <div
                                                 style="word-break: break-word"
-                                                class="font-semibold"
+                                                class="font-semibold text-lg"
                                                 [class.text-color-secondary]="todo.completed"
                                                 [class.line-through]="todo.completed"
                                             >
@@ -222,49 +284,72 @@
                                         </div>
                                     </div>
 
-                                    @if (todo.groupId && getGroupById(todo.groupId)) {
-                                        <div class="group-badge-container">
-                                            <app-group-badge
-                                                size="md"
-                                                [group]="getGroupById(todo.groupId)"
-                                            />
-                                        </div>
-                                    }
-
+                                    <!-- Tags and Actions Row -->
                                     <div
-                                        class="flex align-items-center gap-1 flex-wrap"
-                                        [class.w-full]="screenSize.isCompact()"
-                                        [class.justify-content-end]="screenSize.isCompact()"
+                                        class="flex align-items-center justify-content-between flex-wrap gap-2 w-full mt-2 pt-2 border-top-1 border-gray-200 dark:border-gray-800"
                                     >
-                                        <p-tag
-                                            [value]="
-                                                (todo.completed
-                                                    ? 'TODOS.LIST.STATUS_COMPLETED'
-                                                    : 'TODOS.LIST.STATUS_PENDING'
-                                                ) | translate
-                                            "
-                                            [severity]="todo.completed ? 'success' : 'warn'"
-                                        />
-                                        @if (todo.isPublic) {
+                                        <!-- Left Side: Badges -->
+                                        <div class="flex align-items-center flex-wrap gap-2">
+                                            @if (todo.groupId && getGroupById(todo.groupId)) {
+                                                <app-group-badge
+                                                    tooltipPosition="top"
+                                                    size="md"
+                                                    [pTooltip]="
+                                                        'TODOS.LIST.TOOLTIP_GROUP' | translate
+                                                    "
+                                                    [group]="getGroupById(todo.groupId)"
+                                                />
+                                            }
+
                                             <p-tag
-                                                severity="info"
-                                                [value]="'TODOS.LIST.PUBLIC' | translate"
+                                                tooltipPosition="top"
+                                                [value]="
+                                                    (todo.completed
+                                                        ? 'TODOS.LIST.STATUS_COMPLETED'
+                                                        : 'TODOS.LIST.STATUS_PENDING'
+                                                    ) | translate
+                                                "
+                                                [severity]="todo.completed ? 'success' : 'warn'"
+                                                [pTooltip]="'TODOS.LIST.TOOLTIP_STATUS' | translate"
                                             />
-                                        }
+
+                                            @if (todo.isPublic) {
+                                                <p-tag
+                                                    tooltipPosition="top"
+                                                    severity="info"
+                                                    [value]="'TODOS.LIST.PUBLIC' | translate"
+                                                    [pTooltip]="
+                                                        'TODOS.FORM.PUBLIC_INFO' | translate
+                                                    "
+                                                />
+                                            }
+                                        </div>
+
+                                        <!-- Right Side: Actions -->
                                         @if (canEditTodo(todo)) {
                                             <div class="flex gap-1">
                                                 <p-button
+                                                    tooltipPosition="top"
+                                                    size="small"
                                                     severity="secondary"
                                                     icon="pi pi-pencil"
                                                     [text]="true"
                                                     [rounded]="true"
+                                                    [pTooltip]="
+                                                        'TODOS.LIST.TOOLTIP_EDIT' | translate
+                                                    "
                                                     (onClick)="editTodo(todo)"
                                                 />
                                                 <p-button
+                                                    tooltipPosition="top"
+                                                    size="small"
                                                     severity="danger"
                                                     icon="pi pi-trash"
                                                     [text]="true"
                                                     [rounded]="true"
+                                                    [pTooltip]="
+                                                        'TODOS.LIST.TOOLTIP_DELETE' | translate
+                                                    "
                                                     (onClick)="deleteTodo(todo)"
                                                 />
                                             </div>

@@ -1,5 +1,9 @@
 """
-Email service - Email sending functionality using MailHog with i18n support.
+Email service - Email sending functionality with dual-mode support:
+- Development: MailHog (captures emails, no real sending)
+- Production: Real SMTP (Brevo / SendGrid / Gmail / etc.)
+
+Controlled by the USE_MAILHOG environment variable (default: true).
 """
 
 import os
@@ -10,13 +14,23 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional, Dict, Any
 
-# Email configuration
+# ── Email sender & frontend ───────────────────────────────────────────────────
 EMAIL_FROM = os.getenv("EMAIL_FROM", "noreply@example.com")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:4200")
 
-# MailHog configuration (for local development/testing)
-MAILHOG_HOST = os.getenv("MAILHOG_HOST", "localhost")
+# ── Mode switch ───────────────────────────────────────────────────────────────
+# Set USE_MAILHOG=false in production to use real SMTP (Brevo etc.)
+USE_MAILHOG = os.getenv("USE_MAILHOG", "true").lower() == "true"
+
+# ── MailHog (dev) ─────────────────────────────────────────────────────────────
+MAILHOG_HOST = os.getenv("MAILHOG_HOST", "mailhog")
 MAILHOG_PORT = int(os.getenv("MAILHOG_PORT", "1025"))
+
+# ── Real SMTP / Brevo (prod) ──────────────────────────────────────────────────
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp-relay.brevo.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 
 # Load translations
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -112,7 +126,10 @@ def send_email(
     to_email: str, subject: str, html_content: str, text_content: Optional[str] = None
 ) -> bool:
     """
-    Send an email using MailHog SMTP.
+    Send an email.
+
+    - Development (USE_MAILHOG=true): routes through MailHog — no auth, no TLS.
+    - Production (USE_MAILHOG=false): routes through real SMTP (Brevo etc.) with STARTTLS.
     """
     try:
         msg = MIMEMultipart("alternative")
@@ -125,11 +142,24 @@ def send_email(
 
         msg.attach(MIMEText(html_content, "html"))
 
-        with smtplib.SMTP(MAILHOG_HOST, MAILHOG_PORT) as server:
-            server.send_message(msg)
+        if USE_MAILHOG:
+            # Dev mode — MailHog: no auth, no TLS
+            with smtplib.SMTP(MAILHOG_HOST, MAILHOG_PORT) as server:
+                server.send_message(msg)
+            print(f"[MailHog] Email sent to {to_email} | Subject: {subject}")
+        else:
+            # Prod mode — real SMTP with STARTTLS (Brevo / SendGrid / etc.)
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(SMTP_USER, SMTP_PASSWORD)
+                server.send_message(msg)
+            print(f"[SMTP] Email sent to {to_email} | Subject: {subject}")
+
         return True
     except Exception as e:
-        print(f"Error sending email: {e}")
+        print(f"Error sending email to {to_email}: {e}")
         return False
 
 

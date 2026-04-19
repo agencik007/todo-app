@@ -1,9 +1,28 @@
 @if (isEnabled()) {
     <div class="dynamic-background-container">
+        <!-- Delicate mesh gradient for background depth -->
         <div class="mesh-gradient"></div>
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-        <div class="blob blob-4"></div>
+
+        <!-- School themed SVG items -->
+        @for (item of backgroundItems; track item.path) {
+            <div
+                class="school-item"
+                class="school-item {{ item.animationClass }} {{ item.colorClass }}"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    [attr.viewBox]="item.viewBox"
+                >
+                    <path
+                        [attr.stroke]="item.stroke"
+                        [attr.stroke-width]="item.stroke === 'currentColor' ? '1.5' : null"
+                        [attr.stroke-linejoin]="item.stroke === 'currentColor' ? 'round' : null"
+                        [attr.stroke-linecap]="item.stroke === 'currentColor' ? 'round' : null"
+                        [attr.fill]="item.fill"
+                        [attr.d]="item.path"
+                    ></path>
+                </svg>
+            </div>
+        }
     </div>
 }

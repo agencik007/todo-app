@@ -152,20 +152,6 @@
     }
 }
 
-// Group badge positioning
-.group-badge-container {
-    display: flex;
-    align-items: center;
-    margin-left: 0.5rem;
-
-    @media (max-width: 768px) {
-        position: absolute;
-        top: -0.25rem;
-        right: -0.25rem;
-        margin-left: 0;
-    }
-}
-
 .drag-preview-item {
     pointer-events: none;
     z-index: 1000;

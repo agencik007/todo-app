@@ -181,6 +181,12 @@
       "PUBLIC": "Public",
       "FILTER_LABEL": "View:",
       "OWNER_INFO": "This task belongs to user {{email}}",
+      "CREATED_AT": "Created",
+      "UPDATED_AT": "Updated",
+      "TOOLTIP_STATUS": "Task Status",
+      "TOOLTIP_GROUP": "Task Group",
+      "TOOLTIP_EDIT": "Edit Task",
+      "TOOLTIP_DELETE": "Delete Task",
       "EMPTY_TITLE": "No tasks",
       "EMPTY_MESSAGE": "You don't have any tasks yet. Add your first task to start!",
       "ADD_FIRST": "Add first task"

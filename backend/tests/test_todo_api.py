@@ -10,6 +10,7 @@ These tests verify that our REST API works correctly:
 """
 
 from fastapi.testclient import TestClient
+from models.group import Group
 
 
 class TestTodoAPI:
@@ -235,3 +236,40 @@ class TestTodoAPI:
         todo_data = {"title": "Test Todo"}
         response = client.post("/todos", json=todo_data)
         assert response.status_code == 401
+
+    def test_create_todo_rejects_foreign_group(
+        self, authenticated_client: TestClient, test_db, second_user
+    ):
+        """Test POST /todos rejects assigning todo to a group from another user."""
+        foreign_group = Group(name="Foreign", color="blue", user_id=second_user.id)
+        test_db.add(foreign_group)
+        test_db.commit()
+        test_db.refresh(foreign_group)
+
+        response = authenticated_client.post(
+            "/todos", json={"title": "Todo", "groupId": foreign_group.id}
+        )
+
+        assert response.status_code == 403
+        data = response.json()
+        assert data["detail"]["messageCode"] == "GROUP_NO_ACCESS"
+
+    def test_update_todo_group_id(self, authenticated_client: TestClient):
+        """Test PUT /todos/{id} updates group assignment when group belongs to user."""
+        first_group = authenticated_client.post(
+            "/groups", json={"name": "First", "color": "blue"}
+        ).json()
+        second_group = authenticated_client.post(
+            "/groups", json={"name": "Second", "color": "green"}
+        ).json()
+
+        created_todo = authenticated_client.post(
+            "/todos", json={"title": "Grouped", "groupId": first_group["id"]}
+        ).json()
+
+        response = authenticated_client.put(
+            f"/todos/{created_todo['id']}", json={"groupId": second_group["id"]}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["groupId"] == second_group["id"]

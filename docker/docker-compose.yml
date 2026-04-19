@@ -36,10 +36,18 @@ services:
       - DATABASE_TEST_URL=postgresql://todo_user:todo_password@db:5432/todo_db_test
       - DEBUG=False
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
-      - EMAIL_FROM=${EMAIL_FROM:-noreply@example.com}
-      - MAILHOG_HOST=mailhog
-      - MAILHOG_PORT=1025
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:4200}
+      # ── Email ──────────────────────────────────────────────────────────────
+      - EMAIL_FROM=${EMAIL_FROM:-noreply@example.com}
+      - USE_MAILHOG=${USE_MAILHOG:-true}
+      # MailHog (dev)
+      - MAILHOG_HOST=${MAILHOG_HOST:-mailhog}
+      - MAILHOG_PORT=${MAILHOG_PORT:-1025}
+      # Real SMTP / Brevo (prod, used when USE_MAILHOG=false)
+      - SMTP_HOST=${SMTP_HOST:-smtp-relay.brevo.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
     ports:
       - "8000:8000"
     volumes:

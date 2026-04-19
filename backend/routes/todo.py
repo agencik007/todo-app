@@ -19,28 +19,28 @@ from models.schemas import Todo, TodoCreate, TodoUpdate
 router = APIRouter(prefix="/todos", tags=["todos"])
 
 
-def validate_group_ownership(db: Session, groupId: int | None, userId: int) -> None:
+def validate_group_ownership(db: Session, group_id: int | None, user_id: int) -> None:
     """
     Validate that the group belongs to the user.
 
     Args:
         db: Database session.
-        groupId: ID of the group to validate.
-        userId: ID of the user who should own the group.
+        group_id: ID of the group to validate.
+        user_id: ID of the user who should own the group.
 
     Raises:
         HTTPException: If group not found or doesn't belong to user.
     """
-    if groupId is None:
+    if group_id is None:
         return
 
-    group = db.query(GroupModel).filter(GroupModel.id == groupId).first()
+    group = db.query(GroupModel).filter(GroupModel.id == group_id).first()
     if group is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=api_error(ApiMessages.GROUP_NOT_FOUND),
         )
-    if group.user_id != userId:
+    if group.user_id != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=api_error(ApiMessages.GROUP_NO_ACCESS),
@@ -153,7 +153,7 @@ def create_todo(
     todo_data["user_id"] = current_user.id
 
     # Validate group ownership if group_id provided
-    validate_group_ownership(db, todo_data.get("groupId"), current_user.id)
+    validate_group_ownership(db, todo_data.get("group_id"), current_user.id)
 
     max_index = (
         db.query(func.max(TodoModel.index))
@@ -213,8 +213,8 @@ def update_todo(
     update_data = todo_update.model_dump(exclude_unset=True)
 
     # Validate group ownership if group_id is being updated
-    if "groupId" in update_data:
-        validate_group_ownership(db, update_data.get("groupId"), current_user.id)
+    if "group_id" in update_data:
+        validate_group_ownership(db, update_data.get("group_id"), current_user.id)
 
     for field, value in update_data.items():
         setattr(todo, field, value)

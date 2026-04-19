@@ -145,6 +145,8 @@ dist/
 
 # Docker
 .dockerignore
+# Production env with secrets — never commit!
+docker/docker.prod.env
 
 # Logs
 logs
