@@ -1,6 +1,6 @@
 # Todo App - Full-Stack Application
 
-Aplikacja Todo zbudowana w technologii **Angular 20** + **Python FastAPI** + **PostgreSQL** z wykorzystaniem **Docker** i **CI/CD**.
+Aplikacja Todo zbudowana w technologii **Angular 21** + **Python FastAPI** + **PostgreSQL** z wykorzystaniem **Docker**.
 
 ## ✅ Status projektu - W pełni funkcjonalny!
 
@@ -9,12 +9,11 @@ Aplikacja Todo zbudowana w technologii **Angular 20** + **Python FastAPI** + **P
 ### ✅ Zrealizowane funkcjonalności:
 
 - ✅ **Backend FastAPI** - REST API z pełnym CRUD, PostgreSQL, Pydantic
-- ✅ **Frontend Angular 20** - Signals, Control Flow, Standalone Components, SSR
+- ✅ **Frontend Angular 21** - Signals, Control Flow, Standalone Components, SSR
 - ✅ **Docker** - Pełna konteneryzacja, multi-stage builds, production ready
 - ✅ **Baza danych** - PostgreSQL z persistent storage
-- ✅ **Testy backendu** - 81 testów jednostkowych i integracyjnych z coverage
+- ✅ **Testy backendu** - 86 testów jednostkowych i integracyjnych z coverage
 - ✅ **Prosta konfiguracja lokalna** - Jedna baza danych do developmentu i testów lokalnych
-- ✅ **CI/CD** - GitHub Actions z automatycznym buildem i deployem
 
 ### 🚀 Jak uruchomić (3 proste kroki):
 
@@ -58,13 +57,12 @@ Aplikacja używa **MailHog** do testowania funkcji emailowych (weryfikacja email
 - [🐳 Docker - Szczegółowa dokumentacja](#-docker---szczegółowa-dokumentacja)
 - [API Documentation](#api-documentation)
 - [Testowanie](#testowanie)
-- [CI/CD](#cicd)
 - [Struktura projektu](#struktura-projektu)
 - [Rozwój](#rozwój)
 
 ## 🎯 Opis projektu
 
-Prosta aplikacja Todo do zarządzania zadaniami z pełnym CRUD (Create, Read, Update, Delete). Backend napisany w FastAPI zapewnia REST API, podczas gdy frontend w Angular 20 oferuje nowoczesny interfejs użytkownika. Dane przechowywane są w bazie PostgreSQL.
+Prosta aplikacja Todo do zarządzania zadaniami z pełnym CRUD (Create, Read, Update, Delete). Backend napisany w FastAPI zapewnia REST API, podczas gdy frontend w Angular 21 oferuje nowoczesny interfejs użytkownika. Dane przechowywane są w bazie PostgreSQL.
 
 ### Funkcjonalności
 
@@ -88,17 +86,16 @@ Prosta aplikacja Todo do zarządzania zadaniami z pełnym CRUD (Create, Read, Up
 
 ### Frontend
 
-- **Angular 20** - framework frontendowy
+- **Angular 21** - framework frontendowy
 - **TypeScript** - język programowania
 - **RxJS** - programowanie reaktywne
 - **OpenAPI Generator** - generowanie typów TypeScript z backendu
-- **Angular Material** (planowane)
+- **PrimeNG** - biblioteka komponentów UI
 
 ### DevOps
 
 - **Docker** - konteneryzacja
 - **Docker Compose** - orkiestracja kontenerów
-- **GitHub Actions** - CI/CD
 - **PostgreSQL** - baza danych w kontenerze
 
 ## 📋 Wymagania wstępne
@@ -239,9 +236,13 @@ curl -X POST http://localhost:8000/todos \
   -d '{"title": "Moje pierwsze zadanie", "description": "Opis zadania", "completed": false}'
 ```
 
+---
+
+## 🧪 Testowanie
+
 ### Backend - Testy (Pytest)
 
-Aplikacja posiada rozbudowany zestaw testów (obecnie **81**), w tym testy API dla Todo, Autentykacji oraz Grup.
+Aplikacja posiada rozbudowany zestaw testów (obecnie **86**), w tym testy API dla Todo, Autentykacji oraz Grup.
 
 ```bash
 cd backend
@@ -517,273 +518,6 @@ docker-compose exec db pg_dump -U todo_user todo_db > backup.sql
 docker-compose exec -T db psql -U todo_user todo_db < backup.sql
 ```
 
-## 🔄 CI/CD - GitHub Actions
-
-Projekt zawiera kompleksową konfigurację CI/CD z GitHub Actions:
-
-### 📋 Workflow CI/CD (`.github/workflows/ci-cd.yml`)
-
-**Dla branchy `main` i `develop`:**
-
-1. **🔍 Testy backendu** - pytest z coverage, PostgreSQL w kontenerze
-2. **⚡ Testy frontendu** - linting, build produkcyjny
-3. **🛡️ Skanowanie bezpieczeństwa** - Trivy vulnerability scanner
-4. **🐳 Build obrazów Docker** - multi-stage builds dla backendu i frontendu
-5. **📦 Push do GHCR** - GitHub Container Registry
-6. **🚀 Deploy** - staging (develop) / production (main)
-
-### 🔍 Workflow PR Checks (`.github/workflows/pr-checks.yml`)
-
-**Dla Pull Requestów:**
-
-1. **💅 Code Quality** - ESLint, Black, isort, mypy
-2. **🔒 Dependency Security** - safety (Python), npm audit
-3. **🐳 Docker Build Test** - walidacja obrazów
-
-### 🚀 Pełna historia rozwoju CI/CD
-
-Projekt przeszedł przez kilka iteracji konfiguracji CI/CD:
-
-#### **Faza 1: Podstawowa konfiguracja**
-
-- ✅ Utworzono repozytorium na GitHub
-- ✅ Skonfigurowano podstawowe workflow dla backendu i frontendu
-- ✅ Dodać testy jednostkowe dla backendu (pytest + SQLite)
-- ✅ Frontend - usunięto testy Angular ze względu na problemy z konfiguracją
-
-#### **Faza 2: Docker i deployment lokalny**
-
-- ✅ Skonfigurowano pełne środowisko Docker (backend, frontend, PostgreSQL, PgAdmin)
-- ✅ Utworzono multi-stage Dockerfiles
-- ✅ Skonfigurowano docker-compose.yml
-- ✅ Przetestowano lokalnie - wszystko działa
-
-#### **Faza 3: CI/CD Pipeline**
-
-- ✅ Skonfigurowano GitHub Actions workflow
-- ✅ Dodać build obrazów Docker i push do GHCR
-- ✅ Skonfigurowano deployment na Oracle Cloud
-- ✅ Rozwiązano problemy z SSH połączeniem
-- ✅ Dodać automatyczne czyszczenie kontenerów przed deploymentem
-- ✅ Skonfigurowano health checks dla kontenerów
-
-#### **Faza 4: Debugowanie i optymalizacja**
-
-- ✅ Rozwiązano problemy z zatrzymywaniem się skryptu deployment
-- ✅ Dodać szczegółową diagnostykę błędów
-- ✅ Uproszczono logikę sprawdzania katalogów
-- ✅ Dodano obsługę sudo dla Docker
-- ✅ Skonfigurowano CORS dla Oracle Cloud
-
-#### **Faza 5: Funkcjonalności dodatkowe**
-
-- ✅ Dodać dark/light mode toggle dla frontendu
-- ✅ Skonfigurowano localStorage dla preferencji użytkownika
-- ✅ Zaimplementowano SSR-safe komponenty
-
-### 🚨 Problemy napotkane i rozwiązania
-
-#### **Problem 1: Skrypt deployment się zatrzymywał**
-
-**Objawy:** Skrypt wykonywał się do sprawdzenia katalogu, potem `Process exited with status 1`
-**Przyczyna:** Zbyt skomplikowana logika if-else z wieloma duplikatami kodu
-**Rozwiązanie:** Przepisanie sekcji sprawdzania katalogu na czystą, prostą strukturę
-
-#### **Problem 2: Konflikty z istniejącymi kontenerami**
-
-**Objawy:** Nowe deployment nie mógł wystartować z powodu zajętych portów
-**Przyczyna:** Poprzednie kontenery blokowały zasoby
-**Rozwiązanie:** Dodanie automatycznego czyszczenia wszystkich kontenerów na początku deploymentu
-
-#### **Problem 3: CORS errors na Oracle Cloud**
-
-**Objawy:** Frontend nie mógł się połączyć z backend API
-**Przyczyna:** CORS allow_origins nie zawierał adresu Oracle Cloud
-**Rozwiązanie:** Dodanie `http://130.61.130.231:4200` do CORS middleware
-
-#### **Problem 4: SSR ErrorEvent undefined**
-
-**Objawy:** `ReferenceError: ErrorEvent is not defined` podczas Docker build
-**Przyczyna:** Angular SSR nie rozpoznawał ErrorEvent w server-side środowisku
-**Rozwiązanie:** Błąd nie przeszkadza w działaniu aplikacji, ale wymaga dalszego debugowania
-
-#### **Problem 5: GitHub Actions deprecated actions**
-
-**Objawy:** Workflow fail z powodu przestarzałych wersji actions
-**Przyczyna:** `actions/upload-artifact@v3` i `github/codeql-action@v1` zostały zdeprecjonowane
-**Rozwiązanie:** Aktualizacja do `v4` i `v3` odpowiednio
-
-### 🏆 Końcowy rezultat
-
-Aplikacja działa w pełni na Oracle Cloud:
-
-- 🌐 **Frontend:** `http://130.61.130.231:4200` - Angular z dark/light mode
-- 🔧 **Backend:** `http://130.61.130.231:8000` - FastAPI REST API
-- 🗄️ **Database:** PostgreSQL z PgAdmin na porcie 5050
-- 🚀 **CI/CD:** Automatyczny deployment przy każdym push do main
-
-### 🔐 Konfiguracja Secrets (dla automatycznego deploymentu)
-
-W repo na GitHub → **Settings** → **Secrets and variables** → **Actions**:
-
-| Secret Name       | Opis                      | Przykład                       |
-| ----------------- | ------------------------- | ------------------------------ |
-| `SERVER_HOST`     | Adres IP instancji Oracle | `130.61.130.231`               |
-| `SERVER_USER`     | Użytkownik SSH            | `ubuntu`                       |
-| `SSH_PRIVATE_KEY` | Klucz prywatny SSH        | Cała zawartość `~/.ssh/id_rsa` |
-
-**Jak wygenerować SSH key:**
-
-```bash
-# Na lokalnej maszynie
-ssh-keygen -t rsa -b 4096 -C "your-email@example.com"
-
-# Skopiuj klucz publiczny na serwer
-ssh-copy-id ubuntu@130.61.130.231
-
-# Skopiuj klucz prywatny do GitHub secret
-cat ~/.ssh/id_rsa
-```
-
-### 🌐 Deployment na Oracle Cloud
-
-#### 1. Przygotowanie instancji OCI (Ubuntu):
-
-```bash
-# Połącz się z instancją (użytkownik domyślny to 'ubuntu')
-ssh -i your-private-key ubuntu@130.61.130.231
-
-# Aktualizuj system
-sudo apt update && sudo apt upgrade -y
-
-# Zainstaluj Docker
-sudo apt install -y docker.io
-sudo systemctl start docker
-sudo systemctl enable docker
-sudo usermod -aG docker ubuntu
-
-# Zainstaluj Docker Compose (alternatywne metody)
-# Metoda 1: Plugin (dla nowszych wersji Docker)
-sudo apt install -y docker-compose-plugin || {
-
-# Metoda 2: Standalone binary (jeśli plugin nie działa)
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Metoda 3: Sprawdź czy docker-compose już jest dostępny
-docker-compose version || echo "Docker Compose installation failed"
-}
-
-# Zainstaluj Git (jeśli nie jest zainstalowany)
-sudo apt install -y git
-
-# Sklonuj repo
-git clone https://github.com/YOUR_USERNAME/todo-app.git
-cd todo-app
-```
-
-#### 2. Konfiguracja środowiska:
-
-```bash
-# Utwórz plik .env
-cp docker/docker.env .env
-nano .env
-
-# Przykładowa konfiguracja:
-DATABASE_URL=postgresql://todo_user:SECURE_PASSWORD@db:5432/todo_db
-SECRET_KEY=your-super-secure-secret-key-here
-DEBUG=False
-```
-
-#### 3. Uruchomienie aplikacji:
-
-```bash
-# Przejdź do katalogu docker
-cd docker
-
-# Uruchom aplikację w tle
-docker-compose up -d --build
-
-# Sprawdź status kontenerów
-docker-compose ps
-
-# Zobacz logi (opcjonalnie)
-docker-compose logs -f
-```
-
-#### 4. Firewall (jeśli potrzebne):
-
-```bash
-# Otwórz porty w Oracle Cloud firewall
-# VPC → Security Lists → Dodaj reguły dla portów: 80, 4200, 8000, 5050
-
-# Lub na instancji Ubuntu (UFW)
-sudo ufw allow 4200/tcp
-sudo ufw allow 8000/tcp
-sudo ufw allow 5050/tcp
-sudo ufw --force enable
-```
-
-#### 5. Konfiguracja Nginx (opcjonalnie dla domeny):
-
-```bash
-# Dla domeny, zainstaluj i skonfiguruj Nginx
-sudo apt install -y nginx
-sudo nano /etc/nginx/sites-available/todo-app
-
-# Dodaj konfigurację:
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        proxy_pass http://localhost:4200;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /api {
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-
-# Włącz konfigurację i wyłącz domyślną
-sudo ln -s /etc/nginx/sites-available/todo-app /etc/nginx/sites-enabled/
-sudo unlink /etc/nginx/sites-enabled/default
-
-# Restartuj Nginx
-sudo systemctl restart nginx
-```
-
-### 📊 Monitoring CI/CD
-
-- **📈 Coverage Reports** - automatycznie wysyłane do Codecov
-- **🛡️ Security Scans** - SARIF reports w GitHub Security
-- **🐳 Container Images** - dostępne w `ghcr.io/YOUR_USERNAME/todo-app`
-
-### 🚀 Lokalne uruchomienie CI/CD
-
-```bash
-# Backend - testy z coverage
-cd backend
-python -m pytest tests/ -v --cov=. --cov-report=html
-
-# Frontend - linting i build
-cd frontend
-npm run lint
-npm run build --configuration=production
-
-# Docker - build test
-docker build -f docker/Dockerfile.backend .
-docker build -f docker/Dockerfile.frontend .
-```
-
 ## 🗄️ Zarządzanie bazą danych (Alembic)
 
 Projekt używa **Alembic** do zarządzania migracjami bazy danych. Pozwala to na wersjonowanie schematu bazy danych i łatwe wprowadzanie zmian.
@@ -850,9 +584,8 @@ todo-app/
 │   ├── Dockerfile.backend
 │   ├── Dockerfile.frontend
 │   └── docker-compose.yml
-├── .github/
-│   └── workflows/           # CI/CD pipelines
 ├── README.md                # Ten plik
+├── README_en.md             # Ten plik po angielsku
 └── .gitignore
 ```
 
