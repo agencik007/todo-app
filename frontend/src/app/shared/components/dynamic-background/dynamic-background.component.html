@@ -1,9 +1,38 @@
-@if (isEnabled()) {
-    <div class="dynamic-background-container">
-        <div class="mesh-gradient"></div>
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-        <div class="blob blob-4"></div>
-    </div>
+@switch (backgroundType()) {
+    @case ('school') {
+        <div class="dynamic-background-container school-theme">
+            <!-- Delicate mesh gradient for background depth -->
+            <div class="mesh-gradient"></div>
+
+            <!-- School themed SVG items -->
+            @for (item of backgroundItems; track item.path) {
+                <div class="school-item {{ item.animationClass }} {{ item.colorClass }}">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        [attr.viewBox]="item.viewBox"
+                    >
+                        <path
+                            [attr.stroke]="item.stroke"
+                            [attr.stroke-width]="item.stroke === 'currentColor' ? '1.5' : null"
+                            [attr.stroke-linejoin]="item.stroke === 'currentColor' ? 'round' : null"
+                            [attr.stroke-linecap]="item.stroke === 'currentColor' ? 'round' : null"
+                            [attr.fill]="item.fill"
+                            [attr.d]="item.path"
+                        ></path>
+                    </svg>
+                </div>
+            }
+        </div>
+    }
+    @case ('modern') {
+        <div class="dynamic-background-container modern-theme">
+            <div class="mesh-gradient"></div>
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
+            <div class="orb orb-4"></div>
+            <div class="orb orb-5"></div>
+            <div class="orb orb-6"></div>
+        </div>
+    }
 }

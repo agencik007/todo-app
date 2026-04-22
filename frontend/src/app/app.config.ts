@@ -26,6 +26,7 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { notificationInterceptor } from './core/interceptors/notification.interceptor';
 import { LanguageService } from './core/services/language.service';
 import { AuthStore } from './core/store/auth.store';
+import { API_URL } from './core/tokens/api-url.token';
 
 function initializeLanguage(): Promise<void> {
     const languageService = inject(LanguageService);
@@ -48,6 +49,10 @@ export const appConfig: ApplicationConfig = {
             withFetch(),
         ),
         provideApi(environment.apiUrl),
+        {
+            provide: API_URL,
+            useValue: environment.apiUrl,
+        },
         importProvidersFrom(TranslateModule.forRoot()),
         provideTranslateHttpLoader({
             prefix: './assets/i18n/',
@@ -62,6 +67,12 @@ export const appConfig: ApplicationConfig = {
                 options: {
                     darkModeSelector: '.dark',
                 },
+            },
+            zIndex: {
+                modal: 1100,
+                overlay: 3000,
+                menu: 3000,
+                tooltip: 3100,
             },
         }),
         {

@@ -1,3 +1,59 @@
 :host {
     display: block;
 }
+
+::ng-deep {
+    .p-select.language-selector {
+        width: 42px;
+        height: 32px;
+        background: rgba(var(--p-surface-0-rgb), 0.5);
+        border: 1px solid var(--p-surface-200);
+        transition: all 0.2s ease;
+        box-shadow: none;
+
+        &:hover {
+            background: var(--p-surface-100);
+            border-color: var(--p-primary-300);
+        }
+
+        .p-select-label {
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            line-height: 1;
+        }
+
+        .p-select-dropdown {
+            display: none;
+        }
+    }
+
+    // Compact dropdown panel
+    .p-select-overlay:has(.language-selector) {
+        .p-select-list-container {
+            padding: 2px;
+        }
+
+        .p-select-option {
+            padding: 0.5rem 0.75rem;
+            margin: 1px 0;
+        }
+    }
+}
+
+:host-context(.dark-mode) {
+    ::ng-deep {
+        .p-select.language-selector {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.1);
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.05);
+                border-color: var(--p-primary-400);
+            }
+        }
+    }
+}

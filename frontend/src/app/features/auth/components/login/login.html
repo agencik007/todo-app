@@ -1,12 +1,20 @@
-<div class="auth-container">
-    <p-card
-        [style]="{ width: '100%', maxWidth: '400px' }"
-        [header]="'AUTH.LOGIN.TITLE' | translate"
-    >
+<main class="auth-container">
+    <p-card [style]="{ width: '100%', maxWidth: '400px' }">
+        <ng-template pTemplate="header">
+            <h1
+                style="text-align: center; margin-top: 0.5rem"
+                class="text-2xl font-bold m-0"
+            >
+                {{ 'AUTH.LOGIN.TITLE' | translate }}
+            </h1>
+        </ng-template>
+
         @if (error()) {
             <p-message
                 severity="error"
+                role="alert"
                 class="mb-3 w-full"
+                aria-live="polite"
             >
                 {{ error() }}
             </p-message>
@@ -14,29 +22,38 @@
 
         <form
             class="flex flex-column gap-3"
-            [formGroup]="loginForm"
             (ngSubmit)="onSubmit()"
         >
             <div class="form-group">
                 <label
                     for="email"
-                    class="block mb-2"
-                    >{{ 'AUTH.LOGIN.EMAIL_LABEL' | translate }}</label
+                    class="flex align-items-center mb-2 font-medium"
                 >
+                    <i
+                        style="margin-right: 0.5rem"
+                        class="pi pi-envelope"
+                    ></i>
+                    {{ 'AUTH.LOGIN.EMAIL_LABEL' | translate }}
+                </label>
                 <input
                     type="email"
                     pInputText
                     id="email"
-                    formControlName="email"
                     class="w-full"
+                    autocomplete="email"
                     [placeholder]="'AUTH.LOGIN.EMAIL_PLACEHOLDER' | translate"
-                    [ngClass]="{ 'ng-invalid ng-dirty': email?.invalid && email?.touched }"
+                    [formField]="loginForm.email"
+                    [class.ng-invalid]="loginForm.email().invalid() && loginForm.email().touched()"
+                    [class.ng-dirty]="loginForm.email().invalid() && loginForm.email().touched()"
                 />
-                @if (email?.invalid && email?.touched) {
-                    <small class="p-error">
-                        @if (email?.errors?.['required']) {
+                @if (loginForm.email().invalid() && loginForm.email().touched()) {
+                    <small
+                        role="alert"
+                        class="p-error"
+                    >
+                        @if (loginForm.email().errors()[0]?.kind === 'required') {
                             {{ 'AUTH.LOGIN.ERRORS.EMAIL_REQUIRED' | translate }}
-                        } @else if (email?.errors?.['email']) {
+                        } @else if (loginForm.email().errors()[0]?.kind === 'email') {
                             {{ 'AUTH.LOGIN.ERRORS.EMAIL_FORMAT' | translate }}
                         }
                     </small>
@@ -46,23 +63,32 @@
             <div class="form-group">
                 <label
                     for="password"
-                    class="block mb-2"
-                    >{{ 'AUTH.LOGIN.PASSWORD_LABEL' | translate }}</label
+                    class="flex align-items-center mb-2 font-medium"
                 >
+                    <i
+                        style="margin-right: 0.5rem"
+                        class="pi pi-lock"
+                    ></i>
+                    {{ 'AUTH.LOGIN.PASSWORD_LABEL' | translate }}
+                </label>
                 <p-password
                     inputStyleClass="w-full"
-                    id="password"
-                    formControlName="password"
+                    inputId="password"
                     class="w-full"
+                    autocomplete="current-password"
                     [toggleMask]="true"
                     [placeholder]="'AUTH.LOGIN.PASSWORD_PLACEHOLDER' | translate"
+                    [formField]="$any(loginForm.password)"
                     [feedback]="false"
                 />
-                @if (password?.invalid && password?.touched) {
-                    <small class="p-error">
-                        @if (password?.errors?.['required']) {
+                @if (loginForm.password().invalid() && loginForm.password().touched()) {
+                    <small
+                        role="alert"
+                        class="p-error"
+                    >
+                        @if (loginForm.password().errors()[0]?.kind === 'required') {
                             {{ 'AUTH.LOGIN.ERRORS.PASSWORD_REQUIRED' | translate }}
-                        } @else if (password?.errors?.['minlength']) {
+                        } @else if (loginForm.password().errors()[0]?.kind === 'minLength') {
                             {{ 'AUTH.LOGIN.ERRORS.PASSWORD_MIN_LENGTH' | translate }}
                         }
                     </small>
@@ -74,21 +100,21 @@
                 styleClass="w-full"
                 [loading]="isLoading()"
                 [label]="'AUTH.LOGIN.SUBMIT' | translate"
-                [disabled]="loginForm.invalid || isLoading()"
+                [disabled]="loginForm().invalid() || isLoading()"
             />
         </form>
 
-        <div class="flex justify-content-between mt-4">
+        <div class="flex flex-column gap-2 mt-4 text-center">
             <a
                 routerLink="/forgot-password"
-                class="p-link"
+                class="p-link text-sm"
                 >{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}</a
             >
             <a
                 routerLink="/register"
-                class="p-link"
+                class="p-link text-sm font-medium"
                 >{{ 'AUTH.LOGIN.NO_ACCOUNT' | translate }}</a
             >
         </div>
     </p-card>
-</div>
+</main>

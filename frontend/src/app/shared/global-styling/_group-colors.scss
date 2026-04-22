@@ -1,0 +1,142 @@
+// Kolory grup - badge, tagi, ikony
+.group-color-blue {
+    --group-color: #3b82f6;
+    --group-color-light: #dbeafe;
+    --group-color-dark: #1e40af;
+}
+
+.group-color-green {
+    --group-color: #10b981;
+    --group-color-light: #d1fae5;
+    --group-color-dark: #047857;
+}
+
+.group-color-red {
+    --group-color: #ef4444;
+    --group-color-light: #fee2e2;
+    --group-color-dark: #b91c1c;
+}
+
+.group-color-yellow {
+    --group-color: #f59e0b;
+    --group-color-light: #fef3c7;
+    --group-color-dark: #d97706;
+}
+
+.group-color-purple {
+    --group-color: #8b5cf6;
+    --group-color-light: #ede9fe;
+    --group-color-dark: #6d28d9;
+}
+
+.group-color-pink {
+    --group-color: #ec4899;
+    --group-color-light: #fce7f3;
+    --group-color-dark: #be185d;
+}
+
+.group-color-orange {
+    --group-color: #f97316;
+    --group-color-light: #ffedd5;
+    --group-color-dark: #c2410c;
+}
+
+.group-color-teal {
+    --group-color: #14b8a6;
+    --group-color-light: #ccfbf1;
+    --group-color-dark: #0f766e;
+}
+
+.group-color-indigo {
+    --group-color: #6366f1;
+    --group-color-light: #e0e7ff;
+    --group-color-dark: #4338ca;
+}
+
+.group-color-gray {
+    --group-color: #6b7280;
+    --group-color-light: #f3f4f6;
+    --group-color-dark: #374151;
+}
+
+// Wspólne style dla elementów z kolorami grup
+[class*='group-color-'] {
+    color: var(--group-color);
+
+    &.badge {
+        background-color: var(--group-color-light);
+        border: 1px solid var(--group-color);
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: var(--group-color);
+            color: white;
+            cursor: pointer;
+        }
+    }
+
+    &.dot {
+        width: 0.75rem;
+        height: 0.75rem;
+        border-radius: 50%;
+        background-color: var(--group-color);
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    &.color-button {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        background-color: var(--group-color);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        position: relative;
+        padding: 0;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--group-color);
+            outline-offset: 2px;
+        }
+
+        &.selected {
+            border-color: white;
+            box-shadow:
+                0 0 0 2px var(--group-color-light),
+                0 4px 12px rgba(0, 0, 0, 0.4);
+            transform: scale(1.1);
+
+            &::after {
+                content: '';
+                position: absolute;
+                inset: 3px;
+                border: 2px solid rgba(0, 0, 0, 0.2);
+                border-radius: 50%;
+            }
+        }
+
+        i {
+            font-size: 0.875rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            z-index: 1;
+        }
+    }
+}

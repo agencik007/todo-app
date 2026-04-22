@@ -113,8 +113,8 @@ export class TodosService extends BaseService {
 
     /**
      * Delete Todo
-     * Delete a todo.  Args:     todo_id: ID of the todo to delete.     db: Database session.     current_user: Current authenticated user.  Returns:     dict: Success message.  Raises:     HTTPException: If todo not found or user is not the owner.
-     * @endpoint delete /todos/{todo_id}
+     * Delete a todo.  Args:     todoId: ID of the todo to delete.     db: Database session.     current_user: Current authenticated user.  Returns:     dict: Success message.  Raises:     HTTPException: If todo not found or user is not the owner.
+     * @endpoint delete /todos/{todoId}
      * @param todoId 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -172,79 +172,20 @@ export class TodosService extends BaseService {
     }
 
     /**
-     * Get Todo
-     * Get a specific todo by ID.  Args:     todo_id: ID of the todo to retrieve.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The requested todo item.  Raises:     HTTPException: If todo not found or user doesn\&#39;t have access.
-     * @endpoint get /todos/{todo_id}
-     * @param todoId 
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     * @param options additional options
-     */
-    public getTodoTodosTodoIdGet(todoId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Todo>;
-    public getTodoTodosTodoIdGet(todoId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Todo>>;
-    public getTodoTodosTodoIdGet(todoId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Todo>>;
-    public getTodoTodosTodoIdGet(todoId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (todoId === null || todoId === undefined) {
-            throw new Error('Required parameter todoId was null or undefined when calling getTodoTodosTodoIdGet.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        // authentication (OAuth2PasswordBearer) required
-        localVarHeaders = this.configuration.addCredentialToHeaders('OAuth2PasswordBearer', 'Authorization', localVarHeaders, 'Bearer ');
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            'application/json'
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/todos/${this.configuration.encodeParam({name: "todoId", value: todoId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<Todo>('get', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                responseType: <any>responseType_,
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
      * Get Todos
-     * Get all todos for current user (own todos + public todos).  Args:     skip: Number of records to skip (pagination).     limit: Maximum number of records to return.     db: Database session.     current_user: Current authenticated user.  Returns:     List[Todo]: List of todo items.
+     * Get all todos for current user.  Args:     skip: Number of records to skip (pagination).     limit: Maximum number of records to return.     db: Database session.     current_user: Current authenticated user.  Returns:     List[Todo]: List of todo items.
      * @endpoint get /todos
      * @param skip 
      * @param limit 
+     * @param groupId 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public getTodosTodosGet(skip?: number, limit?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Todo>>;
-    public getTodosTodosGet(skip?: number, limit?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Todo>>>;
-    public getTodosTodosGet(skip?: number, limit?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Todo>>>;
-    public getTodosTodosGet(skip?: number, limit?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getTodosTodosGet(skip?: number, limit?: number, groupId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Todo>>;
+    public getTodosTodosGet(skip?: number, limit?: number, groupId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Todo>>>;
+    public getTodosTodosGet(skip?: number, limit?: number, groupId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Todo>>>;
+    public getTodosTodosGet(skip?: number, limit?: number, groupId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -261,6 +202,15 @@ export class TodosService extends BaseService {
             localVarQueryParameters,
             'limit',
             <any>limit,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'groupId',
+            <any>groupId,
             QueryParamStyle.Form,
             true,
         );
@@ -311,9 +261,69 @@ export class TodosService extends BaseService {
     }
 
     /**
+     * Read Todo
+     * Get a specific todo by ID.  Args:     todoId: ID of the todo to retrieve.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The requested todo item.  Raises:     HTTPException: If todo not found or user doesn\&#39;t have access.
+     * @endpoint get /todos/{todoId}
+     * @param todoId 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public readTodoTodosTodoIdGet(todoId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Todo>;
+    public readTodoTodosTodoIdGet(todoId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Todo>>;
+    public readTodoTodosTodoIdGet(todoId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Todo>>;
+    public readTodoTodosTodoIdGet(todoId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (todoId === null || todoId === undefined) {
+            throw new Error('Required parameter todoId was null or undefined when calling readTodoTodosTodoIdGet.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (OAuth2PasswordBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('OAuth2PasswordBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/todos/${this.configuration.encodeParam({name: "todoId", value: todoId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<Todo>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Reorder Todo
-     * Update the index of a todo for drag-and-drop reordering.  Args:     todo_id: ID of the todo to reorder.     reorder_data: Contains the new index.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The reordered todo item.  Raises:     HTTPException: If todo not found, user is not owner, or invalid index.
-     * @endpoint patch /todos/{todo_id}/reorder
+     * Update the index of a todo for drag-and-drop reordering.  Args:     todoId: ID of the todo to reorder.     reorder_data: Contains the new index.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The reordered todo item.  Raises:     HTTPException: If todo not found, user is not owner, or invalid index.
+     * @endpoint patch /todos/{todoId}/reorder
      * @param todoId 
      * @param todoUpdate 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -386,8 +396,8 @@ export class TodosService extends BaseService {
 
     /**
      * Update Todo
-     * Update an existing todo.  Args:     todo_id: ID of the todo to update.     todo_update: Updated todo data.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The updated todo item.  Raises:     HTTPException: If todo not found or user is not the owner.
-     * @endpoint put /todos/{todo_id}
+     * Update an existing todo.  Args:     todoId: ID of the todo to update.     todo_update: Updated todo data.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The updated todo item.  Raises:     HTTPException: If todo not found or user is not the owner.
+     * @endpoint put /todos/{todoId}
      * @param todoId 
      * @param todoUpdate 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

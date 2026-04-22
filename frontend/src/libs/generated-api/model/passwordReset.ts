@@ -17,6 +17,6 @@ export interface PasswordReset {
     /**
      * Password must be at least 8 characters
      */
-    new_password: string;
+    newPassword: string;
 }
 

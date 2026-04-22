@@ -4,6 +4,33 @@
 }
 
 :host ::ng-deep {
+    .hamburger-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-color);
+        font-size: 1.5rem;
+        cursor: pointer;
+        display: none !important; // Hidden by default (desktop/tablet)
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+
+        @media (max-width: 767px) {
+            display: flex !important; // Show only on mobile
+        }
+
+        &:hover {
+            background: rgba(var(--surface-hover), 0.1);
+            color: var(--primary-color);
+        }
+
+        &:active {
+            transform: scale(0.9);
+        }
+    }
+
     .auth-menubar {
         padding: 0.5rem 1rem;
         position: relative;

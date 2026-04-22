@@ -19,7 +19,7 @@ export interface TodoCreate {
     title: string;
     description?: string | null;
     completed?: boolean;
-    is_public?: boolean;
     index?: number;
+    groupId?: number | null;
 }
 

@@ -81,7 +81,7 @@ export class AuthStore {
                         }
 
                         // Try to load avatar from cache first
-                        this.loadAvatarWithCacheCheck(user.avatar_url).then(
+                        this.loadAvatarWithCacheCheck(user.avatarUrl).then(
                             () => {
                                 this._isLoading.set(false);
                                 this._isInitialized.set(true);
@@ -109,7 +109,7 @@ export class AuthStore {
 
     // ==================== User Management ====================
 
-    setUser(user: User): void {
+    async setUser(user: User): Promise<string | null> {
         this._currentUser.set(user);
         this._isAuthenticated.set(true);
         this._error.set(null);
@@ -119,8 +119,9 @@ export class AuthStore {
             this.languageService.setLanguage(user.language);
         }
 
-        // Load avatar with cache check
-        this.loadAvatarWithCacheCheck(user.avatar_url);
+        // Load avatar with cache check and return the URL
+        await this.loadAvatarWithCacheCheck(user.avatarUrl);
+        return this._userAvatar();
     }
 
     /**

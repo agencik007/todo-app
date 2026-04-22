@@ -20,13 +20,6 @@ export const BASE_COMMANDS_CONFIG = [
         icon: 'pi pi-desktop',
         category: 'theme' as CommandCategory,
     },
-    {
-        id: 'theme-snow-toggle',
-        labelKey: 'COMMAND_PALETTE.COMMANDS.THEME_SNOW_TOGGLE',
-        icon: 'pi pi-cloud',
-        category: 'theme' as CommandCategory,
-    },
-
     // Color Palette Commands
     {
         id: 'color-ocean',
@@ -101,5 +94,13 @@ export const BASE_COMMANDS_CONFIG = [
         labelKey: 'COMMAND_PALETTE.COMMANDS.TODO_ADD',
         icon: 'pi pi-plus',
         category: 'todo' as CommandCategory,
+    },
+
+    // Group Commands
+    {
+        id: 'group-add-static',
+        labelKey: 'COMMAND_PALETTE.COMMANDS.GROUP_ADD',
+        icon: 'pi pi-plus-circle',
+        category: 'group' as CommandCategory,
     },
 ];

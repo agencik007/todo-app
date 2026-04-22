@@ -1,0 +1,18 @@
+<div class="color-picker">
+    @for (item of availableColors; track item.color) {
+        <button
+            type="button"
+            tooltipPosition="top"
+            [style.background-color]="item.config.hex"
+            [pTooltip]="item.config.label | translate"
+            [class]="'color-button ' + item.config.cssClass"
+            [class.selected]="selectedColor() === item.color"
+            [attr.aria-label]="item.config.label | translate"
+            (click)="onColorSelect(item.color)"
+        >
+            @if (selectedColor() === item.color) {
+                <i class="pi pi-check"></i>
+            }
+        </button>
+    }
+</div>

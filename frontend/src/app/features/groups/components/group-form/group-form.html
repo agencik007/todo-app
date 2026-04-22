@@ -1,0 +1,55 @@
+<form
+    novalidate
+    class="flex flex-column gap-4"
+    (ngSubmit)="onSubmit()"
+>
+    <div class="form-group">
+        <label
+            for="groupName"
+            class="block mb-2 font-bold"
+        >
+            {{ 'GROUPS.FORM.NAME_LABEL' | translate }}
+        </label>
+        <input
+            type="text"
+            pInputText
+            id="groupName"
+            class="w-full"
+            [placeholder]="'GROUPS.FORM.NAME_PLACEHOLDER' | translate"
+            [formField]="groupForm.name"
+            [class.ng-invalid]="groupForm.name().invalid() && groupForm.name().touched()"
+            [class.ng-dirty]="groupForm.name().invalid() && groupForm.name().touched()"
+        />
+        @if (groupForm.name().invalid() && groupForm.name().touched()) {
+            @if (groupForm.name().errors()[0]?.kind === 'required') {
+                <small
+                    role="alert"
+                    class="p-error block mt-1"
+                >
+                    {{ 'GROUPS.FORM.ERRORS.NAME_REQUIRED' | translate }}
+                </small>
+            } @else if (groupForm.name().errors()[0]?.kind === 'maxLength') {
+                <small
+                    role="alert"
+                    class="p-error block mt-1"
+                >
+                    {{ 'GROUPS.FORM.ERRORS.NAME_MAX_LENGTH' | translate }}
+                </small>
+            }
+        }
+    </div>
+
+    <div class="form-group">
+        <label
+            for="colorPicker"
+            class="block mb-2 font-bold"
+        >
+            {{ 'GROUPS.FORM.COLOR_LABEL' | translate }}
+        </label>
+        <app-group-color-picker
+            id="colorPicker"
+            [selectedColor]="groupModel().color"
+            (colorChange)="onColorChange($event)"
+        />
+    </div>
+</form>

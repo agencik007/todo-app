@@ -39,9 +39,12 @@ def test_reorder_todo_success(authenticated_client, test_db, test_user):
     """Test updating a todo's index (reordering)."""
     # Create two todos
     resp1 = authenticated_client.post("/todos", json={"title": "A"})  # index 0
-    # resp2 = authenticated_client.post("/todos", json={"title": "B"}) # index 1
+    resp2 = authenticated_client.post("/todos", json={"title": "B"})  # index 1
 
     id1 = resp1.json()["id"]
+
+    print(resp1.json())
+    print(resp2.json())
 
     # Reorder A to be index 2
     reorder_resp = authenticated_client.patch(
@@ -76,7 +79,6 @@ def test_reorder_todo_no_permission(authenticated_client, test_db, test_user):
         title="Other's Todo",
         user_id=other_user.id,
         index=0,
-        is_public=True,  # Make it public so we can see it but not edit
     )
     test_db.add(other_todo)
     test_db.commit()

@@ -13,6 +13,6 @@
  * Schema for token refresh request.
  */
 export interface RefreshTokenRequest { 
-    refresh_token: string;
+    refreshToken: string;
 }
 

@@ -9,12 +9,12 @@
     "ACCOUNT": "Account",
     "CHANGE_AVATAR": "Change Avatar",
     "DELETE_AVATAR": "Delete Avatar",
-    "TOGGLE_SNOW": "Toggle snowfall",
     "TOGGLE_BACKGROUND": "Toggle background",
     "THEME": "Theme",
     "LANGUAGE": "Language",
     "GUEST": "Guest",
-    "WELCOME": "Welcome!"
+    "WELCOME": "Welcome!",
+    "SETTINGS": "Settings"
   },
   "LANGUAGE": {
     "SELECT": "Language",
@@ -26,6 +26,18 @@
     "LIGHT": "Light theme",
     "DARK": "Dark theme",
     "SYSTEM": "System theme"
+  },
+  "COLORS": {
+    "BLUE": "Blue",
+    "GREEN": "Green",
+    "RED": "Red",
+    "YELLOW": "Yellow",
+    "PURPLE": "Purple",
+    "PINK": "Pink",
+    "ORANGE": "Orange",
+    "TEAL": "Teal",
+    "INDIGO": "Indigo",
+    "GRAY": "Gray"
   },
   "COLOR_PALETTES": {
     "OCEAN_DEPTH": "Ocean Depth",
@@ -151,6 +163,7 @@
   "TODOS": {
     "TITLE": "My Todo List",
     "SUBTITLE": "Manage your tasks in a simple and effective way",
+    "GREETING": "Hello {{name}}, have a great day",
     "ADD_BUTTON": "Add task",
     "STATS": {
       "ALL": "All",
@@ -166,7 +179,14 @@
       "STATUS_COMPLETED": "Completed",
       "STATUS_PENDING": "To do",
       "PUBLIC": "Public",
+      "FILTER_LABEL": "View:",
       "OWNER_INFO": "This task belongs to user {{email}}",
+      "CREATED_AT": "Created",
+      "UPDATED_AT": "Updated",
+      "TOOLTIP_STATUS": "Task Status",
+      "TOOLTIP_GROUP": "Task Group",
+      "TOOLTIP_EDIT": "Edit Task",
+      "TOOLTIP_DELETE": "Delete Task",
       "EMPTY_TITLE": "No tasks",
       "EMPTY_MESSAGE": "You don't have any tasks yet. Add your first task to start!",
       "ADD_FIRST": "Add first task"
@@ -178,8 +198,8 @@
       "FIELD_TITLE_PLACEHOLDER": "Enter task title...",
       "FIELD_DESCRIPTION": "Description",
       "FIELD_DESCRIPTION_PLACEHOLDER": "Add optional description...",
-      "FIELD_PUBLIC": "Public",
-      "PUBLIC_INFO": "A public task will be visible to all users",
+      "FIELD_GROUP": "Group",
+      "FIELD_GROUP_HINT": "Optional - organize your tasks by group",
       "CANCEL": "Cancel",
       "SUBMIT_ADD": "Add task",
       "SUBMIT_SAVE": "Save changes",
@@ -216,7 +236,9 @@
       "AVATAR": "Avatar",
       "ACCOUNT": "Account",
       "TODO": "Tasks",
-      "TASK_ACTION": "Task Actions"
+      "TASK_ACTION": "Task Actions",
+      "GROUP": "Groups",
+      "GROUP_ACTION": "Group Actions"
     },
     "COMMANDS": {
       "COLOR_OCEAN": "Ocean Depth",
@@ -228,7 +250,6 @@
       "THEME_LIGHT": "Light Theme",
       "THEME_DARK": "Dark Theme",
       "THEME_SYSTEM": "System Theme",
-      "THEME_SNOW_TOGGLE": "Toggle Snowfall",
       "LANG_TOGGLE": "Toggle Language",
       "LANG_EN": "English",
       "LANG_PL": "Polish",
@@ -239,7 +260,11 @@
       "TASK_EDIT_DESC": "Edit",
       "TASK_DELETE_DESC": "Delete",
       "TASK_DONE_DESC": "Mark as done",
-      "TASK_UNDO_DESC": "Mark as undone"
+      "TASK_UNDO_DESC": "Mark as undone",
+      "GROUP_ADD": "Add group",
+      "GROUP_SELECT": "Select group",
+      "GROUP_UNSELECT": "Unselect group",
+      "GROUP_DELETE_DESC": "Delete"
     },
     "SHORTCUTS": {
       "SELECT": "to select",
@@ -290,5 +315,62 @@
     "USER_LANGUAGE_UPDATED": "Language updated successfully",
     "TODO_REORDER_SUCCESS": "Todo order updated successfully",
     "TODO_INVALID_INDEX": "Invalid todo index"
+  },
+  "GROUPS": {
+    "SIDEBAR": {
+      "APP_TITLE": "Tasks",
+      "GROUPS": "Groups",
+      "ADD_GROUP": "Add Group",
+      "EDIT_GROUP": "Edit Group",
+      "DELETE_GROUP": "Delete Group",
+      "CLEAR_SELECTION": "Clear selection",
+      "COLLAPSE": "Collapse",
+      "EXPAND": "Expand",
+      "EMPTY_HINT": "No groups yet",
+      "ALL_TASKS": "All tasks"
+    },
+    "FORM": {
+      "TITLE_CREATE": "New Group",
+      "TITLE_EDIT": "Edit Group",
+      "NAME_LABEL": "Group Name",
+      "NAME_PLACEHOLDER": "Enter name...",
+      "COLOR_LABEL": "Color",
+      "CREATE": "Create Group",
+      "UPDATE": "Update Group",
+      "CANCEL": "Cancel",
+      "SUBMIT_DELETE": "Delete",
+      "ERRORS": {
+        "NAME_REQUIRED": "Group name is required",
+        "NAME_MAX_LENGTH": "Group name cannot exceed 50 characters"
+      }
+    },
+    "MESSAGES": {
+      "DELETE_CONFIRM_TITLE": "Delete Group",
+      "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete \"{{name}}\"? Tasks in this group will become ungrouped."
+    }
+  },
+  "WEATHER": {
+    "TEMP": "Temp",
+    "WIND": "Wind"
+  },
+  "LOGIN_ANIMATION": {
+    "LOADING_TODOS": "Loading tasks...",
+    "LOADING_SETTINGS": "Loading user settings...",
+    "LOADING_GROUPS": "Loading groups...",
+    "LOADING_NOTIFICATIONS": "Loading notifications...",
+    "LOADING_STATISTICS": "Loading statistics...",
+    "FINALIZING": "Finalizing..."
+  },
+  "SETTINGS": {
+    "BACKGROUND_TOOLTIP": {
+      "off": "Background: Off",
+      "school": "Background: School Theme",
+      "modern": "Background: Modern Theme"
+    },
+    "BACKGROUND_OPTIONS": {
+      "off": "None",
+      "school": "School Theme",
+      "modern": "Glassmorph"
+    }
   }
 }

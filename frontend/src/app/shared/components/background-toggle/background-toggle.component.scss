@@ -2,20 +2,103 @@
     display: block;
 }
 
-:host ::ng-deep .p-button {
-    background: var(--p-primary-color);
-    border: none;
-    color: white;
+.background-selector {
+    ::ng-deep {
+        .p-select {
+            width: 42px; /* Reduced from 52px */
+            height: 32px; /* Reduced from 40px */
+            background: rgba(var(--p-surface-0-rgb), 0.5);
+            border: 1px solid var(--p-surface-200);
+            border-radius: var(--p-border-radius-md);
+            transition: all 0.2s ease;
+            box-shadow: none;
 
-    &.p-button-secondary {
-        background: var(--p-surface-200);
-        color: var(--p-surface-700);
+            &:hover {
+                background: var(--p-surface-100);
+                border-color: var(--p-primary-300);
+            }
+
+            .p-select-label {
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                width: 100%;
+                line-height: 1;
+            }
+
+            .p-select-dropdown {
+                display: none;
+            }
+        }
     }
 }
 
-:host-context(.dark) {
-    :host ::ng-deep .p-button.p-button-secondary {
-        background: var(--p-surface-800);
-        color: var(--p-surface-0);
+/* 
+   Global panel class overrides (appended to body)
+*/
+::ng-deep .background-select-panel {
+    z-index: 5000 !important;
+    border-radius: var(--p-border-radius-md) !important;
+    box-shadow: var(--p-overlay-select-shadow) !important;
+    border: 1px solid var(--p-surface-200) !important;
+    margin-top: 2px;
+    background: var(--p-surface-0);
+
+    .p-select-list-container {
+        padding: 2px !important;
+    }
+
+    .p-select-option {
+        border-radius: var(--p-border-radius-sm);
+        padding: 0.5rem 0.75rem !important; /* Reduced padding */
+        margin: 1px 0 !important;
+        transition: background 0.2s ease;
+
+        &:hover,
+        &.p-select-option-focused {
+            background: var(--p-surface-100);
+        }
+
+        &.p-select-option-selected {
+            background: var(--p-primary-50);
+            color: var(--p-primary-700);
+        }
+    }
+}
+
+:host-context(.dark-mode) {
+    .background-selector {
+        ::ng-deep {
+            .p-select {
+                background: rgba(0, 0, 0, 0.3);
+                border-color: rgba(255, 255, 255, 0.1);
+
+                &:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-color: var(--p-primary-400);
+                }
+            }
+        }
+    }
+}
+
+::ng-deep .dark-mode .background-select-panel {
+    background: var(--p-surface-900);
+    border-color: var(--p-surface-700) !important;
+
+    .p-select-option {
+        color: var(--p-text-color);
+
+        &:hover,
+        &.p-select-option-focused {
+            background: var(--p-surface-800);
+        }
+
+        &.p-select-option-selected {
+            background: rgba(var(--p-primary-color-rgb), 0.15);
+            color: var(--p-primary-400);
+        }
     }
 }

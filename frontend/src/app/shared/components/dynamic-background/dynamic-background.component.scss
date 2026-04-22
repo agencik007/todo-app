@@ -6,128 +6,300 @@
     height: 100vh;
     z-index: -1;
     overflow: hidden;
-    background: var(--p-surface-0);
-    transition: background 0.8s ease;
     pointer-events: none;
+    background-color: transparent;
 
     .mesh-gradient {
         position: absolute;
         width: 100%;
         height: 100%;
-        opacity: 0.25;
+        opacity: 0.15;
         background: radial-gradient(
             circle at 50% 50%,
-            var(--p-primary-500) 0%,
+            var(--p-primary-200) 0%,
             transparent 60%
         );
-        filter: blur(120px);
+        filter: blur(140px);
         transition: opacity 0.8s ease;
     }
+}
 
-    .blob {
+/* School Theme Styles */
+.school-theme {
+    .school-item {
+        position: absolute;
+        filter: blur(4px);
+        opacity: 0.15;
+        transition:
+            opacity 0.8s ease,
+            color 0.5s ease;
+        will-change: transform;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 280px;
+        height: 280px;
+
+        @media screen and (max-width: 768px) {
+            width: 160px;
+            height: 160px;
+            opacity: 0.1;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        &.svg-blue {
+            color: var(--p-primary-500);
+        }
+        &.svg-green {
+            color: var(--p-primary-400);
+        }
+        &.svg-red {
+            color: var(--p-primary-600);
+        }
+        &.svg-yellow {
+            color: var(--p-primary-300);
+        }
+        &.svg-purple {
+            color: var(--p-primary-700);
+        }
+    }
+
+    .move-1 {
+        top: 5%;
+        left: 10%;
+        animation: float-1 25s infinite alternate ease-in-out;
+    }
+    .move-2 {
+        top: 20%;
+        right: 10%;
+        animation: float-2 30s infinite alternate-reverse ease-in-out;
+    }
+    .move-3 {
+        bottom: 15%;
+        right: 20%;
+        animation: float-3 28s infinite alternate ease-in-out;
+    }
+    .move-4 {
+        bottom: 10%;
+        left: 5%;
+        animation: float-4 35s infinite alternate-reverse ease-in-out;
+    }
+    .move-5 {
+        top: 35%;
+        left: 25%;
+        width: 320px;
+        height: 320px;
+        animation: float-1 40s infinite alternate ease-in-out;
+
+        @media screen and (max-width: 768px) {
+            width: 180px;
+            height: 180px;
+        }
+    }
+    .move-6 {
+        top: 55%;
+        right: 5%;
+        width: 240px;
+        height: 240px;
+        animation: float-2 32s infinite alternate-reverse ease-in-out;
+
+        @media screen and (max-width: 768px) {
+            width: 140px;
+            height: 140px;
+        }
+    }
+    .move-7 {
+        top: 0%;
+        left: 50%;
+        animation: float-3 22s infinite alternate ease-in-out;
+        width: 300px;
+        height: 300px;
+        @media screen and (max-width: 768px) {
+            display: none;
+        }
+    }
+    .move-8 {
+        bottom: 40%;
+        left: 2%;
+        animation: float-4 38s infinite alternate-reverse ease-in-out;
+        width: 220px;
+        height: 220px;
+        @media screen and (max-width: 768px) {
+            display: none;
+        }
+    }
+}
+
+/* Modern Theme Styles */
+.modern-theme {
+    .orb {
         position: absolute;
         border-radius: 50%;
-        filter: blur(100px);
-        opacity: 0.3;
+        filter: blur(80px);
+        opacity: 0.35;
         transition: opacity 0.8s ease;
         will-change: transform;
     }
 
-    .blob-1 {
-        width: 700px;
-        height: 700px;
+    .orb-1 {
+        width: 500px;
+        height: 500px;
         background: var(--p-primary-400);
-        top: -15%;
-        left: -15%;
-        animation: move-1 25s infinite alternate ease-in-out;
+        top: -10%;
+        left: -10%;
+        animation: float-orb-1 20s infinite alternate ease-in-out;
     }
 
-    .blob-2 {
+    .orb-2 {
         width: 600px;
         height: 600px;
         background: var(--p-primary-600);
         bottom: -15%;
-        right: -15%;
-        animation: move-2 30s infinite alternate-reverse ease-in-out;
+        right: -5%;
+        animation: float-orb-2 25s infinite alternate-reverse ease-in-out;
     }
 
-    .blob-3 {
-        width: 550px;
-        height: 550px;
+    .orb-3 {
+        width: 400px;
+        height: 400px;
         background: var(--p-primary-300);
-        top: 35%;
-        left: 35%;
-        animation: move-3 35s infinite alternate ease-in-out;
+        top: 40%;
+        left: 30%;
+        animation: float-orb-3 30s infinite alternate ease-in-out;
     }
 
-    .blob-4 {
+    .orb-4 {
+        width: 350px;
+        height: 350px;
+        background: var(--p-primary-500);
+        bottom: 10%;
+        left: 10%;
+        animation: float-orb-1 22s infinite alternate-reverse ease-in-out;
+    }
+
+    .orb-5 {
         width: 450px;
         height: 450px;
-        background: var(--p-primary-500);
-        bottom: 15%;
-        left: 5%;
-        animation: move-4 28s infinite alternate-reverse ease-in-out;
+        background: var(--p-primary-700);
+        top: 15%;
+        right: 15%;
+        animation: float-orb-2 28s infinite alternate ease-in-out;
+    }
+
+    .orb-6 {
+        width: 300px;
+        height: 300px;
+        background: var(--p-primary-200);
+        bottom: 40%;
+        right: 30%;
+        animation: float-orb-3 18s infinite alternate-reverse ease-in-out;
+    }
+
+    @media screen and (max-width: 768px) {
+        .orb {
+            width: 250px;
+            height: 250px;
+            filter: blur(50px);
+            opacity: 0.25;
+        }
+        .orb-5,
+        .orb-6 {
+            display: none;
+        }
     }
 }
 
-@keyframes move-1 {
+/* Common Keyframes */
+@keyframes float-1 {
     0% {
         transform: translate(0, 0) scale(1) rotate(0deg);
     }
     50% {
-        transform: translate(15vw, 10vh) scale(1.2) rotate(180deg);
+        transform: translate(6vw, 6vh) scale(1.1) rotate(25deg);
     }
     100% {
-        transform: translate(-5vw, 20vh) scale(0.9) rotate(360deg);
+        transform: translate(-3vw, 10vh) scale(0.95) rotate(45deg);
     }
 }
-
-@keyframes move-2 {
+@keyframes float-2 {
     0% {
         transform: translate(0, 0) scale(1) rotate(0deg);
     }
     50% {
-        transform: translate(-20vw, -15vh) scale(1.3) rotate(-180deg);
+        transform: translate(-8vw, -6vh) scale(1.15) rotate(-20deg);
     }
     100% {
-        transform: translate(10vw, -5vh) scale(1) rotate(-360deg);
+        transform: translate(4vw, -3vh) scale(0.9) rotate(-40deg);
     }
 }
-
-@keyframes move-3 {
+@keyframes float-3 {
     0% {
         transform: translate(0, 0) scale(1) rotate(0deg);
     }
     50% {
-        transform: translate(-10vw, 25vh) scale(0.8) rotate(180deg);
+        transform: translate(-5vw, 8vh) scale(0.85) rotate(35deg);
     }
     100% {
-        transform: translate(25vw, -10vh) scale(1.1) rotate(360deg);
+        transform: translate(6vw, -5vh) scale(1.05) rotate(70deg);
     }
 }
-
-@keyframes move-4 {
+@keyframes float-4 {
     0% {
         transform: translate(0, 0) scale(1) rotate(0deg);
     }
     50% {
-        transform: translate(20vw, -20vh) scale(1.4) rotate(-180deg);
+        transform: translate(6vw, -8vh) scale(1.2) rotate(-25deg);
     }
     100% {
-        transform: translate(-15vw, 15vh) scale(0.9) rotate(-360deg);
+        transform: translate(-5vw, 4vh) scale(0.9) rotate(-50deg);
     }
 }
 
-:host-context(.dark) {
+@keyframes float-orb-1 {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+    100% {
+        transform: translate(10vw, 10vh) scale(1.1);
+    }
+}
+@keyframes float-orb-2 {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    100% {
+        transform: translate(-12vw, -8vh) rotate(10deg);
+    }
+}
+@keyframes float-orb-3 {
+    0% {
+        transform: translate(0, 0) scale(1.1);
+    }
+    100% {
+        transform: translate(8vw, -12vh) scale(0.9);
+    }
+}
+
+/* Dark Mode Overrides */
+:host-context(.dark-mode) {
     .dynamic-background-container {
         background: var(--p-surface-950);
 
         .mesh-gradient {
-            opacity: 0.15;
+            opacity: 0.08;
         }
+    }
 
-        .blob {
-            opacity: 0.2;
-        }
+    .school-theme .school-item {
+        opacity: 0.06;
+    }
+
+    .modern-theme .orb {
+        opacity: 0.12;
     }
 }

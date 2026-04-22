@@ -5,7 +5,7 @@ Todo routes - CRUD operations for todo items.
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import or_, func
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from config.auth import get_current_verified_user
@@ -13,20 +13,50 @@ from config.database import get_db
 from config.api_messages import ApiMessages, api_error, api_success
 from models.todo import Todo as TodoModel
 from models.user import User
+from models.group import Group as GroupModel
 from models.schemas import Todo, TodoCreate, TodoUpdate
 
 router = APIRouter(prefix="/todos", tags=["todos"])
+
+
+def validate_group_ownership(db: Session, group_id: int | None, user_id: int) -> None:
+    """
+    Validate that the group belongs to the user.
+
+    Args:
+        db: Database session.
+        group_id: ID of the group to validate.
+        user_id: ID of the user who should own the group.
+
+    Raises:
+        HTTPException: If group not found or doesn't belong to user.
+    """
+    if group_id is None:
+        return
+
+    group = db.query(GroupModel).filter(GroupModel.id == group_id).first()
+    if group is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.GROUP_NOT_FOUND),
+        )
+    if group.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=api_error(ApiMessages.GROUP_NO_ACCESS),
+        )
 
 
 @router.get("", response_model=List[Todo])
 def get_todos(
     skip: int = 0,
     limit: int = 100,
+    groupId: int | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
 ) -> List[Todo]:
     """
-    Get all todos for current user (own todos + public todos).
+    Get all todos for current user.
 
     Args:
         skip: Number of records to skip (pagination).
@@ -37,15 +67,17 @@ def get_todos(
     Returns:
         List[Todo]: List of todo items.
     """
-    results = (
+    query = (
         db.query(TodoModel, User.email)
         .join(User, TodoModel.user_id == User.id)
-        .filter(or_(TodoModel.user_id == current_user.id, TodoModel.is_public))
-        .order_by(TodoModel.index.asc())
-        .offset(skip)
-        .limit(limit)
-        .all()
+        .filter(TodoModel.user_id == current_user.id)
     )
+
+    # Filter by group_id if provided
+    if groupId is not None:
+        query = query.filter(TodoModel.group_id == groupId)
+
+    results = query.order_by(TodoModel.index.asc()).offset(skip).limit(limit).all()
 
     todos = []
     for todo, email in results:
@@ -54,9 +86,9 @@ def get_todos(
     return todos
 
 
-@router.get("/{todo_id}", response_model=Todo)
-def get_todo(
-    todo_id: int,
+@router.get("/{todoId}", response_model=Todo)
+def read_todo(
+    todoId: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
 ) -> Todo:
@@ -64,7 +96,7 @@ def get_todo(
     Get a specific todo by ID.
 
     Args:
-        todo_id: ID of the todo to retrieve.
+        todoId: ID of the todo to retrieve.
         db: Database session.
         current_user: Current authenticated user.
 
@@ -77,7 +109,7 @@ def get_todo(
     result = (
         db.query(TodoModel, User.email)
         .join(User, TodoModel.user_id == User.id)
-        .filter(TodoModel.id == todo_id)
+        .filter(TodoModel.id == todoId)
         .first()
     )
 
@@ -90,8 +122,7 @@ def get_todo(
     todo, email = result
     todo.owner_email = email
 
-    # Check if user has access (owner or public)
-    if todo.user_id != current_user.id and not todo.is_public:
+    if todo.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=api_error(ApiMessages.TODO_NO_ACCESS),
@@ -120,6 +151,9 @@ def create_todo(
     todo_data = todo.model_dump()
     todo_data["user_id"] = current_user.id
 
+    # Validate group ownership if group_id provided
+    validate_group_ownership(db, todo_data.get("group_id"), current_user.id)
+
     max_index = (
         db.query(func.max(TodoModel.index))
         .filter(TodoModel.user_id == current_user.id)
@@ -137,9 +171,9 @@ def create_todo(
     return db_todo
 
 
-@router.put("/{todo_id}", response_model=Todo)
+@router.put("/{todoId}", response_model=Todo)
 def update_todo(
-    todo_id: int,
+    todoId: int,
     todo_update: TodoUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
@@ -148,7 +182,7 @@ def update_todo(
     Update an existing todo.
 
     Args:
-        todo_id: ID of the todo to update.
+        todoId: ID of the todo to update.
         todo_update: Updated todo data.
         db: Database session.
         current_user: Current authenticated user.
@@ -159,7 +193,7 @@ def update_todo(
     Raises:
         HTTPException: If todo not found or user is not the owner.
     """
-    todo = db.query(TodoModel).filter(TodoModel.id == todo_id).first()
+    todo = db.query(TodoModel).filter(TodoModel.id == todoId).first()
 
     if todo is None:
         raise HTTPException(
@@ -176,6 +210,11 @@ def update_todo(
 
     # Update only provided fields
     update_data = todo_update.model_dump(exclude_unset=True)
+
+    # Validate group ownership if group_id is being updated
+    if "group_id" in update_data:
+        validate_group_ownership(db, update_data.get("group_id"), current_user.id)
+
     for field, value in update_data.items():
         setattr(todo, field, value)
 
@@ -185,9 +224,9 @@ def update_todo(
     return todo
 
 
-@router.delete("/{todo_id}")
+@router.delete("/{todoId}")
 def delete_todo(
-    todo_id: int,
+    todoId: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
 ) -> dict:
@@ -195,7 +234,7 @@ def delete_todo(
     Delete a todo.
 
     Args:
-        todo_id: ID of the todo to delete.
+        todoId: ID of the todo to delete.
         db: Database session.
         current_user: Current authenticated user.
 
@@ -205,7 +244,7 @@ def delete_todo(
     Raises:
         HTTPException: If todo not found or user is not the owner.
     """
-    todo = db.query(TodoModel).filter(TodoModel.id == todo_id).first()
+    todo = db.query(TodoModel).filter(TodoModel.id == todoId).first()
 
     if todo is None:
         raise HTTPException(
@@ -225,9 +264,9 @@ def delete_todo(
     return api_success(ApiMessages.TODO_DELETED_SUCCESS)
 
 
-@router.patch("/{todo_id}/reorder", response_model=Todo)
+@router.patch("/{todoId}/reorder", response_model=Todo)
 def reorder_todo(
-    todo_id: int,
+    todoId: int,
     reorder_data: TodoUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
@@ -236,7 +275,7 @@ def reorder_todo(
     Update the index of a todo for drag-and-drop reordering.
 
     Args:
-        todo_id: ID of the todo to reorder.
+        todoId: ID of the todo to reorder.
         reorder_data: Contains the new index.
         db: Database session.
         current_user: Current authenticated user.
@@ -253,7 +292,7 @@ def reorder_todo(
             detail=api_error(ApiMessages.TODO_INVALID_INDEX),
         )
 
-    todo = db.query(TodoModel).filter(TodoModel.id == todo_id).first()
+    todo = db.query(TodoModel).filter(TodoModel.id == todoId).first()
 
     if todo is None:
         raise HTTPException(

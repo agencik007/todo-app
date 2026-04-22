@@ -1,14 +1,20 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import {
+    computed,
+    inject,
+    Injectable,
+    linkedSignal,
+    signal,
+} from '@angular/core';
 import { Todo, TodoCreate, TodoUpdate } from '@api';
-import { delay } from 'rxjs';
+import { GroupStore } from '../../groups/store/group.store';
 import { TodoService } from '../services/todo.service';
 
 /**
  * TodoStore - Centralized state management for todos using Angular Signals.
  *
  * This store follows the Signal Store pattern with:
- * - Private writable signals for internal state
- * - Public readonly signals for consumers
+ * - httpResource for reactive data fetching
+ * - linkedSignal for local mutations (optimistic updates) synchronized with resource
  * - Computed signals for derived state
  * - Methods for state mutations
  */
@@ -16,30 +22,57 @@ import { TodoService } from '../services/todo.service';
     providedIn: 'root',
 })
 export class TodoStore {
-    private todoService = inject(TodoService);
+    readonly #todoService = inject(TodoService);
+    readonly #groupStore = inject(GroupStore);
 
-    // Private writable state signals
-    private readonly _todos = signal<Todo[]>([]);
-    private readonly _loading = signal(false);
-    private readonly _error = signal<string | null>(null);
+    // Local state synchronized with httpResource, allowing local mutations
+    private readonly _todos = linkedSignal<Todo[]>(
+        () => this.#todoService.todosResource.value() ?? [],
+    );
     private readonly _editingTodoId = signal<number | null>(null);
     private readonly _formVisible = signal(false);
-    // Public readonly signals (exposed to components)
+
+    // Public readonly signals
     readonly todos = this._todos.asReadonly();
-    readonly loading = this._loading.asReadonly();
-    readonly error = this._error.asReadonly();
+    readonly loading = this.#todoService.todosResource.isLoading;
+    readonly error = computed(() => {
+        const err = this.#todoService.todosResource.error();
+        if (err) {
+            const msg =
+                (err as any)?.error?.detail?.messageCode ||
+                (err as any)?.error?.messageCode ||
+                (err as any)?.message ||
+                'An error occurred';
+            return msg as string;
+        }
+        return null;
+    });
     readonly formVisible = this._formVisible.asReadonly();
+
+    // Reactive filtering based on GroupStore selection
+    readonly filteredTodos = computed(() => {
+        const selectedIds = this.#groupStore.selectedGroupIds();
+        const allTodos = this._todos();
+
+        if (selectedIds.length === 0) {
+            return allTodos;
+        }
+
+        return allTodos.filter(
+            (t) => t.groupId && selectedIds.includes(t.groupId),
+        );
+    });
 
     // Computed signals for derived state
     readonly completedTodos = computed(() =>
-        this._todos().filter((todo) => todo.completed),
+        this.filteredTodos().filter((todo) => todo.completed),
     );
 
     readonly pendingTodos = computed(() =>
-        this._todos().filter((todo) => !todo.completed),
+        this.filteredTodos().filter((todo) => !todo.completed),
     );
 
-    readonly totalCount = computed(() => this._todos().length);
+    readonly totalCount = computed(() => this.filteredTodos().length);
 
     readonly editingTodo = computed(
         () => this._todos().find((t) => t.id === this._editingTodoId()) ?? null,
@@ -48,68 +81,42 @@ export class TodoStore {
     // ==================== Actions ====================
 
     loadTodos(): void {
-        this._loading.set(true);
-        this._error.set(null);
-
-        this.todoService
-            .getTodos()
-            .pipe(delay(1000))
-            .subscribe({
-                next: (todos) => {
-                    this._todos.set(todos);
-                    this._loading.set(false);
-                },
-                error: (err) => {
-                    const errorDetail = err.error?.detail;
-                    const messageCode =
-                        errorDetail?.messageCode || err.error?.messageCode;
-                    this._error.set(
-                        messageCode || err.message || 'An error occurred',
-                    );
-                    this._loading.set(false);
-                },
-            });
+        this.#todoService.todosResource.reload();
     }
 
     createTodo(todoData: TodoCreate): void {
-        this.todoService.createTodo(todoData).subscribe({
+        this.#todoService.createTodo(todoData).subscribe({
             next: (newTodo) => {
                 this._todos.update((todos) => [...todos, newTodo]);
                 this.hideForm();
             },
-            error: (err: Error) => {
-                this._error.set(err.message);
-            },
+            error: (err) => console.error('Create todo failed:', err),
         });
     }
 
     updateTodo(id: number, update: TodoUpdate): void {
-        this.todoService.updateTodo(id, update).subscribe({
+        this.#todoService.updateTodo(id, update).subscribe({
             next: (updatedTodo) => {
                 this._todos.update((todos) =>
                     todos.map((t) => (t.id === id ? updatedTodo : t)),
                 );
                 this.hideForm();
             },
-            error: (err: Error) => {
-                this._error.set(err.message);
-            },
+            error: (err) => console.error('Update todo failed:', err),
         });
     }
 
     deleteTodo(id: number): void {
-        this.todoService.deleteTodo(id).subscribe({
+        this.#todoService.deleteTodo(id).subscribe({
             next: () => {
                 this._todos.update((todos) => todos.filter((t) => t.id !== id));
             },
-            error: (err: Error) => {
-                this._error.set(err.message);
-            },
+            error: (err) => console.error('Delete todo failed:', err),
         });
     }
 
     toggleTodo(todo: Todo): void {
-        this.todoService
+        this.#todoService
             .updateTodo(todo.id, { completed: !todo.completed })
             .subscribe({
                 next: (updated) => {
@@ -117,14 +124,7 @@ export class TodoStore {
                         todos.map((t) => (t.id === todo.id ? updated : t)),
                     );
                 },
-                error: (err) => {
-                    const errorDetail = err.error?.detail;
-                    const messageCode =
-                        errorDetail?.messageCode || err.error?.messageCode;
-                    this._error.set(
-                        messageCode || err.message || 'An error occurred',
-                    );
-                },
+                error: (err) => console.error('Toggle todo failed:', err),
             });
     }
 
@@ -142,22 +142,15 @@ export class TodoStore {
 
         this._todos.set(finalTodos);
 
-        this.todoService.reorderTodo(id, newIndex).subscribe({
+        this.#todoService.reorderTodo(id, newIndex).subscribe({
             next: (updatedTodo) => {
-                // Synchronization after successful reorder
                 this._todos.update((todos) =>
                     todos.map((t) =>
                         t.id === id ? { ...t, index: updatedTodo.index } : t,
                     ),
                 );
             },
-            error: (err) => {
-                const errorDetail = err.error?.detail;
-                const messageCode =
-                    errorDetail?.messageCode || err.error?.messageCode;
-                this._error.set(
-                    messageCode || err.message || 'An error occurred',
-                );
+            error: () => {
                 // Rollback on error
                 this._todos.set(currentTodos);
             },
@@ -182,10 +175,11 @@ export class TodoStore {
     }
 
     setError(message: string): void {
-        this._error.set(message);
+        // Errors from resource are handled reactively
+        console.error('TodoStore error:', message);
     }
 
     clearError(): void {
-        this._error.set(null);
+        // Resource errors clear on next successful reload
     }
 }

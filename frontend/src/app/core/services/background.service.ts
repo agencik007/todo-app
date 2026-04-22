@@ -1,28 +1,58 @@
 import { Injectable, signal } from '@angular/core';
 
+export type BackgroundType = 'off' | 'school' | 'modern';
+
 @Injectable({
     providedIn: 'root',
 })
 export class BackgroundService {
-    private readonly BACKGROUND_KEY = 'background_enabled';
-    private _isEnabled = signal<boolean>(this.getInitialState());
+    private readonly BACKGROUND_KEY = 'background_type_v2';
+    private _type = signal<BackgroundType>(this.getInitialState());
 
-    readonly isEnabled = this._isEnabled.asReadonly();
+    readonly type = this._type.asReadonly();
 
-    toggle(): void {
-        const newState = !this._isEnabled();
-        this._isEnabled.set(newState);
+    setType(type: BackgroundType): void {
+        this._type.set(type);
         if (typeof window !== 'undefined') {
-            localStorage.setItem(this.BACKGROUND_KEY, JSON.stringify(newState));
+            localStorage.setItem(this.BACKGROUND_KEY, type);
         }
     }
 
-    private getInitialState(): boolean {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem(this.BACKGROUND_KEY);
-            // Default to true for "wowed" effect, but user can disable it
-            return saved ? JSON.parse(saved) : true;
+    toggle(): void {
+        const current = this._type();
+        let next: BackgroundType;
+
+        switch (current) {
+            case 'off':
+                next = 'school';
+                break;
+            case 'school':
+                next = 'modern';
+                break;
+            case 'modern':
+                next = 'off';
+                break;
+            default:
+                next = 'school';
         }
-        return false;
+
+        this._type.set(next);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(this.BACKGROUND_KEY, next);
+        }
+    }
+
+    private getInitialState(): BackgroundType {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem(
+                this.BACKGROUND_KEY,
+            ) as BackgroundType;
+            if (saved === 'off' || saved === 'school' || saved === 'modern') {
+                return saved;
+            }
+            // Default to 'school' for first-time users (legacy compatibility)
+            return 'school';
+        }
+        return 'off';
     }
 }

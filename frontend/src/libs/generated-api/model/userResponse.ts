@@ -15,12 +15,12 @@
 export interface UserResponse { 
     email: string;
     id: number;
-    is_active: boolean;
-    is_verified: boolean;
-    avatar_url?: string | null;
+    isActive: boolean;
+    isVerified: boolean;
+    avatarUrl?: string | null;
     language: string;
     message?: string | null;
-    created_at: string;
-    updated_at: string;
+    createdAt: string;
+    updatedAt: string;
 }
 

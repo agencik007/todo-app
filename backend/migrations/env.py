@@ -26,9 +26,19 @@ if config.config_file_name is not None:
 from config.database import Base  # noqa: E402
 
 # Import all models to ensure they are registered with Base.metadata
-# from models.password_reset_token import PasswordResetToken # Removed as requested
+from models.user import User  # noqa: E402, F401
+from models.todo import Todo  # noqa: E402, F401
+from models.group import Group  # noqa: E402, F401
 
 target_metadata = Base.metadata
+
+
+def get_database_url() -> str:
+    """Resolve the database URL used by Alembic."""
+    database_url = os.getenv("ALEMBIC_DATABASE_URL") or os.getenv("DATABASE_URL")
+    if not database_url:
+        raise RuntimeError("DATABASE_URL or ALEMBIC_DATABASE_URL must be set")
+    return database_url
 
 
 def run_migrations_offline() -> None:
@@ -43,7 +53,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = os.getenv("DATABASE_URL")
+    url = get_database_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -64,7 +74,7 @@ def run_migrations_online() -> None:
     """
     # Overwrite sqlalchemy.url with the one from the environment
     alembic_config = config.get_section(config.config_ini_section, {})
-    alembic_config["sqlalchemy.url"] = os.getenv("DATABASE_URL")
+    alembic_config["sqlalchemy.url"] = get_database_url()
 
     connectable = engine_from_config(
         alembic_config,

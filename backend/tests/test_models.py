@@ -49,7 +49,6 @@ class TestTodoModel:
 
         assert todo.description is None  # Should be None when not provided
         assert not todo.completed  # Should default to False
-        assert not todo.is_public  # Should default to False
 
     def test_todo_completed_field(self, test_db, test_user):
         """Test the completed field can be set to True."""

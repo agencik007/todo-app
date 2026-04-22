@@ -13,8 +13,8 @@ import {
 } from '@api';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { environment } from '../../../../environments/environment';
 import { IndexedDbService } from '../../../core/services/indexed-db.service';
+import { API_URL } from '../../../core/tokens/api-url.token';
 
 @Injectable({
     providedIn: 'root',
@@ -24,7 +24,8 @@ export class AuthService {
     private apiAuthService = inject(ApiAuthService);
     private apiUsersService = inject(ApiUsersService);
     private indexedDbService = inject(IndexedDbService);
-    private apiUrl = `${environment.apiUrl}/auth`;
+    private baseApiUrl = inject(API_URL);
+    private apiUrl = `${this.baseApiUrl}/auth`;
 
     register(userData: RegisterRequest): Observable<User> {
         return this.apiAuthService
@@ -42,9 +43,11 @@ export class AuthService {
     }
 
     refreshToken(refreshToken: string): Observable<Token> {
-        const request: RefreshTokenRequest = { refresh_token: refreshToken };
+        const payload: RefreshTokenRequest = {
+            refreshToken: refreshToken,
+        };
         return this.apiAuthService
-            .refreshAccessTokenAuthRefreshPost(request)
+            .refreshAccessTokenAuthRefreshPost(payload)
             .pipe(
                 tap((token) => this.setTokens(token)),
                 catchError(this.handleError),
@@ -58,7 +61,7 @@ export class AuthService {
     }
 
     fetchAndCacheAvatar(url: string): Observable<Blob> {
-        const fullUrl = `${environment.apiUrl}${url}`;
+        const fullUrl = `${this.baseApiUrl}${url}`;
         return this.http.get(fullUrl, { responseType: 'blob' }).pipe(
             tap((blob) => {
                 // Save both the blob and the URL for cache validation
@@ -74,41 +77,42 @@ export class AuthService {
     ): Observable<{ message: string }> {
         return this.apiAuthService
             .forgotPasswordAuthForgotPasswordPost(request)
-            .pipe(catchError(this.handleError));
+            .pipe(catchError(this.handleError)) as any;
     }
 
     resetPassword(resetData: PasswordReset): Observable<{ message: string }> {
         return this.apiAuthService
             .resetPasswordAuthResetPasswordPost(resetData)
-            .pipe(catchError(this.handleError));
+            .pipe(catchError(this.handleError)) as any;
     }
 
     verifyEmail(token: string): Observable<{ message: string }> {
         return this.apiAuthService
             .verifyEmailAuthVerifyEmailTokenGet(token)
-            .pipe(catchError(this.handleError));
+            .pipe(catchError(this.handleError)) as any;
     }
 
     resendVerification(): Observable<{ message: string }> {
         return this.apiAuthService
             .resendVerificationAuthResendVerificationPost()
-            .pipe(catchError(this.handleError));
+            .pipe(catchError(this.handleError)) as any;
     }
 
-    uploadAvatar(file: File): Observable<{ avatar_url: string }> {
+    uploadAvatar(file: File): Observable<{ avatarUrl: string }> {
         return this.apiUsersService.uploadAvatarUsersMeAvatarPost(file).pipe(
             tap((response) => {
-                if (response.avatar_url) this.indexedDbService.saveAvatar(file);
+                if ((response as any).avatarUrl)
+                    this.indexedDbService.saveAvatar(file);
             }),
             catchError(this.handleError),
-        );
+        ) as any;
     }
 
     deleteAvatar(): Observable<{ message: string }> {
         return this.apiUsersService.deleteAvatarUsersMeAvatarDelete().pipe(
             tap(() => this.indexedDbService.deleteAvatar()),
             catchError(this.handleError),
-        );
+        ) as any;
     }
 
     logout(): Observable<any> {
@@ -125,24 +129,24 @@ export class AuthService {
 
     getAccessToken(): string | null {
         if (typeof window === 'undefined') return null;
-        return localStorage.getItem('access_token');
+        return localStorage.getItem('accessToken');
     }
 
     getRefreshToken(): string | null {
         if (typeof window === 'undefined') return null;
-        return localStorage.getItem('refresh_token');
+        return localStorage.getItem('refreshToken');
     }
 
     private setTokens(token: Token): void {
         if (typeof window === 'undefined') return;
-        localStorage.setItem('access_token', token.access_token);
-        localStorage.setItem('refresh_token', token.refresh_token);
+        localStorage.setItem('accessToken', token.accessToken);
+        localStorage.setItem('refreshToken', token.refreshToken);
     }
 
     clearTokens(): void {
         if (typeof window === 'undefined') return;
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
     }
 
     isAuthenticated(): boolean {

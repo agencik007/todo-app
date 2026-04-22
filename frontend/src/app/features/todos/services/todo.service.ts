@@ -1,84 +1,43 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { Todo, TodoCreate, TodoUpdate, TodosService } from '@api';
-import { Observable, throwError } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { httpResource } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { Todo, TodoCreate, TodosService, TodoUpdate } from '@api';
+import { Observable } from 'rxjs';
+import { AuthStore } from '../../../core/store/auth.store';
+import { API_URL } from '../../../core/tokens/api-url.token';
 
 @Injectable({
     providedIn: 'root',
 })
 export class TodoService {
-    private todosService = inject(TodosService);
+    readonly #todosService = inject(TodosService);
+    readonly #apiUrl = inject(API_URL);
+    readonly #authStore = inject(AuthStore);
 
-    // Get all todos
-    getTodos(): Observable<Todo[]> {
-        return this.todosService
-            .getTodosTodosGet()
-            .pipe(catchError(this.handleError));
-    }
-
-    // Get single todo by ID
-    getTodo(id: number): Observable<Todo> {
-        return this.todosService
-            .getTodoTodosTodoIdGet(id)
-            .pipe(catchError(this.handleError));
-    }
-
-    // Create new todo
-    createTodo(todo: TodoCreate): Observable<Todo> {
-        return this.todosService
-            .createTodoTodosPost(todo)
-            .pipe(catchError(this.handleError));
-    }
-
-    // Update existing todo
-    updateTodo(id: number, todo: TodoUpdate): Observable<Todo> {
-        return this.todosService
-            .updateTodoTodosTodoIdPut(id, todo)
-            .pipe(catchError(this.handleError));
-    }
-
-    // Delete todo
-    deleteTodo(id: number): Observable<void> {
-        return this.todosService.deleteTodoTodosTodoIdDelete(id).pipe(
-            catchError(this.handleError),
-            switchMap(
-                () =>
-                    new Observable<void>((subscriber) => {
-                        subscriber.next();
-                        subscriber.complete();
-                    }),
-            ),
-        );
-    }
-
-    // Toggle todo completion status
-    toggleTodo(id: number): Observable<Todo> {
-        return this.getTodo(id).pipe(
-            switchMap((todo) =>
-                this.updateTodo(id, { completed: !todo.completed }),
-            ),
-        );
-    }
-
-    // Reorder todo
-    reorderTodo(id: number, index: number): Observable<Todo> {
-        return this.todosService
-            .reorderTodoTodosTodoIdReorderPatch(id, { index })
-            .pipe(catchError(this.handleError));
-    }
-
-    private handleError(error: HttpErrorResponse): Observable<never> {
-        let errorMessage = 'An unknown error occurred!';
-
-        if (error.error instanceof ErrorEvent) {
-            // Client-side error
-            errorMessage = `Error: ${error.error.message}`;
-        } else {
-            // Server-side error
-            errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+    // Reactive resource for fetching all todos (GET /todos)
+    readonly todosResource = httpResource<Todo[]>(() => {
+        if (!this.#authStore.isAuthenticated()) {
+            return undefined;
         }
+        return `${this.#apiUrl}/todos`;
+    });
 
-        return throwError(() => new Error(errorMessage));
+    // Mutations — keep as Observables (httpResource is only for reads)
+
+    createTodo(todo: TodoCreate): Observable<Todo> {
+        return this.#todosService.createTodoTodosPost(todo);
+    }
+
+    updateTodo(id: number, todo: TodoUpdate): Observable<Todo> {
+        return this.#todosService.updateTodoTodosTodoIdPut(id, todo);
+    }
+
+    deleteTodo(id: number): Observable<{ [key: string]: any }> {
+        return this.#todosService.deleteTodoTodosTodoIdDelete(id);
+    }
+
+    reorderTodo(id: number, index: number): Observable<Todo> {
+        return this.#todosService.reorderTodoTodosTodoIdReorderPatch(id, {
+            index,
+        });
     }
 }

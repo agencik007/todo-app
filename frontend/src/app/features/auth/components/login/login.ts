@@ -1,12 +1,13 @@
-import { NgClass } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import {
-    AbstractControl,
-    FormBuilder,
-    FormGroup,
-    ReactiveFormsModule,
-    Validators,
-} from '@angular/forms';
+    FormField,
+    email,
+    form,
+    minLength,
+    required,
+    schema,
+} from '@angular/forms/signals';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { UserCreate as LoginRequest } from '@api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -16,44 +17,56 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
+import { LoginAnimationService } from '../../../../core/services/login-animation.service';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { AuthService } from '../../services/auth.service';
+
+interface LoginData {
+    email: string;
+    password: string;
+}
+
+const loginSchema = schema<LoginData>((p) => {
+    required(p.email);
+    email(p.email);
+    required(p.password);
+    minLength(p.password, 8);
+});
 
 @Component({
     selector: 'app-login',
     imports: [
-        ReactiveFormsModule,
+        FormsModule,
+        FormField,
         RouterModule,
         CardModule,
         InputTextModule,
         PasswordModule,
         ButtonModule,
         MessageModule,
-        NgClass,
         TranslatePipe,
     ],
     templateUrl: './login.html',
     styleUrl: './login.scss',
 })
 export class LoginComponent {
-    private fb = inject(FormBuilder);
-    private authService = inject(AuthService);
-    private authStore = inject(AuthStore);
-    private router = inject(Router);
-    private route = inject(ActivatedRoute);
-    private messageService = inject(MessageService);
-    private translate = inject(TranslateService);
+    private readonly authService = inject(AuthService);
+    private readonly authStore = inject(AuthStore);
+    private readonly router = inject(Router);
+    private readonly route = inject(ActivatedRoute);
+    private readonly messageService = inject(MessageService);
+    private readonly translate = inject(TranslateService);
+    private readonly loginAnimationService = inject(LoginAnimationService);
 
-    loginForm: FormGroup;
-    error = signal<string | null>(null);
-    isLoading = signal(false);
+    protected readonly loginData = signal<LoginData>({
+        email: '',
+        password: '',
+    });
+    protected readonly loginForm = form(this.loginData, loginSchema);
+    protected readonly error = signal<string | null>(null);
+    protected readonly isLoading = signal(false);
 
     constructor() {
-        this.loginForm = this.fb.group({
-            email: ['', [Validators.required, Validators.email]],
-            password: ['', [Validators.required, Validators.minLength(8)]],
-        });
-
         const verified = this.route.snapshot.queryParams['verified'];
         if (verified === 'success') {
             setTimeout(() => {
@@ -69,23 +82,21 @@ export class LoginComponent {
         }
     }
 
-    onSubmit(): void {
-        if (this.loginForm.invalid) return;
+    protected onSubmit(): void {
+        if (this.loginForm().invalid()) return;
 
         this.isLoading.set(true);
         this.error.set(null);
 
-        const loginData: LoginRequest = {
-            email: this.loginForm.value.email,
-            password: this.loginForm.value.password,
-        };
+        const loginRequest: LoginRequest = this.loginData();
 
-        this.authService.login(loginData).subscribe({
+        this.authService.login(loginRequest).subscribe({
             next: () => {
                 this.authService.getCurrentUser().subscribe({
-                    next: (user) => {
-                        this.authStore.setUser(user);
+                    next: async (user) => {
+                        await this.authStore.setUser(user);
                         this.isLoading.set(false);
+                        this.loginAnimationService.trigger();
                         const returnUrl =
                             this.route.snapshot.queryParams['returnUrl'] ||
                             '/todos';
@@ -102,43 +113,18 @@ export class LoginComponent {
                 });
             },
             error: (err) => {
-                const errorDetail = err.error?.detail;
                 const messageCode =
-                    errorDetail?.messageCode || err.error?.messageCode;
+                    err.error?.detail?.messageCode || err.error?.messageCode;
 
-                const errorMsg = messageCode
-                    ? this.translate.instant(`API_MESSAGES.${messageCode}`)
-                    : this.translate.instant(
-                          'AUTH.LOGIN.ERRORS.INVALID_CREDENTIALS',
-                      );
-
-                this.error.set(errorMsg);
+                this.error.set(
+                    messageCode
+                        ? this.translate.instant(`API_MESSAGES.${messageCode}`)
+                        : this.translate.instant(
+                              'AUTH.LOGIN.ERRORS.INVALID_CREDENTIALS',
+                          ),
+                );
                 this.isLoading.set(false);
-
-                if (
-                    errorMsg.toLowerCase().includes('verified') ||
-                    errorMsg.toLowerCase().includes('zweryfikuj')
-                ) {
-                    this.messageService.add({
-                        severity: 'warn',
-                        summary: this.translate.instant(
-                            'AUTH.LOGIN.ERRORS.NOT_VERIFIED_TITLE',
-                        ),
-                        detail: this.translate.instant(
-                            'AUTH.LOGIN.ERRORS.NOT_VERIFIED_DETAIL',
-                        ),
-                        life: 5000,
-                    });
-                }
             },
         });
-    }
-
-    get email(): AbstractControl | null {
-        return this.loginForm.get('email');
-    }
-
-    get password(): AbstractControl | null {
-        return this.loginForm.get('password');
     }
 }

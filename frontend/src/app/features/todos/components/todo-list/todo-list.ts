@@ -3,11 +3,10 @@ import {
     CdkDragMove,
     DragDropModule,
 } from '@angular/cdk/drag-drop';
-import { ScrollingModule } from '@angular/cdk/scrolling';
 import { isPlatformBrowser } from '@angular/common';
 import {
     Component,
-    effect,
+    computed,
     ElementRef,
     inject,
     OnInit,
@@ -18,6 +17,8 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Todo, TodoCreate, UserResponse } from '@api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import moment from 'moment';
+import 'moment/locale/pl';
 import { ConfirmationService } from 'primeng/api';
 import { Button, ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -30,6 +31,9 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { AuthStore } from '../../../../core/store/auth.store';
+import { GroupBadgeComponent } from '../../../groups/components/group-badge/group-badge.component';
+import { SidebarComponent } from '../../../groups/components/sidebar/sidebar.component';
+import { GroupStore } from '../../../groups/store/group.store';
 import { TodoStore } from '../../store/todo.store';
 import { TodoFormComponent } from '../todo-form/todo-form';
 
@@ -48,8 +52,9 @@ import { TodoFormComponent } from '../todo-form/todo-form';
         ConfirmDialogModule,
         TranslatePipe,
         DragDropModule,
-        ScrollingModule,
         TooltipModule,
+        SidebarComponent,
+        GroupBadgeComponent,
     ],
     providers: [ConfirmationService],
     templateUrl: './todo-list.html',
@@ -59,16 +64,23 @@ export class TodoListComponent implements OnInit {
     // Inject TodoStore for centralized state management
     readonly store = inject(TodoStore);
     private authStore = inject(AuthStore);
+    private groupStore = inject(GroupStore);
     private confirmationService = inject(ConfirmationService);
     private platformId = inject(PLATFORM_ID);
     private translate = inject(TranslateService);
     public screenSize = inject(ScreenSizeService);
 
     isBrowser = signal(false);
-    isMenuCollapsed = signal(false);
+
+    // Computed username from email (e.g. john.doe@... -> john.doe)
+    userName = computed(() => {
+        const user = this.currentUser;
+        if (!user || !user.email) return '';
+        return user.email.split('@')[0];
+    });
 
     // Expose store signals directly to template
-    readonly todos = this.store.todos;
+    readonly todos = this.store.filteredTodos;
     readonly loading = this.store.loading;
     readonly error = this.store.error;
     readonly editingTodo = this.store.editingTodo;
@@ -77,9 +89,13 @@ export class TodoListComponent implements OnInit {
     readonly pendingTodos = this.store.pendingTodos;
     readonly totalTodos = this.store.totalCount;
 
+    // Group selection indicator signals
+    readonly selectedGroups = this.groupStore.selectedGroups;
+    readonly hasGroupSelection = this.groupStore.hasSelection;
+
     addButton = viewChild<Button>('addButton');
-    addButtonCollapsed = viewChild<Button>('addButtonCollapsed');
     scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
+    todoForm = viewChild(TodoFormComponent);
 
     #scrollSpeed = 0;
     #scrollAnimationId: number | null = null;
@@ -88,26 +104,10 @@ export class TodoListComponent implements OnInit {
         return this.authStore.currentUser();
     }
 
-    constructor() {
-        effect(() => {
-            if (this.isBrowser()) {
-                localStorage.setItem(
-                    'todo_menu_collapsed',
-                    JSON.stringify(this.isMenuCollapsed()),
-                );
-            }
-        });
-    }
-
     ngOnInit(): void {
         this.isBrowser.set(isPlatformBrowser(this.platformId));
         if (this.isBrowser()) {
-            this.store.loadTodos();
-
-            const saved = localStorage.getItem('todo_menu_collapsed');
-            if (saved !== null) {
-                this.isMenuCollapsed.set(JSON.parse(saved));
-            }
+            this.groupStore.loadGroups();
         }
     }
 
@@ -146,7 +146,7 @@ export class TodoListComponent implements OnInit {
         // Restore focus to the add button after dialog is hidden
         // Use a timeout to ensure dialog animation finishes and element is focusable
         setTimeout(() => {
-            const buttonEl = this.addButton() || this.addButtonCollapsed();
+            const buttonEl = this.addButton();
             if (buttonEl?.el?.nativeElement) {
                 // p-button component wraps a native <button> element
                 const nativeButton =
@@ -169,10 +169,6 @@ export class TodoListComponent implements OnInit {
 
     toggleTodoCompletion(todo: Todo): void {
         this.store.toggleTodo(todo);
-    }
-
-    toggleMenu(): void {
-        this.isMenuCollapsed.update((val) => !val);
     }
 
     deleteTodo(todo: Todo): void {
@@ -204,7 +200,7 @@ export class TodoListComponent implements OnInit {
 
     canEditTodo(todo: Todo): boolean {
         const user = this.currentUser;
-        return !!user && user.id === todo.user_id;
+        return !!user && user.id === todo.userId;
     }
 
     onDrop(event: CdkDragDrop<Todo[]>): void {
@@ -280,5 +276,23 @@ export class TodoListComponent implements OnInit {
 
     clearError(): void {
         this.store.clearError();
+    }
+
+    getGroupById(groupId: number | null | undefined): any {
+        if (!groupId) return undefined;
+        return this.groupStore.groups().find((g) => g.id === groupId);
+    }
+
+    formatDate(dateString: string | undefined): string {
+        if (!dateString) return '';
+        return moment(dateString).format('DD.MM.YYYY HH:mm');
+    }
+
+    getRelativeTime(dateString: string | undefined): string {
+        if (!dateString) return '';
+        const lang =
+            this.translate.currentLang || this.translate.defaultLang || 'en';
+        moment.locale(lang);
+        return moment(dateString).fromNow();
     }
 }

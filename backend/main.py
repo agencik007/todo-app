@@ -17,7 +17,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from config.database import engine, Base
-from routes import auth_router, todo_router, users_router
+from routes import auth_router, todo_router, users_router, groups_router
 
 # Load environment variables
 load_dotenv()
@@ -97,6 +97,7 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 app.include_router(auth_router)
 app.include_router(todo_router)
 app.include_router(users_router)
+app.include_router(groups_router)
 
 
 @app.get("/", tags=["health"])

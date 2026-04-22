@@ -21,7 +21,6 @@ import { AuthService } from '../../../../features/auth/services/auth.service';
 import { BackgroundToggleComponent } from '../../../../shared/components/background-toggle/background-toggle.component';
 import { ColorToggleComponent } from '../../../../shared/components/color-toggle/color-toggle.component';
 import { LanguageSelectorComponent } from '../../../../shared/components/language-selector/language-selector.component';
-import { SnowToggleComponent } from '../../../../shared/components/snow-toggle/snow-toggle.component';
 import { ThemeToggleComponent } from '../../../../shared/components/theme-toggle/theme-toggle.component';
 
 @Component({
@@ -35,7 +34,6 @@ import { ThemeToggleComponent } from '../../../../shared/components/theme-toggle
         RouterLink,
         ThemeToggleComponent,
         ColorToggleComponent,
-        SnowToggleComponent,
         BackgroundToggleComponent,
         LanguageSelectorComponent,
     ],
@@ -59,6 +57,7 @@ export class UserProfileComponent {
     readonly userAvatar = this.#authStore.userAvatar;
     readonly isPreviewVisible = signal(false);
     readonly isMenuOpen = signal(false);
+    readonly activePanel = signal<'profile' | 'settings'>('profile');
     readonly isCompact = computed(() => this.#screenSize.isCompact());
 
     readonly #currentUrl = signal(this.#router.url);
@@ -94,6 +93,7 @@ export class UserProfileComponent {
         const isClickInside = target.closest('.user-profile-container');
         if (!isClickInside && this.isMenuOpen()) {
             this.isMenuOpen.set(false);
+            this.activePanel.set('profile');
         }
     }
 
@@ -105,6 +105,9 @@ export class UserProfileComponent {
     // 13. Public methods
     onToggleMenu(): void {
         this.isMenuOpen.update((v) => !v);
+        if (!this.isMenuOpen()) {
+            this.activePanel.set('profile');
+        }
     }
 
     onTriggerFileUpload(): void {

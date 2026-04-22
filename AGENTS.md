@@ -17,6 +17,9 @@ All major operations are managed via the root `Makefile`.
 ### Backend (FastAPI)
 
 - **Run All Tests:** `make test-backend`
+- **Backend Tests (81 tests):**
+  - Tests use the database configured by `DATABASE_URL`.
+  - An autouse fixture `db_cleanup` in `conftest.py` automatically clears all data between tests.
 - **Run Single Test:** `docker-compose -f docker/docker-compose.yml exec backend python -m pytest backend/tests/test_filename.py::test_function_name`
 - **Rate Limiting & Testing:**
   - Rate limiting is enabled by default on sensitive endpoints (registration, login, verify email).
@@ -136,10 +139,148 @@ All major operations are managed via the root `Makefile`.
 - **Data Models:** Use auto-generated OpenAPI models from `@api`. Do NOT manually define interfaces for API resources.
 - **Styling:** Use SCSS partials in `src/app/shared/global-styling`.
 - **Formatting:** Single quotes, 2-space indentation, 100 char line limit.
+- **Accessibility:** Use PrimeNG accessibility features. Remember about tab index and keyboard navigation when creating clickable containers.
 - **State Management:** Use Signal-based stores (`AuthStore`, `TodoStore`).
 - **Translations:** Use `ngx-translate`. Add translations to `src/assets/i18n/en.json` and `pl.json` under `API_MESSAGES`.
 - **SSR mode:** Remember to add correct routes with params in `app.routes.server.ts`.
 - **Error Handling:** Use `catchError` and `handleError`. Toasts are handled by `notificationInterceptor`.
+
+---
+
+## 🗄️ Database & Migrations
+
+### Database Configuration
+
+- **Local Development:** Database configured by `DATABASE_URL`
+- **Production:** PostgreSQL (via `DATABASE_URL`)
+- **Migration Tool:** Alembic for database schema management
+
+### Working with Alembic Migrations
+
+#### Creating Migrations
+
+**BEFORE generating migration:**
+
+1. Ensure all models are imported in `backend/migrations/env.py`:
+
+   ```python
+   from models.user import User  # noqa: E402, F401
+   from models.todo import Todo  # noqa: E402, F401
+   from models.group import Group  # noqa: E402, F401
+   ```
+
+   Without these imports, Alembic won't detect new models!
+
+2. Generate migration:
+
+   ```bash
+   cd backend
+   alembic revision --autogenerate -m "descriptive_message"
+   ```
+
+3. **ALWAYS review the generated migration** before running it!
+
+#### SQLite vs PostgreSQL Differences
+
+When creating migrations that use **database-specific features** (like PostgreSQL enums), use conditional logic:
+
+```python
+from sqlalchemy.dialects import postgresql
+
+def upgrade() -> None:
+    conn = op.get_bind()
+    is_postgres = conn.dialect.name == 'postgresql'
+
+    # For PostgreSQL: create enum type
+    if is_postgres:
+        my_enum = postgresql.ENUM('value1', 'value2', name='myenum')
+        my_enum.create(conn, checkfirst=True)
+        column_type = my_enum
+    else:
+        # For SQLite: use String with application-level validation
+        column_type = sa.String()
+
+    op.create_table(
+        'my_table',
+        sa.Column('my_column', column_type, nullable=False),
+        ...
+    )
+
+def downgrade() -> None:
+    conn = op.get_bind()
+    is_postgres = conn.dialect.name == 'postgresql'
+
+    op.drop_table('my_table')
+
+    # Drop enum only for PostgreSQL
+    if is_postgres:
+        postgresql.ENUM(name='myenum').drop(conn, checkfirst=True)
+```
+
+### Creating Enums in SQLAlchemy
+
+When you need predefined values (e.g., colors, statuses):
+
+1. **Define Python Enum:**
+
+   ```python
+   import enum
+   from sqlalchemy import Enum
+
+   class MyEnum(str, enum.Enum):
+       VALUE1 = "value1"
+       VALUE2 = "value2"
+   ```
+
+2. **Use in Model:**
+
+   ```python
+   my_field = Column(Enum(MyEnum), nullable=False, default=MyEnum.VALUE1)
+   ```
+
+3. **Use in Pydantic Schema:**
+
+   ```python
+   from models.my_model import MyEnum
+
+   class MySchema(BaseModel):
+       my_field: MyEnum = MyEnum.VALUE1
+   ```
+
+**Benefits:**
+
+- Type safety in Python
+- Validation at database level (PostgreSQL) or application level (SQLite)
+- Auto-exported to OpenAPI schema
+- Consistent between frontend and backend
+
+### Regenerating OpenAPI Models
+
+After ANY changes to:
+
+- Models (new fields, enums)
+- Schemas (request/response structures)
+- Routes (new endpoints)
+
+**ALWAYS regenerate OpenAPI models:**
+
+```bash
+cd frontend
+npm run generate-api
+```
+
+This generates TypeScript interfaces and enums in `frontend/src/libs/generated-api/`.
+
+### Migration Troubleshooting
+
+**Problem:** "Can't locate revision"
+**Solution:** Check `alembic_version` table, manually fix if needed
+
+**Problem:** Enum not working in SQLite
+**Solution:** Use conditional logic (see SQLite vs PostgreSQL section)
+
+**Problem:** Model not detected by Alembic
+**Solution:** Ensure model is imported in `migrations/env.py`
 
 ---
 

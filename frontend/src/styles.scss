@@ -1,7 +1,6 @@
 // PrimeNG Icons
 @use 'primeicons/primeicons.css';
 
-// Global Partials
 @use 'app/shared/global-styling/variables';
 @use 'app/shared/global-styling/layout';
 @use 'app/shared/global-styling/typography';
@@ -9,3 +8,11 @@
 @use 'app/shared/global-styling/components';
 @use 'app/shared/global-styling/toasts';
 @use 'app/shared/global-styling/tooltips';
+@use 'app/shared/global-styling/group-colors';
+
+// Force hide hamburger on non-mobile screens
+@media (min-width: 768px) {
+    .hamburger-btn {
+        display: none !important;
+    }
+}

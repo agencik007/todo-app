@@ -1,4 +1,5 @@
 <form
+    novalidate
     class="flex flex-column gap-3"
     (ngSubmit)="onSubmit()"
 >
@@ -11,14 +12,21 @@
         <input
             type="text"
             pInputText
-            name="title"
             id="title"
             class="w-full"
             [placeholder]="'TODOS.FORM.FIELD_TITLE_PLACEHOLDER' | translate"
-            [(ngModel)]="title"
+            [formField]="todoForm.title"
+            [class.ng-invalid]="todoForm.title().invalid() && todoForm.title().touched()"
+            [class.ng-dirty]="todoForm.title().invalid() && todoForm.title().touched()"
         />
-        @if (!title().trim()) {
-            <small class="p-error">{{ 'TODOS.FORM.ERRORS.TITLE_REQUIRED' | translate }}</small>
+        @if (todoForm.title().touched() && todoForm.title().invalid()) {
+            @for (error of todoForm.title().errors(); track error) {
+                <small
+                    role="alert"
+                    class="p-error"
+                    >{{ error.message }}</small
+                >
+            }
         }
     </div>
 
@@ -30,45 +38,30 @@
         >
         <textarea
             rows="4"
-            pTextarea
-            name="description"
             id="description"
-            class="w-full"
+            class="p-inputtext w-full"
             [placeholder]="'TODOS.FORM.FIELD_DESCRIPTION_PLACEHOLDER' | translate"
-            [(ngModel)]="description"
+            [formField]="todoForm.description"
         >
         </textarea>
     </div>
 
-    <div class="form-group mb-2">
-        <div class="flex align-items-center gap-2">
-            <p-checkbox
-                name="isPublic"
-                id="isPublic"
-                [binary]="true"
-                [(ngModel)]="isPublic"
-            />
-            <label for="isPublic">{{ 'TODOS.FORM.FIELD_PUBLIC' | translate }}</label>
-        </div>
-        <p class="text-xs text-color-secondary mt-1 ml-6">
-            {{ 'TODOS.FORM.PUBLIC_INFO' | translate }}
-        </p>
-    </div>
-
-    <div class="flex gap-2 justify-content-end">
-        <p-button
-            type="button"
-            severity="secondary"
-            [outlined]="true"
-            [label]="'TODOS.FORM.CANCEL' | translate"
-            (click)="onCancel()"
+    <div class="form-group">
+        <label
+            for="group"
+            class="block mb-2"
+            >{{ 'TODOS.FORM.FIELD_GROUP' | translate }}</label
+        >
+        <p-select
+            optionValue="id"
+            optionLabel="name"
+            inputId="group"
+            class="w-full"
+            [showClear]="true"
+            [options]="groups()"
+            [ngModel]="todoModel().groupId"
+            (ngModelChange)="onGroupChange($event)"
         />
-        <p-button
-            type="submit"
-            [loading]="isSubmitting()"
-            [label]="(todo() ? 'TODOS.FORM.SUBMIT_SAVE' : 'TODOS.FORM.SUBMIT_ADD') | translate"
-            [icon]="todo() ? 'pi pi-save' : 'pi pi-plus'"
-            [disabled]="isSubmitting() || !title().trim()"
-        />
+        <small class="text-color-secondary">{{ 'TODOS.FORM.FIELD_GROUP_HINT' | translate }}</small>
     </div>
 </form>

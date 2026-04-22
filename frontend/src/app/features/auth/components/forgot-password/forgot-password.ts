@@ -1,12 +1,12 @@
-import { NgClass } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import {
-    AbstractControl,
-    FormBuilder,
-    FormGroup,
-    ReactiveFormsModule,
-    Validators,
-} from '@angular/forms';
+    FormField,
+    email,
+    form,
+    required,
+    schema,
+} from '@angular/forms/signals';
 import { RouterModule } from '@angular/router';
 import { PasswordResetRequest } from '@api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -16,48 +16,54 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from '../../services/auth.service';
 
+interface ForgotPasswordData {
+    email: string;
+}
+
+const forgotPasswordSchema = schema<ForgotPasswordData>((p) => {
+    required(p.email);
+    email(p.email);
+});
+
 @Component({
     selector: 'app-forgot-password',
     imports: [
-        ReactiveFormsModule,
+        FormsModule,
+        FormField,
         RouterModule,
         CardModule,
         InputTextModule,
         ButtonModule,
         MessageModule,
-        NgClass,
         TranslatePipe,
     ],
     templateUrl: './forgot-password.html',
     styleUrl: './forgot-password.scss',
 })
 export class ForgotPasswordComponent {
-    private fb = inject(FormBuilder);
-    private authService = inject(AuthService);
-    private translate = inject(TranslateService);
+    private readonly authService = inject(AuthService);
+    private readonly translate = inject(TranslateService);
 
-    forgotPasswordForm: FormGroup;
-    error = signal<string | null>(null);
-    success = signal(false);
-    isLoading = signal(false);
+    protected readonly forgotPasswordData = signal<ForgotPasswordData>({
+        email: '',
+    });
+    protected readonly forgotPasswordForm = form(
+        this.forgotPasswordData,
+        forgotPasswordSchema,
+    );
+    protected readonly error = signal<string | null>(null);
+    protected readonly success = signal(false);
+    protected readonly isLoading = signal(false);
 
-    constructor() {
-        this.forgotPasswordForm = this.fb.group({
-            email: ['', [Validators.required, Validators.email]],
-        });
-    }
-
-    onSubmit(): void {
-        if (this.forgotPasswordForm.invalid) {
-            return;
-        }
+    protected onSubmit(): void {
+        if (this.forgotPasswordForm().invalid()) return;
 
         this.isLoading.set(true);
         this.error.set(null);
         this.success.set(false);
 
         const request: PasswordResetRequest = {
-            email: this.forgotPasswordForm.value.email,
+            email: this.forgotPasswordData().email,
         };
 
         this.authService.forgotPassword(request).subscribe({
@@ -66,23 +72,18 @@ export class ForgotPasswordComponent {
                 this.isLoading.set(false);
             },
             error: (err) => {
-                const errorDetail = err.error?.detail;
                 const messageCode =
-                    errorDetail?.messageCode || err.error?.messageCode;
+                    err.error?.detail?.messageCode || err.error?.messageCode;
 
-                const errorMsg = messageCode
-                    ? this.translate.instant(`API_MESSAGES.${messageCode}`)
-                    : this.translate.instant(
-                          'AUTH.FORGOT_PASSWORD.ERRORS.EMAIL_FAILED',
-                      );
-
-                this.error.set(errorMsg);
+                this.error.set(
+                    messageCode
+                        ? this.translate.instant(`API_MESSAGES.${messageCode}`)
+                        : this.translate.instant(
+                              'AUTH.FORGOT_PASSWORD.ERRORS.EMAIL_FAILED',
+                          ),
+                );
                 this.isLoading.set(false);
             },
         });
-    }
-
-    get email(): AbstractControl | null {
-        return this.forgotPasswordForm.get('email');
     }
 }

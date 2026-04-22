@@ -1,0 +1,12 @@
+.color-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    width: 100%;
+
+    .color-button {
+        /* Base styles are in global _group-colors.scss */
+        flex: 0 0 auto;
+    }
+}

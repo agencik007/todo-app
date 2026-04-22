@@ -1,11 +1,42 @@
-<p-button
-    tooltipPosition="bottom"
-    [tooltipPosition]="'left'"
-    [text]="!isEnabled()"
-    [style]="{ width: '2.5rem', height: '2.5rem', padding: '0' }"
-    [severity]="isEnabled() ? 'primary' : 'secondary'"
-    [rounded]="true"
-    [pTooltip]="'NAV.TOGGLE_BACKGROUND' | translate"
-    [icon]="isEnabled() ? 'pi pi-image' : 'pi pi-stop'"
-    (click)="onToggleBackground()"
-/>
+<p-select
+    tooltipPosition="left"
+    optionValue="value"
+    optionLabel="label"
+    class="background-selector"
+    appendTo="body"
+    [showClear]="false"
+    [pTooltip]="'SETTINGS.BACKGROUND_TOOLTIP.' + backgroundType() | translate"
+    [options]="backgroundOptions()"
+    [ngModel]="backgroundType()"
+    [checkmark]="false"
+    (onChange)="onBackgroundChange($event)"
+>
+    <!-- Template for the selected item -->
+    <ng-template
+        pTemplate="selectedItem"
+        let-selectedOption
+    >
+        @if (selectedOption) {
+            <div class="flex align-items-center justify-content-center h-full w-full">
+                <i
+                    class="text-xl"
+                    [class]="selectedOption.icon"
+                ></i>
+            </div>
+        }
+    </ng-template>
+
+    <!-- Template for the options list -->
+    <ng-template
+        pTemplate="item"
+        let-option
+    >
+        <div class="flex align-items-center gap-3">
+            <i
+                class="text-lg opacity-70"
+                [class]="option.icon"
+            ></i>
+            <span class="font-medium">{{ option.label }}</span>
+        </div>
+    </ng-template>
+</p-select>

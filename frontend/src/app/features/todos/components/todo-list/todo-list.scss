@@ -1,18 +1,18 @@
-// Utility classes for todo-list
 :host {
-    display: block;
+    display: flex;
+    flex-direction: column;
     height: 100%;
+    flex: 1;
     overflow: hidden;
 }
 
 // Override global container for tighter width
 .container {
-    max-width: 900px;
-    padding: 2rem 1rem;
-    height: 100%;
+    max-width: 1000px; // Slightly wider to accommodate sidebar context
+    padding: 2rem 2rem;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    margin: 0 auto;
 
     @media (max-width: 768px) {
         padding: 0.5rem 0.75rem;
@@ -130,6 +130,8 @@
 }
 
 .todo-item-content {
+    position: relative; // Needed for absolute positioning of group badge on mobile
+
     &:hover .drag-handle {
         opacity: 0.5;
     }
@@ -174,5 +176,13 @@
                 padding: 1rem !important;
             }
         }
+    }
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        display: none;
     }
 }

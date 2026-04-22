@@ -9,12 +9,12 @@
     "ACCOUNT": "Konto",
     "CHANGE_AVATAR": "Zmień awatar",
     "DELETE_AVATAR": "Usuń awatar",
-    "TOGGLE_SNOW": "Przełącz opady śniegu",
     "TOGGLE_BACKGROUND": "Przełącz tło",
     "THEME": "Motyw",
     "LANGUAGE": "Język",
     "GUEST": "Gość",
-    "WELCOME": "Witaj!"
+    "WELCOME": "Witaj!",
+    "SETTINGS": "Ustawienia"
   },
   "LANGUAGE": {
     "SELECT": "Język",
@@ -26,6 +26,18 @@
     "LIGHT": "Jasny motyw",
     "DARK": "Ciemny motyw",
     "SYSTEM": "Motyw systemowy"
+  },
+  "COLORS": {
+    "BLUE": "Niebieski",
+    "GREEN": "Zielony",
+    "RED": "Czerwony",
+    "YELLOW": "Żółty",
+    "PURPLE": "Fioletowy",
+    "PINK": "Różowy",
+    "ORANGE": "Pomarańczowy",
+    "TEAL": "Turkusowy",
+    "INDIGO": "Indygo",
+    "GRAY": "Szary"
   },
   "COLOR_PALETTES": {
     "OCEAN_DEPTH": "Głębia Oceanu",
@@ -151,6 +163,7 @@
   "TODOS": {
     "TITLE": "Moja Lista Zadań",
     "SUBTITLE": "Zarządzaj swoimi zadaniami w prosty i efektywny sposób",
+    "GREETING": "Witaj {{name}}, życzymy miłego dnia",
     "ADD_BUTTON": "Dodaj zadanie",
     "STATS": {
       "ALL": "Wszystkie",
@@ -166,7 +179,14 @@
       "STATUS_COMPLETED": "Ukończone",
       "STATUS_PENDING": "Do zrobienia",
       "PUBLIC": "Publiczne",
+      "FILTER_LABEL": "Widok:",
       "OWNER_INFO": "To zadanie jest usera {{email}}",
+      "CREATED_AT": "Utworzono",
+      "UPDATED_AT": "Zaktualizowano",
+      "TOOLTIP_STATUS": "Status zadania",
+      "TOOLTIP_GROUP": "Grupa zadania",
+      "TOOLTIP_EDIT": "Edytuj zadanie",
+      "TOOLTIP_DELETE": "Usuń zadanie",
       "EMPTY_TITLE": "Brak zadań",
       "EMPTY_MESSAGE": "Nie masz jeszcze żadnych zadań. Dodaj pierwsze zadanie, aby zacząć!",
       "ADD_FIRST": "Dodaj pierwsze zadanie"
@@ -178,8 +198,8 @@
       "FIELD_TITLE_PLACEHOLDER": "Wpisz tytuł zadania...",
       "FIELD_DESCRIPTION": "Opis",
       "FIELD_DESCRIPTION_PLACEHOLDER": "Dodaj opcjonalny opis...",
-      "FIELD_PUBLIC": "Publiczne",
-      "PUBLIC_INFO": "Zadanie publiczne będzie widoczne dla wszystkich użytkowników",
+      "FIELD_GROUP": "Grupa",
+      "FIELD_GROUP_HINT": "Opcjonalne - organizuj zadania w grupy",
       "CANCEL": "Anuluj",
       "SUBMIT_ADD": "Dodaj zadanie",
       "SUBMIT_SAVE": "Zapisz zmiany",
@@ -216,7 +236,9 @@
       "AVATAR": "Awatar",
       "ACCOUNT": "Konto",
       "TODO": "Zadania",
-      "TASK_ACTION": "Akcje zadań"
+      "TASK_ACTION": "Akcje zadań",
+      "GROUP": "Grupy",
+      "GROUP_ACTION": "Akcje grup"
     },
     "COMMANDS": {
       "COLOR_OCEAN": "Głębia Oceanu",
@@ -228,7 +250,6 @@
       "THEME_LIGHT": "Jasny Motyw",
       "THEME_DARK": "Ciemny Motyw",
       "THEME_SYSTEM": "Motyw Systemowy",
-      "THEME_SNOW_TOGGLE": "Przełącz opady śniegu",
       "LANG_TOGGLE": "Przełącz język",
       "LANG_EN": "Angielski",
       "LANG_PL": "Polski",
@@ -239,7 +260,11 @@
       "TASK_EDIT_DESC": "Edytuj",
       "TASK_DELETE_DESC": "Usuń",
       "TASK_DONE_DESC": "Oznacz jako zrobione",
-      "TASK_UNDO_DESC": "Oznacz jako niezrobione"
+      "TASK_UNDO_DESC": "Oznacz jako niezrobione",
+      "GROUP_ADD": "Dodaj grupę",
+      "GROUP_SELECT": "Zaznacz grupę",
+      "GROUP_UNSELECT": "Odznacz grupę",
+      "GROUP_DELETE_DESC": "Usuń"
     },
     "SHORTCUTS": {
       "SELECT": "aby wybrać",
@@ -290,5 +315,62 @@
     "USER_LANGUAGE_UPDATED": "Preferencje językowe zostały zaktualizowane",
     "TODO_REORDER_SUCCESS": "Kolejność zadania zaktualizowana pomyślnie",
     "TODO_INVALID_INDEX": "Nieprawidłowy indeks zadania"
+  },
+  "GROUPS": {
+    "SIDEBAR": {
+      "APP_TITLE": "Zadania",
+      "GROUPS": "Grupy",
+      "ADD_GROUP": "Dodaj grupę",
+      "EDIT_GROUP": "Edytuj grupę",
+      "DELETE_GROUP": "Usuń grupę",
+      "CLEAR_SELECTION": "Wyczyść wybór",
+      "COLLAPSE": "Zwiń",
+      "EXPAND": "Rozwiń",
+      "EMPTY_HINT": "Brak grup",
+      "ALL_TASKS": "Wszystkie zadania"
+    },
+    "FORM": {
+      "TITLE_CREATE": "Nowa grupa",
+      "TITLE_EDIT": "Edytuj grupę",
+      "NAME_LABEL": "Nazwa grupy",
+      "NAME_PLACEHOLDER": "Wpisz nazwę...",
+      "COLOR_LABEL": "Kolor",
+      "CREATE": "Stwórz grupę",
+      "UPDATE": "Zaktualizuj",
+      "CANCEL": "Anuluj",
+      "SUBMIT_DELETE": "Usuń",
+      "ERRORS": {
+        "NAME_REQUIRED": "Nazwa grupy jest wymagana",
+        "NAME_MAX_LENGTH": "Nazwa grupy nie może przekraczać 50 znaków"
+      }
+    },
+    "MESSAGES": {
+      "DELETE_CONFIRM_TITLE": "Usuń grupę",
+      "DELETE_CONFIRM_MESSAGE": "Czy na pewno chcesz usunąć grupę \"{{name}}\"? Zadania z tej grupy staną się niezgrupowane."
+    }
+  },
+  "WEATHER": {
+    "TEMP": "Temp",
+    "WIND": "Wiatr"
+  },
+  "LOGIN_ANIMATION": {
+    "LOADING_TODOS": "Ładowanie zadań...",
+    "LOADING_SETTINGS": "Ładowanie ustawień użytkownika...",
+    "LOADING_GROUPS": "Ładowanie grup...",
+    "LOADING_NOTIFICATIONS": "Ładowanie powiadomień...",
+    "LOADING_STATISTICS": "Ładowanie statystyk...",
+    "FINALIZING": "Finalizowanie..."
+  },
+  "SETTINGS": {
+    "BACKGROUND_TOOLTIP": {
+      "off": "Tło: Wyłączone",
+      "school": "Tło: Styl szkolny",
+      "modern": "Tło: Styl nowoczesny"
+    },
+    "BACKGROUND_OPTIONS": {
+      "off": "Brak tła",
+      "school": "Styl szkolny",
+      "modern": "Glassmorph"
+    }
   }
 }
