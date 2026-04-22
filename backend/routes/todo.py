@@ -5,7 +5,7 @@ Todo routes - CRUD operations for todo items.
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import or_, func
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from config.auth import get_current_verified_user
@@ -56,7 +56,7 @@ def get_todos(
     current_user: User = Depends(get_current_verified_user),
 ) -> List[Todo]:
     """
-    Get all todos for current user (own todos + public todos).
+    Get all todos for current user.
 
     Args:
         skip: Number of records to skip (pagination).
@@ -70,7 +70,7 @@ def get_todos(
     query = (
         db.query(TodoModel, User.email)
         .join(User, TodoModel.user_id == User.id)
-        .filter(or_(TodoModel.user_id == current_user.id, TodoModel.is_public))
+        .filter(TodoModel.user_id == current_user.id)
     )
 
     # Filter by group_id if provided
@@ -122,8 +122,7 @@ def read_todo(
     todo, email = result
     todo.owner_email = email
 
-    # Check if user has access (owner or public)
-    if todo.user_id != current_user.id and not todo.is_public:
+    if todo.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=api_error(ApiMessages.TODO_NO_ACCESS),

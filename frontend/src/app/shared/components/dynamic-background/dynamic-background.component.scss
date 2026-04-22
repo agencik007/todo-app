@@ -6,9 +6,8 @@
     height: 100vh;
     z-index: -1;
     overflow: hidden;
-    background: var(--p-surface-0);
-    transition: background 0.8s ease;
     pointer-events: none;
+    background-color: transparent;
 
     .mesh-gradient {
         position: absolute;
@@ -23,7 +22,10 @@
         filter: blur(140px);
         transition: opacity 0.8s ease;
     }
+}
 
+/* School Theme Styles */
+.school-theme {
     .school-item {
         position: absolute;
         filter: blur(4px);
@@ -35,6 +37,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 280px;
+        height: 280px;
+
+        @media screen and (max-width: 768px) {
+            width: 160px;
+            height: 160px;
+            opacity: 0.1;
+        }
 
         svg {
             width: 100%;
@@ -42,7 +52,6 @@
             display: block;
         }
 
-        /* Adapted to color-theme dynamically using prime primary variables */
         &.svg-blue {
             color: var(--p-primary-500);
         }
@@ -60,19 +69,6 @@
         }
     }
 
-    /* Scaling base sizes for desktop vs mobile - Made much larger as requested */
-    .school-item {
-        width: 280px;
-        height: 280px;
-
-        @media screen and (max-width: 768px) {
-            width: 160px;
-            height: 160px;
-            opacity: 0.1; /* slightly less visible on mobile to avoid overwhelming */
-        }
-    }
-
-    /* Initial positions and animation assignments */
     .move-1 {
         top: 5%;
         left: 10%;
@@ -124,7 +120,7 @@
         width: 300px;
         height: 300px;
         @media screen and (max-width: 768px) {
-            display: none; // Hide heavier items on mobile to declutter
+            display: none;
         }
     }
     .move-8 {
@@ -134,12 +130,91 @@
         width: 220px;
         height: 220px;
         @media screen and (max-width: 768px) {
-            display: none; // Hide on mobile
+            display: none;
         }
     }
 }
 
-/* Animations for floating and rotating */
+/* Modern Theme Styles */
+.modern-theme {
+    .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.35;
+        transition: opacity 0.8s ease;
+        will-change: transform;
+    }
+
+    .orb-1 {
+        width: 500px;
+        height: 500px;
+        background: var(--p-primary-400);
+        top: -10%;
+        left: -10%;
+        animation: float-orb-1 20s infinite alternate ease-in-out;
+    }
+
+    .orb-2 {
+        width: 600px;
+        height: 600px;
+        background: var(--p-primary-600);
+        bottom: -15%;
+        right: -5%;
+        animation: float-orb-2 25s infinite alternate-reverse ease-in-out;
+    }
+
+    .orb-3 {
+        width: 400px;
+        height: 400px;
+        background: var(--p-primary-300);
+        top: 40%;
+        left: 30%;
+        animation: float-orb-3 30s infinite alternate ease-in-out;
+    }
+
+    .orb-4 {
+        width: 350px;
+        height: 350px;
+        background: var(--p-primary-500);
+        bottom: 10%;
+        left: 10%;
+        animation: float-orb-1 22s infinite alternate-reverse ease-in-out;
+    }
+
+    .orb-5 {
+        width: 450px;
+        height: 450px;
+        background: var(--p-primary-700);
+        top: 15%;
+        right: 15%;
+        animation: float-orb-2 28s infinite alternate ease-in-out;
+    }
+
+    .orb-6 {
+        width: 300px;
+        height: 300px;
+        background: var(--p-primary-200);
+        bottom: 40%;
+        right: 30%;
+        animation: float-orb-3 18s infinite alternate-reverse ease-in-out;
+    }
+
+    @media screen and (max-width: 768px) {
+        .orb {
+            width: 250px;
+            height: 250px;
+            filter: blur(50px);
+            opacity: 0.25;
+        }
+        .orb-5,
+        .orb-6 {
+            display: none;
+        }
+    }
+}
+
+/* Common Keyframes */
 @keyframes float-1 {
     0% {
         transform: translate(0, 0) scale(1) rotate(0deg);
@@ -185,16 +260,46 @@
     }
 }
 
-:host-context(.dark) {
+@keyframes float-orb-1 {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+    100% {
+        transform: translate(10vw, 10vh) scale(1.1);
+    }
+}
+@keyframes float-orb-2 {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    100% {
+        transform: translate(-12vw, -8vh) rotate(10deg);
+    }
+}
+@keyframes float-orb-3 {
+    0% {
+        transform: translate(0, 0) scale(1.1);
+    }
+    100% {
+        transform: translate(8vw, -12vh) scale(0.9);
+    }
+}
+
+/* Dark Mode Overrides */
+:host-context(.dark-mode) {
     .dynamic-background-container {
         background: var(--p-surface-950);
 
         .mesh-gradient {
             opacity: 0.08;
         }
+    }
 
-        .school-item {
-            opacity: 0.06; // extremely subtle in dark mode with larger sizes
-        }
+    .school-theme .school-item {
+        opacity: 0.06;
+    }
+
+    .modern-theme .orb {
+        opacity: 0.12;
     }
 }

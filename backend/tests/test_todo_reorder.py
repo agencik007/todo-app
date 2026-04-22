@@ -79,7 +79,6 @@ def test_reorder_todo_no_permission(authenticated_client, test_db, test_user):
         title="Other's Todo",
         user_id=other_user.id,
         index=0,
-        is_public=True,  # Make it public so we can see it but not edit
     )
     test_db.add(other_todo)
     test_db.commit()

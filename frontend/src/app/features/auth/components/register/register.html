@@ -22,7 +22,6 @@
 
         <form
             class="flex flex-column gap-3"
-            [formGroup]="registerForm"
             (ngSubmit)="onSubmit()"
         >
             <div class="form-group">
@@ -40,20 +39,25 @@
                     type="email"
                     pInputText
                     id="email"
-                    formControlName="email"
                     class="w-full"
                     autocomplete="email"
                     [placeholder]="'AUTH.REGISTER.EMAIL_PLACEHOLDER' | translate"
-                    [class]="{ 'ng-invalid ng-dirty': email?.invalid && email?.touched }"
+                    [formField]="registerForm.email"
+                    [class.ng-invalid]="
+                        registerForm.email().invalid() && registerForm.email().touched()
+                    "
+                    [class.ng-dirty]="
+                        registerForm.email().invalid() && registerForm.email().touched()
+                    "
                 />
-                @if (email?.invalid && email?.touched) {
+                @if (registerForm.email().invalid() && registerForm.email().touched()) {
                     <small
                         role="alert"
                         class="p-error"
                     >
-                        @if (email?.errors?.['required']) {
+                        @if (registerForm.email().errors()[0]?.kind === 'required') {
                             {{ 'AUTH.REGISTER.ERRORS.EMAIL_REQUIRED' | translate }}
-                        } @else if (email?.errors?.['email']) {
+                        } @else if (registerForm.email().errors()[0]?.kind === 'email') {
                             {{ 'AUTH.REGISTER.ERRORS.EMAIL_FORMAT' | translate }}
                         }
                     </small>
@@ -74,21 +78,21 @@
                 <p-password
                     inputStyleClass="w-full"
                     inputId="password"
-                    formControlName="password"
                     class="w-full"
                     autocomplete="new-password"
                     [toggleMask]="true"
                     [placeholder]="'AUTH.REGISTER.PASSWORD_PLACEHOLDER' | translate"
+                    [formField]="$any(registerForm.password)"
                     [feedback]="true"
                 />
-                @if (password?.invalid && password?.touched) {
+                @if (registerForm.password().invalid() && registerForm.password().touched()) {
                     <small
                         role="alert"
                         class="p-error"
                     >
-                        @if (password?.errors?.['required']) {
+                        @if (registerForm.password().errors()[0]?.kind === 'required') {
                             {{ 'AUTH.REGISTER.ERRORS.PASSWORD_REQUIRED' | translate }}
-                        } @else if (password?.errors?.['minlength']) {
+                        } @else if (registerForm.password().errors()[0]?.kind === 'minLength') {
                             {{ 'AUTH.REGISTER.ERRORS.PASSWORD_MIN_LENGTH' | translate }}
                         }
                     </small>
@@ -109,25 +113,27 @@
                 <p-password
                     inputStyleClass="w-full"
                     inputId="confirmPassword"
-                    formControlName="confirmPassword"
                     class="w-full"
                     autocomplete="new-password"
                     [toggleMask]="true"
                     [placeholder]="'AUTH.REGISTER.CONFIRM_PASSWORD_PLACEHOLDER' | translate"
+                    [formField]="$any(registerForm.confirmPassword)"
                     [feedback]="false"
                 />
-
-                @if (confirmPassword?.invalid && confirmPassword?.touched) {
+                @if (
+                    registerForm.confirmPassword().invalid() &&
+                    registerForm.confirmPassword().touched()
+                ) {
                     <small
                         role="alert"
                         class="p-error"
                     >
-                        @if (confirmPassword?.errors?.['required']) {
+                        @if (registerForm.confirmPassword().errors()[0]?.kind === 'required') {
                             {{ 'AUTH.REGISTER.ERRORS.CONFIRM_REQUIRED' | translate }}
                         }
                     </small>
                 }
-                @if (passwordMismatch) {
+                @if (passwordMismatch()) {
                     <small
                         role="alert"
                         class="p-error"
@@ -142,7 +148,7 @@
                 styleClass="w-full"
                 [loading]="isLoading()"
                 [label]="'AUTH.REGISTER.SUBMIT' | translate"
-                [disabled]="registerForm.invalid || isLoading()"
+                [disabled]="registerForm().invalid() || passwordMismatch() || isLoading()"
             />
         </form>
 

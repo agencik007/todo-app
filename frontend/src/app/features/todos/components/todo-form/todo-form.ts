@@ -8,11 +8,10 @@ import {
     signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { form, FormField, required } from '@angular/forms/signals';
+import { FormField, form, required } from '@angular/forms/signals';
 import { Todo, TodoCreate } from '@api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { GroupStore } from '../../../groups/store/group.store';
@@ -20,7 +19,6 @@ import { GroupStore } from '../../../groups/store/group.store';
 interface TodoFormModel {
     title: string;
     description: string;
-    isPublic: boolean;
     groupId: number | null;
 }
 
@@ -30,7 +28,6 @@ interface TodoFormModel {
         FormsModule,
         FormField,
         InputTextModule,
-        CheckboxModule,
         ButtonModule,
         Select,
         TranslatePipe,
@@ -52,7 +49,6 @@ export class TodoFormComponent {
         computation: (todo) => ({
             title: todo?.title ?? '',
             description: todo?.description ?? '',
-            isPublic: todo?.isPublic ?? false,
             groupId: todo?.groupId ?? null,
         }),
     });
@@ -70,7 +66,7 @@ export class TodoFormComponent {
     readonly groups = this.#groupStore.groups;
     readonly loadingGroups = this.#groupStore.loading;
 
-    readonly title = computed(() => this.todoModel().title);
+    readonly isEditMode = computed(() => !!this.todo());
 
     onSubmit(): void {
         if (this.todoForm().invalid()) return;
@@ -81,7 +77,6 @@ export class TodoFormComponent {
         const todoData: TodoCreate = {
             title: model.title.trim(),
             description: model.description.trim() || undefined,
-            isPublic: model.isPublic,
             groupId: model.groupId,
         };
 
@@ -91,7 +86,6 @@ export class TodoFormComponent {
             this.todoModel.set({
                 title: '',
                 description: '',
-                isPublic: false,
                 groupId: null,
             });
         }
@@ -101,5 +95,9 @@ export class TodoFormComponent {
 
     onCancel(): void {
         this.cancelTodo.emit();
+    }
+
+    onGroupChange(groupId: number | null): void {
+        this.todoModel.update((m) => ({ ...m, groupId }));
     }
 }

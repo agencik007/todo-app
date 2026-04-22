@@ -68,6 +68,12 @@ export const appConfig: ApplicationConfig = {
                     darkModeSelector: '.dark',
                 },
             },
+            zIndex: {
+                modal: 1100,
+                overlay: 3000,
+                menu: 3000,
+                tooltip: 3100,
+            },
         }),
         {
             provide: IMAGE_CONFIG,

@@ -413,7 +413,7 @@
                 icon="pi pi-check"
                 [loading]="gf.isSubmitting()"
                 [label]="(editingGroup() ? 'GROUPS.FORM.UPDATE' : 'GROUPS.FORM.CREATE') | translate"
-                [disabled]="!gf.name().trim() || gf.isSubmitting()"
+                [disabled]="!gf.groupModel().name.trim() || gf.isSubmitting()"
                 (onClick)="gf.onSubmit()"
             />
         </div>

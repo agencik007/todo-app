@@ -3,29 +3,34 @@
         size="small"
         optionValue="code"
         optionLabel="name"
-        class="w-full md:w-36"
+        class="language-selector"
+        appendTo="body"
+        [showClear]="false"
         [options]="availableLanguages"
         [ngModel]="currentLang()"
+        [checkmark]="false"
         (onChange)="onLanguageChange($event)"
     >
+        <!-- Selected item template: show only flag -->
         <ng-template
             pTemplate="selectedItem"
             let-selectedOption
         >
             @if (selectedOption) {
-                <div class="flex items-center gap-2">
-                    <span>{{ selectedOption.flag }}</span>
-                    <div>{{ selectedOption.name }}</div>
+                <div class="flex align-items-center justify-content-center h-full w-full">
+                    <span class="text-xl">{{ selectedOption.flag }}</span>
                 </div>
             }
         </ng-template>
+
+        <!-- Dropdown list item template: flag + name -->
         <ng-template
             pTemplate="item"
             let-country
         >
-            <div class="flex items-center gap-2">
-                <span>{{ country.flag }}</span>
-                <div>{{ country.name }}</div>
+            <div class="flex align-items-center gap-3 py-1">
+                <span class="text-lg">{{ country.flag }}</span>
+                <span class="font-medium">{{ country.name }}</span>
             </div>
         </ng-template>
     </p-select>

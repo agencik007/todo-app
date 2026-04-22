@@ -30,7 +30,7 @@ export class CheckEmailComponent {
     resendMessage = signal('');
 
     constructor() {
-        const navigation = this.router.getCurrentNavigation();
+        const navigation = this.router.currentNavigation();
         const state = navigation?.extras.state as { email: string };
 
         if (state?.email) {

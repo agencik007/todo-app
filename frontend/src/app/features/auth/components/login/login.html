@@ -22,7 +22,6 @@
 
         <form
             class="flex flex-column gap-3"
-            [formGroup]="loginForm"
             (ngSubmit)="onSubmit()"
         >
             <div class="form-group">
@@ -40,22 +39,21 @@
                     type="email"
                     pInputText
                     id="email"
-                    formControlName="email"
                     class="w-full"
                     autocomplete="email"
                     [placeholder]="'AUTH.LOGIN.EMAIL_PLACEHOLDER' | translate"
-                    [ngClass]="{
-                        'ng-invalid ng-dirty': email?.invalid && email?.touched,
-                    }"
+                    [formField]="loginForm.email"
+                    [class.ng-invalid]="loginForm.email().invalid() && loginForm.email().touched()"
+                    [class.ng-dirty]="loginForm.email().invalid() && loginForm.email().touched()"
                 />
-                @if (email?.invalid && email?.touched) {
+                @if (loginForm.email().invalid() && loginForm.email().touched()) {
                     <small
                         role="alert"
                         class="p-error"
                     >
-                        @if (email?.errors?.['required']) {
+                        @if (loginForm.email().errors()[0]?.kind === 'required') {
                             {{ 'AUTH.LOGIN.ERRORS.EMAIL_REQUIRED' | translate }}
-                        } @else if (email?.errors?.['email']) {
+                        } @else if (loginForm.email().errors()[0]?.kind === 'email') {
                             {{ 'AUTH.LOGIN.ERRORS.EMAIL_FORMAT' | translate }}
                         }
                     </small>
@@ -76,21 +74,21 @@
                 <p-password
                     inputStyleClass="w-full"
                     inputId="password"
-                    formControlName="password"
                     class="w-full"
                     autocomplete="current-password"
                     [toggleMask]="true"
                     [placeholder]="'AUTH.LOGIN.PASSWORD_PLACEHOLDER' | translate"
+                    [formField]="$any(loginForm.password)"
                     [feedback]="false"
                 />
-                @if (password?.invalid && password?.touched) {
+                @if (loginForm.password().invalid() && loginForm.password().touched()) {
                     <small
                         role="alert"
                         class="p-error"
                     >
-                        @if (password?.errors?.['required']) {
+                        @if (loginForm.password().errors()[0]?.kind === 'required') {
                             {{ 'AUTH.LOGIN.ERRORS.PASSWORD_REQUIRED' | translate }}
-                        } @else if (password?.errors?.['minlength']) {
+                        } @else if (loginForm.password().errors()[0]?.kind === 'minLength') {
                             {{ 'AUTH.LOGIN.ERRORS.PASSWORD_MIN_LENGTH' | translate }}
                         }
                     </small>
@@ -102,7 +100,7 @@
                 styleClass="w-full"
                 [loading]="isLoading()"
                 [label]="'AUTH.LOGIN.SUBMIT' | translate"
-                [disabled]="loginForm.invalid || isLoading()"
+                [disabled]="loginForm().invalid() || isLoading()"
             />
         </form>
 

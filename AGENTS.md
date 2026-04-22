@@ -18,8 +18,7 @@ All major operations are managed via the root `Makefile`.
 
 - **Run All Tests:** `make test-backend`
 - **Backend Tests (81 tests):**
-  - Tests use an **isolated database** `todo_db_test` to avoid deleting development data.
-  - The `DATABASE_TEST_URL` environment variable defines the test database path.
+  - Tests use the database configured by `DATABASE_URL`.
   - An autouse fixture `db_cleanup` in `conftest.py` automatically clears all data between tests.
 - **Run Single Test:** `docker-compose -f docker/docker-compose.yml exec backend python -m pytest backend/tests/test_filename.py::test_function_name`
 - **Rate Limiting & Testing:**
@@ -152,7 +151,7 @@ All major operations are managed via the root `Makefile`.
 
 ### Database Configuration
 
-- **Local Development:** SQLite (`test.db` via `DATABASE_TEST_URL`)
+- **Local Development:** Database configured by `DATABASE_URL`
 - **Production:** PostgreSQL (via `DATABASE_URL`)
 - **Migration Tool:** Alembic for database schema management
 

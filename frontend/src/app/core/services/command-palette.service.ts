@@ -14,7 +14,6 @@ import { BASE_COMMANDS_CONFIG } from '../../shared/components/command-palette/co
 import { AuthStore } from '../store/auth.store';
 import { ColorPalette, ColorService } from './color.service';
 import { LanguageService } from './language.service';
-import { SnowService } from './snow.service';
 import { ThemeMode, ThemeService } from './theme.service';
 
 export type CommandCategory =
@@ -50,7 +49,6 @@ export class CommandPaletteService {
     readonly #colorService = inject(ColorService);
     readonly #themeService = inject(ThemeService);
     readonly #languageService = inject(LanguageService);
-    readonly #snowService = inject(SnowService);
     readonly #authStore = inject(AuthStore);
     readonly #todoStore = inject(TodoStore);
     readonly #groupStore = inject(GroupStore);
@@ -82,9 +80,6 @@ export class CommandPaletteService {
                 break;
             case 'theme-system':
                 this.changeTheme('system');
-                break;
-            case 'theme-snow-toggle':
-                this.#toggleSnow();
                 break;
             case 'lang-en':
                 this.changeLanguage('en');
@@ -137,11 +132,6 @@ export class CommandPaletteService {
         if (id === 'group-add-static') return isAuthenticated;
 
         return true;
-    }
-
-    #toggleSnow(): void {
-        this.#snowService.toggle();
-        this.close();
     }
 
     /**

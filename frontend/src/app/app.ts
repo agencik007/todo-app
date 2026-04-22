@@ -7,8 +7,6 @@ import { AuthNavComponent } from './layout/auth-nav/components/auth-nav/auth-nav
 import { CommandPaletteComponent } from './shared/components/command-palette/command-palette';
 import { DynamicBackgroundComponent } from './shared/components/dynamic-background/dynamic-background.component';
 import { LoginAnimationComponent } from './shared/components/login-animation/login-animation';
-import { SnowfallComponent } from './shared/components/snowfall/snowfall.component';
-
 @Component({
     selector: 'app-root',
     imports: [
@@ -16,7 +14,6 @@ import { SnowfallComponent } from './shared/components/snowfall/snowfall.compone
         AuthNavComponent,
         ToastModule,
         CommandPaletteComponent,
-        SnowfallComponent,
         DynamicBackgroundComponent,
         LoginAnimationComponent,
     ],

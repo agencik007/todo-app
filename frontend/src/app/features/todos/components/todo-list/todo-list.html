@@ -39,8 +39,8 @@
                 [class.gap-2]="screenSize.isCompact()"
             >
                 <p-card
-                    class="w-full"
                     class="p-0 compact-stats-card"
+                    class="w-full"
                     [style]="{ flex: 1, textAlign: 'center' }"
                 >
                     <div class="text-xl md:text-3xl font-bold">{{ totalTodos() }}</div>
@@ -49,8 +49,8 @@
                     </div>
                 </p-card>
                 <p-card
-                    class="w-full"
                     class="p-0 compact-stats-card"
+                    class="w-full"
                     [style]="{ flex: 1, textAlign: 'center' }"
                 >
                     <div
@@ -64,8 +64,8 @@
                     </div>
                 </p-card>
                 <p-card
-                    class="w-full"
                     class="p-0 compact-stats-card"
+                    class="w-full"
                     [style]="{ flex: 1, textAlign: 'center' }"
                 >
                     <div
@@ -312,17 +312,6 @@
                                                 [severity]="todo.completed ? 'success' : 'warn'"
                                                 [pTooltip]="'TODOS.LIST.TOOLTIP_STATUS' | translate"
                                             />
-
-                                            @if (todo.isPublic) {
-                                                <p-tag
-                                                    tooltipPosition="top"
-                                                    severity="info"
-                                                    [value]="'TODOS.LIST.PUBLIC' | translate"
-                                                    [pTooltip]="
-                                                        'TODOS.FORM.PUBLIC_INFO' | translate
-                                                    "
-                                                />
-                                            }
                                         </div>
 
                                         <!-- Right Side: Actions -->
@@ -406,7 +395,7 @@
                                     | translate
                             "
                             [icon]="editingTodo() ? 'pi pi-save' : 'pi pi-plus'"
-                            [disabled]="tf.isSubmitting() || !tf.title().trim()"
+                            [disabled]="tf.isSubmitting() || !tf.todoModel().title.trim()"
                             (onClick)="tf.onSubmit()"
                         />
                     </div>

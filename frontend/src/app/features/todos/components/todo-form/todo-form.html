@@ -16,10 +16,16 @@
             class="w-full"
             [placeholder]="'TODOS.FORM.FIELD_TITLE_PLACEHOLDER' | translate"
             [formField]="todoForm.title"
+            [class.ng-invalid]="todoForm.title().invalid() && todoForm.title().touched()"
+            [class.ng-dirty]="todoForm.title().invalid() && todoForm.title().touched()"
         />
         @if (todoForm.title().touched() && todoForm.title().invalid()) {
             @for (error of todoForm.title().errors(); track error) {
-                <small class="p-error">{{ error.message }}</small>
+                <small
+                    role="alert"
+                    class="p-error"
+                    >{{ error.message }}</small
+                >
             }
         }
     </div>
@@ -49,28 +55,13 @@
         <p-select
             optionValue="id"
             optionLabel="name"
-            name="group"
             inputId="group"
             class="w-full"
             [showClear]="true"
             [options]="groups()"
-            [(ngModel)]="todoModel().groupId"
+            [ngModel]="todoModel().groupId"
+            (ngModelChange)="onGroupChange($event)"
         />
         <small class="text-color-secondary">{{ 'TODOS.FORM.FIELD_GROUP_HINT' | translate }}</small>
-    </div>
-
-    <div class="form-group mb-2">
-        <div class="flex align-items-center gap-2">
-            <p-checkbox
-                name="isPublic"
-                id="isPublic"
-                [binary]="true"
-                [(ngModel)]="todoModel().isPublic"
-            />
-            <label for="isPublic">{{ 'TODOS.FORM.FIELD_PUBLIC' | translate }}</label>
-        </div>
-        <p class="text-xs text-color-secondary mt-1 ml-6">
-            {{ 'TODOS.FORM.PUBLIC_INFO' | translate }}
-        </p>
     </div>
 </form>

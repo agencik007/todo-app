@@ -33,7 +33,6 @@ services:
     restart: unless-stopped
     environment:
       - DATABASE_URL=postgresql://todo_user:todo_password@db:5432/todo_db
-      - DATABASE_TEST_URL=postgresql://todo_user:todo_password@db:5432/todo_db_test
       - DEBUG=False
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:4200}

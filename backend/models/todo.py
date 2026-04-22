@@ -19,7 +19,6 @@ class Todo(Base):
     description = Column(String, nullable=True)
     completed = Column(Boolean, default=False)
     index = Column(Integer, default=0, nullable=False)
-    is_public = Column(Boolean, default=False, index=True)
     user_id = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )

@@ -9,12 +9,12 @@
     "ACCOUNT": "Account",
     "CHANGE_AVATAR": "Change Avatar",
     "DELETE_AVATAR": "Delete Avatar",
-    "TOGGLE_SNOW": "Toggle snowfall",
     "TOGGLE_BACKGROUND": "Toggle background",
     "THEME": "Theme",
     "LANGUAGE": "Language",
     "GUEST": "Guest",
-    "WELCOME": "Welcome!"
+    "WELCOME": "Welcome!",
+    "SETTINGS": "Settings"
   },
   "LANGUAGE": {
     "SELECT": "Language",
@@ -200,8 +200,6 @@
       "FIELD_DESCRIPTION_PLACEHOLDER": "Add optional description...",
       "FIELD_GROUP": "Group",
       "FIELD_GROUP_HINT": "Optional - organize your tasks by group",
-      "FIELD_PUBLIC": "Public",
-      "PUBLIC_INFO": "A public task will be visible to all users",
       "CANCEL": "Cancel",
       "SUBMIT_ADD": "Add task",
       "SUBMIT_SAVE": "Save changes",
@@ -252,7 +250,6 @@
       "THEME_LIGHT": "Light Theme",
       "THEME_DARK": "Dark Theme",
       "THEME_SYSTEM": "System Theme",
-      "THEME_SNOW_TOGGLE": "Toggle Snowfall",
       "LANG_TOGGLE": "Toggle Language",
       "LANG_EN": "English",
       "LANG_PL": "Polish",
@@ -343,7 +340,8 @@
       "CANCEL": "Cancel",
       "SUBMIT_DELETE": "Delete",
       "ERRORS": {
-        "NAME_REQUIRED": "Group name is required"
+        "NAME_REQUIRED": "Group name is required",
+        "NAME_MAX_LENGTH": "Group name cannot exceed 50 characters"
       }
     },
     "MESSAGES": {
@@ -362,5 +360,17 @@
     "LOADING_NOTIFICATIONS": "Loading notifications...",
     "LOADING_STATISTICS": "Loading statistics...",
     "FINALIZING": "Finalizing..."
+  },
+  "SETTINGS": {
+    "BACKGROUND_TOOLTIP": {
+      "off": "Background: Off",
+      "school": "Background: School Theme",
+      "modern": "Background: Modern Theme"
+    },
+    "BACKGROUND_OPTIONS": {
+      "off": "None",
+      "school": "School Theme",
+      "modern": "Glassmorph"
+    }
   }
 }

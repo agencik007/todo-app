@@ -1,12 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import {
-    AbstractControl,
-    FormBuilder,
-    FormGroup,
-    ReactiveFormsModule,
-    ValidationErrors,
-    Validators,
-} from '@angular/forms';
+    FormField,
+    email,
+    form,
+    minLength,
+    required,
+    schema,
+} from '@angular/forms/signals';
 import { Router, RouterModule } from '@angular/router';
 import { UserCreate as RegisterRequest } from '@api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -17,10 +18,25 @@ import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { AuthService } from '../../services/auth.service';
 
+interface RegisterData {
+    email: string;
+    password: string;
+    confirmPassword: string;
+}
+
+const registerSchema = schema<RegisterData>((p) => {
+    required(p.email);
+    email(p.email);
+    required(p.password);
+    minLength(p.password, 8);
+    required(p.confirmPassword);
+});
+
 @Component({
     selector: 'app-register',
     imports: [
-        ReactiveFormsModule,
+        FormsModule,
+        FormField,
         RouterModule,
         CardModule,
         InputTextModule,
@@ -33,93 +49,55 @@ import { AuthService } from '../../services/auth.service';
     styleUrl: './register.scss',
 })
 export class RegisterComponent {
-    private fb = inject(FormBuilder);
-    private authService = inject(AuthService);
-    private router = inject(Router);
-    private translate = inject(TranslateService);
+    private readonly authService = inject(AuthService);
+    private readonly router = inject(Router);
+    private readonly translate = inject(TranslateService);
 
-    registerForm: FormGroup;
-    error = signal<string | null>(null);
-    isLoading = signal(false);
+    protected readonly registerData = signal<RegisterData>({
+        email: '',
+        password: '',
+        confirmPassword: '',
+    });
+    protected readonly registerForm = form(this.registerData, registerSchema);
+    protected readonly error = signal<string | null>(null);
+    protected readonly isLoading = signal(false);
 
-    constructor() {
-        this.registerForm = this.fb.group(
-            {
-                email: ['', [Validators.required, Validators.email]],
-                password: ['', [Validators.required, Validators.minLength(8)]],
-                confirmPassword: ['', [Validators.required]],
-            },
-            {
-                validators: this.passwordMatchValidator,
-            },
+    protected readonly passwordMismatch = computed(() => {
+        const { password, confirmPassword } = this.registerData();
+        return (
+            confirmPassword.length > 0 &&
+            this.registerForm.confirmPassword().touched() &&
+            password !== confirmPassword
         );
-    }
+    });
 
-    passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
-        const password = control.get('password');
-        const confirmPassword = control.get('confirmPassword');
-
-        if (!password || !confirmPassword) {
-            return null;
-        }
-
-        return password.value === confirmPassword.value
-            ? null
-            : { passwordMismatch: true };
-    }
-
-    onSubmit(): void {
-        if (this.registerForm.invalid) {
-            return;
-        }
+    protected onSubmit(): void {
+        if (this.registerForm().invalid() || this.passwordMismatch()) return;
 
         this.isLoading.set(true);
         this.error.set(null);
 
-        const registerData: RegisterRequest = {
-            email: this.registerForm.value.email,
-            password: this.registerForm.value.password,
-        };
+        const { email, password } = this.registerData();
+        const registerRequest: RegisterRequest = { email, password };
 
-        this.authService.register(registerData).subscribe({
+        this.authService.register(registerRequest).subscribe({
             next: () => {
                 this.isLoading.set(false);
-                // Redirect to check-email page with email param
                 this.router.navigate(['/check-email'], {
-                    queryParams: { email: registerData.email },
+                    queryParams: { email: registerRequest.email },
                 });
             },
             error: (err) => {
-                const errorDetail = err.error?.detail;
                 const messageCode =
-                    errorDetail?.messageCode || err.error?.messageCode;
+                    err.error?.detail?.messageCode || err.error?.messageCode;
 
-                const errorMsg = messageCode
-                    ? this.translate.instant(`API_MESSAGES.${messageCode}`)
-                    : this.translate.instant('AUTH.REGISTER.ERRORS.FAILED');
-
-                this.error.set(errorMsg);
+                this.error.set(
+                    messageCode
+                        ? this.translate.instant(`API_MESSAGES.${messageCode}`)
+                        : this.translate.instant('AUTH.REGISTER.ERRORS.FAILED'),
+                );
                 this.isLoading.set(false);
             },
         });
-    }
-
-    get email(): AbstractControl | null {
-        return this.registerForm.get('email');
-    }
-
-    get password(): AbstractControl | null {
-        return this.registerForm.get('password');
-    }
-
-    get confirmPassword(): AbstractControl | null {
-        return this.registerForm.get('confirmPassword');
-    }
-
-    get passwordMismatch(): boolean {
-        return (
-            this.registerForm.errors?.['passwordMismatch'] &&
-            this.confirmPassword?.touched
-        );
     }
 }

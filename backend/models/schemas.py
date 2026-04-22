@@ -68,7 +68,6 @@ class TodoBase(CamelBaseModel):
     title: str = Field(..., min_length=1, description="Title must not be empty")
     description: Optional[str] = None
     completed: bool = False
-    is_public: bool = False
     index: int = 0
     group_id: Optional[int] = None
 
@@ -85,7 +84,6 @@ class TodoUpdate(CamelBaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     completed: Optional[bool] = None
-    is_public: Optional[bool] = None
     index: Optional[int] = None
     group_id: Optional[int] = None
 

@@ -11,6 +11,7 @@ These tests verify that our REST API works correctly:
 
 from fastapi.testclient import TestClient
 from models.group import Group
+from models.todo import Todo
 
 
 class TestTodoAPI:
@@ -106,6 +107,21 @@ class TestTodoAPI:
         assert response.status_code == 404
         data = response.json()
         assert data["detail"]["messageCode"] == "TODO_NOT_FOUND"
+
+    def test_get_other_users_todo_forbidden(
+        self, authenticated_client: TestClient, test_db, second_user
+    ):
+        """Test GET /todos/{id} rejects access to another user's todo."""
+        foreign_todo = Todo(title="Foreign Todo", user_id=second_user.id)
+        test_db.add(foreign_todo)
+        test_db.commit()
+        test_db.refresh(foreign_todo)
+
+        response = authenticated_client.get(f"/todos/{foreign_todo.id}")
+
+        assert response.status_code == 403
+        data = response.json()
+        assert data["detail"]["messageCode"] == "TODO_NO_ACCESS"
 
     def test_update_todo(self, authenticated_client: TestClient):
         """Test PUT /todos/{id} updates existing todo."""

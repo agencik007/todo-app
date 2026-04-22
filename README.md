@@ -13,7 +13,7 @@ Aplikacja Todo zbudowana w technologii **Angular 20** + **Python FastAPI** + **P
 - ✅ **Docker** - Pełna konteneryzacja, multi-stage builds, production ready
 - ✅ **Baza danych** - PostgreSQL z persistent storage
 - ✅ **Testy backendu** - 81 testów jednostkowych i integracyjnych z coverage
-- ✅ **Izolacja testów** - Osobna baza danych `todo_db_test` (nie niszczy danych dev)
+- ✅ **Prosta konfiguracja lokalna** - Jedna baza danych do developmentu i testów lokalnych
 - ✅ **CI/CD** - GitHub Actions z automatycznym buildem i deployem
 
 ### 🚀 Jak uruchomić (3 proste kroki):
@@ -257,7 +257,7 @@ pytest --cov=. --cov-report=html
 ```
 
 > [!IMPORTANT]
-> **Izolacja Bazy Danych:** Testy automatycznie korzystają z osobnej bazy danych `todo_db_test`. Dzięki temu możesz bezpiecznie uruchamiać testy bez obawy o utratę zadań wprowadzonych ręcznie w aplikacji (`todo_db`).
+> **Uwaga:** Testy lokalne korzystają z tej samej bazy co development. Uruchomienie testów czyści dane testowe między przypadkami, ale w razie lokalnych eksperymentów traktuj bazę jako środowisko robocze.
 
 > [!NOTE]
 > **Rate Limiting:** Podczas uruchamiania testów ograniczanie liczby żądań jest wyłączane (`TESTING=1`), co pozwala na szybkie wykonywanie testów.

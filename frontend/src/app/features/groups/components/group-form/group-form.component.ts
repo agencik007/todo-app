@@ -1,16 +1,33 @@
-import { Component, effect, input, output, signal } from '@angular/core';
+import { Component, input, linkedSignal, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import {
+    FormField,
+    form,
+    maxLength,
+    required,
+    schema,
+} from '@angular/forms/signals';
 import { Group, GroupColor, GroupCreate, GroupUpdate } from '@api';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { GroupColorPickerComponent } from '../group-color-picker/group-color-picker.component';
 
+interface GroupFormModel {
+    name: string;
+    color: GroupColor;
+}
+
+const groupSchema = schema<GroupFormModel>((p) => {
+    required(p.name);
+    maxLength(p.name, 50);
+});
+
 @Component({
     selector: 'app-group-form',
-    standalone: true,
     imports: [
         FormsModule,
+        FormField,
         InputTextModule,
         ButtonModule,
         TranslatePipe,
@@ -20,39 +37,32 @@ import { GroupColorPickerComponent } from '../group-color-picker/group-color-pic
     styleUrl: './group-form.scss',
 })
 export class GroupFormComponent {
-    // Input for editing existing group
     group = input<Group | null>(null);
 
-    // Outputs
     saveGroup = output<GroupCreate | GroupUpdate>();
     formCancel = output<void>();
 
-    // Form state
-    name = signal('');
-    color = signal<GroupColor>(GroupColor.Blue);
-    isSubmitting = signal(false);
+    readonly groupModel = linkedSignal<Group | null, GroupFormModel>({
+        source: this.group,
+        computation: (g) => ({
+            name: g?.name ?? '',
+            color: (g?.color as GroupColor) ?? GroupColor.Blue,
+        }),
+    });
 
-    constructor() {
-        effect(() => {
-            const g = this.group();
-            if (g) {
-                this.name.set(g.name);
-                this.color.set(g.color as GroupColor);
-            } else {
-                this.name.set('');
-                this.color.set(GroupColor.Blue);
-            }
-        });
-    }
+    readonly groupForm = form(this.groupModel, groupSchema);
+
+    readonly isSubmitting = signal(false);
 
     onSubmit(): void {
-        if (!this.name().trim()) return;
+        if (this.groupForm().invalid()) return;
 
         this.isSubmitting.set(true);
 
-        const data = {
-            name: this.name().trim(),
-            color: this.color(),
+        const model = this.groupModel();
+        const data: GroupCreate | GroupUpdate = {
+            name: model.name.trim(),
+            color: model.color,
         };
 
         this.saveGroup.emit(data);
@@ -64,6 +74,9 @@ export class GroupFormComponent {
     }
 
     onColorChange(newColor: string): void {
-        this.color.set(newColor as any);
+        this.groupModel.update((m) => ({
+            ...m,
+            color: newColor as GroupColor,
+        }));
     }
 }

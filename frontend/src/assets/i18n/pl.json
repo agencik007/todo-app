@@ -9,12 +9,12 @@
     "ACCOUNT": "Konto",
     "CHANGE_AVATAR": "Zmień awatar",
     "DELETE_AVATAR": "Usuń awatar",
-    "TOGGLE_SNOW": "Przełącz opady śniegu",
     "TOGGLE_BACKGROUND": "Przełącz tło",
     "THEME": "Motyw",
     "LANGUAGE": "Język",
     "GUEST": "Gość",
-    "WELCOME": "Witaj!"
+    "WELCOME": "Witaj!",
+    "SETTINGS": "Ustawienia"
   },
   "LANGUAGE": {
     "SELECT": "Język",
@@ -200,8 +200,6 @@
       "FIELD_DESCRIPTION_PLACEHOLDER": "Dodaj opcjonalny opis...",
       "FIELD_GROUP": "Grupa",
       "FIELD_GROUP_HINT": "Opcjonalne - organizuj zadania w grupy",
-      "FIELD_PUBLIC": "Publiczne",
-      "PUBLIC_INFO": "Zadanie publiczne będzie widoczne dla wszystkich użytkowników",
       "CANCEL": "Anuluj",
       "SUBMIT_ADD": "Dodaj zadanie",
       "SUBMIT_SAVE": "Zapisz zmiany",
@@ -252,7 +250,6 @@
       "THEME_LIGHT": "Jasny Motyw",
       "THEME_DARK": "Ciemny Motyw",
       "THEME_SYSTEM": "Motyw Systemowy",
-      "THEME_SNOW_TOGGLE": "Przełącz opady śniegu",
       "LANG_TOGGLE": "Przełącz język",
       "LANG_EN": "Angielski",
       "LANG_PL": "Polski",
@@ -343,7 +340,8 @@
       "CANCEL": "Anuluj",
       "SUBMIT_DELETE": "Usuń",
       "ERRORS": {
-        "NAME_REQUIRED": "Nazwa grupy jest wymagana"
+        "NAME_REQUIRED": "Nazwa grupy jest wymagana",
+        "NAME_MAX_LENGTH": "Nazwa grupy nie może przekraczać 50 znaków"
       }
     },
     "MESSAGES": {
@@ -362,5 +360,17 @@
     "LOADING_NOTIFICATIONS": "Ładowanie powiadomień...",
     "LOADING_STATISTICS": "Ładowanie statystyk...",
     "FINALIZING": "Finalizowanie..."
+  },
+  "SETTINGS": {
+    "BACKGROUND_TOOLTIP": {
+      "off": "Tło: Wyłączone",
+      "school": "Tło: Styl szkolny",
+      "modern": "Tło: Styl nowoczesny"
+    },
+    "BACKGROUND_OPTIONS": {
+      "off": "Brak tła",
+      "school": "Styl szkolny",
+      "modern": "Glassmorph"
+    }
   }
 }

@@ -320,7 +320,7 @@
           "todos"
         ],
         "summary": "Get Todos",
-        "description": "Get all todos for current user (own todos + public todos).\n\nArgs:\n    skip: Number of records to skip (pagination).\n    limit: Maximum number of records to return.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    List[Todo]: List of todo items.",
+        "description": "Get all todos for current user.\n\nArgs:\n    skip: Number of records to skip (pagination).\n    limit: Maximum number of records to return.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    List[Todo]: List of todo items.",
         "operationId": "get_todos_todos_get",
         "security": [
           {
@@ -1244,11 +1244,6 @@
             "title": "Completed",
             "default": false
           },
-          "isPublic": {
-            "type": "boolean",
-            "title": "Ispublic",
-            "default": false
-          },
           "index": {
             "type": "integer",
             "title": "Index",
@@ -1340,11 +1335,6 @@
             "title": "Completed",
             "default": false
           },
-          "isPublic": {
-            "type": "boolean",
-            "title": "Ispublic",
-            "default": false
-          },
           "index": {
             "type": "integer",
             "title": "Index",
@@ -1403,17 +1393,6 @@
               }
             ],
             "title": "Completed"
-          },
-          "isPublic": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Ispublic"
           },
           "index": {
             "anyOf": [

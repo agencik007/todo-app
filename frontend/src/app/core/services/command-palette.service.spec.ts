@@ -7,7 +7,6 @@ import { AuthStore } from '../store/auth.store';
 import { ColorService } from './color.service';
 import { CommandPaletteService } from './command-palette.service';
 import { LanguageService } from './language.service';
-import { SnowService } from './snow.service';
 import { ThemeService } from './theme.service';
 
 // Mock dependencies
@@ -48,10 +47,6 @@ describe('CommandPaletteService', () => {
                 {
                     provide: LanguageService,
                     useValue: { setLanguage: jasmine.createSpy() },
-                },
-                {
-                    provide: SnowService,
-                    useValue: { toggle: jasmine.createSpy() },
                 },
                 {
                     provide: Router,

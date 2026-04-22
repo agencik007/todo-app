@@ -27,16 +27,8 @@ def cleanup_db(db):
         db.rollback()
 
 
-# Test database URL
-# Isolation: Use DATABASE_TEST_URL (todo_db_test) if available,
-# otherwise fallback to DATABASE_URL but append _test for safety if it looks like a dev URL
-TEST_DATABASE_URL = os.getenv("DATABASE_TEST_URL")
-if not TEST_DATABASE_URL:
-    original_url = os.getenv("DATABASE_URL")
-    if original_url and "todo_db" in original_url and "test" not in original_url:
-        TEST_DATABASE_URL = original_url.replace("todo_db", "todo_db_test")
-    else:
-        TEST_DATABASE_URL = original_url
+# Tests use the main configured database URL.
+TEST_DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create test engine
 test_engine = create_engine(TEST_DATABASE_URL)
@@ -223,7 +215,6 @@ def sample_todo(test_db, test_user):
         description="This is a test todo item",
         completed=False,
         user_id=test_user.id,
-        is_public=False,
     )
     test_db.add(todo)
     test_db.commit()

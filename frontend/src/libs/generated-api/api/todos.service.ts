@@ -173,7 +173,7 @@ export class TodosService extends BaseService {
 
     /**
      * Get Todos
-     * Get all todos for current user (own todos + public todos).  Args:     skip: Number of records to skip (pagination).     limit: Maximum number of records to return.     db: Database session.     current_user: Current authenticated user.  Returns:     List[Todo]: List of todo items.
+     * Get all todos for current user.  Args:     skip: Number of records to skip (pagination).     limit: Maximum number of records to return.     db: Database session.     current_user: Current authenticated user.  Returns:     List[Todo]: List of todo items.
      * @endpoint get /todos
      * @param skip 
      * @param limit 

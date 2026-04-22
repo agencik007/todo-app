@@ -9,7 +9,7 @@ import { BackgroundService } from '../../../core/services/background.service';
 })
 export class DynamicBackgroundComponent {
     readonly #backgroundService = inject(BackgroundService);
-    readonly isEnabled = this.#backgroundService.isEnabled;
+    readonly backgroundType = this.#backgroundService.type;
 
     // We will use standard SVG icons. The `colorClass` will match our group-colors variables
     // to keep the 5 main system colors (blue, green, red, yellow, purple).
