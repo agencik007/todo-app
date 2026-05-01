@@ -1,12 +1,10 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import {
     AuthService as ApiAuthService,
     UsersService as ApiUsersService,
-    UserCreate as LoginRequest,
     PasswordReset,
     PasswordResetRequest,
-    RefreshTokenRequest,
     UserCreate as RegisterRequest,
     Token,
     UserResponse as User,
@@ -27,29 +25,41 @@ export class AuthService {
     private baseApiUrl = inject(API_URL);
     private apiUrl = `${this.baseApiUrl}/auth`;
 
+    // Access token lives only in memory — never persisted to localStorage/sessionStorage.
+    // The refresh token is an HttpOnly cookie managed entirely by the browser.
+    private readonly _accessToken = signal<string | null>(null);
+
     register(userData: RegisterRequest): Observable<User> {
         return this.apiAuthService
             .registerAuthRegisterPost(userData)
             .pipe(catchError(this.handleError));
     }
 
-    login(loginData: LoginRequest): Observable<Token> {
-        // Keeping manual login for now due to generated API missing body param for this endpoint
-        // (FastAPI signature issue with supporting both JSON and Form Data)
-        return this.http.post<Token>(`${this.apiUrl}/login`, loginData).pipe(
-            tap((token) => this.setTokens(token)),
-            catchError(this.handleError),
-        );
+    login(loginData: { email: string; password: string }): Observable<Token> {
+        // Manual call to support both JSON and Form Data formats on the same endpoint.
+        // withCredentials: true is required so the browser stores the HttpOnly
+        // refresh token cookie returned by Set-Cookie.
+        return this.http
+            .post<Token>(`${this.apiUrl}/login`, loginData, {
+                withCredentials: true,
+            })
+            .pipe(
+                tap((token) => this._setAccessToken(token)),
+                catchError(this.handleError),
+            );
     }
 
-    refreshToken(refreshToken: string): Observable<Token> {
-        const payload: RefreshTokenRequest = {
-            refreshToken: refreshToken,
-        };
-        return this.apiAuthService
-            .refreshAccessTokenAuthRefreshPost(payload)
+    refreshToken(): Observable<Token> {
+        // No body needed — the browser sends the HttpOnly cookie automatically.
+        // withCredentials: true ensures the cookie is included in the request.
+        return this.http
+            .post<Token>(
+                `${this.apiUrl}/refresh`,
+                {},
+                { withCredentials: true },
+            )
             .pipe(
-                tap((token) => this.setTokens(token)),
+                tap((token) => this._setAccessToken(token)),
                 catchError(this.handleError),
             );
     }
@@ -64,7 +74,6 @@ export class AuthService {
         const fullUrl = `${this.baseApiUrl}${url}`;
         return this.http.get(fullUrl, { responseType: 'blob' }).pipe(
             tap((blob) => {
-                // Save both the blob and the URL for cache validation
                 this.indexedDbService.saveAvatar(blob);
                 this.indexedDbService.saveAvatarUrl(url);
             }),
@@ -116,43 +125,34 @@ export class AuthService {
     }
 
     logout(): Observable<any> {
-        return this.apiAuthService.logoutAuthLogoutPost().pipe(
-            tap(() => {
-                this.clearTokens();
-            }),
-            catchError((err) => {
-                this.clearTokens();
-                return throwError(() => err);
-            }),
-        );
+        // withCredentials: true so the browser sends the refresh cookie and
+        // the backend can clear it via Set-Cookie: Max-Age=0.
+        return this.http
+            .post(`${this.apiUrl}/logout`, {}, { withCredentials: true })
+            .pipe(
+                tap(() => this.clearTokens()),
+                catchError((err) => {
+                    this.clearTokens();
+                    return throwError(() => err);
+                }),
+            );
     }
 
     getAccessToken(): string | null {
-        if (typeof window === 'undefined') return null;
-        return localStorage.getItem('accessToken');
-    }
-
-    getRefreshToken(): string | null {
-        if (typeof window === 'undefined') return null;
-        return localStorage.getItem('refreshToken');
-    }
-
-    private setTokens(token: Token): void {
-        if (typeof window === 'undefined') return;
-        localStorage.setItem('accessToken', token.accessToken);
-        localStorage.setItem('refreshToken', token.refreshToken);
+        return this._accessToken();
     }
 
     clearTokens(): void {
-        if (typeof window === 'undefined') return;
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        this._accessToken.set(null);
     }
 
     isAuthenticated(): boolean {
-        if (typeof window === 'undefined') return false;
-        const token = this.getAccessToken();
+        const token = this._accessToken();
         return token !== null && token.trim() !== '';
+    }
+
+    private _setAccessToken(token: Token): void {
+        this._accessToken.set(token.accessToken);
     }
 
     private handleError(error: HttpErrorResponse): Observable<never> {

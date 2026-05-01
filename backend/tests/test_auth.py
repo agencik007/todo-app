@@ -20,6 +20,9 @@ from services.auth_service import (
 )
 from datetime import datetime, timedelta, timezone
 
+# Cookie name must match the constant in routes/auth.py
+REFRESH_COOKIE_NAME = "refresh_token"
+
 
 class TestAuthAPI:
     """Test the Authentication REST API endpoints."""
@@ -80,11 +83,12 @@ class TestAuthAPI:
         assert response.status_code == 200
         data = response.json()
 
+        # Access token is in the body; refresh token is now an HttpOnly cookie.
         assert "accessToken" in data
-        assert "refreshToken" in data
+        assert "refreshToken" not in data
         assert data["tokenType"] == "bearer"
         assert len(data["accessToken"]) > 0
-        assert len(data["refreshToken"]) > 0
+        assert REFRESH_COOKIE_NAME in response.cookies
 
     def test_login_json_endpoint(self, client: TestClient, test_user):
         """Test POST /auth/login with JSON payload (instead of form data)."""
@@ -96,8 +100,9 @@ class TestAuthAPI:
         data = response.json()
 
         assert "accessToken" in data
-        assert "refreshToken" in data
+        assert "refreshToken" not in data
         assert data["tokenType"] == "bearer"
+        assert REFRESH_COOKIE_NAME in response.cookies
 
     def test_login_wrong_password(self, client: TestClient, test_user):
         """Test POST /auth/login with wrong password."""
@@ -160,31 +165,44 @@ class TestAuthAPI:
         assert response.status_code == 401
 
     def test_refresh_token(self, client: TestClient, test_user, test_db):
-        """Test POST /auth/refresh with valid refresh token."""
+        """Test POST /auth/refresh with valid refresh token cookie."""
         # Ensure user exists in the test database used by client
         existing_user = test_db.query(User).filter(User.id == test_user.id).first()
         if not existing_user:
-            # Copy user to the test database session used by client
             test_db.add(test_user)
             test_db.commit()
 
-        # Create refresh token
+        # Create refresh token and send it as a cookie (not body)
         refresh_token = create_refresh_token(
             data={"sub": test_user.id, "email": test_user.email}
         )
 
-        response = client.post("/auth/refresh", json={"refreshToken": refresh_token})
+        response = client.post(
+            "/auth/refresh", cookies={REFRESH_COOKIE_NAME: refresh_token}
+        )
 
         assert response.status_code == 200
         data = response.json()
 
+        # New access token in body, rotated refresh token in cookie
         assert "accessToken" in data
-        assert "refreshToken" in data
+        assert "refreshToken" not in data
         assert data["tokenType"] == "bearer"
+        assert REFRESH_COOKIE_NAME in response.cookies
+
+    def test_refresh_token_missing_cookie(self, client: TestClient):
+        """Test POST /auth/refresh with no cookie returns 401."""
+        response = client.post("/auth/refresh")
+
+        assert response.status_code == 401
+        data = response.json()
+        assert data["detail"]["messageCode"] == "AUTH_INVALID_REFRESH_TOKEN"
 
     def test_refresh_token_invalid(self, client: TestClient):
-        """Test POST /auth/refresh with invalid token."""
-        response = client.post("/auth/refresh", json={"refreshToken": "invalid_token"})
+        """Test POST /auth/refresh with invalid token cookie."""
+        response = client.post(
+            "/auth/refresh", cookies={REFRESH_COOKIE_NAME: "invalid_token"}
+        )
 
         assert response.status_code == 401
         data = response.json()
@@ -270,12 +288,17 @@ class TestAuthAPI:
         assert data["detail"]["messageCode"] == "AUTH_INVALID_RESET_TOKEN"
 
     def test_logout(self, authenticated_client: TestClient):
-        """Test POST /auth/logout."""
+        """Test POST /auth/logout clears the refresh cookie."""
         response = authenticated_client.post("/auth/logout")
 
         assert response.status_code == 200
         data = response.json()
         assert data["message"] == "AUTH_LOGOUT_SUCCESS"
+        # FastAPI sets Max-Age=0 which causes the cookie value to be empty string
+        # after deletion; verify the Set-Cookie header clears it.
+        set_cookie_header = response.headers.get("set-cookie", "")
+        assert REFRESH_COOKIE_NAME in set_cookie_header
+        assert "max-age=0" in set_cookie_header.lower()
 
     def test_register_saves_verification_token(
         self, client: TestClient, test_db: Session

@@ -1,4 +1,4 @@
-import { effect, inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { UserResponse as User } from '@api';
 import { UsersService } from '@api/api/users.service';
 import { AuthService } from '../../features/auth/services/auth.service';
@@ -40,71 +40,64 @@ export class AuthStore {
     readonly userAvatar = this._userAvatar.asReadonly();
     readonly isInitialized = this._isInitialized.asReadonly();
 
-    constructor() {
-        // Sync isAuthenticated signal with service on browser
-        if (typeof window !== 'undefined') {
-            this._isAuthenticated.set(this.authService.isAuthenticated());
-        }
-
-        // Effect to clear user when token is lost
-        effect(() => {
-            const hasToken = this.authService.isAuthenticated();
-            const hasUser = this._currentUser() !== null;
-            if (!hasToken && hasUser) {
-                this.clearUser();
-            }
-        });
-    }
-
     // ==================== Initialization ====================
 
+    /**
+     * Called during APP_INITIALIZER. Attempts a silent token refresh using the
+     * HttpOnly cookie. If the cookie is valid, fetches the current user and
+     * restores the session. If not, marks the user as unauthenticated.
+     *
+     * This replaces the old localStorage-based check — there is no access token
+     * to read on page load; the only source of truth is the refresh cookie.
+     */
     async initializeAuth(): Promise<void> {
         if (typeof window === 'undefined') {
-            // During SSR, we don't mark as initialized to avoid flickering
-            // as we can't determine the auth state without localStorage.
+            // SSR: cannot access cookies or user state here.
             return;
         }
 
-        if (this.authService.isAuthenticated()) {
-            this._isLoading.set(true);
-            this._isAuthenticated.set(true);
+        this._isLoading.set(true);
 
-            return new Promise((resolve) => {
-                this.authService.getCurrentUser().subscribe({
-                    next: (user) => {
-                        this._currentUser.set(user);
-                        this._isAuthenticated.set(true);
+        return new Promise((resolve) => {
+            this.authService.refreshToken().subscribe({
+                next: () => {
+                    // Refresh succeeded — new access token is now in memory.
+                    // Fetch user profile to restore the session.
+                    this.authService.getCurrentUser().subscribe({
+                        next: (user) => {
+                            this._currentUser.set(user);
+                            this._isAuthenticated.set(true);
 
-                        // Backend -> Frontend Sync
-                        if (user.language) {
-                            this.languageService.setLanguage(user.language);
-                        }
+                            if (user.language) {
+                                this.languageService.setLanguage(user.language);
+                            }
 
-                        // Try to load avatar from cache first
-                        this.loadAvatarWithCacheCheck(user.avatarUrl).then(
-                            () => {
-                                this._isLoading.set(false);
-                                this._isInitialized.set(true);
-                                resolve();
-                            },
-                        );
-                    },
-                    error: () => {
-                        this.clearUser();
-                        this._isLoading.set(false);
-                        this._isInitialized.set(true);
-                        resolve();
-                    },
-                });
+                            this.loadAvatarWithCacheCheck(user.avatarUrl).then(
+                                () => {
+                                    this._isLoading.set(false);
+                                    this._isInitialized.set(true);
+                                    resolve();
+                                },
+                            );
+                        },
+                        error: () => {
+                            // Access token was refreshed but /me failed — clear state.
+                            this.clearUser();
+                            this._isLoading.set(false);
+                            this._isInitialized.set(true);
+                            resolve();
+                        },
+                    });
+                },
+                error: () => {
+                    // No valid refresh cookie — user is not authenticated.
+                    this._isAuthenticated.set(false);
+                    this._isLoading.set(false);
+                    this._isInitialized.set(true);
+                    resolve();
+                },
             });
-        } else {
-            this._isAuthenticated.set(false);
-            this._isInitialized.set(true);
-        }
-    }
-
-    loadUserFromStorage(): void {
-        this.initializeAuth();
+        });
     }
 
     // ==================== User Management ====================
@@ -114,18 +107,16 @@ export class AuthStore {
         this._isAuthenticated.set(true);
         this._error.set(null);
 
-        // Backend -> Frontend Sync
         if (user.language) {
             this.languageService.setLanguage(user.language);
         }
 
-        // Load avatar with cache check and return the URL
         await this.loadAvatarWithCacheCheck(user.avatarUrl);
         return this._userAvatar();
     }
 
     /**
-     * Clear all user-related state signals and local tokens.
+     * Clear all user-related state signals and the in-memory access token.
      */
     clearUser(): void {
         this.authService.clearTokens();
@@ -137,14 +128,14 @@ export class AuthStore {
 
     /**
      * Performs a full logout:
-     * 1. Notifies backend (while tokens are still present)
-     * 2. Clears local tokens and signals
+     * 1. Notifies the backend (which clears the refresh cookie via Set-Cookie)
+     * 2. Clears the in-memory access token and all UI signals
      */
     logout(): void {
-        // 1. Notify backend while tokens are still in localStorage
+        // Notify backend first — it will clear the HttpOnly refresh cookie.
         this.authService.logout().subscribe();
 
-        // 2. Clear signals and tokens immediately for UI responsiveness
+        // Clear signals and in-memory token immediately for UI responsiveness.
         this.clearUser();
     }
 
@@ -160,25 +151,21 @@ export class AuthStore {
         avatarUrl: string | null | undefined,
     ): Promise<void> {
         if (!avatarUrl) {
-            // No avatar URL - clear cache and signal
             await this.indexedDbService.deleteAvatar();
             this._userAvatar.set(null);
             return;
         }
 
         try {
-            // Check if we have a cached avatar
             const cachedBlob = await this.indexedDbService.getAvatar();
             const cachedUrl = await this.indexedDbService.getAvatarUrl();
 
             if (cachedBlob && cachedUrl === avatarUrl) {
-                // Cache hit! Use cached avatar
                 const blobUrl = URL.createObjectURL(cachedBlob);
                 this._userAvatar.set(blobUrl);
                 return;
             }
 
-            // Cache miss or URL changed - fetch from server
             this.authService.fetchAndCacheAvatar(avatarUrl).subscribe({
                 next: () => this.loadAvatarFromCache(),
                 error: () => this.loadAvatarFromCache(),
