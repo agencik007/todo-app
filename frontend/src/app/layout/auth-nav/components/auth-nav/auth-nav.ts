@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MenuItem } from 'primeng/api';
@@ -55,6 +55,12 @@ export class AuthNavComponent {
             .subscribe(() => {
                 this.#currentUrl.set(this.router.url);
             });
+
+        effect(() => {
+            if (this.isAuthPage()) {
+                this.languageService.setAuthPageLanguage();
+            }
+        });
     }
 
     // Defer signal access to computed to ensure services are fully initialized

@@ -42,6 +42,23 @@ export class LanguageService {
         }
     }
 
+    setAuthPageLanguage(): void {
+        if (isPlatformBrowser(this.platformId)) {
+            const savedLang = localStorage.getItem('lang');
+            if (savedLang) {
+                if (savedLang !== this.currentLang()) {
+                    this.setLanguage(savedLang);
+                }
+                return;
+            }
+        }
+        const browserLang = this.translate.getBrowserLang();
+        const lang = browserLang === 'pl' ? 'pl' : 'en';
+        if (lang !== this.currentLang()) {
+            this.setLanguage(lang);
+        }
+    }
+
     setLanguage(lang: string): Promise<void> {
         // Subscribe to the observable to trigger the HTTP request
         return new Promise((resolve) => {

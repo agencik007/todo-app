@@ -60,8 +60,10 @@
                         <app-weather-widget />
                     }
 
-                    <!-- User/Settings Menu (Always visible) -->
-                    <app-user-profile></app-user-profile>
+                    <!-- User/Settings Menu (hidden on auth pages) -->
+                    @if (!isAuthPage()) {
+                        <app-user-profile></app-user-profile>
+                    }
 
                     <!-- Primary Actions for Guests (Desktop) -->
                     @if (!isAuthenticated() && !isCompact() && !isAuthPage()) {
