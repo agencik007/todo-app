@@ -7,7 +7,7 @@ import secrets
 import logging
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
@@ -22,7 +22,6 @@ from models.schemas import (
     Token,
     PasswordResetRequest,
     PasswordReset,
-    RefreshTokenRequest,
 )
 from services.auth_service import (
     hash_password,
@@ -46,6 +45,11 @@ limiter = Limiter(key_func=get_remote_address, enabled=not IS_TESTING)
 
 # Constants
 PASSWORD_RESET_EXPIRY_HOURS = 1
+REFRESH_COOKIE_NAME = "refresh_token"
+REFRESH_COOKIE_PATH = "/auth/refresh"
+REFRESH_TOKEN_MAX_AGE = 86400  # 24h in seconds
+# Set Secure=True in production (HTTPS). On dev HTTP localhost keep False.
+SECURE_COOKIES = os.getenv("SECURE_COOKIES", "False").lower() == "true"
 
 
 def _create_verification_token() -> str:
@@ -53,23 +57,38 @@ def _create_verification_token() -> str:
     return secrets.token_urlsafe(32)
 
 
-def _create_tokens(user: User) -> dict:
-    """
-    Create access and refresh tokens for a user.
+def _create_access_token(user: User) -> str:
+    """Create a JWT access token for the given user."""
+    return create_access_token(data={"sub": user.id, "email": user.email})
 
-    Args:
-        user: The user to create tokens for.
 
-    Returns:
-        dict: Token response with access_token, refresh_token, and token_type.
-    """
-    return {
-        "access_token": create_access_token(data={"sub": user.id, "email": user.email}),
-        "refresh_token": create_refresh_token(
-            data={"sub": user.id, "email": user.email}
-        ),
-        "token_type": "bearer",
-    }
+def _create_refresh_token(user: User) -> str:
+    """Create a JWT refresh token for the given user."""
+    return create_refresh_token(data={"sub": user.id, "email": user.email})
+
+
+def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
+    """Set the HttpOnly refresh token cookie on the response."""
+    response.set_cookie(
+        key=REFRESH_COOKIE_NAME,
+        value=refresh_token,
+        httponly=True,
+        secure=SECURE_COOKIES,
+        samesite="strict",
+        path=REFRESH_COOKIE_PATH,
+        max_age=REFRESH_TOKEN_MAX_AGE,
+    )
+
+
+def _clear_refresh_cookie(response: Response) -> None:
+    """Clear the refresh token cookie (logout / invalid token)."""
+    response.delete_cookie(
+        key=REFRESH_COOKIE_NAME,
+        path=REFRESH_COOKIE_PATH,
+        httponly=True,
+        secure=SECURE_COOKIES,
+        samesite="strict",
+    )
 
 
 @router.post(
@@ -132,6 +151,7 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
 @limiter.limit("5/minute")
 async def login(
     request: Request,
+    response: Response,
     db: Session = Depends(get_db),
 ):
     """
@@ -141,12 +161,16 @@ async def login(
     - **Form data**: `username` (email) and `password` fields (OAuth2 standard)
     - **JSON body**: `{"email": "...", "password": "..."}` (frontend-friendly)
 
+    The refresh token is returned as an HttpOnly cookie; the access token is
+    returned in the response body.
+
     Args:
         request: FastAPI request object.
+        response: FastAPI response object (used to set the refresh cookie).
         db: Database session.
 
     Returns:
-        Token: Access and refresh tokens.
+        Token: Access token (refresh token is in Set-Cookie header).
 
     Raises:
         HTTPException: If credentials are invalid or user is inactive.
@@ -203,29 +227,50 @@ async def login(
             detail=api_error(ApiMessages.AUTH_EMAIL_NOT_VERIFIED),
         )
 
-    tokens = _create_tokens(user)
-    tokens["message"] = ApiMessages.AUTH_LOGIN_SUCCESS.value
-    return tokens
+    _set_refresh_cookie(response, _create_refresh_token(user))
+    return Token(
+        access_token=_create_access_token(user),
+        message=ApiMessages.AUTH_LOGIN_SUCCESS.value,
+    )
 
 
 @router.post("/refresh", response_model=Token)
-def refresh_access_token(request: RefreshTokenRequest, db: Session = Depends(get_db)):
+def refresh_access_token(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+):
     """
-    Refresh access token using refresh token.
+    Refresh access token using the HttpOnly refresh token cookie.
+
+    Reads the refresh token from the cookie (never from the body).
+    On success, issues a new access token in the body and rotates
+    the refresh token cookie.
 
     Args:
-        request: Refresh token request.
+        request: FastAPI request object (cookie is read from here).
+        response: FastAPI response object (used to set the new refresh cookie).
         db: Database session.
 
     Returns:
-        Token: New access and refresh tokens.
+        Token: New access token (new refresh token is in Set-Cookie header).
 
     Raises:
-        HTTPException: If refresh token is invalid or user not found.
+        HTTPException: If refresh token cookie is missing, invalid, or user not found.
     """
-    payload = verify_token(request.refresh_token, token_type="refresh")
+    raw_refresh_token = request.cookies.get(REFRESH_COOKIE_NAME)
+
+    if not raw_refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=api_error(ApiMessages.AUTH_INVALID_REFRESH_TOKEN),
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    payload = verify_token(raw_refresh_token, token_type="refresh")
 
     if payload is None:
+        _clear_refresh_cookie(response)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=api_error(ApiMessages.AUTH_INVALID_REFRESH_TOKEN),
@@ -234,6 +279,7 @@ def refresh_access_token(request: RefreshTokenRequest, db: Session = Depends(get
 
     user_id = payload.get("sub")
     if user_id is None:
+        _clear_refresh_cookie(response)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=api_error(ApiMessages.AUTH_INVALID_TOKEN_PAYLOAD),
@@ -242,12 +288,15 @@ def refresh_access_token(request: RefreshTokenRequest, db: Session = Depends(get
     # Verify user still exists and is active
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_active:
+        _clear_refresh_cookie(response)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=api_error(ApiMessages.AUTH_USER_NOT_FOUND_OR_INACTIVE),
         )
 
-    return _create_tokens(user)
+    # Rotate refresh token
+    _set_refresh_cookie(response, _create_refresh_token(user))
+    return Token(access_token=_create_access_token(user))
 
 
 @router.get("/me", response_model=UserResponse)
@@ -421,16 +470,22 @@ def resend_verification(
 
 
 @router.post("/logout")
-def logout(current_user: User = Depends(get_current_active_user)):
+def logout(
+    response: Response,
+    current_user: User = Depends(get_current_active_user),
+):
     """
     Logout endpoint.
 
-    Note: With JWT tokens, logout is handled client-side by discarding tokens.
+    Clears the HttpOnly refresh token cookie. The client is responsible
+    for discarding the in-memory access token.
 
     Args:
+        response: FastAPI response object (used to clear the refresh cookie).
         current_user: Current authenticated user.
 
     Returns:
         dict: Success message.
     """
+    _clear_refresh_cookie(response)
     return api_success(ApiMessages.AUTH_LOGOUT_SUCCESS)

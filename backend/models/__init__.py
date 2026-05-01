@@ -27,7 +27,6 @@ from models.schemas import (
     LoginRequest,
     PasswordResetRequest,
     PasswordReset,
-    RefreshTokenRequest,
 )
 
 __all__ = [
@@ -57,5 +56,4 @@ __all__ = [
     "LoginRequest",
     "PasswordResetRequest",
     "PasswordReset",
-    "RefreshTokenRequest",
 ]

@@ -150,7 +150,6 @@ class Token(CamelBaseModel):
     """Schema for JWT token response."""
 
     access_token: str
-    refresh_token: str
     token_type: str = "bearer"
     message: Optional[str] = None
 
@@ -167,12 +166,6 @@ class LoginRequest(CamelBaseModel):
 
     email: EmailStr
     password: str
-
-
-class RefreshTokenRequest(CamelBaseModel):
-    """Schema for token refresh request."""
-
-    refresh_token: str
 
 
 # =============================================================================
