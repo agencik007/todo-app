@@ -5,7 +5,7 @@
             <div class="mesh-gradient"></div>
 
             <!-- School themed SVG items -->
-            @for (item of backgroundItems; track item.path) {
+            @for (item of backgroundItems; track item.animationClass) {
                 <div class="school-item {{ item.animationClass }} {{ item.colorClass }}">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

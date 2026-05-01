@@ -7,6 +7,7 @@ import { MessageService } from 'primeng/api';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { AuthStore } from '../store/auth.store';
+import { API_URL } from '../tokens/api-url.token';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
     // Lazy inject to avoid circular dependency (AuthService → HttpClient → AuthInterceptor → AuthService)
@@ -16,13 +17,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const router = inject(Router);
     const platformId = inject(PLATFORM_ID);
     const isBrowser = isPlatformBrowser(platformId);
+    const apiUrl = inject(API_URL);
 
     const authService = injector.get(AuthService);
     const accessToken = authService.getAccessToken();
 
+    const isApiRequest = req.url.startsWith(apiUrl);
+
     // Attach Authorization header for authenticated requests (skip auth endpoints
     // that don't need it and would create confusion).
+    // Only attach for requests pointing to our own API.
     if (
+        isApiRequest &&
         accessToken &&
         !req.url.includes('/auth/login') &&
         !req.url.includes('/auth/register')
@@ -39,6 +45,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             // Only handle 401 on the browser side and for non-auth endpoints.
             if (
                 !isBrowser ||
+                !isApiRequest ||
                 error.status !== 401 ||
                 req.url.includes('/auth/login') ||
                 req.url.includes('/auth/refresh')

@@ -59,6 +59,7 @@
             class="w-full"
             [showClear]="true"
             [options]="groups()"
+            [ngModelOptions]="{ standalone: true }"
             [ngModel]="todoModel().groupId"
             (ngModelChange)="onGroupChange($event)"
         />
