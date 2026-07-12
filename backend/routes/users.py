@@ -128,16 +128,19 @@ async def upload_avatar(
             detail=api_error(ApiMessages.USER_AVATAR_INVALID_EXTENSION),
         )
 
-    # Remove any previous avatar saved under a different extension before
-    # moving the new one into place (e.g. switching from .png to .jpg).
-    for existing in user_dir.glob("avatar.*"):
-        existing.unlink(missing_ok=True)
-
-    final_path = user_dir / f"avatar{extension}"
+    # Random filename (not a fixed "avatar.ext") so URLs can't be reached
+    # by guessing user IDs alone - the token is also required.
+    new_filename = f"{secrets.token_urlsafe(16)}{extension}"
+    final_path = user_dir / new_filename
     os.replace(temp_path, final_path)
 
-    # Update user avatar_url
-    avatar_url = f"/uploads/{current_user.id}/avatar{extension}"
+    # Now that the new file is in place, remove the previous one (if any).
+    if current_user.avatar_url:
+        old_path = user_dir / Path(current_user.avatar_url).name
+        if old_path != final_path:
+            old_path.unlink(missing_ok=True)
+
+    avatar_url = f"/uploads/{current_user.id}/{new_filename}"
     current_user.avatar_url = avatar_url
     db.commit()
     db.refresh(current_user)
