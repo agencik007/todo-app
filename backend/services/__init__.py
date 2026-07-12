@@ -6,7 +6,10 @@ from services.auth_service import (
     hash_password,
     verify_password,
     create_access_token,
-    create_refresh_token,
+    issue_refresh_token,
+    rotate_refresh_token,
+    revoke_refresh_token,
+    revoke_all_refresh_tokens_for_user,
     verify_token,
     authenticate_user,
 )
@@ -21,7 +24,10 @@ __all__ = [
     "hash_password",
     "verify_password",
     "create_access_token",
-    "create_refresh_token",
+    "issue_refresh_token",
+    "rotate_refresh_token",
+    "revoke_refresh_token",
+    "revoke_all_refresh_tokens_for_user",
     "verify_token",
     "authenticate_user",
     # Email service

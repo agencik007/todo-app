@@ -5,6 +5,7 @@ Models package - SQLAlchemy models and Pydantic schemas.
 from models.user import User
 from models.todo import Todo
 from models.group import Group, GroupColor
+from models.refresh_token import RefreshToken
 from models.schemas import (
     # Group schemas
     GroupBase,
@@ -35,6 +36,7 @@ __all__ = [
     "Todo",
     "Group",
     "GroupColor",
+    "RefreshToken",
     # Group schemas
     "GroupBase",
     "GroupCreate",

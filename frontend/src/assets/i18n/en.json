@@ -310,8 +310,6 @@
     "AUTH_INACTIVE_USER": "Your account is inactive",
     "AUTH_EMAIL_NOT_VERIFIED": "Email address not verified. Please check your inbox.",
     "AUTH_INVALID_REFRESH_TOKEN": "Session expired, please login again",
-    "AUTH_INVALID_TOKEN_PAYLOAD": "Invalid session data",
-    "AUTH_USER_NOT_FOUND_OR_INACTIVE": "User not found or account is inactive",
     "AUTH_PASSWORD_RESET_SENT": "If the email exists, a password reset link has been sent",
     "AUTH_INVALID_RESET_TOKEN": "Invalid or expired password reset token",
     "AUTH_PASSWORD_RESET_SUCCESS": "Password has been reset successfully",
