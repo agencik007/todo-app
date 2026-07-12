@@ -171,6 +171,26 @@
       "COMPLETED": "Ukończone",
       "SUMMARY_TOOLTIP": "Wszystkie / Do zrobienia / Ukończone zadania"
     },
+    "SEARCH": {
+      "PLACEHOLDER": "Szukaj zadań...",
+      "CLEAR": "Wyczyść wyszukiwanie",
+      "HINT_KEY": "/"
+    },
+    "FILTERS": {
+      "TOOLTIP_ALL": "Pokaż wszystkie zadania",
+      "TOOLTIP_PENDING": "Pokaż tylko do zrobienia",
+      "TOOLTIP_COMPLETED": "Pokaż tylko ukończone",
+      "PROGRESS_LABEL": "{{done}}/{{total}} ukończono",
+      "EMPTY_FILTERED_TITLE": "Brak wyników",
+      "EMPTY_FILTERED_MESSAGE": "Żadne zadanie nie pasuje do wybranego filtra lub frazy.",
+      "EMPTY_FILTERED_RESET": "Wyczyść filtry"
+    },
+    "FAB": {
+      "TOOLTIP": "Dodaj zadanie · n"
+    },
+    "SHORTCUTS": {
+      "HINT": "n nowe · / szukaj · j/k nawigacja · x zaznacz"
+    },
     "MENU": {
       "COLLAPSE": "Zwiń menu",
       "EXPAND": "Rozwiń menu"
@@ -302,6 +322,8 @@
     "AUTH_LOGOUT_SUCCESS": "Wylogowano pomyślnie",
     "AUTH_LOGIN_SUCCESS": "Zalogowano pomyślnie",
     "AUTH_REGISTER_SUCCESS": "Zarejestrowano pomyślnie. Sprawdź swoją skrzynkę e-mail.",
+    "AUTH_PASSWORD_TOO_COMMON": "To hasło jest zbyt popularne. Wybierz bardziej unikalne hasło.",
+    "AUTH_PASSWORD_TOO_SIMPLE": "Hasło musi zawierać co najmniej 3 różne znaki.",
     "TODO_NOT_FOUND": "Nie znaleziono zadania",
     "TODO_NO_ACCESS": "Nie masz dostępu do tego zadania",
     "TODO_NO_UPDATE_PERMISSION": "Nie masz uprawnień do edycji tego zadania",

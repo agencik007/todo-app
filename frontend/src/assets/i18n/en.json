@@ -171,6 +171,26 @@
       "COMPLETED": "Completed",
       "SUMMARY_TOOLTIP": "Total / Pending / Completed tasks"
     },
+    "SEARCH": {
+      "PLACEHOLDER": "Search tasks...",
+      "CLEAR": "Clear search",
+      "HINT_KEY": "/"
+    },
+    "FILTERS": {
+      "TOOLTIP_ALL": "Show all tasks",
+      "TOOLTIP_PENDING": "Show only pending",
+      "TOOLTIP_COMPLETED": "Show only completed",
+      "PROGRESS_LABEL": "{{done}}/{{total}} done",
+      "EMPTY_FILTERED_TITLE": "No matches",
+      "EMPTY_FILTERED_MESSAGE": "No task matches the selected filter or phrase.",
+      "EMPTY_FILTERED_RESET": "Clear filters"
+    },
+    "FAB": {
+      "TOOLTIP": "Add task · n"
+    },
+    "SHORTCUTS": {
+      "HINT": "n new · / search · j/k navigate · x toggle"
+    },
     "MENU": {
       "COLLAPSE": "Collapse menu",
       "EXPAND": "Expand menu"
@@ -302,6 +322,8 @@
     "AUTH_LOGOUT_SUCCESS": "Logged out successfully",
     "AUTH_LOGIN_SUCCESS": "Logged in successfully",
     "AUTH_REGISTER_SUCCESS": "Registered successfully. Please check your email.",
+    "AUTH_PASSWORD_TOO_COMMON": "This password is too common. Please choose a more unique password.",
+    "AUTH_PASSWORD_TOO_SIMPLE": "Password must contain at least 3 different characters.",
     "TODO_NOT_FOUND": "Task not found",
     "TODO_NO_ACCESS": "You don't have access to this task",
     "TODO_NO_UPDATE_PERMISSION": "You don't have permission to update this task",

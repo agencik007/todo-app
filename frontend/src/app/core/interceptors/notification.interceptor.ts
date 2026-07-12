@@ -51,7 +51,9 @@ export const notificationInterceptor: HttpInterceptorFn = (req, next) => {
             const messageCode =
                 errorDetail?.messageCode || error.error?.messageCode;
 
-            if (messageCode) {
+            // Nie pokazujemy globalnego błędu dla wygaśnięcia sesji,
+            // ponieważ auth.interceptor obsługuje to osobnym tostem ostrzegawczym.
+            if (messageCode && messageCode !== 'AUTH_INVALID_REFRESH_TOKEN') {
                 messageService.add({
                     severity: 'error',
                     summary: translateService.instant('MESSAGES.ERROR'),

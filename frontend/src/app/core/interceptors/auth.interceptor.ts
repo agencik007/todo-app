@@ -71,10 +71,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
                     messageService.add({
                         severity: 'warn',
                         summary: translateService.instant(
-                            'AUTH.ERRORS.SESSION_EXPIRED',
+                            'AUTH.LOGIN.ERRORS.SESSION_EXPIRED',
                         ),
                         detail: translateService.instant(
-                            'AUTH.ERRORS.SESSION_EXPIRED_DETAIL',
+                            'AUTH.LOGIN.ERRORS.SESSION_EXPIRED_DETAIL',
                         ),
                         life: 5000,
                     });

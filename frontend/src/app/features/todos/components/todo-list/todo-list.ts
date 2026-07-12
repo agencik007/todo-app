@@ -8,6 +8,7 @@ import {
     Component,
     computed,
     ElementRef,
+    HostListener,
     inject,
     OnInit,
     PLATFORM_ID,
@@ -25,6 +26,7 @@ import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
@@ -36,6 +38,8 @@ import { SidebarComponent } from '../../../groups/components/sidebar/sidebar.com
 import { GroupStore } from '../../../groups/store/group.store';
 import { TodoStore } from '../../store/todo.store';
 import { TodoFormComponent } from '../todo-form/todo-form';
+
+type StatusFilter = 'all' | 'pending' | 'completed';
 
 @Component({
     selector: 'app-todo-list',
@@ -50,6 +54,7 @@ import { TodoFormComponent } from '../todo-form/todo-form';
         DialogModule,
         MessageModule,
         ConfirmDialogModule,
+        InputTextModule,
         TranslatePipe,
         DragDropModule,
         TooltipModule,
@@ -61,7 +66,6 @@ import { TodoFormComponent } from '../todo-form/todo-form';
     styleUrl: './todo-list.scss',
 })
 export class TodoListComponent implements OnInit {
-    // Inject TodoStore for centralized state management
     readonly store = inject(TodoStore);
     private authStore = inject(AuthStore);
     private groupStore = inject(GroupStore);
@@ -72,15 +76,12 @@ export class TodoListComponent implements OnInit {
 
     isBrowser = signal(false);
 
-    // Computed username from email (e.g. john.doe@... -> john.doe)
     userName = computed(() => {
         const user = this.currentUser;
         if (!user || !user.email) return '';
         return user.email.split('@')[0];
     });
 
-    // Expose store signals directly to template
-    readonly todos = this.store.filteredTodos;
     readonly loading = this.store.loading;
     readonly error = this.store.error;
     readonly editingTodo = this.store.editingTodo;
@@ -89,12 +90,52 @@ export class TodoListComponent implements OnInit {
     readonly pendingTodos = this.store.pendingTodos;
     readonly totalTodos = this.store.totalCount;
 
-    // Group selection indicator signals
     readonly selectedGroups = this.groupStore.selectedGroups;
     readonly hasGroupSelection = this.groupStore.hasSelection;
 
+    readonly statusFilter = signal<StatusFilter>('all');
+    readonly searchQuery = signal('');
+    readonly focusedIndex = signal(-1);
+
+    readonly displayedTodos = computed(() => {
+        const status = this.statusFilter();
+        const query = this.searchQuery().trim().toLowerCase();
+        let list = this.store.filteredTodos();
+
+        if (status === 'pending') {
+            list = list.filter((t) => !t.completed);
+        } else if (status === 'completed') {
+            list = list.filter((t) => t.completed);
+        }
+
+        if (query) {
+            list = list.filter(
+                (t) =>
+                    t.title.toLowerCase().includes(query) ||
+                    (t.description?.toLowerCase().includes(query) ?? false),
+            );
+        }
+
+        return list;
+    });
+
+    readonly todos = this.displayedTodos;
+
+    readonly progressPercent = computed(() => {
+        const total = this.store.totalCount();
+        if (total === 0) return 0;
+        return Math.round((this.completedTodos().length / total) * 100);
+    });
+
+    readonly isFiltered = computed(
+        () =>
+            this.statusFilter() !== 'all' ||
+            this.searchQuery().trim().length > 0,
+    );
+
     addButton = viewChild<Button>('addButton');
     scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
+    searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
     todoForm = viewChild(TodoFormComponent);
 
     #scrollSpeed = 0;
@@ -111,6 +152,124 @@ export class TodoListComponent implements OnInit {
         }
     }
 
+    setStatusFilter(filter: StatusFilter): void {
+        this.statusFilter.set(filter);
+        this.focusedIndex.set(-1);
+    }
+
+    onSearchInput(value: string): void {
+        this.searchQuery.set(value);
+        this.focusedIndex.set(-1);
+    }
+
+    clearSearch(): void {
+        this.searchQuery.set('');
+        this.searchInput()?.nativeElement.focus();
+    }
+
+    resetFilters(): void {
+        this.statusFilter.set('all');
+        this.searchQuery.set('');
+        this.focusedIndex.set(-1);
+    }
+
+    focusSearch(): void {
+        const el = this.searchInput()?.nativeElement;
+        if (el) {
+            el.focus();
+            el.select();
+        }
+    }
+
+    @HostListener('window:keydown', ['$event'])
+    handleKeyboard(event: KeyboardEvent): void {
+        if (this.formVisible()) return;
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+        const target = event.target as HTMLElement | null;
+        const isTyping =
+            !!target &&
+            (target.tagName === 'INPUT' ||
+                target.tagName === 'TEXTAREA' ||
+                target.isContentEditable);
+
+        if (isTyping) {
+            if (event.key === 'Escape' && target?.id === 'todo-search-input') {
+                event.preventDefault();
+                this.searchQuery.set('');
+                target.blur();
+            }
+            return;
+        }
+
+        switch (event.key) {
+            case 'n':
+            case 'N':
+                event.preventDefault();
+                this.showCreateForm();
+                break;
+            case '/':
+                event.preventDefault();
+                this.focusSearch();
+                break;
+            case 'j':
+            case 'J':
+                event.preventDefault();
+                this.moveFocus(1);
+                break;
+            case 'k':
+            case 'K':
+                event.preventDefault();
+                this.moveFocus(-1);
+                break;
+            case 'x':
+            case 'X':
+                event.preventDefault();
+                this.toggleFocusedTodo();
+                break;
+        }
+    }
+
+    moveFocus(delta: number): void {
+        const list = this.todos();
+        if (list.length === 0) return;
+        const current = this.focusedIndex();
+        let next = current + delta;
+        if (current === -1) {
+            next = delta > 0 ? 0 : list.length - 1;
+        }
+        next = Math.max(0, Math.min(list.length - 1, next));
+        this.focusedIndex.set(next);
+        this.scrollFocusedIntoView();
+    }
+
+    setFocus(index: number): void {
+        this.focusedIndex.set(index);
+    }
+
+    toggleFocusedTodo(): void {
+        const idx = this.focusedIndex();
+        const list = this.todos();
+        if (idx < 0 || idx >= list.length) return;
+        const todo = list[idx];
+        if (!this.canEditTodo(todo)) return;
+        this.toggleTodoCompletion(todo);
+    }
+
+    private scrollFocusedIntoView(): void {
+        if (!this.isBrowser()) return;
+        queueMicrotask(() => {
+            const container = this.scrollContainer()?.nativeElement;
+            if (!container) return;
+            const el = container.querySelector<HTMLElement>(
+                '.todo-row.is-focused',
+            );
+            if (el) {
+                el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        });
+    }
+
     showCreateForm(): void {
         this.store.showCreateForm();
     }
@@ -125,30 +284,24 @@ export class TodoListComponent implements OnInit {
         this.store.showEditForm(todo.id);
     }
 
-    // Called when the user attempts to close the dialog (e.g. clicking mask/X)
     onVisibleChange(isVisible: boolean): void {
         if (!isVisible) {
             this.store.hideForm();
         }
     }
 
-    // Called when the dialog actually hides (animation complete)
     onDialogHide(): void {
         this.restoreFocus();
     }
 
-    // Called by the Cancel button in the form
     closeForm(): void {
         this.store.hideForm();
     }
 
     restoreFocus(): void {
-        // Restore focus to the add button after dialog is hidden
-        // Use a timeout to ensure dialog animation finishes and element is focusable
         setTimeout(() => {
             const buttonEl = this.addButton();
             if (buttonEl?.el?.nativeElement) {
-                // p-button component wraps a native <button> element
                 const nativeButton =
                     buttonEl.el.nativeElement.querySelector('button');
                 if (nativeButton) {
@@ -221,11 +374,10 @@ export class TodoListComponent implements OnInit {
         const rect = container.getBoundingClientRect();
         const pointerY = event.pointerPosition.y;
 
-        const threshold = 100; // px from top/bottom to start scrolling
-        const maxSpeed = 15; // px per frame
+        const threshold = 100;
+        const maxSpeed = 15;
 
         if (pointerY < rect.top + threshold) {
-            // Scroll Up
             const distance = rect.top + threshold - pointerY;
             this.#scrollSpeed = -Math.min(
                 maxSpeed,
@@ -233,7 +385,6 @@ export class TodoListComponent implements OnInit {
             );
             this.#startScrollLoop();
         } else if (pointerY > rect.bottom - threshold) {
-            // Scroll Down
             const distance = pointerY - (rect.bottom - threshold);
             this.#scrollSpeed = Math.min(
                 maxSpeed,
