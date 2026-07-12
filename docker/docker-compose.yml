@@ -14,7 +14,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     ports:
-      - "5432:5432"
+      # Bound to loopback only - not reachable from the network.
+      - "127.0.0.1:5432:5432"
     networks:
       - todo-network
     healthcheck:
@@ -51,9 +52,6 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
     ports:
       - "8000:8000"
-    volumes:
-      - ../backend:/app
-      - /app/venv # Don't mount virtual environment
     depends_on:
       db:
         condition: service_healthy
@@ -137,7 +135,8 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?PGADMIN_PASSWORD must be set}
       PGADMIN_CONFIG_SERVER_MODE: "False"
     ports:
-      - "5050:80"
+      # Bound to loopback only - not reachable from the network.
+      - "127.0.0.1:5050:80"
     depends_on:
       - db
     networks:

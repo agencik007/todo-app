@@ -5,6 +5,14 @@ services:
   backend:
     environment:
       - DEBUG=True
+    # Dev-only: hot-reload (single worker). Production uses the Dockerfile's
+    # default CMD (no --reload, multiple workers) via docker-compose.yml alone.
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    # Dev-only: bind-mount source for hot-reload. Production runs the built
+    # image as-is (no volumes for backend in docker-compose.yml).
+    volumes:
+      - ../backend:/app
+      - /app/venv # Don't mount virtual environment
 
   frontend:
     environment:
