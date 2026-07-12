@@ -9,6 +9,7 @@ Controlled by the USE_MAILHOG environment variable (default: true).
 import os
 import json
 import smtplib
+import ssl
 from pathlib import Path
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -151,7 +152,7 @@ def send_email(
             # Prod mode — real SMTP with STARTTLS (Brevo / SendGrid / etc.)
             with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
                 server.ehlo()
-                server.starttls()
+                server.starttls(context=ssl.create_default_context())
                 server.ehlo()
                 server.login(SMTP_USER, SMTP_PASSWORD)
                 server.send_message(msg)
