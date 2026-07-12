@@ -8,12 +8,15 @@ Controlled by the USE_MAILHOG environment variable (default: true).
 
 import os
 import json
+import logging
 import smtplib
 import ssl
 from pathlib import Path
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional, Dict, Any
+
+logger = logging.getLogger(__name__)
 
 # ── Email sender & frontend ───────────────────────────────────────────────────
 EMAIL_FROM = os.getenv("EMAIL_FROM", "noreply@example.com")
@@ -48,10 +51,10 @@ def load_translations() -> Dict[str, Any]:
                 with open(file_path, "r", encoding="utf-8") as f:
                     translations[lang] = json.load(f)
             else:
-                print(f"Warning: Translation file not found: {file_path}")
+                logger.warning("Translation file not found: %s", file_path)
                 translations[lang] = {}
-        except Exception as e:
-            print(f"Error loading translation for {lang}: {e}")
+        except Exception:
+            logger.exception("Error loading translation for %s", lang)
             translations[lang] = {}
     return translations
 
@@ -74,7 +77,7 @@ def get_text(lang: str, category: str, key: str, **kwargs) -> str:
         try:
             return text.format(**kwargs)
         except KeyError as e:
-            print(f"Missing format key {e} for {lang}.{category}.{key}")
+            logger.warning("Missing format key %s for %s.%s.%s", e, lang, category, key)
             return text
     return text
 
@@ -123,6 +126,14 @@ def _get_html_template(lang: str, title: str, content: str) -> str:
     """
 
 
+def _mask_email(email: str) -> str:
+    """Mask an email address for logging, e.g. 'j***@example.com'."""
+    local, _, domain = email.partition("@")
+    if not domain:
+        return "***"
+    return f"{local[:1] or '*'}***@{domain}"
+
+
 def send_email(
     to_email: str, subject: str, html_content: str, text_content: Optional[str] = None
 ) -> bool:
@@ -147,7 +158,11 @@ def send_email(
             # Dev mode — MailHog: no auth, no TLS
             with smtplib.SMTP(MAILHOG_HOST, MAILHOG_PORT) as server:
                 server.send_message(msg)
-            print(f"[MailHog] Email sent to {to_email} | Subject: {subject}")
+            logger.info(
+                "Email sent via MailHog to %s | Subject: %s",
+                _mask_email(to_email),
+                subject,
+            )
         else:
             # Prod mode — real SMTP with STARTTLS (Brevo / SendGrid / etc.)
             with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
@@ -156,11 +171,15 @@ def send_email(
                 server.ehlo()
                 server.login(SMTP_USER, SMTP_PASSWORD)
                 server.send_message(msg)
-            print(f"[SMTP] Email sent to {to_email} | Subject: {subject}")
+            logger.info(
+                "Email sent via SMTP to %s | Subject: %s",
+                _mask_email(to_email),
+                subject,
+            )
 
         return True
-    except Exception as e:
-        print(f"Error sending email to {to_email}: {e}")
+    except Exception:
+        logger.exception("Error sending email to %s", _mask_email(to_email))
         return False
 
 
