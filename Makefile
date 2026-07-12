@@ -1,6 +1,15 @@
 # Todo App - Docker Development Commands
 .PHONY: help build up down restart logs clean dev prod test
 
+# Env files used for docker-compose variable interpolation (POSTGRES_*, SECRET_KEY,
+# DATABASE_URL, PGADMIN_*, ...). Copy docker/docker.env.example to docker/docker.env
+# for local dev; docker/docker.prod.env holds real production secrets and is never committed.
+DEV_ENV_FILE ?= docker/docker.env
+PROD_ENV_FILE ?= docker/docker.prod.env
+
+COMPOSE_DEV = docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml --env-file $(DEV_ENV_FILE)
+COMPOSE_PROD = docker-compose -f docker/docker-compose.yml --env-file $(PROD_ENV_FILE)
+
 # Default target
 help: ## Show this help message
 	@echo "Todo App - Docker Commands"
@@ -10,61 +19,61 @@ help: ## Show this help message
 
 # Development commands
 dev: ## Start development environment with hot-reload
-	docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml up --build
+	$(COMPOSE_DEV) up --build
 
 prod: ## Start production environment
-	docker-compose -f docker/docker-compose.yml up --build -d
+	$(COMPOSE_PROD) up --build -d
 
 build: ## Build all services
-	docker-compose -f docker/docker-compose.yml build
+	$(COMPOSE_PROD) build
 
 up: ## Start all services (production)
-	docker-compose -f docker/docker-compose.yml up -d
+	$(COMPOSE_PROD) up -d
 
 down: ## Stop all services
-	docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml down
+	$(COMPOSE_DEV) down
 
 restart: ## Restart all services
-	docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml restart
+	$(COMPOSE_DEV) restart
 
 logs: ## Show logs from all services
-	docker-compose -f docker/docker-compose.yml logs -f
+	$(COMPOSE_PROD) logs -f
 
 logs-backend: ## Show backend logs
-	docker-compose -f docker/docker-compose.yml logs -f backend
+	$(COMPOSE_PROD) logs -f backend
 
 logs-frontend: ## Show frontend logs
-	docker-compose -f docker/docker-compose.yml logs -f frontend
+	$(COMPOSE_PROD) logs -f frontend
 
 logs-db: ## Show database logs
-	docker-compose -f docker/docker-compose.yml logs -f db
+	$(COMPOSE_PROD) logs -f db
 
 logs-pgadmin: ## Show PgAdmin logs
-	docker-compose -f docker/docker-compose.yml logs -f pgadmin
+	$(COMPOSE_PROD) logs -f pgadmin
 
 clean: ## Remove all containers, volumes, and images
-	docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml down -v --rmi all
+	$(COMPOSE_DEV) down -v --rmi all
 
 clean-volumes: ## Remove all volumes (WARNING: This will delete database data!)
-	docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml down -v
+	$(COMPOSE_DEV) down -v
 
 shell-backend: ## Open shell in backend container
-	docker-compose -f docker/docker-compose.yml exec backend bash
+	$(COMPOSE_PROD) exec backend bash
 
 shell-db: ## Open shell in database container
-	docker-compose -f docker/docker-compose.yml exec db psql -U todo_user -d todo_db
+	$(COMPOSE_PROD) exec db sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
 
 migrate: ## Run database migrations using Alembic
-	docker-compose -f docker/docker-compose.yml exec backend alembic upgrade head
+	$(COMPOSE_PROD) exec backend alembic upgrade head
 
 test-backend: ## Run backend tests
-	docker-compose -f docker/docker-compose.yml exec backend python -m pytest
+	$(COMPOSE_PROD) exec backend python -m pytest
 
 test-frontend: ## Run frontend tests
-	docker-compose -f docker/docker-compose.yml exec frontend npm test -- --watch=false
+	$(COMPOSE_PROD) exec frontend npm test -- --watch=false
 
 status: ## Show status of all services
-	docker-compose -f docker/docker-compose.yml ps
+	$(COMPOSE_PROD) ps
 
 # Quick start commands
 quick-start: build up ## Build and start production environment
@@ -78,4 +87,4 @@ quick-start: build up ## Build and start production environment
 
 quick-dev: ## Start development environment
 	@echo "🔥 Starting development environment with hot-reload..."
-	docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml up --build
+	$(COMPOSE_DEV) up --build
