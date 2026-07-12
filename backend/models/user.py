@@ -39,6 +39,9 @@ class User(Base):
     # Relationships
     todos = relationship("Todo", back_populates="owner", cascade="all, delete-orphan")
     groups = relationship("Group", back_populates="owner", cascade="all, delete-orphan")
+    refresh_tokens = relationship(
+        "RefreshToken", back_populates="owner", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email})>"

@@ -76,7 +76,7 @@
           "auth"
         ],
         "summary": "Refresh Access Token",
-        "description": "Refresh access token using the HttpOnly refresh token cookie.\n\nReads the refresh token from the cookie (never from the body).\nOn success, issues a new access token in the body and rotates\nthe refresh token cookie.\n\nArgs:\n    request: FastAPI request object (cookie is read from here).\n    response: FastAPI response object (used to set the new refresh cookie).\n    db: Database session.\n\nReturns:\n    Token: New access token (new refresh token is in Set-Cookie header).\n\nRaises:\n    HTTPException: If refresh token cookie is missing, invalid, or user not found.",
+        "description": "Refresh access token using the HttpOnly refresh token cookie.\n\nReads the refresh token from the cookie (never from the body).\nOn success, issues a new access token in the body and rotates\nthe refresh token cookie. If the presented token was already rotated\naway (reuse - a sign of theft), the whole session family is revoked\nand the client must log in again.\n\nArgs:\n    request: FastAPI request object (cookie is read from here).\n    response: FastAPI response object (used to set the new refresh cookie).\n    db: Database session.\n\nReturns:\n    Token: New access token (new refresh token is in Set-Cookie header).\n\nRaises:\n    HTTPException: If the refresh token cookie is missing, invalid,\n        expired, or reused.",
         "operationId": "refresh_access_token_auth_refresh_post",
         "responses": {
           "200": {
@@ -275,7 +275,7 @@
           "auth"
         ],
         "summary": "Logout",
-        "description": "Logout endpoint.\n\nClears the HttpOnly refresh token cookie. The client is responsible\nfor discarding the in-memory access token.\n\nArgs:\n    response: FastAPI response object (used to clear the refresh cookie).\n    current_user: Current authenticated user.\n\nReturns:\n    dict: Success message.",
+        "description": "Logout endpoint.\n\nRevokes the current refresh token server-side (not just clearing the\ncookie, so a copied/stolen cookie can't keep refreshing access tokens\nafter logout) and clears the HttpOnly cookie. The client is responsible\nfor discarding the in-memory access token.\n\nArgs:\n    request: FastAPI request object (cookie is read from here).\n    response: FastAPI response object (used to clear the refresh cookie).\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    dict: Success message.",
         "operationId": "logout_auth_logout_post",
         "responses": {
           "200": {

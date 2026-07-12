@@ -310,8 +310,6 @@
     "AUTH_INACTIVE_USER": "Twoje konto jest nieaktywne",
     "AUTH_EMAIL_NOT_VERIFIED": "Adres e-mail nie został zweryfikowany. Sprawdź swoją skrzynkę.",
     "AUTH_INVALID_REFRESH_TOKEN": "Sesja wygasła, zaloguj się ponownie",
-    "AUTH_INVALID_TOKEN_PAYLOAD": "Nieprawidłowe dane sesji",
-    "AUTH_USER_NOT_FOUND_OR_INACTIVE": "Użytkownik nie znaleziony lub konto jest nieaktywne",
     "AUTH_PASSWORD_RESET_SENT": "Jeśli e-mail istnieje, link do resetowania hasła został wysłany",
     "AUTH_INVALID_RESET_TOKEN": "Nieprawidłowy lub wygasły token resetowania hasła",
     "AUTH_PASSWORD_RESET_SUCCESS": "Hasło zostało pomyślnie zresetowane",
