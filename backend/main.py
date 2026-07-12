@@ -60,12 +60,18 @@ async def lifespan(app: FastAPI):
     # Shutdown: Cleanup if needed
 
 
+# Only expose interactive API docs outside production.
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+
 # Create FastAPI app
 app = FastAPI(
     title="Todo API",
     description="A simple Todo application API built with FastAPI",
     version="1.0.0",
     lifespan=lifespan,
+    docs_url="/docs" if DEBUG else None,
+    redoc_url="/redoc" if DEBUG else None,
+    openapi_url="/openapi.json" if DEBUG else None,
 )
 
 # Initialize rate limiter
