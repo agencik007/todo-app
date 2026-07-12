@@ -4,6 +4,7 @@ Authentication service - Password hashing and JWT token management.
 
 import os
 import hashlib
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -169,6 +170,12 @@ def verify_token(token: str, token_type: str = "access") -> Optional[dict]:
         return None
 
 
+# Precomputed hash of a random value. Used to keep authenticate_user's timing
+# constant when the email doesn't exist, so response latency can't be used to
+# enumerate registered accounts.
+_DUMMY_PASSWORD_HASH = hash_password(secrets.token_urlsafe(32))
+
+
 def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
     """
     Authenticate a user by email and password.
@@ -182,8 +189,8 @@ def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
         Optional[User]: The user if authentication succeeds, None otherwise.
     """
     user = db.query(User).filter(User.email == email).first()
-    if not user:
-        return None
-    if not verify_password(password, user.hashed_password):
+    hashed_password = user.hashed_password if user else _DUMMY_PASSWORD_HASH
+    password_ok = verify_password(password, hashed_password)
+    if not user or not password_ok:
         return None
     return user
