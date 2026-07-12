@@ -17,11 +17,26 @@ from models.user import User
 BCRYPT_ROUNDS = 12
 
 # JWT Configuration
+MIN_SECRET_KEY_LENGTH = 32
+INSECURE_SECRET_KEYS = {
+    "your-secret-key-here-change-in-production",
+    "your-secret-key-here",
+    "your-super-secret-key-change-in-production",
+    "your_secret_key",
+    "changeme",
+    "change_me_generate_with_openssl_rand_hex_32",
+}
+
 SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY or SECRET_KEY == "your-secret-key-here-change-in-production":
+if (
+    not SECRET_KEY
+    or SECRET_KEY.strip().lower() in INSECURE_SECRET_KEYS
+    or len(SECRET_KEY) < MIN_SECRET_KEY_LENGTH
+):
     raise ValueError(
         "No secure SECRET_KEY set for application. "
-        "Please set a strong SECRET_KEY in environment variables."
+        f"Please set a SECRET_KEY of at least {MIN_SECRET_KEY_LENGTH} random "
+        "characters in environment variables (e.g. `openssl rand -hex 32`)."
     )
 
 ALGORITHM = "HS256"
