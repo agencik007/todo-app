@@ -54,7 +54,7 @@
           "auth"
         ],
         "summary": "Login",
-        "description": "Login endpoint - accepts both form data and JSON.\n\nSupports two formats:\n- **Form data**: `username` (email) and `password` fields (OAuth2 standard)\n- **JSON body**: `{\"email\": \"...\", \"password\": \"...\"}` (frontend-friendly)\n\nArgs:\n    request: FastAPI request object.\n    db: Database session.\n\nReturns:\n    Token: Access and refresh tokens.\n\nRaises:\n    HTTPException: If credentials are invalid or user is inactive.",
+        "description": "Login endpoint - accepts both form data and JSON.\n\nSupports two formats:\n- **Form data**: `username` (email) and `password` fields (OAuth2 standard)\n- **JSON body**: `{\"email\": \"...\", \"password\": \"...\"}` (frontend-friendly)\n\nThe refresh token is returned as an HttpOnly cookie; the access token is\nreturned in the response body.\n\nArgs:\n    request: FastAPI request object.\n    response: FastAPI response object (used to set the refresh cookie).\n    db: Database session.\n\nReturns:\n    Token: Access token (refresh token is in Set-Cookie header).\n\nRaises:\n    HTTPException: If credentials are invalid or user is inactive.",
         "operationId": "login_auth_login_post",
         "responses": {
           "200": {
@@ -76,18 +76,8 @@
           "auth"
         ],
         "summary": "Refresh Access Token",
-        "description": "Refresh access token using refresh token.\n\nArgs:\n    request: Refresh token request.\n    db: Database session.\n\nReturns:\n    Token: New access and refresh tokens.\n\nRaises:\n    HTTPException: If refresh token is invalid or user not found.",
+        "description": "Refresh access token using the HttpOnly refresh token cookie.\n\nReads the refresh token from the cookie (never from the body).\nOn success, issues a new access token in the body and rotates\nthe refresh token cookie.\n\nArgs:\n    request: FastAPI request object (cookie is read from here).\n    response: FastAPI response object (used to set the new refresh cookie).\n    db: Database session.\n\nReturns:\n    Token: New access token (new refresh token is in Set-Cookie header).\n\nRaises:\n    HTTPException: If refresh token cookie is missing, invalid, or user not found.",
         "operationId": "refresh_access_token_auth_refresh_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenRequest"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -95,16 +85,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Token"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -295,7 +275,7 @@
           "auth"
         ],
         "summary": "Logout",
-        "description": "Logout endpoint.\n\nNote: With JWT tokens, logout is handled client-side by discarding tokens.\n\nArgs:\n    current_user: Current authenticated user.\n\nReturns:\n    dict: Success message.",
+        "description": "Logout endpoint.\n\nClears the HttpOnly refresh token cookie. The client is responsible\nfor discarding the in-memory access token.\n\nArgs:\n    response: FastAPI response object (used to clear the refresh cookie).\n    current_user: Current authenticated user.\n\nReturns:\n    dict: Success message.",
         "operationId": "logout_auth_logout_post",
         "responses": {
           "200": {
@@ -1206,20 +1186,6 @@
         "title": "PasswordResetRequest",
         "description": "Schema for password reset request (forgot password)."
       },
-      "RefreshTokenRequest": {
-        "properties": {
-          "refreshToken": {
-            "type": "string",
-            "title": "Refreshtoken"
-          }
-        },
-        "type": "object",
-        "required": [
-          "refreshToken"
-        ],
-        "title": "RefreshTokenRequest",
-        "description": "Schema for token refresh request."
-      },
       "Todo": {
         "properties": {
           "title": {
@@ -1427,10 +1393,6 @@
             "type": "string",
             "title": "Accesstoken"
           },
-          "refreshToken": {
-            "type": "string",
-            "title": "Refreshtoken"
-          },
           "tokenType": {
             "type": "string",
             "title": "Tokentype",
@@ -1450,8 +1412,7 @@
         },
         "type": "object",
         "required": [
-          "accessToken",
-          "refreshToken"
+          "accessToken"
         ],
         "title": "Token",
         "description": "Schema for JWT token response."
