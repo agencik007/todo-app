@@ -11,7 +11,7 @@ python-multipart==0.0.32
 # Authentication dependencies
 python-jose[cryptography]==3.4.0
 cryptography==49.0.0
-bcrypt>=4.0.0
+bcrypt==5.0.0
 email-validator==2.1.1
 
 # Testing dependencies

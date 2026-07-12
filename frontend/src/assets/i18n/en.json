@@ -324,6 +324,7 @@
     "AUTH_REGISTER_SUCCESS": "Registered successfully. Please check your email.",
     "AUTH_PASSWORD_TOO_COMMON": "This password is too common. Please choose a more unique password.",
     "AUTH_PASSWORD_TOO_SIMPLE": "Password must contain at least 3 different characters.",
+    "AUTH_PASSWORD_TOO_LONG": "Password must be at most 72 bytes long.",
     "TODO_NOT_FOUND": "Task not found",
     "TODO_NO_ACCESS": "You don't have access to this task",
     "TODO_NO_UPDATE_PERMISSION": "You don't have permission to update this task",
