@@ -14,6 +14,7 @@ _PASSWORDS_FILE = Path(__file__).parent / "common_passwords.txt"
 COMMON_PASSWORDS: set[str] = set()
 
 MIN_UNIQUE_CHARS = 3
+MAX_PASSWORD_BYTES = 72  # bcrypt ignores/rejects anything past this many bytes
 
 
 def _load_common_passwords() -> None:
@@ -42,6 +43,7 @@ def validate_password_strength(password: str) -> str:
     Validate password strength beyond minimum length.
 
     Checks:
+    - Password does not exceed MAX_PASSWORD_BYTES when UTF-8 encoded.
     - Password is not in the top 20k most common passwords.
     - Password contains at least MIN_UNIQUE_CHARS unique characters.
 
@@ -54,6 +56,9 @@ def validate_password_strength(password: str) -> str:
     Raises:
         ValueError: If the password fails validation.
     """
+    if len(password.encode("utf-8")) > MAX_PASSWORD_BYTES:
+        raise ValueError("AUTH_PASSWORD_TOO_LONG")
+
     if password.lower() in COMMON_PASSWORDS:
         raise ValueError("AUTH_PASSWORD_TOO_COMMON")
 

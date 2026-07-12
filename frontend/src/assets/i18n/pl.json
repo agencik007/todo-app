@@ -324,6 +324,7 @@
     "AUTH_REGISTER_SUCCESS": "Zarejestrowano pomyślnie. Sprawdź swoją skrzynkę e-mail.",
     "AUTH_PASSWORD_TOO_COMMON": "To hasło jest zbyt popularne. Wybierz bardziej unikalne hasło.",
     "AUTH_PASSWORD_TOO_SIMPLE": "Hasło musi zawierać co najmniej 3 różne znaki.",
+    "AUTH_PASSWORD_TOO_LONG": "Hasło może mieć maksymalnie 72 bajty.",
     "TODO_NOT_FOUND": "Nie znaleziono zadania",
     "TODO_NO_ACCESS": "Nie masz dostępu do tego zadania",
     "TODO_NO_UPDATE_PERMISSION": "Nie masz uprawnień do edycji tego zadania",
