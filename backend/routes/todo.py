@@ -35,15 +35,12 @@ def validate_group_ownership(db: Session, group_id: int | None, user_id: int) ->
         return
 
     group = db.query(GroupModel).filter(GroupModel.id == group_id).first()
-    if group is None:
+    # Both "doesn't exist" and "belongs to someone else" return 404, so the
+    # response can't be used to enumerate other users' group IDs.
+    if group is None or group.user_id != user_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=api_error(ApiMessages.GROUP_NOT_FOUND),
-        )
-    if group.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=api_error(ApiMessages.GROUP_NO_ACCESS),
         )
 
 
@@ -120,14 +117,16 @@ def read_todo(
         )
 
     todo, email = result
-    todo.owner_email = email
 
+    # Both "doesn't exist" and "belongs to someone else" return 404, so the
+    # response can't be used to enumerate other users' todo IDs.
     if todo.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=api_error(ApiMessages.TODO_NO_ACCESS),
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.TODO_NOT_FOUND),
         )
 
+    todo.owner_email = email
     return todo
 
 
@@ -201,11 +200,12 @@ def update_todo(
             detail=api_error(ApiMessages.TODO_NOT_FOUND),
         )
 
-    # Check if user is the owner
+    # Both "doesn't exist" and "belongs to someone else" return 404, so the
+    # response can't be used to enumerate other users' todo IDs.
     if todo.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=api_error(ApiMessages.TODO_NO_UPDATE_PERMISSION),
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.TODO_NOT_FOUND),
         )
 
     # Update only provided fields
@@ -252,11 +252,12 @@ def delete_todo(
             detail=api_error(ApiMessages.TODO_NOT_FOUND),
         )
 
-    # Check if user is the owner
+    # Both "doesn't exist" and "belongs to someone else" return 404, so the
+    # response can't be used to enumerate other users' todo IDs.
     if todo.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=api_error(ApiMessages.TODO_NO_DELETE_PERMISSION),
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.TODO_NOT_FOUND),
         )
 
     db.delete(todo)
@@ -300,11 +301,12 @@ def reorder_todo(
             detail=api_error(ApiMessages.TODO_NOT_FOUND),
         )
 
-    # Check if user is the owner
+    # Both "doesn't exist" and "belongs to someone else" return 404, so the
+    # response can't be used to enumerate other users' todo IDs.
     if todo.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=api_error(ApiMessages.TODO_NO_UPDATE_PERMISSION),
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.TODO_NOT_FOUND),
         )
 
     old_index = todo.index

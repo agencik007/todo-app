@@ -83,8 +83,9 @@ def test_reorder_todo_no_permission(authenticated_client, test_db, test_user):
     test_db.add(other_todo)
     test_db.commit()
 
-    # Try to reorder as test_user
+    # Try to reorder as test_user - returns 404, not 403, so the response
+    # can't be used to enumerate other users' todo IDs.
     response = authenticated_client.patch(
         f"/todos/{other_todo.id}/reorder", json={"index": 5}
     )
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_404_NOT_FOUND

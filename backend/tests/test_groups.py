@@ -78,10 +78,12 @@ class TestGroupAPI:
     def test_get_group_no_access(
         self, second_authenticated_client: TestClient, sample_group
     ):
-        """Test GET /groups/{id} returns 403 for someone else's group."""
+        """Test GET /groups/{id} returns 404 for someone else's group."""
+        # Returns 404, not 403 - same as a non-existent group, so the
+        # response can't be used to enumerate other users' group IDs.
         response = second_authenticated_client.get(f"/groups/{sample_group.id}")
-        assert response.status_code == 403
-        assert response.json()["detail"]["messageCode"] == "GROUP_NO_ACCESS"
+        assert response.status_code == 404
+        assert response.json()["detail"]["messageCode"] == "GROUP_NOT_FOUND"
 
     # =============================================================================
     # POST /groups
@@ -196,12 +198,14 @@ class TestGroupAPI:
     def test_update_group_no_permission(
         self, second_authenticated_client: TestClient, sample_group
     ):
-        """Test PUT /groups/{id} returns 403 for someone else's group."""
+        """Test PUT /groups/{id} returns 404 for someone else's group."""
+        # Returns 404, not 403 - same as a non-existent group, so the
+        # response can't be used to enumerate other users' group IDs.
         response = second_authenticated_client.put(
             f"/groups/{sample_group.id}", json={"name": "Steal"}
         )
-        assert response.status_code == 403
-        assert response.json()["detail"]["messageCode"] == "GROUP_NO_UPDATE_PERMISSION"
+        assert response.status_code == 404
+        assert response.json()["detail"]["messageCode"] == "GROUP_NOT_FOUND"
 
     # =============================================================================
     # DELETE /groups/{id}
@@ -225,10 +229,12 @@ class TestGroupAPI:
     def test_delete_group_no_permission(
         self, second_authenticated_client: TestClient, sample_group
     ):
-        """Test DELETE /groups/{id} returns 403 for someone else's group."""
+        """Test DELETE /groups/{id} returns 404 for someone else's group."""
+        # Returns 404, not 403 - same as a non-existent group, so the
+        # response can't be used to enumerate other users' group IDs.
         response = second_authenticated_client.delete(f"/groups/{sample_group.id}")
-        assert response.status_code == 403
-        assert response.json()["detail"]["messageCode"] == "GROUP_NO_DELETE_PERMISSION"
+        assert response.status_code == 404
+        assert response.json()["detail"]["messageCode"] == "GROUP_NOT_FOUND"
 
     def test_delete_group_unlinks_todos(
         self, authenticated_client: TestClient, test_db, test_user, sample_group
