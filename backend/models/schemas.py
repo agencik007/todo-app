@@ -5,7 +5,7 @@ Pydantic schemas - Request/Response models for API validation.
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from pydantic import BaseModel, Field, EmailStr, ConfigDict, field_validator
 from pydantic.alias_generators import to_camel
 
 from models.group import GroupColor
@@ -119,6 +119,13 @@ class UserCreate(UserBase):
         ..., min_length=8, description="Password must be at least 8 characters"
     )
 
+    @field_validator("password")
+    @classmethod
+    def check_password_strength(cls, v: str) -> str:
+        from config.password_validator import validate_password_strength
+
+        return validate_password_strength(v)
+
 
 class UserResponse(UserBase):
     """Schema for user API responses."""
@@ -186,3 +193,10 @@ class PasswordReset(CamelBaseModel):
     new_password: str = Field(
         ..., min_length=8, description="Password must be at least 8 characters"
     )
+
+    @field_validator("new_password")
+    @classmethod
+    def check_password_strength(cls, v: str) -> str:
+        from config.password_validator import validate_password_strength
+
+        return validate_password_strength(v)

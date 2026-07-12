@@ -5,10 +5,13 @@ A simple Todo application API built with FastAPI.
 """
 
 import os
+import re
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -51,7 +54,40 @@ app = FastAPI(
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address, enabled=os.getenv("TESTING") != "1")
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    """Handle rate limit exceeded errors."""
+    return _rate_limit_exceeded_handler(request, exc)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """
+    Override the default validation exception handler to return error codes
+    compatible with the frontend's API message system.
+    """
+    errors = exc.errors()
+
+    # Check if any error message contains an AUTH_, TODO_, USER_, or GROUP_ code
+    for error in errors:
+        msg = error.get("msg", "")
+        # Regex to find our API message codes in the Pydantic error message
+        # (e.g. "Value error, AUTH_PASSWORD_TOO_COMMON")
+        match = re.search(r"(AUTH_|TODO_|USER_|GROUP_)\w+", msg)
+        if match:
+            message_code = match.group(0)
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content={"detail": {"messageCode": message_code}},
+            )
+
+    # Fallback to default behavior
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": errors},
+    )
 
 
 @app.middleware("http")
