@@ -14,6 +14,8 @@ load_dotenv()
 
 # Database configuration
 DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL must be set.")
 
 # Create SQLAlchemy engine
 engine = create_engine(DATABASE_URL)

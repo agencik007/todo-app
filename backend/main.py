@@ -25,13 +25,30 @@ from routes import auth_router, todo_router, users_router, groups_router
 # Load environment variables
 load_dotenv()
 
+
+def _split_env_list(var_name: str) -> list[str]:
+    """
+    Parse a comma-separated env var into a list of non-empty values.
+
+    Raises:
+        RuntimeError: If the variable is unset or contains no usable values
+            (e.g. a trailing comma left it empty after stripping).
+    """
+    raw = os.getenv(var_name)
+    if not raw:
+        raise RuntimeError(f"{var_name} must be set (comma-separated list).")
+
+    values = [v.strip() for v in raw.split(",") if v.strip()]
+    if not values:
+        raise RuntimeError(f"{var_name} must contain at least one value.")
+
+    return values
+
+
 # Constants
 UPLOAD_DIR = "uploadedFiles"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
-CORS_ORIGINS = os.getenv("CORS_ORIGINS").split(",")
-
-print("ALLOWED_HOSTS", ALLOWED_HOSTS)
-print("CORS_ORIGINS", CORS_ORIGINS)
+ALLOWED_HOSTS = _split_env_list("ALLOWED_HOSTS")
+CORS_ORIGINS = _split_env_list("CORS_ORIGINS")
 
 
 @asynccontextmanager
