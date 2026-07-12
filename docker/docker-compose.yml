@@ -50,6 +50,11 @@ services:
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      # uvicorn only trusts X-Forwarded-For from these peers (default:
+      # loopback only, i.e. no one). If you put a reverse proxy in front of
+      # this backend, set this to the proxy's IP/CIDR so rate limiting keys
+      # off the real client IP instead of the proxy's.
+      - FORWARDED_ALLOW_IPS=${FORWARDED_ALLOW_IPS:-127.0.0.1}
     ports:
       - "8000:8000"
     depends_on:
