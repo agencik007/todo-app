@@ -34,7 +34,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://todo_user:todo_password@db:5432/todo_db
       - DEBUG=False
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set (e.g. openssl rand -hex 32)}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:4200}
       # ── Email ──────────────────────────────────────────────────────────────
       - EMAIL_FROM=${EMAIL_FROM:-noreply@example.com}
