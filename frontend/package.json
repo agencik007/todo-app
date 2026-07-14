@@ -41,6 +41,7 @@
     "@angular/compiler-cli": "^21.1.2",
     "@eslint/js": "^9.39.2",
     "@openapitools/openapi-generator-cli": "^2.28.0",
+    "@tailwindcss/postcss": "^4.3.2",
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",
@@ -58,6 +59,8 @@
     "lint-staged": "^16.2.7",
     "prettier-plugin-organize-attributes": "^1.0.0",
     "prettier-plugin-organize-imports": "^4.3.0",
+    "tailwindcss": "^4.3.2",
+    "tailwindcss-primeui": "^0.6.1",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.54.0",
     "zone.js": "^0.15.1"
