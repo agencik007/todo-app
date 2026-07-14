@@ -16,10 +16,8 @@ import {
     viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Todo, TodoCreate, UserResponse } from '@api';
+import { Group, Todo, TodoCreate, UserResponse } from '@api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import moment from 'moment';
-import 'moment/locale/pl';
 import { ConfirmationService } from 'primeng/api';
 import { Button, ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -33,6 +31,10 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { AuthStore } from '../../../../core/store/auth.store';
+import {
+    formatDateTime,
+    relativeTimeFrom,
+} from '../../../../shared/utils/date.util';
 import { GroupBadgeComponent } from '../../../groups/components/group-badge/group-badge.component';
 import { SidebarComponent } from '../../../groups/components/sidebar/sidebar.component';
 import { GroupStore } from '../../../groups/store/group.store';
@@ -438,21 +440,22 @@ export class TodoListComponent implements OnInit {
         this.store.clearError();
     }
 
-    getGroupById(groupId: number | null | undefined): any {
+    getGroupById(groupId: number | null | undefined): Group | undefined {
         if (!groupId) return undefined;
-        return this.groupStore.groups().find((g) => g.id === groupId);
+        return this.#groupsById().get(groupId);
     }
 
+    readonly #groupsById = computed(
+        () => new Map(this.groupStore.groups().map((g) => [g.id, g])),
+    );
+
     formatDate(dateString: string | undefined): string {
-        if (!dateString) return '';
-        return moment(dateString).format('DD.MM.YYYY HH:mm');
+        return formatDateTime(dateString);
     }
 
     getRelativeTime(dateString: string | undefined): string {
-        if (!dateString) return '';
         const lang =
             this.translate.currentLang || this.translate.defaultLang || 'en';
-        moment.locale(lang);
-        return moment(dateString).fromNow();
+        return relativeTimeFrom(dateString, lang);
     }
 }
