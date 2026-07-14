@@ -48,7 +48,11 @@ venv.bak/
 dmypy.json
 
 # IDE
-.vscode/
+# Share the recommended extension list and the workspace settings that wire them
+# to the toolchain; keep everything else in .vscode/ local (launch.json, tasks.json, ...).
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 .idea/
 *.swp
 *.swo

@@ -1,0 +1,104 @@
+{
+  // ─────────────────────────────────────────────────────────────────────────
+  // Backend — Python / FastAPI
+  // ─────────────────────────────────────────────────────────────────────────
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/Scripts/python.exe",
+
+  // Use ruff from backend/venv (pinned to 0.14.14 in requirements.txt) rather than
+  // the version bundled with the extension, so the editor and .lintstagedrc.js agree.
+  "ruff.importStrategy": "fromEnvironment",
+
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.cwd": "${workspaceFolder}/backend",
+  // backend/pytest.ini already sets testpaths and addopts. --no-cov is added here
+  // because that file's --cov-fail-under=80 makes any single-test run from the Test
+  // Explorer report a failure on the global coverage gate.
+  "python.testing.pytestArgs": ["--no-cov"],
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Frontend — Angular / TypeScript
+  // ─────────────────────────────────────────────────────────────────────────
+  // The ESLint flat config lives in frontend/, not at the repo root.
+  "eslint.useFlatConfig": true,
+  "eslint.workingDirectories": [
+    { "directory": "frontend", "changeProcessCWD": true }
+  ],
+  // angular-eslint lints external templates too, and "html" is not validated by default.
+  "eslint.validate": ["javascript", "typescript", "html"],
+
+  // Prettier resolves frontend/.prettierrc automatically (tabWidth 4, singleQuote,
+  // organize-imports/organize-attributes). generated-api is already covered by
+  // frontend/.prettierignore and by the `ignores` block in frontend/eslint.config.js.
+  "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[javascript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[html]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[scss]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[css]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[jsonc]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "editor.formatOnSave": true,
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Tailwind CSS v4 — CSS-first config, no tailwind.config.js
+  // ─────────────────────────────────────────────────────────────────────────
+  "tailwindCSS.experimental.configFile": "frontend/src/tailwind.css",
+  "tailwindCSS.classAttributes": ["class", "ngClass"],
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // i18n Ally — ngx-translate on the frontend, plain JSON catalogs on the backend
+  // ─────────────────────────────────────────────────────────────────────────
+  "i18n-ally.localesPaths": ["frontend/src/assets/i18n", "backend/i18n"],
+  "i18n-ally.keystyle": "nested",
+  "i18n-ally.sourceLanguage": "en",
+  "i18n-ally.displayLanguage": "pl",
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Spell checker — the codebase mixes English and Polish
+  // ─────────────────────────────────────────────────────────────────────────
+  "cSpell.language": "en,pl",
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Noise reduction
+  // ─────────────────────────────────────────────────────────────────────────
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.ruff_cache": true,
+    "backend/venv": true,
+    "backend/htmlcov": true,
+    "frontend/dist": true,
+    "frontend/.angular": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/package-lock.json": true,
+    "frontend/src/libs/generated-api": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "backend/venv/**": true,
+    "frontend/.angular/**": true
+  },
+  "sqltools.connections": [
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "askForPassword": true,
+      "driver": "PostgreSQL",
+      "name": "todo-db (local)",
+      "database": "todo_db",
+      "username": "todo_user"
+    }
+  ]
+}
