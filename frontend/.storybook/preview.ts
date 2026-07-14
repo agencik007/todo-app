@@ -1,46 +1,60 @@
-import { updatePreset } from '@primeuix/styled';
-import Aura from '@primeuix/themes/aura';
 import { setCompodocJson } from '@storybook/addon-docs/angular';
-import {
-    applicationConfig,
-    type Decorator,
-    type Preview,
-} from '@storybook/angular-vite';
+import { type Decorator, type Preview } from '@storybook/angular-vite';
 import { providePrimeNG } from 'primeng/config';
+import {
+    FORCE_REMOUNT,
+    GLOBALS_UPDATED,
+} from 'storybook/internal/core-events';
+import { addons } from 'storybook/preview-api';
 import { THEME_PRESETS } from '../src/app/core/config/theme-presets';
 import type { ColorPalette } from '../src/app/core/services/color.service';
 import docJson from '../documentation.json';
 
+// Globalne style aplikacji (tokeny --app-*, utility, style prymitywów).
+// Framework vite'owy nie czyta "styles" z angular.json, więc import jawny.
+import '../src/styles.scss';
+
 setCompodocJson(docJson);
 
-// Toolbar: tryb jasny/ciemny + 5 palet aplikacji
+// Toolbar: tryb jasny/ciemny + 5 palet aplikacji. Preset palety podajemy
+// w applicationConfig KAŻDEGO renderu (jak w app.config.ts, tylko z gotowym
+// presetem z theme-presets.ts zamiast bazowej Aury + updatePreset) — dzięki
+// temu bootstrap story nie nadpisuje wybranej palety.
+// Zmiana globali sama z siebie nie niszczy aplikacji Angulara — bez remountu
+// nowy preset palety z applicationConfig nigdy by się nie zaaplikował.
+let lastStoryId: string | undefined;
+const channel = addons.getChannel();
+channel.on(GLOBALS_UPDATED, () => {
+    if (lastStoryId) {
+        channel.emit(FORCE_REMOUNT, { storyId: lastStoryId });
+    }
+});
+
 const withAppTheme: Decorator = (story, context) => {
     const { theme, palette } = context.globals;
+    lastStoryId = context.id;
     document.documentElement.classList.toggle('dark', theme === 'dark');
-    try {
-        updatePreset(THEME_PRESETS[palette as ColorPalette]);
-    } catch {
-        // Przed pierwszym bootstrapem Angulara motyw jeszcze nie
-        // istnieje — paleta zaaplikuje się przy kolejnej zmianie.
-    }
-    return story();
-};
 
-const preview: Preview = {
-    decorators: [
-        // Ta sama konfiguracja motywu co w app.config.ts
-        applicationConfig({
+    const rendered = story();
+    return {
+        ...rendered,
+        applicationConfig: {
+            ...rendered.applicationConfig,
             providers: [
+                ...(rendered.applicationConfig?.providers ?? []),
                 providePrimeNG({
                     theme: {
-                        preset: Aura,
+                        preset: THEME_PRESETS[palette as ColorPalette],
                         options: { darkModeSelector: '.dark' },
                     },
                 }),
             ],
-        }),
-        withAppTheme,
-    ],
+        },
+    };
+};
+
+const preview: Preview = {
+    decorators: [withAppTheme],
 
     globalTypes: {
         theme: {
