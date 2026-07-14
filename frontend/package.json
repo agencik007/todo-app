@@ -10,7 +10,9 @@
     "lint": "ng lint",
     "format": "prettier --write",
     "generate-api": "python ../backend/openapi/export_openapi.py && openapi-generator-cli generate -i ../backend/openapi/openapi.json -g typescript-angular -o src/libs/generated-api --skip-validate-spec",
-    "serve:ssr": "node dist/frontend/server/server.mjs"
+    "serve:ssr": "node dist/frontend/server/server.mjs",
+    "storybook": "ng run frontend:storybook",
+    "build-storybook": "ng run frontend:build-storybook"
   },
   "private": true,
   "dependencies": {
@@ -36,20 +38,34 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
+    "@analogjs/vite-plugin-angular": "^2.6.3",
+    "@angular-devkit/architect": "^0.2101.2",
+    "@angular-devkit/build-angular": "^21.1.2",
+    "@angular-devkit/core": "^21.1.2",
     "@angular/build": "^21.1.2",
     "@angular/cli": "^21.1.2",
     "@angular/compiler-cli": "^21.1.2",
+    "@angular/platform-browser-dynamic": "^21.1.2",
+    "@chromatic-com/storybook": "^5.2.1",
+    "@compodoc/compodoc": "^2.0.0",
     "@eslint/js": "^9.39.2",
     "@openapitools/openapi-generator-cli": "^2.28.0",
+    "@storybook/addon-a11y": "^10.5.0",
+    "@storybook/addon-docs": "^10.5.0",
+    "@storybook/addon-vitest": "^10.5.0",
+    "@storybook/angular-vite": "^10.5.0",
     "@tailwindcss/postcss": "^4.3.2",
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",
+    "@vitest/browser-playwright": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.10",
     "angular-eslint": "^21.2.0",
     "autoprefixer": "^10.5.2",
     "baseline-browser-mapping": "^2.9.19",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-storybook": "^10.5.0",
     "husky": "^9.1.7",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.0",
@@ -58,12 +74,16 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "lint-staged": "^16.2.7",
+    "playwright": "^1.61.1",
     "postcss": "^8.5.19",
     "prettier-plugin-organize-attributes": "^1.0.0",
     "prettier-plugin-organize-imports": "^4.3.0",
+    "storybook": "^10.5.0",
     "tailwindcss": "^4.3.2",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.54.0",
-    "zone.js": "^0.15.1"
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10",
+    "zone.js": "^0.16.0"
   }
 }

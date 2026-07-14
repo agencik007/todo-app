@@ -14,6 +14,9 @@ const eslintConfigPrettier = require("eslint-config-prettier");
 
 const { defineConfig } = require("eslint/config");
 
+// Rekomendowane reguły dla plików *.stories.* (dodane przez storybook init)
+const storybook = require("eslint-plugin-storybook");
+
 // Export our config array, which is composed together thanks to the typed utility function from typescript-eslint
 module.exports = defineConfig(
     {
@@ -97,5 +100,13 @@ module.exports = defineConfig(
             eslintConfigPrettier,
         ],
         rules: {},
+    },
+    // Storybook: reguły dla stories + luzowanie zasad pisanych pod kod aplikacji
+    ...storybook.configs["flat/recommended"],
+    {
+        files: ["**/*.stories.ts"],
+        rules: {
+            "@typescript-eslint/explicit-function-return-type": "off",
+        },
     },
 );

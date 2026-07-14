@@ -1,0 +1,169 @@
+import { Meta, Story } from '@storybook/addon-docs/blocks';
+import * as TokenStories from './design-tokens.stories';
+
+<Meta of={TokenStories} name="Dokumentacja" />
+
+export const Swatch = ({ token, size = 48 }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+        <div
+            style={{
+                width: size,
+                height: 36,
+                borderRadius: 6,
+                background: `var(${token})`,
+                border: '1px solid var(--p-content-border-color, #ccc)',
+            }}
+        />
+        <code style={{ fontSize: 9 }}>{token.replace(/^--p-|^--app-/, '')}</code>
+    </div>
+);
+
+export const PaletteRow = ({ name, prefix }) => (
+    <div style={{ marginBottom: 16 }}>
+        <strong style={{ fontFamily: 'var(--app-font-mono)', fontSize: 12 }}>{name}</strong>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+            {['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'].map(
+                (s) => (
+                    <Swatch key={s} token={`${prefix}-${s}`} />
+                ),
+            )}
+        </div>
+    </div>
+);
+
+export const TokenBox = ({ token, style }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+        <div
+            style={{
+                width: 72,
+                height: 44,
+                background: 'var(--p-content-background)',
+                border: '1px solid var(--p-content-border-color)',
+                ...style,
+            }}
+        />
+        <code style={{ fontSize: 12 }}>{token}</code>
+    </div>
+);
+
+# Tokeny design systemu
+
+Warstwa `--app-*` (zdefiniowana w `_tokens.scss`) uzupełnia tokeny motywu PrimeUIX `--p-*`.
+Zasada: **kolory zawsze z motywu**, u nas mieszkają promienie, odstępy, typografia, cienie i przejścia.
+
+Toolbar u góry przełącza tryb jasny/ciemny oraz 5 palet aplikacji (`theme-presets.ts`) — cała strona reaguje.
+
+<Story of={TokenStories.Probka} />
+
+## Kolory (z motywu PrimeUIX)
+
+<PaletteRow name="--p-primary-* (zależny od palety)" prefix="--p-primary" />
+
+<div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginBottom: 16 }}>
+    <Swatch token="--p-text-color" />
+    <Swatch token="--p-text-muted-color" />
+    <Swatch token="--p-content-background" />
+    <Swatch token="--p-content-border-color" />
+    <Swatch token="--p-surface-100" />
+    <Swatch token="--p-surface-500" />
+    <Swatch token="--p-surface-900" />
+</div>
+
+Statusy (toasty, walidacja): `--p-red-*`, `--p-blue-*`, `--p-amber-*`, `--p-green-*`.
+
+<div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginBottom: 16 }}>
+    <Swatch token="--p-red-500" />
+    <Swatch token="--p-blue-500" />
+    <Swatch token="--p-amber-500" />
+    <Swatch token="--p-green-500" />
+</div>
+
+### Kolory grup
+
+Klasy `.group-color-{nazwa}` (w `_group-colors.scss`) definiują `--group-color`,
+`--group-color-light` i `--group-color-dark` — używane przez `app-badge`, kropki i color picker.
+
+<div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+    {['blue', 'green', 'red', 'yellow', 'purple', 'pink', 'orange', 'teal', 'indigo', 'gray'].map(
+        (c) => (
+            <div key={c} className={`group-color-${c}`} style={{ textAlign: 'center' }}>
+                <div
+                    style={{
+                        width: 44,
+                        height: 36,
+                        borderRadius: 6,
+                        background: 'var(--group-color)',
+                    }}
+                />
+                <code style={{ fontSize: 9 }}>{c}</code>
+            </div>
+        ),
+    )}
+</div>
+
+## Odstępy
+
+`--app-space-1…8` — 0.25 / 0.5 / 0.75 / 1 / 1.5 / 2 / 2.5 / 3 rem.
+
+<div style={{ marginBottom: 16 }}>
+    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+        <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+            <code style={{ fontSize: 12, width: 110 }}>--app-space-{n}</code>
+            <div style={{ height: 12, width: `var(--app-space-${n})`, background: 'var(--p-primary-500)' }} />
+        </div>
+    ))}
+</div>
+
+## Typografia
+
+Font: `--app-font-mono` (JetBrains Mono). Skala `--app-text-xs…2xl`, wagi 500/600/700.
+
+<div style={{ fontFamily: 'var(--app-font-mono)', marginBottom: 16 }}>
+    {['xs', 'sm', 'base', 'lg', 'xl', '2xl'].map((s) => (
+        <div key={s} style={{ fontSize: `var(--app-text-${s})`, marginBottom: 4 }}>
+            --app-text-{s} — Zażółć gęślą jaźń
+        </div>
+    ))}
+    <div style={{ marginTop: 8 }}>
+        <span style={{ fontWeight: 'var(--app-font-medium)' }}>medium 500</span> ·{' '}
+        <span style={{ fontWeight: 'var(--app-font-semibold)' }}>semibold 600</span> ·{' '}
+        <span style={{ fontWeight: 'var(--app-font-bold)' }}>bold 700</span>
+    </div>
+</div>
+
+## Promienie
+
+`xs 4px · sm 6px · md 8px · lg 12px · xl 16px · full 999px`
+
+<div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
+    {['xs', 'sm', 'md', 'lg', 'xl', 'full'].map((r) => (
+        <div key={r} style={{ textAlign: 'center' }}>
+            <div
+                style={{
+                    width: 64,
+                    height: 48,
+                    borderRadius: `var(--app-radius-${r})`,
+                    background: 'var(--p-primary-100)',
+                    border: '1px solid var(--p-primary-500)',
+                }}
+            />
+            <code style={{ fontSize: 10 }}>{r}</code>
+        </div>
+    ))}
+</div>
+
+## Cienie
+
+Elewacje `sm / md / lg / overlay` + `--app-focus-ring`. W trybie ciemnym `.dark` podmienia wartości —
+komponenty nie potrzebują własnych nadpisań.
+
+<TokenBox token="--app-shadow-sm" style={{ boxShadow: 'var(--app-shadow-sm)', borderRadius: 8 }} />
+<TokenBox token="--app-shadow-md" style={{ boxShadow: 'var(--app-shadow-md)', borderRadius: 8 }} />
+<TokenBox token="--app-shadow-lg" style={{ boxShadow: 'var(--app-shadow-lg)', borderRadius: 8 }} />
+<TokenBox token="--app-shadow-overlay" style={{ boxShadow: 'var(--app-shadow-overlay)', borderRadius: 8 }} />
+<TokenBox token="--app-focus-ring" style={{ boxShadow: 'var(--app-focus-ring)', borderRadius: 8 }} />
+
+## Przejścia i szkło
+
+- `--app-transition-fast` 0.15s ease · `--app-transition-base` 0.2s ease · `--app-transition-slow` 0.3s cubic-bezier
+- `--app-glass-blur` + `--app-glass-border` + mixin `glass-panel()` (`_mixins.scss`) — panele z rozmyciem tła (toasty, command bar)
