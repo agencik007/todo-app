@@ -66,6 +66,13 @@ export const appConfig: ApplicationConfig = {
                 preset: Aura,
                 options: {
                     darkModeSelector: '.dark',
+                    // Emits PrimeNG's theme into a `primeng` CSS layer. The order
+                    // must match the @layer declaration in src/tailwind.css so that
+                    // Tailwind utilities can override PrimeNG component styles.
+                    cssLayer: {
+                        name: 'primeng',
+                        order: 'theme, base, primeng, components, utilities',
+                    },
                 },
             },
             zIndex: {

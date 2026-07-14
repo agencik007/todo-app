@@ -1,0 +1,24 @@
+/* Tailwind v4 entry point. Plain CSS on purpose, not SCSS: Angular runs Sass
+   before PostCSS, and Sass cannot resolve `@import "tailwindcss"`. Keeping this
+   file out of the Sass pipeline lets @tailwindcss/postcss handle it directly.
+
+   Layer order: PrimeNG sits below Tailwind's utilities, so a utility class can
+   override a PrimeNG component style. Everything below is inside a layer, and
+   unlayered CSS always outranks layered CSS -- which means the project's existing
+   styles.scss (loaded after this file) still wins over all of it. That is what
+   keeps this change from restyling the current UI. */
+@layer theme, base, primeng, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* Preflight (Tailwind's global reset) is deliberately NOT imported. It would
+   restyle base elements underneath PrimeNG and the global SCSS. Enable it only
+   as a separate, reviewed change:
+   @import 'tailwindcss/preflight.css' layer(base); */
+
+@plugin 'tailwindcss-primeui';
+
+/* Mirrors darkModeSelector: '.dark' in app.config.ts, so `dark:` variants follow
+   the same class PrimeNG toggles. */
+@custom-variant dark (&:where(.dark, .dark *));
