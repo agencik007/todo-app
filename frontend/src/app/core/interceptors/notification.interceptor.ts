@@ -8,6 +8,13 @@ import { inject, PLATFORM_ID } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { catchError, tap, throwError } from 'rxjs';
+import { extractApiMessageCode } from '../utils/api-error.util';
+
+function extractSuccessMessageCode(body: unknown): string | null {
+    if (typeof body !== 'object' || body === null) return null;
+    const message = (body as { message?: unknown }).message;
+    return typeof message === 'string' ? message : null;
+}
 
 export const notificationInterceptor: HttpInterceptorFn = (req, next) => {
     const messageService = inject(MessageService);
@@ -22,17 +29,14 @@ export const notificationInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req).pipe(
         tap((event) => {
             // Handle success responses with message code
-            if (
-                event instanceof HttpResponse &&
-                event.body &&
-                (event.body as any).message
-            ) {
-                const messageCode = (event.body as any).message;
+            if (event instanceof HttpResponse) {
+                const messageCode = extractSuccessMessageCode(event.body);
                 // Only show toasts for specific message types to avoid spamming
                 if (
-                    messageCode.startsWith('AUTH_') ||
-                    messageCode.startsWith('TODO_') ||
-                    messageCode.startsWith('USER_')
+                    messageCode &&
+                    (messageCode.startsWith('AUTH_') ||
+                        messageCode.startsWith('TODO_') ||
+                        messageCode.startsWith('USER_'))
                 ) {
                     messageService.add({
                         severity: 'success',
@@ -47,9 +51,7 @@ export const notificationInterceptor: HttpInterceptorFn = (req, next) => {
         }),
         catchError((error: HttpErrorResponse) => {
             // Handle error responses with messageCode
-            const errorDetail = error.error?.detail;
-            const messageCode =
-                errorDetail?.messageCode || error.error?.messageCode;
+            const messageCode = extractApiMessageCode(error);
 
             // Nie pokazujemy globalnego błędu dla wygaśnięcia sesji,
             // ponieważ auth.interceptor obsługuje to osobnym tostem ostrzegawczym.

@@ -16,6 +16,7 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
+import { extractApiMessageCode } from '../../../../core/utils/api-error.util';
 import { AuthService } from '../../services/auth.service';
 
 interface RegisterData {
@@ -87,9 +88,8 @@ export class RegisterComponent {
                     queryParams: { email: registerRequest.email },
                 });
             },
-            error: (err) => {
-                const messageCode =
-                    err.error?.detail?.messageCode || err.error?.messageCode;
+            error: (err: unknown) => {
+                const messageCode = extractApiMessageCode(err);
 
                 if (messageCode) {
                     this.error.set(
