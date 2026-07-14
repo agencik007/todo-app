@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
     FormField,
@@ -78,12 +79,14 @@ export class ResetPasswordComponent {
         );
 
         if (!this.token()) {
-            this.route.params.subscribe((params) => {
+            this.route.params.pipe(takeUntilDestroyed()).subscribe((params) => {
                 if (params['token']) this.token.set(params['token']);
             });
-            this.route.queryParams.subscribe((params) => {
-                if (params['token']) this.token.set(params['token']);
-            });
+            this.route.queryParams
+                .pipe(takeUntilDestroyed())
+                .subscribe((params) => {
+                    if (params['token']) this.token.set(params['token']);
+                });
         }
 
         setTimeout(() => {
