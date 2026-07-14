@@ -14,6 +14,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
+import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
 import { AuthService } from '../../services/auth.service';
 
 interface ForgotPasswordData {
@@ -36,6 +37,7 @@ const forgotPasswordSchema = schema<ForgotPasswordData>((p) => {
         ButtonModule,
         MessageModule,
         TranslatePipe,
+        FormFieldComponent,
     ],
     templateUrl: './forgot-password.html',
     styleUrl: './forgot-password.scss',

@@ -11,6 +11,7 @@ import { Group, GroupColor, GroupCreate, GroupUpdate } from '@api';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
 import { GroupColorPickerComponent } from '../group-color-picker/group-color-picker.component';
 
 interface GroupFormModel {
@@ -32,6 +33,7 @@ const groupSchema = schema<GroupFormModel>((p) => {
         ButtonModule,
         TranslatePipe,
         GroupColorPickerComponent,
+        FormFieldComponent,
     ],
     templateUrl: './group-form.html',
     styleUrl: './group-form.scss',
