@@ -133,6 +133,14 @@ export class TodoListComponent implements OnInit {
             this.searchQuery().trim().length > 0,
     );
 
+    // Reordering maps displayed-list indices onto the full list, so it is only
+    // valid when the displayed list IS the full list (no status/search/group
+    // filter). Otherwise a drop at "index 2" of a filtered view would splice
+    // the wrong position in the unfiltered list.
+    readonly canReorder = computed(
+        () => !this.isFiltered() && !this.hasGroupSelection(),
+    );
+
     addButton = viewChild<Button>('addButton');
     scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
     searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
@@ -358,6 +366,7 @@ export class TodoListComponent implements OnInit {
 
     onDrop(event: CdkDragDrop<Todo[]>): void {
         this.#stopScrollLoop();
+        if (!this.canReorder()) return;
         if (event.previousContainer === event.container) {
             if (event.previousIndex === event.currentIndex) {
                 return;
