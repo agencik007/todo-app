@@ -291,33 +291,12 @@
         pointer-events: none;
     }
 
+    // Wygląd: appIconButton (_ui.scss); tutaj tylko pozycjonowanie w polu.
     .search-clear {
         position: absolute;
         right: 0.4rem;
         top: 50%;
         transform: translateY(-50%);
-        appearance: none;
-        background: transparent;
-        border: 0;
-        width: 24px;
-        height: 24px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: var(--app-radius-sm);
-        color: var(--p-text-muted-color);
-        cursor: pointer;
-        font-size: 0.75rem;
-        transition: background var(--app-transition-base);
-
-        &:hover {
-            background: color-mix(
-                in srgb,
-                var(--p-content-border-color) 80%,
-                transparent
-            );
-            color: var(--p-text-color);
-        }
     }
 }
 
@@ -607,45 +586,6 @@
         opacity var(--app-transition-base),
         transform var(--app-transition-base);
     pointer-events: none;
-}
-
-.row-action-btn {
-    appearance: none;
-    background: transparent;
-    border: 0;
-    width: 28px;
-    height: 28px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--app-radius-sm);
-    color: var(--p-text-muted-color);
-    cursor: pointer;
-    transition:
-        background var(--app-transition-base),
-        color var(--app-transition-base);
-
-    i {
-        font-size: 0.78rem;
-    }
-
-    &:hover {
-        background: color-mix(
-            in srgb,
-            var(--p-content-border-color) 80%,
-            transparent
-        );
-        color: var(--p-text-color);
-    }
-
-    &.row-action-danger:hover {
-        background: color-mix(
-            in srgb,
-            var(--p-red-500, #ef4444) 14%,
-            transparent
-        );
-        color: var(--p-red-500, #ef4444);
-    }
 }
 
 .row-line-2 {

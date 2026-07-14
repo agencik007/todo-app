@@ -103,7 +103,9 @@
                         <button
                             type="button"
                             tooltipPosition="bottom"
+                            size="sm"
                             class="search-clear"
+                            appIconButton
                             [pTooltip]="'TODOS.SEARCH.CLEAR' | translate"
                             [attr.aria-label]="'TODOS.SEARCH.CLEAR' | translate"
                             (click)="clearSearch()"
@@ -274,7 +276,7 @@
                                                 <button
                                                     type="button"
                                                     tooltipPosition="top"
-                                                    class="row-action-btn"
+                                                    appIconButton
                                                     [pTooltip]="
                                                         'TODOS.LIST.TOOLTIP_EDIT' | translate
                                                     "
@@ -291,9 +293,10 @@
                                                     ></i>
                                                 </button>
                                                 <button
+                                                    variant="danger"
                                                     type="button"
                                                     tooltipPosition="top"
-                                                    class="row-action-btn row-action-danger"
+                                                    appIconButton
                                                     [pTooltip]="
                                                         'TODOS.LIST.TOOLTIP_DELETE' | translate
                                                     "
