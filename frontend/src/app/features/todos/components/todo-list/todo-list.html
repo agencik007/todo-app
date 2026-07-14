@@ -212,6 +212,7 @@
                         id="todoList"
                         class="todo-stream"
                         cdkDropList
+                        [cdkDropListDisabled]="!canReorder()"
                         (cdkDropListDropped)="onDrop($event)"
                     >
                         @for (todo of todos(); track todo.id; let idx = $index) {
@@ -229,8 +230,8 @@
                                 (cdkDragMoved)="onDragMoved($event)"
                                 (cdkDragEnded)="onDragEnded()"
                             >
-                                <!-- Drag handle -->
-                                @if (canEditTodo(todo)) {
+                                <!-- Drag handle (hidden while filters are active — see canReorder) -->
+                                @if (canEditTodo(todo) && canReorder()) {
                                     <button
                                         type="button"
                                         tooltipPosition="right"
