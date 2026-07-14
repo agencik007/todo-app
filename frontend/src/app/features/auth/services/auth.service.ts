@@ -156,14 +156,6 @@ export class AuthService {
     }
 
     private handleError(error: HttpErrorResponse): Observable<never> {
-        let errorMessage = 'An unknown error occurred!';
-        if (error.error instanceof ErrorEvent) {
-            errorMessage = `Error: ${error.error.message}`;
-        } else {
-            errorMessage =
-                error.error?.detail ||
-                `Error Code: ${error.status}\nMessage: ${error.message}`;
-        }
-        return throwError(() => new Error(errorMessage));
+        return throwError(() => error);
     }
 }

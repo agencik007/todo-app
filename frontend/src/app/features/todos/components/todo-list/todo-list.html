@@ -4,80 +4,161 @@
         <app-sidebar class="h-full" />
 
         <div class="container flex-grow-1 overflow-y-auto">
-            <!-- Header -->
-            <div
-                class="flex justify-content-between align-items-center mb-3 md:mb-4 flex-column-mobile gap-2 md:gap-3"
-            >
-                <div class="w-full-mobile flex align-items-center gap-3 flex-wrap">
-                    <div class="flex-grow-1">
-                        <h1 class="m-0 text-2xl md:text-5xl">
-                            {{ 'TODOS.GREETING' | translate: { name: userName() } }}
-                        </h1>
-                        <p class="text-color-secondary mt-1 mb-0">
-                            {{ 'TODOS.SUBTITLE' | translate }}
-                        </p>
-                    </div>
+            <!-- Header (slim) -->
+            <header class="todo-header">
+                <div class="todo-header-titles">
+                    <h1 class="todo-greeting">
+                        {{ 'TODOS.GREETING' | translate: { name: userName() } }}
+                    </h1>
+                    <span class="todo-shortcuts-hint">
+                        {{ 'TODOS.SHORTCUTS.HINT' | translate }}
+                    </span>
                 </div>
-                <div class="flex align-items-center gap-2 w-full-mobile">
-                    <p-button
-                        styleClass="w-full-mobile"
-                        size="small"
-                        icon="pi pi-plus"
-                        class="w-full-mobile flex-grow-1"
-                        #addButton
-                        [label]="'TODOS.ADD_BUTTON' | translate"
-                        [autofocus]="true"
-                        (onClick)="showCreateForm()"
-                    />
-                </div>
-            </div>
+            </header>
 
-            <!-- Stats -->
-            <div
-                class="flex mb-3 md:mb-4"
-                [class.gap-3]="!screenSize.isCompact()"
-                [class.gap-2]="screenSize.isCompact()"
-            >
-                <p-card
-                    class="p-0 compact-stats-card"
-                    class="w-full"
-                    [style]="{ flex: 1, textAlign: 'center' }"
+            <!-- Sticky Command Bar -->
+            <div class="command-bar">
+                <!-- Status filter pills -->
+                <div
+                    role="tablist"
+                    class="status-pills"
+                    aria-label="Status filter"
                 >
-                    <div class="text-xl md:text-3xl font-bold">{{ totalTodos() }}</div>
-                    <div class="text-xs md:text-sm text-color-secondary">
-                        {{ 'TODOS.STATS.ALL' | translate }}
-                    </div>
-                </p-card>
-                <p-card
-                    class="p-0 compact-stats-card"
-                    class="w-full"
-                    [style]="{ flex: 1, textAlign: 'center' }"
-                >
-                    <div
-                        style="color: var(--p-orange-500)"
-                        class="text-xl md:text-3xl font-bold"
+                    <button
+                        type="button"
+                        tooltipPosition="bottom"
+                        role="tab"
+                        class="pill pill-all"
+                        [pTooltip]="'TODOS.FILTERS.TOOLTIP_ALL' | translate"
+                        [class.active]="statusFilter() === 'all'"
+                        [attr.aria-selected]="statusFilter() === 'all'"
+                        (click)="setStatusFilter('all')"
                     >
-                        {{ pendingTodos().length }}
-                    </div>
-                    <div class="text-xs md:text-sm text-color-secondary">
-                        {{ 'TODOS.STATS.PENDING' | translate }}
-                    </div>
-                </p-card>
-                <p-card
-                    class="p-0 compact-stats-card"
-                    class="w-full"
-                    [style]="{ flex: 1, textAlign: 'center' }"
-                >
-                    <div
-                        style="color: var(--p-green-500)"
-                        class="text-xl md:text-3xl font-bold"
+                        <span
+                            class="pill-dot"
+                            aria-hidden="true"
+                        ></span>
+                        <span class="pill-label">{{ 'TODOS.STATS.ALL' | translate }}</span>
+                        <span class="pill-count">{{ totalTodos() }}</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        tooltipPosition="bottom"
+                        role="tab"
+                        class="pill pill-pending"
+                        [pTooltip]="'TODOS.FILTERS.TOOLTIP_PENDING' | translate"
+                        [class.active]="statusFilter() === 'pending'"
+                        [attr.aria-selected]="statusFilter() === 'pending'"
+                        (click)="setStatusFilter('pending')"
                     >
-                        {{ completedTodos().length }}
+                        <span
+                            class="pill-dot"
+                            aria-hidden="true"
+                        ></span>
+                        <span class="pill-label">{{ 'TODOS.STATS.PENDING' | translate }}</span>
+                        <span class="pill-count">{{ pendingTodos().length }}</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        tooltipPosition="bottom"
+                        role="tab"
+                        class="pill pill-completed"
+                        [pTooltip]="'TODOS.FILTERS.TOOLTIP_COMPLETED' | translate"
+                        [class.active]="statusFilter() === 'completed'"
+                        [attr.aria-selected]="statusFilter() === 'completed'"
+                        (click)="setStatusFilter('completed')"
+                    >
+                        <span
+                            class="pill-dot"
+                            aria-hidden="true"
+                        ></span>
+                        <span class="pill-label">{{ 'TODOS.STATS.COMPLETED' | translate }}</span>
+                        <span class="pill-count">{{ completedTodos().length }}</span>
+                    </button>
+                </div>
+
+                <!-- Search -->
+                <div
+                    class="search-box"
+                    [class.has-value]="searchQuery().length > 0"
+                >
+                    <i
+                        class="pi pi-search search-icon"
+                        aria-hidden="true"
+                    ></i>
+                    <input
+                        type="text"
+                        pInputText
+                        id="todo-search-input"
+                        class="search-input"
+                        autocomplete="off"
+                        #searchInput
+                        [placeholder]="'TODOS.SEARCH.PLACEHOLDER' | translate"
+                        [ngModel]="searchQuery()"
+                        (ngModelChange)="onSearchInput($event)"
+                    />
+                    @if (searchQuery().length > 0) {
+                        <button
+                            type="button"
+                            tooltipPosition="bottom"
+                            class="search-clear"
+                            [pTooltip]="'TODOS.SEARCH.CLEAR' | translate"
+                            [attr.aria-label]="'TODOS.SEARCH.CLEAR' | translate"
+                            (click)="clearSearch()"
+                        >
+                            <i
+                                class="pi pi-times"
+                                aria-hidden="true"
+                            ></i>
+                        </button>
+                    } @else {
+                        <kbd class="search-kbd">/</kbd>
+                    }
+                </div>
+
+                <!-- Group filter chips (only when groups selected) -->
+                @if (hasGroupSelection()) {
+                    <div class="group-chips-row">
+                        <span class="group-chips-label">{{
+                            'TODOS.LIST.FILTER_LABEL' | translate
+                        }}</span>
+                        @for (group of selectedGroups(); track group.id) {
+                            <app-group-badge
+                                size="sm"
+                                [group]="group"
+                            />
+                        }
                     </div>
-                    <div class="text-xs md:text-sm text-color-secondary">
-                        {{ 'TODOS.STATS.COMPLETED' | translate }}
+                }
+
+                <!-- Progress strip -->
+                <div
+                    class="progress-strip"
+                    [attr.aria-label]="
+                        'TODOS.FILTERS.PROGRESS_LABEL'
+                            | translate
+                                : {
+                                      done: completedTodos().length,
+                                      total: totalTodos(),
+                                  }
+                    "
+                >
+                    <div class="progress-rail">
+                        <div
+                            class="progress-fill"
+                            [style.width.%]="progressPercent()"
+                        ></div>
                     </div>
-                </p-card>
+                    <span class="progress-text">
+                        <span class="progress-numbers">
+                            {{ completedTodos().length }}<span class="progress-slash">/</span
+                            >{{ totalTodos() }}
+                        </span>
+                        <span class="progress-pct">{{ progressPercent() }}%</span>
+                    </span>
+                </div>
             </div>
 
             <!-- Error Message -->
@@ -92,32 +173,6 @@
                 </p-message>
             }
 
-            <!-- Group Indicator -->
-            <div
-                class="flex align-items-center gap-2 mb-3 px-1 text-sm text-color-secondary overflow-x-auto whitespace-nowrap scrollbar-hide"
-            >
-                <span class="font-semibold flex align-items-center">{{
-                    'TODOS.LIST.FILTER_LABEL' | translate
-                }}</span>
-                @if (hasGroupSelection()) {
-                    <div class="flex align-items-center gap-2">
-                        @for (group of selectedGroups(); track group.id) {
-                            <app-group-badge
-                                size="sm"
-                                class="flex"
-                                [group]="group"
-                            />
-                        }
-                    </div>
-                } @else {
-                    <p-tag
-                        icon="pi pi-list"
-                        class="flex px-3"
-                        [value]="'GROUPS.SIDEBAR.ALL_TASKS' | translate"
-                    />
-                }
-            </div>
-
             <div
                 class="scrollable-area"
                 cdkScrollable
@@ -125,233 +180,232 @@
             >
                 <!-- Loading State (Skeletons) -->
                 @if (loading()) {
-                    <div class="flex flex-column gap-2">
-                        @for (i of [1, 2, 3]; track i) {
-                            <p-card>
-                                <div class="flex align-items-center gap-3">
-                                    <p-skeleton
-                                        size="24px"
-                                        shape="circle"
-                                    />
-                                    <div class="flex-grow-1">
+                    <ul class="todo-stream">
+                        @for (i of [1, 2, 3, 4, 5]; track i) {
+                            <li class="todo-row is-skeleton">
+                                <p-skeleton
+                                    size="20px"
+                                    shape="circle"
+                                />
+                                <div class="row-body">
+                                    <div class="row-line-1">
                                         <p-skeleton
-                                            width="60%"
-                                            height="1.2rem"
-                                            class="mb-2"
-                                        />
-                                        <p-skeleton
-                                            width="40%"
-                                            height="0.8rem"
+                                            width="55%"
+                                            height="1rem"
                                         />
                                     </div>
-                                    <div class="flex align-items-center gap-2">
+                                    <div class="row-line-2">
                                         <p-skeleton
-                                            width="80px"
-                                            height="2rem"
-                                            borderRadius="16px"
-                                        />
-                                        <p-skeleton
-                                            size="2.5rem"
-                                            shape="circle"
-                                        />
-                                        <p-skeleton
-                                            size="2.5rem"
-                                            shape="circle"
+                                            width="35%"
+                                            height="0.7rem"
                                         />
                                     </div>
                                 </div>
-                            </p-card>
+                            </li>
                         }
-                    </div>
+                    </ul>
                 }
 
                 <!-- Todo List -->
                 @if (!loading() && todos().length > 0) {
-                    <div
+                    <ul
                         id="todoList"
-                        class="flex flex-column gap-2"
+                        class="todo-stream"
                         cdkDropList
                         (cdkDropListDropped)="onDrop($event)"
                     >
-                        @for (todo of todos(); track todo.id) {
-                            <p-card
+                        @for (todo of todos(); track todo.id; let idx = $index) {
+                            <li
+                                tabindex="0"
+                                class="todo-row"
                                 cdkDrag
+                                [class.is-focused]="focusedIndex() === idx"
+                                [class.is-completed]="todo.completed"
+                                [class.can-edit]="canEditTodo(todo)"
                                 [cdkDragDisabled]="!canEditTodo(todo)"
                                 [cdkDragData]="todo"
+                                (keydown.enter)="setFocus(idx)"
+                                (click)="setFocus(idx)"
                                 (cdkDragMoved)="onDragMoved($event)"
                                 (cdkDragEnded)="onDragEnded()"
                             >
-                                <div
-                                    class="flex flex-column gap-3 relative todo-item-content w-full"
-                                >
-                                    <div class="flex align-items-start gap-3 w-full">
-                                        @if (canEditTodo(todo)) {
-                                            <div
-                                                class="flex flex-column align-items-center gap-1 mt-1"
-                                            >
-                                                <!-- Drag Handle -->
-                                                <div
-                                                    tooltipPosition="top"
-                                                    class="drag-handle p-1 cursor-move text-color-secondary"
-                                                    cdkDragHandle
-                                                    [pTooltip]="'TODOS.DRAG_HANDLE' | translate"
-                                                >
-                                                    <i class="pi pi-bars text-xs"></i>
-                                                </div>
-
-                                                <p-checkbox
-                                                    [ngModel]="todo.completed"
-                                                    [binary]="true"
-                                                    (onChange)="toggleTodoCompletion(todo)"
-                                                />
-                                            </div>
-                                        }
-                                        <div
-                                            style="min-width: 0"
-                                            class="flex-grow-1"
-                                        >
-                                            <!-- Meta parameters (creator, dates) -->
-                                            <div
-                                                class="flex flex-wrap align-items-center justify-content-between mb-2 text-xs text-color-secondary w-full gap-2"
-                                            >
-                                                <!-- Left side: Owner -->
-                                                <div class="flex align-items-center gap-1">
-                                                    @if (todo.ownerEmail) {
-                                                        <div
-                                                            tooltipPosition="top"
-                                                            class="flex align-items-center gap-1"
-                                                            [pTooltip]="
-                                                                'TODOS.LIST.OWNER_INFO'
-                                                                    | translate
-                                                                        : { email: todo.ownerEmail }
-                                                            "
-                                                        >
-                                                            <i class="pi pi-user"></i>
-                                                            <span>{{ todo.ownerEmail }}</span>
-                                                        </div>
-                                                    }
-                                                </div>
-
-                                                <!-- Right side: Dates -->
-                                                <div class="flex align-items-center gap-3">
-                                                    <div
-                                                        tooltipPosition="top"
-                                                        class="flex align-items-center gap-1"
-                                                        [pTooltip]="
-                                                            ('TODOS.LIST.CREATED_AT' | translate) +
-                                                            ': ' +
-                                                            formatDate(todo.createdAt)
-                                                        "
-                                                    >
-                                                        <i class="pi pi-clock"></i>
-                                                        <span>{{
-                                                            getRelativeTime(todo.createdAt)
-                                                        }}</span>
-                                                    </div>
-                                                    @if (todo.updatedAt !== todo.createdAt) {
-                                                        <div
-                                                            tooltipPosition="top"
-                                                            class="flex align-items-center gap-1"
-                                                            [pTooltip]="
-                                                                ('TODOS.LIST.UPDATED_AT'
-                                                                    | translate) +
-                                                                ': ' +
-                                                                formatDate(todo.updatedAt)
-                                                            "
-                                                        >
-                                                            <i class="pi pi-pencil text-xs"></i>
-                                                            <span>{{
-                                                                getRelativeTime(todo.updatedAt)
-                                                            }}</span>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            </div>
-
-                                            <div
-                                                style="word-break: break-word"
-                                                class="font-semibold text-lg"
-                                                [class.text-color-secondary]="todo.completed"
-                                                [class.line-through]="todo.completed"
-                                            >
-                                                {{ todo.title }}
-                                            </div>
-                                            @if (todo.description) {
-                                                <div class="text-sm text-color-secondary mt-1">
-                                                    {{ todo.description }}
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-
-                                    <!-- Tags and Actions Row -->
-                                    <div
-                                        class="flex align-items-center justify-content-between flex-wrap gap-2 w-full mt-2 pt-2 border-top-1 border-gray-200 dark:border-gray-800"
+                                <!-- Drag handle -->
+                                @if (canEditTodo(todo)) {
+                                    <button
+                                        type="button"
+                                        tooltipPosition="right"
+                                        class="row-handle"
+                                        cdkDragHandle
+                                        [pTooltip]="'TODOS.DRAG_HANDLE' | translate"
+                                        [attr.aria-label]="'TODOS.DRAG_HANDLE' | translate"
                                     >
-                                        <!-- Left Side: Badges -->
-                                        <div class="flex align-items-center flex-wrap gap-2">
-                                            @if (todo.groupId && getGroupById(todo.groupId)) {
-                                                <app-group-badge
-                                                    tooltipPosition="top"
-                                                    size="md"
-                                                    [pTooltip]="
-                                                        'TODOS.LIST.TOOLTIP_GROUP' | translate
-                                                    "
-                                                    [group]="getGroupById(todo.groupId)"
-                                                />
-                                            }
+                                        <i
+                                            class="pi pi-bars"
+                                            aria-hidden="true"
+                                        ></i>
+                                    </button>
+                                } @else {
+                                    <span class="row-handle row-handle-spacer"></span>
+                                }
 
-                                            <p-tag
-                                                tooltipPosition="top"
-                                                [value]="
-                                                    (todo.completed
-                                                        ? 'TODOS.LIST.STATUS_COMPLETED'
-                                                        : 'TODOS.LIST.STATUS_PENDING'
-                                                    ) | translate
-                                                "
-                                                [severity]="todo.completed ? 'success' : 'warn'"
-                                                [pTooltip]="'TODOS.LIST.TOOLTIP_STATUS' | translate"
-                                            />
-                                        </div>
+                                <!-- Checkbox -->
+                                <p-checkbox
+                                    class="row-check"
+                                    [ngModel]="todo.completed"
+                                    [disabled]="!canEditTodo(todo)"
+                                    [binary]="true"
+                                    (onChange)="toggleTodoCompletion(todo)"
+                                    (click)="$event.stopPropagation()"
+                                />
 
-                                        <!-- Right Side: Actions -->
+                                <!-- Body (2 lines) -->
+                                <div class="row-body">
+                                    <!-- Line 1: title + actions -->
+                                    <div class="row-line-1">
+                                        <span
+                                            class="row-title"
+                                            [class.is-strike]="todo.completed"
+                                        >
+                                            {{ todo.title }}
+                                        </span>
                                         @if (canEditTodo(todo)) {
-                                            <div class="flex gap-1">
-                                                <p-button
+                                            <div class="row-actions">
+                                                <button
+                                                    type="button"
                                                     tooltipPosition="top"
-                                                    size="small"
-                                                    severity="secondary"
-                                                    icon="pi pi-pencil"
-                                                    [text]="true"
-                                                    [rounded]="true"
+                                                    class="row-action-btn"
                                                     [pTooltip]="
                                                         'TODOS.LIST.TOOLTIP_EDIT' | translate
                                                     "
-                                                    (onClick)="editTodo(todo)"
-                                                />
-                                                <p-button
+                                                    [attr.aria-label]="
+                                                        'TODOS.LIST.TOOLTIP_EDIT' | translate
+                                                    "
+                                                    (click)="
+                                                        editTodo(todo); $event.stopPropagation()
+                                                    "
+                                                >
+                                                    <i
+                                                        class="pi pi-pencil"
+                                                        aria-hidden="true"
+                                                    ></i>
+                                                </button>
+                                                <button
+                                                    type="button"
                                                     tooltipPosition="top"
-                                                    size="small"
-                                                    severity="danger"
-                                                    icon="pi pi-trash"
-                                                    [text]="true"
-                                                    [rounded]="true"
+                                                    class="row-action-btn row-action-danger"
                                                     [pTooltip]="
                                                         'TODOS.LIST.TOOLTIP_DELETE' | translate
                                                     "
-                                                    (onClick)="deleteTodo(todo)"
-                                                />
+                                                    [attr.aria-label]="
+                                                        'TODOS.LIST.TOOLTIP_DELETE' | translate
+                                                    "
+                                                    (click)="
+                                                        deleteTodo(todo); $event.stopPropagation()
+                                                    "
+                                                >
+                                                    <i
+                                                        class="pi pi-trash"
+                                                        aria-hidden="true"
+                                                    ></i>
+                                                </button>
                                             </div>
                                         }
                                     </div>
+
+                                    <!-- Line 2: meta -->
+                                    <div class="row-line-2">
+                                        @if (todo.groupId && getGroupById(todo.groupId)) {
+                                            <app-group-badge
+                                                tooltipPosition="top"
+                                                size="sm"
+                                                [pTooltip]="'TODOS.LIST.TOOLTIP_GROUP' | translate"
+                                                [group]="getGroupById(todo.groupId)"
+                                            />
+                                            <span
+                                                class="meta-sep"
+                                                aria-hidden="true"
+                                                >·</span
+                                            >
+                                        }
+
+                                        <span
+                                            tooltipPosition="top"
+                                            class="meta-item"
+                                            [pTooltip]="
+                                                ('TODOS.LIST.CREATED_AT' | translate) +
+                                                ': ' +
+                                                formatDate(todo.createdAt)
+                                            "
+                                        >
+                                            <i
+                                                class="pi pi-clock"
+                                                aria-hidden="true"
+                                            ></i>
+                                            {{ getRelativeTime(todo.createdAt) }}
+                                        </span>
+
+                                        @if (todo.updatedAt !== todo.createdAt) {
+                                            <span
+                                                class="meta-sep"
+                                                aria-hidden="true"
+                                                >·</span
+                                            >
+                                            <span
+                                                tooltipPosition="top"
+                                                class="meta-item"
+                                                [pTooltip]="
+                                                    ('TODOS.LIST.UPDATED_AT' | translate) +
+                                                    ': ' +
+                                                    formatDate(todo.updatedAt)
+                                                "
+                                            >
+                                                <i
+                                                    class="pi pi-pencil"
+                                                    aria-hidden="true"
+                                                ></i>
+                                                {{ getRelativeTime(todo.updatedAt) }}
+                                            </span>
+                                        }
+
+                                        @if (todo.ownerEmail) {
+                                            <span
+                                                class="meta-sep"
+                                                aria-hidden="true"
+                                                >·</span
+                                            >
+                                            <span
+                                                tooltipPosition="top"
+                                                class="meta-item"
+                                                [pTooltip]="
+                                                    'TODOS.LIST.OWNER_INFO'
+                                                        | translate: { email: todo.ownerEmail }
+                                                "
+                                            >
+                                                <i
+                                                    class="pi pi-user"
+                                                    aria-hidden="true"
+                                                ></i>
+                                                {{ todo.ownerEmail }}
+                                            </span>
+                                        }
+
+                                        @if (todo.description) {
+                                            <span
+                                                class="meta-sep"
+                                                aria-hidden="true"
+                                                >·</span
+                                            >
+                                            <span class="meta-desc">{{ todo.description }}</span>
+                                        }
+                                    </div>
                                 </div>
-                            </p-card>
+                            </li>
                         }
-                    </div>
+                    </ul>
                 }
 
-                <!-- Empty State -->
-                @if (!loading() && todos().length === 0) {
+                <!-- Empty State (truly empty) -->
+                @if (!loading() && todos().length === 0 && !isFiltered()) {
                     <p-card>
                         <div class="flex flex-column align-items-center py-6">
                             <span class="text-6xl mb-3">📝</span>
@@ -367,7 +421,49 @@
                         </div>
                     </p-card>
                 }
+
+                <!-- Empty State (filtered) -->
+                @if (!loading() && todos().length === 0 && isFiltered()) {
+                    <div class="empty-filtered">
+                        <i
+                            class="pi pi-filter-slash"
+                            aria-hidden="true"
+                        ></i>
+                        <h3 class="m-0 mb-1">
+                            {{ 'TODOS.FILTERS.EMPTY_FILTERED_TITLE' | translate }}
+                        </h3>
+                        <p class="text-color-secondary mb-3">
+                            {{ 'TODOS.FILTERS.EMPTY_FILTERED_MESSAGE' | translate }}
+                        </p>
+                        <p-button
+                            size="small"
+                            severity="secondary"
+                            icon="pi pi-times"
+                            [text]="true"
+                            [label]="'TODOS.FILTERS.EMPTY_FILTERED_RESET' | translate"
+                            (onClick)="resetFilters()"
+                        />
+                    </div>
+                }
             </div>
+
+            <!-- Floating Action Button -->
+            @if (!loading() && !formVisible()) {
+                <button
+                    type="button"
+                    tooltipPosition="left"
+                    class="fab"
+                    #addButton
+                    [pTooltip]="'TODOS.FAB.TOOLTIP' | translate"
+                    [attr.aria-label]="'TODOS.ADD_BUTTON' | translate"
+                    (click)="showCreateForm()"
+                >
+                    <i
+                        class="pi pi-plus fab-icon"
+                        aria-hidden="true"
+                    ></i>
+                </button>
+            }
 
             <!-- Todo Form Dialog -->
             <p-dialog

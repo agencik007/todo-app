@@ -119,9 +119,11 @@ class TestTodoAPI:
 
         response = authenticated_client.get(f"/todos/{foreign_todo.id}")
 
-        assert response.status_code == 403
+        # Returns 404, not 403 - same as a non-existent todo, so the
+        # response can't be used to enumerate other users' todo IDs.
+        assert response.status_code == 404
         data = response.json()
-        assert data["detail"]["messageCode"] == "TODO_NO_ACCESS"
+        assert data["detail"]["messageCode"] == "TODO_NOT_FOUND"
 
     def test_update_todo(self, authenticated_client: TestClient):
         """Test PUT /todos/{id} updates existing todo."""
@@ -266,9 +268,11 @@ class TestTodoAPI:
             "/todos", json={"title": "Todo", "groupId": foreign_group.id}
         )
 
-        assert response.status_code == 403
+        # Returns 404, not 403 - same as a non-existent group, so the
+        # response can't be used to enumerate other users' group IDs.
+        assert response.status_code == 404
         data = response.json()
-        assert data["detail"]["messageCode"] == "GROUP_NO_ACCESS"
+        assert data["detail"]["messageCode"] == "GROUP_NOT_FOUND"
 
     def test_update_todo_group_id(self, authenticated_client: TestClient):
         """Test PUT /todos/{id} updates group assignment when group belongs to user."""

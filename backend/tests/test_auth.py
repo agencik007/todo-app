@@ -15,7 +15,6 @@ from sqlalchemy.orm import Session
 from models.user import User
 from services.auth_service import (
     hash_password,
-    create_refresh_token,
     hash_one_time_token,
 )
 from datetime import datetime, timedelta, timezone
@@ -164,22 +163,15 @@ class TestAuthAPI:
 
         assert response.status_code == 401
 
-    def test_refresh_token(self, client: TestClient, test_user, test_db):
+    def test_refresh_token(self, client: TestClient, test_user):
         """Test POST /auth/refresh with valid refresh token cookie."""
-        # Ensure user exists in the test database used by client
-        existing_user = test_db.query(User).filter(User.id == test_user.id).first()
-        if not existing_user:
-            test_db.add(test_user)
-            test_db.commit()
-
-        # Create refresh token and send it as a cookie (not body)
-        refresh_token = create_refresh_token(
-            data={"sub": test_user.id, "email": test_user.email}
+        login_response = client.post(
+            "/auth/login",
+            data={"username": test_user.email, "password": "testpassword123"},
         )
+        assert login_response.status_code == 200
 
-        response = client.post(
-            "/auth/refresh", cookies={REFRESH_COOKIE_NAME: refresh_token}
-        )
+        response = client.post("/auth/refresh")
 
         assert response.status_code == 200
         data = response.json()
@@ -189,6 +181,11 @@ class TestAuthAPI:
         assert "refreshToken" not in data
         assert data["tokenType"] == "bearer"
         assert REFRESH_COOKIE_NAME in response.cookies
+        # Rotation issues a new token, distinct from the one used to log in.
+        assert (
+            response.cookies[REFRESH_COOKIE_NAME]
+            != login_response.cookies[REFRESH_COOKIE_NAME]
+        )
 
     def test_refresh_token_missing_cookie(self, client: TestClient):
         """Test POST /auth/refresh with no cookie returns 401."""
@@ -207,6 +204,63 @@ class TestAuthAPI:
         assert response.status_code == 401
         data = response.json()
         assert data["detail"]["messageCode"] == "AUTH_INVALID_REFRESH_TOKEN"
+
+    def test_refresh_token_reuse_revokes_whole_family(
+        self, client: TestClient, test_user
+    ):
+        """
+        Test that reusing a rotated-away refresh token revokes the entire
+        session, not just the reused token - the new (still unused) token
+        from the same rotation must stop working too.
+        """
+        login_response = client.post(
+            "/auth/login",
+            data={"username": test_user.email, "password": "testpassword123"},
+        )
+        old_token = login_response.cookies[REFRESH_COOKIE_NAME]
+
+        rotate_response = client.post(
+            "/auth/refresh", cookies={REFRESH_COOKIE_NAME: old_token}
+        )
+        assert rotate_response.status_code == 200
+        new_token = rotate_response.cookies[REFRESH_COOKIE_NAME]
+
+        # Replaying the old (already-rotated-away) token is rejected.
+        reuse_response = client.post(
+            "/auth/refresh", cookies={REFRESH_COOKIE_NAME: old_token}
+        )
+        assert reuse_response.status_code == 401
+
+        # The legitimate, never-yet-used token is now revoked too.
+        followup_response = client.post(
+            "/auth/refresh", cookies={REFRESH_COOKIE_NAME: new_token}
+        )
+        assert followup_response.status_code == 401
+
+    def test_logout_revokes_refresh_token_server_side(
+        self, client: TestClient, test_user
+    ):
+        """Test that /auth/logout revokes the refresh token, not just the cookie."""
+        login_response = client.post(
+            "/auth/login",
+            data={"username": test_user.email, "password": "testpassword123"},
+        )
+        refresh_token = login_response.cookies[REFRESH_COOKIE_NAME]
+        access_token = login_response.json()["accessToken"]
+
+        logout_response = client.post(
+            "/auth/logout",
+            headers={"Authorization": f"Bearer {access_token}"},
+            cookies={REFRESH_COOKIE_NAME: refresh_token},
+        )
+        assert logout_response.status_code == 200
+
+        # The refresh token is now revoked server-side - replaying the raw
+        # cookie value (as a thief with a copy of it would) must fail.
+        response = client.post(
+            "/auth/refresh", cookies={REFRESH_COOKIE_NAME: refresh_token}
+        )
+        assert response.status_code == 401
 
     def test_forgot_password(self, client: TestClient, test_user):
         """Test POST /auth/forgot-password sends reset email."""

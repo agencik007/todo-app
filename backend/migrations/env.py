@@ -29,6 +29,7 @@ from config.database import Base  # noqa: E402
 from models.user import User  # noqa: E402, F401
 from models.todo import Todo  # noqa: E402, F401
 from models.group import Group  # noqa: E402, F401
+from models.refresh_token import RefreshToken  # noqa: E402, F401
 
 target_metadata = Base.metadata
 

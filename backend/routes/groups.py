@@ -73,11 +73,12 @@ def read_group(
             detail=api_error(ApiMessages.GROUP_NOT_FOUND),
         )
 
-    # Check if user is the owner
+    # Both "doesn't exist" and "belongs to someone else" return 404, so the
+    # response can't be used to enumerate other users' group IDs.
     if group.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=api_error(ApiMessages.GROUP_NO_ACCESS),
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.GROUP_NOT_FOUND),
         )
 
     return group
@@ -158,11 +159,12 @@ def update_group(
             detail=api_error(ApiMessages.GROUP_NOT_FOUND),
         )
 
-    # Check if user is the owner
+    # Both "doesn't exist" and "belongs to someone else" return 404, so the
+    # response can't be used to enumerate other users' group IDs.
     if group.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=api_error(ApiMessages.GROUP_NO_UPDATE_PERMISSION),
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.GROUP_NOT_FOUND),
         )
 
     # Update only provided fields
@@ -205,11 +207,12 @@ def delete_group(
             detail=api_error(ApiMessages.GROUP_NOT_FOUND),
         )
 
-    # Check if user is the owner
+    # Both "doesn't exist" and "belongs to someone else" return 404, so the
+    # response can't be used to enumerate other users' group IDs.
     if group.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=api_error(ApiMessages.GROUP_NO_DELETE_PERMISSION),
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=api_error(ApiMessages.GROUP_NOT_FOUND),
         )
 
     db.delete(group)

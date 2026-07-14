@@ -80,8 +80,12 @@
                     inputId="password"
                     class="w-full"
                     autocomplete="new-password"
+                    [weakLabel]="'AUTH.RESET_PASSWORD.PASS_STRENGTH.WEAK' | translate"
                     [toggleMask]="true"
+                    [strongLabel]="'AUTH.RESET_PASSWORD.PASS_STRENGTH.STRONG' | translate"
+                    [promptLabel]="'AUTH.RESET_PASSWORD.PASS_STRENGTH.PROMPT' | translate"
                     [placeholder]="'AUTH.REGISTER.PASSWORD_PLACEHOLDER' | translate"
+                    [mediumLabel]="'AUTH.RESET_PASSWORD.PASS_STRENGTH.MEDIUM' | translate"
                     [formField]="$any(registerForm.password)"
                     [feedback]="true"
                 />

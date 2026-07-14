@@ -28,8 +28,10 @@ from services.auth_service import (
     hash_one_time_token,
     authenticate_user,
     create_access_token,
-    create_refresh_token,
-    verify_token,
+    issue_refresh_token,
+    rotate_refresh_token,
+    revoke_refresh_token,
+    revoke_all_refresh_tokens_for_user,
 )
 from services.email_service import (
     send_verification_email,
@@ -62,9 +64,9 @@ def _create_access_token(user: User) -> str:
     return create_access_token(data={"sub": user.id, "email": user.email})
 
 
-def _create_refresh_token(user: User) -> str:
-    """Create a JWT refresh token for the given user."""
-    return create_refresh_token(data={"sub": user.id, "email": user.email})
+def _issue_refresh_token(db: Session, user: User) -> str:
+    """Issue a new server-side refresh token for the given user."""
+    return issue_refresh_token(db, user.id)
 
 
 def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
@@ -227,7 +229,7 @@ async def login(
             detail=api_error(ApiMessages.AUTH_EMAIL_NOT_VERIFIED),
         )
 
-    _set_refresh_cookie(response, _create_refresh_token(user))
+    _set_refresh_cookie(response, _issue_refresh_token(db, user))
     return Token(
         access_token=_create_access_token(user),
         message=ApiMessages.AUTH_LOGIN_SUCCESS.value,
@@ -245,7 +247,9 @@ def refresh_access_token(
 
     Reads the refresh token from the cookie (never from the body).
     On success, issues a new access token in the body and rotates
-    the refresh token cookie.
+    the refresh token cookie. If the presented token was already rotated
+    away (reuse - a sign of theft), the whole session family is revoked
+    and the client must log in again.
 
     Args:
         request: FastAPI request object (cookie is read from here).
@@ -256,7 +260,8 @@ def refresh_access_token(
         Token: New access token (new refresh token is in Set-Cookie header).
 
     Raises:
-        HTTPException: If refresh token cookie is missing, invalid, or user not found.
+        HTTPException: If the refresh token cookie is missing, invalid,
+            expired, or reused.
     """
     raw_refresh_token = request.cookies.get(REFRESH_COOKIE_NAME)
 
@@ -267,9 +272,9 @@ def refresh_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    payload = verify_token(raw_refresh_token, token_type="refresh")
+    result = rotate_refresh_token(db, raw_refresh_token)
 
-    if payload is None:
+    if result is None:
         _clear_refresh_cookie(response)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -277,25 +282,9 @@ def refresh_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    user_id = payload.get("sub")
-    if user_id is None:
-        _clear_refresh_cookie(response)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=api_error(ApiMessages.AUTH_INVALID_TOKEN_PAYLOAD),
-        )
+    new_raw_token, user = result
 
-    # Verify user still exists and is active
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user or not user.is_active:
-        _clear_refresh_cookie(response)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=api_error(ApiMessages.AUTH_USER_NOT_FOUND_OR_INACTIVE),
-        )
-
-    # Rotate refresh token
-    _set_refresh_cookie(response, _create_refresh_token(user))
+    _set_refresh_cookie(response, new_raw_token)
     return Token(access_token=_create_access_token(user))
 
 
@@ -396,6 +385,10 @@ def reset_password(
     user.password_reset_expires_at = None
     db.commit()
 
+    # Invalidate any existing sessions - a password reset should log out
+    # every device, including whoever might have compromised the account.
+    revoke_all_refresh_tokens_for_user(db, user.id)
+
     return api_success(ApiMessages.AUTH_PASSWORD_RESET_SUCCESS)
 
 
@@ -471,21 +464,31 @@ def resend_verification(
 
 @router.post("/logout")
 def logout(
+    request: Request,
     response: Response,
     current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
 ):
     """
     Logout endpoint.
 
-    Clears the HttpOnly refresh token cookie. The client is responsible
+    Revokes the current refresh token server-side (not just clearing the
+    cookie, so a copied/stolen cookie can't keep refreshing access tokens
+    after logout) and clears the HttpOnly cookie. The client is responsible
     for discarding the in-memory access token.
 
     Args:
+        request: FastAPI request object (cookie is read from here).
         response: FastAPI response object (used to clear the refresh cookie).
         current_user: Current authenticated user.
+        db: Database session.
 
     Returns:
         dict: Success message.
     """
+    raw_refresh_token = request.cookies.get(REFRESH_COOKIE_NAME)
+    if raw_refresh_token:
+        revoke_refresh_token(db, raw_refresh_token)
+
     _clear_refresh_cookie(response)
     return api_success(ApiMessages.AUTH_LOGOUT_SUCCESS)

@@ -123,13 +123,17 @@ export class ResetPasswordComponent {
                 const messageCode =
                     err.error?.detail?.messageCode || err.error?.messageCode;
 
-                this.error.set(
-                    messageCode
-                        ? this.translate.instant(`API_MESSAGES.${messageCode}`)
-                        : this.translate.instant(
-                              'AUTH.RESET_PASSWORD.ERRORS.FAILED',
-                          ),
-                );
+                if (messageCode) {
+                    this.error.set(
+                        this.translate.instant(`API_MESSAGES.${messageCode}`),
+                    );
+                } else {
+                    this.error.set(
+                        this.translate.instant(
+                            'AUTH.RESET_PASSWORD.ERRORS.FAILED',
+                        ),
+                    );
+                }
                 this.isLoading.set(false);
             },
         });

@@ -171,6 +171,26 @@
       "COMPLETED": "Ukończone",
       "SUMMARY_TOOLTIP": "Wszystkie / Do zrobienia / Ukończone zadania"
     },
+    "SEARCH": {
+      "PLACEHOLDER": "Szukaj zadań...",
+      "CLEAR": "Wyczyść wyszukiwanie",
+      "HINT_KEY": "/"
+    },
+    "FILTERS": {
+      "TOOLTIP_ALL": "Pokaż wszystkie zadania",
+      "TOOLTIP_PENDING": "Pokaż tylko do zrobienia",
+      "TOOLTIP_COMPLETED": "Pokaż tylko ukończone",
+      "PROGRESS_LABEL": "{{done}}/{{total}} ukończono",
+      "EMPTY_FILTERED_TITLE": "Brak wyników",
+      "EMPTY_FILTERED_MESSAGE": "Żadne zadanie nie pasuje do wybranego filtra lub frazy.",
+      "EMPTY_FILTERED_RESET": "Wyczyść filtry"
+    },
+    "FAB": {
+      "TOOLTIP": "Dodaj zadanie · n"
+    },
+    "SHORTCUTS": {
+      "HINT": "n nowe · / szukaj · j/k nawigacja · x zaznacz"
+    },
     "MENU": {
       "COLLAPSE": "Zwiń menu",
       "EXPAND": "Rozwiń menu"
@@ -290,8 +310,6 @@
     "AUTH_INACTIVE_USER": "Twoje konto jest nieaktywne",
     "AUTH_EMAIL_NOT_VERIFIED": "Adres e-mail nie został zweryfikowany. Sprawdź swoją skrzynkę.",
     "AUTH_INVALID_REFRESH_TOKEN": "Sesja wygasła, zaloguj się ponownie",
-    "AUTH_INVALID_TOKEN_PAYLOAD": "Nieprawidłowe dane sesji",
-    "AUTH_USER_NOT_FOUND_OR_INACTIVE": "Użytkownik nie znaleziony lub konto jest nieaktywne",
     "AUTH_PASSWORD_RESET_SENT": "Jeśli e-mail istnieje, link do resetowania hasła został wysłany",
     "AUTH_INVALID_RESET_TOKEN": "Nieprawidłowy lub wygasły token resetowania hasła",
     "AUTH_PASSWORD_RESET_SUCCESS": "Hasło zostało pomyślnie zresetowane",
@@ -302,10 +320,10 @@
     "AUTH_LOGOUT_SUCCESS": "Wylogowano pomyślnie",
     "AUTH_LOGIN_SUCCESS": "Zalogowano pomyślnie",
     "AUTH_REGISTER_SUCCESS": "Zarejestrowano pomyślnie. Sprawdź swoją skrzynkę e-mail.",
+    "AUTH_PASSWORD_TOO_COMMON": "To hasło jest zbyt popularne. Wybierz bardziej unikalne hasło.",
+    "AUTH_PASSWORD_TOO_SIMPLE": "Hasło musi zawierać co najmniej 3 różne znaki.",
+    "AUTH_PASSWORD_TOO_LONG": "Hasło może mieć maksymalnie 72 bajty.",
     "TODO_NOT_FOUND": "Nie znaleziono zadania",
-    "TODO_NO_ACCESS": "Nie masz dostępu do tego zadania",
-    "TODO_NO_UPDATE_PERMISSION": "Nie masz uprawnień do edycji tego zadania",
-    "TODO_NO_DELETE_PERMISSION": "Nie masz uprawnień do usunięcia tego zadania",
     "TODO_DELETED_SUCCESS": "Zadanie zostało usunięte",
     "USER_AVATAR_INVALID_TYPE": "Nieprawidłowy typ pliku. Dozwolone są tylko obrazy.",
     "USER_AVATAR_TOO_LARGE": "Plik jest zbyt duży (max 5MB)",

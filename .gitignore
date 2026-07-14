@@ -54,6 +54,12 @@ dmypy.json
 *.swo
 *~
 
+# Security audit reports. These describe the vulnerabilities and where they live,
+# which is a roadmap for an attacker while any environment still runs the old code.
+# Keep them local; do not commit them to a public repository.
+docs/AUDIT_BACKEND.md
+docs/FRONTEND_AUDIT.md
+
 # OS
 .DS_Store
 .DS_Store?
