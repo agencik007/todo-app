@@ -12,6 +12,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { SidebarService } from '../../../../core/services/sidebar.service';
 import { GroupColorHexPipe } from '../../../../shared/pipes/group-color-hex.pipe';
+import { IconButtonDirective } from '../../../../shared/ui/icon-button/icon-button.directive';
 import { GroupStore } from '../../store/group.store';
 import { GroupFormComponent } from '../group-form/group-form.component';
 
@@ -28,6 +29,7 @@ import { GroupFormComponent } from '../group-form/group-form.component';
         DialogModule,
         TranslatePipe,
         TooltipModule,
+        IconButtonDirective,
     ],
     providers: [ConfirmationService],
     templateUrl: './sidebar.html',

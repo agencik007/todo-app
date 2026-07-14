@@ -81,7 +81,8 @@
             <button
                 type="button"
                 tooltipPosition="right"
-                class="btn-icon"
+                size="lg"
+                appIconButton
                 [pTooltip]="'GROUPS.SIDEBAR.COLLAPSE' | translate"
                 [attr.aria-label]="'GROUPS.SIDEBAR.COLLAPSE' | translate"
                 (click)="toggleCollapse()"
@@ -95,7 +96,8 @@
             <button
                 type="button"
                 tooltipPosition="right"
-                class="btn-brand-icon"
+                size="xl"
+                appIconButton
                 [pTooltip]="'GROUPS.SIDEBAR.EXPAND' | translate"
                 [attr.aria-label]="'GROUPS.SIDEBAR.EXPAND' | translate"
                 (click)="toggleCollapse()"
@@ -239,7 +241,8 @@
                                 <button
                                     type="button"
                                     tooltipPosition="top"
-                                    class="btn-clear"
+                                    size="sm"
+                                    appIconButton
                                     [pTooltip]="'GROUPS.SIDEBAR.CLEAR_SELECTION' | translate"
                                     [attr.aria-label]="'GROUPS.SIDEBAR.CLEAR_SELECTION' | translate"
                                     (click)="clearSelection($event)"
@@ -252,9 +255,11 @@
                             }
                             <!-- Add group button -->
                             <button
+                                variant="primary"
                                 type="button"
                                 tooltipPosition="top"
-                                class="btn-add"
+                                size="sm"
+                                appIconButton
                                 [pTooltip]="'GROUPS.SIDEBAR.ADD_GROUP' | translate"
                                 [attr.aria-label]="'GROUPS.SIDEBAR.ADD_GROUP' | translate"
                                 (click)="showAddDialog($event)"
@@ -313,7 +318,9 @@
                                     <button
                                         type="button"
                                         tooltipPosition="top"
-                                        class="btn-edit"
+                                        size="sm"
+                                        reveal
+                                        appIconButton
                                         [pTooltip]="'GROUPS.SIDEBAR.EDIT_GROUP' | translate"
                                         [attr.aria-label]="'GROUPS.SIDEBAR.EDIT_GROUP' | translate"
                                         (click)="showEditDialog($event, group)"
@@ -326,9 +333,12 @@
 
                                     <!-- Delete button -->
                                     <button
+                                        variant="danger"
                                         type="button"
                                         tooltipPosition="top"
-                                        class="btn-delete"
+                                        size="sm"
+                                        reveal
+                                        appIconButton
                                         [pTooltip]="'GROUPS.SIDEBAR.DELETE_GROUP' | translate"
                                         [attr.aria-label]="
                                             'GROUPS.SIDEBAR.DELETE_GROUP' | translate

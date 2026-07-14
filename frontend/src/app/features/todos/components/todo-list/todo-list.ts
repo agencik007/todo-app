@@ -31,6 +31,7 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { AuthStore } from '../../../../core/store/auth.store';
+import { IconButtonDirective } from '../../../../shared/ui/icon-button/icon-button.directive';
 import {
     formatDateTime,
     relativeTimeFrom,
@@ -62,6 +63,7 @@ type StatusFilter = 'all' | 'pending' | 'completed';
         TooltipModule,
         SidebarComponent,
         GroupBadgeComponent,
+        IconButtonDirective,
     ],
     providers: [ConfirmationService],
     templateUrl: './todo-list.html',
