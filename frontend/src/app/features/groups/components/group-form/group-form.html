@@ -3,13 +3,10 @@
     class="flex flex-column gap-4"
     (ngSubmit)="onSubmit()"
 >
-    <div class="form-group">
-        <label
-            for="groupName"
-            class="block mb-2 font-bold"
-        >
-            {{ 'GROUPS.FORM.NAME_LABEL' | translate }}
-        </label>
+    <app-form-field
+        inputId="groupName"
+        [label]="'GROUPS.FORM.NAME_LABEL' | translate"
+    >
         <input
             type="text"
             pInputText
@@ -37,19 +34,16 @@
                 </small>
             }
         }
-    </div>
+    </app-form-field>
 
-    <div class="form-group">
-        <label
-            for="colorPicker"
-            class="block mb-2 font-bold"
-        >
-            {{ 'GROUPS.FORM.COLOR_LABEL' | translate }}
-        </label>
+    <app-form-field
+        inputId="colorPicker"
+        [label]="'GROUPS.FORM.COLOR_LABEL' | translate"
+    >
         <app-group-color-picker
             id="colorPicker"
             [selectedColor]="groupModel().color"
             (colorChange)="onColorChange($event)"
         />
-    </div>
+    </app-form-field>
 </form>

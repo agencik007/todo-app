@@ -1,0 +1,15 @@
+:host {
+    display: block;
+    margin-bottom: var(--app-space-4);
+}
+
+label {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--app-space-2);
+    font-weight: var(--app-font-medium);
+
+    i {
+        margin-right: var(--app-space-2);
+    }
+}

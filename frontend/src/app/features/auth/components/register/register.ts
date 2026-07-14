@@ -17,6 +17,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { extractApiMessageCode } from '../../../../core/utils/api-error.util';
+import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
 import { AuthService } from '../../services/auth.service';
 
 interface RegisterData {
@@ -45,6 +46,7 @@ const registerSchema = schema<RegisterData>((p) => {
         ButtonModule,
         MessageModule,
         TranslatePipe,
+        FormFieldComponent,
     ],
     templateUrl: './register.html',
     styleUrl: './register.scss',

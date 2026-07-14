@@ -16,6 +16,7 @@ import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { extractApiMessageCode } from '../../../../core/utils/api-error.util';
+import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
 import { AuthService } from '../../services/auth.service';
 
 interface ResetPasswordData {
@@ -40,6 +41,7 @@ const resetPasswordSchema = schema<ResetPasswordData>((p) => {
         ButtonModule,
         MessageModule,
         TranslatePipe,
+        FormFieldComponent,
     ],
     templateUrl: './reset-password.html',
     styleUrl: './reset-password.scss',

@@ -14,6 +14,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
+import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
 import { GroupStore } from '../../../groups/store/group.store';
 
 interface TodoFormModel {
@@ -31,6 +32,7 @@ interface TodoFormModel {
         ButtonModule,
         Select,
         TranslatePipe,
+        FormFieldComponent,
     ],
     templateUrl: './todo-form.html',
     styleUrl: './todo-form.scss',
