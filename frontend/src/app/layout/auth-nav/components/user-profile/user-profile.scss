@@ -13,7 +13,7 @@
     height: 42px;
     padding: 0 6px 0 4px;
     border: 1px solid var(--p-surface-200);
-    border-radius: 12px;
+    border-radius: var(--app-radius-lg);
     background: linear-gradient(
         135deg,
         var(--p-surface-0) 0%,
@@ -25,8 +25,12 @@
     outline: none;
     position: relative;
     z-index: 10;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition:
+        background var(--app-transition-slow),
+        border-color var(--app-transition-slow),
+        transform var(--app-transition-slow),
+        box-shadow var(--app-transition-slow);
+    box-shadow: var(--app-shadow-sm);
 
     &:hover {
         background: linear-gradient(
@@ -36,7 +40,7 @@
         );
         border-color: var(--p-primary-300);
         transform: translateY(-1px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        box-shadow: var(--app-shadow-md);
 
         .profile-avatar {
             transform: scale(1.08);
@@ -50,7 +54,7 @@
         transform: none;
         box-shadow:
             0 0 0 3px var(--p-primary-50),
-            0 4px 12px rgba(0, 0, 0, 0.1);
+            var(--app-shadow-md);
     }
 
     &:focus-visible {
@@ -71,8 +75,8 @@
 }
 
 .trigger-email {
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: var(--app-text-xs);
+    font-weight: var(--app-font-semibold);
     color: var(--p-text-color);
     white-space: nowrap;
     max-width: 140px;
@@ -91,7 +95,7 @@
     font-size: 0.7rem;
     color: var(--p-text-color-secondary);
     margin-left: 2px;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--app-transition-slow);
 
     &.chevron-rotated {
         transform: rotate(180deg);
@@ -124,7 +128,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--app-shadow-sm);
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     &:hover {
@@ -142,14 +146,11 @@
     width: 340px;
     overflow: hidden;
     z-index: 2001;
-    border-radius: 18px;
+    border-radius: var(--app-radius-xl);
     border: 1px solid var(--p-surface-200);
     background: var(--p-surface-0);
     backdrop-filter: blur(20px) saturate(180%);
-    box-shadow:
-        0 4px 6px rgba(0, 0, 0, 0.04),
-        0 12px 32px rgba(0, 0, 0, 0.1),
-        0 24px 56px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--app-shadow-overlay);
     animation: dropdownOpen 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 
     @media (max-width: 767px) {
@@ -231,8 +232,8 @@
 }
 
 .user-card-email {
-    font-size: 0.875rem;
-    font-weight: 600;
+    font-size: var(--app-text-sm);
+    font-weight: var(--app-font-semibold);
     color: var(--p-text-color);
     white-space: nowrap;
     overflow: hidden;
@@ -241,7 +242,7 @@
 }
 
 .user-card-role {
-    font-size: 0.75rem;
+    font-size: var(--app-text-xs);
     color: var(--p-text-color-secondary);
     line-height: 1;
 }
@@ -253,12 +254,16 @@
     width: 34px;
     height: 34px;
     flex-shrink: 0;
-    border-radius: 9px;
+    border-radius: var(--app-radius-md);
     border: 1px solid var(--p-surface-200);
     background: var(--p-surface-0);
     color: var(--p-text-color-secondary);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition:
+        background var(--app-transition-base),
+        border-color var(--app-transition-base),
+        color var(--app-transition-base),
+        transform var(--app-transition-base);
 
     i {
         font-size: 0.9rem;
@@ -300,16 +305,20 @@
     width: 100%;
     padding: 11px 14px;
     border: 1px solid transparent;
-    border-radius: 12px;
+    border-radius: var(--app-radius-lg);
     background: var(--p-surface-50);
     color: var(--p-text-color);
     font: inherit;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--app-text-sm);
+    font-weight: var(--app-font-medium);
     cursor: pointer;
     text-align: left;
     text-decoration: none;
-    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        background var(--app-transition-base),
+        border-color var(--app-transition-base),
+        color var(--app-transition-base),
+        transform var(--app-transition-base);
 }
 
 .action-icon {
@@ -319,8 +328,8 @@
     width: 34px;
     height: 34px;
     flex-shrink: 0;
-    border-radius: 9px;
-    transition: transform 0.18s ease;
+    border-radius: var(--app-radius-md);
+    transition: transform var(--app-transition-base);
 
     i {
         font-size: 0.95rem;
@@ -332,7 +341,7 @@
     }
 
     &--red {
-        background: rgba(239, 68, 68, 0.1);
+        background: color-mix(in srgb, var(--p-red-500) 10%, transparent);
         color: var(--p-red-500);
     }
 }
@@ -345,7 +354,10 @@
     font-size: 0.65rem;
     opacity: 0.3;
     flex-shrink: 0;
-    transition: all 0.18s ease;
+    transition:
+        opacity var(--app-transition-base),
+        color var(--app-transition-base),
+        transform var(--app-transition-base);
 }
 
 .action-card--upload:hover {
@@ -365,12 +377,12 @@
 }
 
 .action-card--delete:hover {
-    background: rgba(239, 68, 68, 0.05);
-    border-color: rgba(239, 68, 68, 0.2);
+    background: color-mix(in srgb, var(--p-red-500) 5%, transparent);
+    border-color: color-mix(in srgb, var(--p-red-500) 20%, transparent);
     transform: translateX(2px);
 
     .action-icon--red {
-        background: rgba(239, 68, 68, 0.18);
+        background: color-mix(in srgb, var(--p-red-500) 18%, transparent);
         transform: scale(1.05);
     }
 
@@ -390,24 +402,28 @@
     gap: 8px;
     width: 100%;
     padding: 11px 14px;
-    border: 1px solid rgba(239, 68, 68, 0.22);
-    border-radius: 12px;
-    background: rgba(239, 68, 68, 0.07);
+    border: 1px solid color-mix(in srgb, var(--p-red-500) 22%, transparent);
+    border-radius: var(--app-radius-lg);
+    background: color-mix(in srgb, var(--p-red-500) 7%, transparent);
     color: var(--p-red-500);
     font: inherit;
-    font-size: 0.875rem;
-    font-weight: 600;
+    font-size: var(--app-text-sm);
+    font-weight: var(--app-font-semibold);
     cursor: pointer;
-    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        background var(--app-transition-base),
+        border-color var(--app-transition-base),
+        color var(--app-transition-base),
+        transform var(--app-transition-base);
 
     i {
         font-size: 0.95rem;
-        transition: transform 0.18s ease;
+        transition: transform var(--app-transition-base);
     }
 
     &:hover {
-        background: rgba(239, 68, 68, 0.13);
-        border-color: rgba(239, 68, 68, 0.38);
+        background: color-mix(in srgb, var(--p-red-500) 13%, transparent);
+        border-color: color-mix(in srgb, var(--p-red-500) 38%, transparent);
         color: var(--p-red-600);
 
         i {
@@ -427,8 +443,8 @@
 }
 
 .settings-title {
-    font-size: 0.875rem;
-    font-weight: 600;
+    font-size: var(--app-text-sm);
+    font-weight: var(--app-font-semibold);
     color: var(--p-text-color);
 }
 
@@ -439,15 +455,19 @@
     width: 30px;
     height: 30px;
     flex-shrink: 0;
-    border-radius: 8px;
+    border-radius: var(--app-radius-md);
     border: 1px solid var(--p-surface-200);
     background: var(--p-surface-0);
     color: var(--p-text-color-secondary);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition:
+        background var(--app-transition-base),
+        border-color var(--app-transition-base),
+        color var(--app-transition-base),
+        transform var(--app-transition-base);
 
     i {
-        font-size: 0.75rem;
+        font-size: var(--app-text-xs);
     }
 
     &:hover {
@@ -471,8 +491,8 @@
     justify-content: space-between;
     gap: 12px;
     padding: 10px 12px;
-    border-radius: 10px;
-    transition: background 0.15s ease;
+    border-radius: var(--app-radius-md);
+    transition: background var(--app-transition-fast);
 
     &:hover {
         background: var(--p-surface-50);
@@ -480,8 +500,8 @@
 }
 
 .setting-label {
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--app-text-sm);
+    font-weight: var(--app-font-medium);
     color: var(--p-text-color);
     flex-shrink: 0;
 }
@@ -518,7 +538,6 @@
             rgba(255, 255, 255, 0.03) 100%
         );
         border-color: rgba(255, 255, 255, 0.12);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
         &:hover {
             background: linear-gradient(
@@ -527,7 +546,6 @@
                 rgba(255, 255, 255, 0.05) 100%
             );
             border-color: var(--p-primary-400);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
         }
 
         &.active {
@@ -539,10 +557,6 @@
     .dropdown-menu {
         background: rgba(20, 20, 26, 0.97);
         border-color: rgba(255, 255, 255, 0.1);
-        box-shadow:
-            0 4px 6px rgba(0, 0, 0, 0.15),
-            0 16px 40px rgba(0, 0, 0, 0.5),
-            0 32px 64px rgba(0, 0, 0, 0.35);
     }
 
     .user-card,
@@ -578,8 +592,8 @@
         }
 
         .action-icon--red {
-            background: rgba(239, 68, 68, 0.18);
-            color: #ff6b6b;
+            background: color-mix(in srgb, var(--p-red-500) 18%, transparent);
+            color: var(--p-red-400);
         }
 
         &.action-card--upload:hover {
@@ -592,24 +606,28 @@
         }
 
         &.action-card--delete:hover {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.3);
+            background: color-mix(in srgb, var(--p-red-500) 10%, transparent);
+            border-color: color-mix(in srgb, var(--p-red-500) 30%, transparent);
 
             .action-icon--red {
-                background: rgba(239, 68, 68, 0.25);
+                background: color-mix(
+                    in srgb,
+                    var(--p-red-500) 25%,
+                    transparent
+                );
             }
         }
     }
 
     .logout-btn {
-        border-color: rgba(239, 68, 68, 0.25);
-        background: rgba(239, 68, 68, 0.09);
-        color: #ff6b6b;
+        border-color: color-mix(in srgb, var(--p-red-500) 25%, transparent);
+        background: color-mix(in srgb, var(--p-red-500) 9%, transparent);
+        color: var(--p-red-400);
 
         &:hover {
-            background: rgba(239, 68, 68, 0.18);
-            border-color: rgba(239, 68, 68, 0.4);
-            color: #ff8a8a;
+            background: color-mix(in srgb, var(--p-red-500) 18%, transparent);
+            border-color: color-mix(in srgb, var(--p-red-500) 40%, transparent);
+            color: var(--p-red-300);
         }
     }
 

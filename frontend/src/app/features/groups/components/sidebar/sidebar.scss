@@ -21,7 +21,7 @@
     width: 260px;
     height: 100%;
     flex-shrink: 0;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width var(--app-transition-slow);
 
     &.collapsed {
         width: 68px;
@@ -44,8 +44,8 @@
     background: var(--p-surface-0);
     border-right: 1px solid var(--p-surface-200);
     transition:
-        width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width var(--app-transition-slow),
+        transform var(--app-transition-slow);
     overflow: hidden;
 
     &.collapsed {
@@ -359,7 +359,7 @@
 
     &::-webkit-scrollbar-thumb {
         background: var(--p-surface-300);
-        border-radius: 4px;
+        border-radius: var(--app-radius-full);
     }
 }
 
@@ -370,14 +370,17 @@
     width: 100%;
     padding: 0.75rem 1rem;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--app-radius-md);
     background: transparent;
     color: var(--p-text-muted-color);
     font-size: 0.9375rem;
-    font-weight: 500;
+    font-weight: var(--app-font-medium);
     text-align: left;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition:
+        background var(--app-transition-base),
+        color var(--app-transition-base),
+        filter var(--app-transition-base);
 
     i {
         font-size: 1.125rem;
@@ -437,15 +440,17 @@
     gap: 0.5rem;
     padding: 0.25rem 0.5rem;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--app-radius-sm);
     background: transparent;
     color: var(--p-text-muted-color);
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: var(--app-text-xs);
+    font-weight: var(--app-font-semibold);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition:
+        background var(--app-transition-base),
+        color var(--app-transition-base);
     position: relative; // For expansion dot
 
     &:hover {
@@ -534,11 +539,14 @@
     height: 30px; // Smaller size
     padding: 0;
     border: 1.5px solid transparent;
-    border-radius: 10px;
+    border-radius: var(--app-radius-md);
     background: var(--p-surface-100);
     color: var(--p-text-color);
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        transform var(--app-transition-base),
+        background var(--app-transition-base),
+        box-shadow var(--app-transition-base);
     position: relative;
     overflow: hidden;
 
@@ -595,9 +603,9 @@
     gap: 0.5rem;
     width: 100%;
     padding: 0.375rem 0.5rem;
-    border-radius: 8px;
+    border-radius: var(--app-radius-md);
     background: transparent;
-    transition: all 0.2s ease;
+    transition: background var(--app-transition-base);
 
     &:hover {
         background: var(--p-surface-100);
@@ -633,9 +641,9 @@
     flex: 1;
     min-width: 0;
     color: var(--p-text-muted-color);
-    font-size: 0.875rem;
+    font-size: var(--app-text-sm);
     cursor: pointer;
-    transition: color 0.2s ease;
+    transition: color var(--app-transition-base);
 
     &:hover {
         color: var(--p-text-color);
