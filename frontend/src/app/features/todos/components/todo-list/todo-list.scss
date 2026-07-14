@@ -55,7 +55,7 @@
 }
 
 .todo-shortcuts-hint {
-    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+    font-family: var(--app-font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.04em;
     color: var(--p-text-muted-color, var(--p-surface-500));
@@ -82,7 +82,7 @@
     padding: 0.65rem 0.85rem;
     margin: 0 -0.5rem 0.85rem;
     border: 1px solid var(--p-content-border-color);
-    border-radius: 14px;
+    border-radius: var(--app-radius-lg);
     /* --p-content-background adapts: surface.0 in light, surface.900 in dark */
     background: color-mix(
         in srgb,
@@ -112,7 +112,7 @@
     align-items: center;
     gap: 0.35rem;
     padding: 0.2rem;
-    border-radius: 999px;
+    border-radius: var(--app-radius-full);
     background: color-mix(
         in srgb,
         var(--p-content-border-color) 55%,
@@ -134,7 +134,7 @@
     background: transparent;
     color: var(--p-text-color);
     border: 0;
-    border-radius: 999px;
+    border-radius: var(--app-radius-full);
     padding: 0.4rem 0.85rem;
     display: inline-flex;
     align-items: center;
@@ -144,9 +144,9 @@
     line-height: 1;
     cursor: pointer;
     transition:
-        background 0.18s ease,
-        color 0.18s ease,
-        transform 0.18s ease;
+        background var(--app-transition-base),
+        color var(--app-transition-base),
+        transform var(--app-transition-base);
     white-space: nowrap;
 
     &:hover:not(.active) {
@@ -165,15 +165,13 @@
     &.active {
         background: var(--p-surface-0);
         color: var(--p-text-color);
-        box-shadow:
-            0 1px 2px rgba(0, 0, 0, 0.08),
-            0 4px 12px -4px rgba(0, 0, 0, 0.18);
+        box-shadow: var(--app-shadow-sm);
     }
 
     .pill-dot {
         width: 8px;
         height: 8px;
-        border-radius: 999px;
+        border-radius: var(--app-radius-full);
         background: var(--dot-color);
         flex-shrink: 0;
         box-shadow: 0 0 0 2px
@@ -187,11 +185,11 @@
     }
 
     .pill-count {
-        font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+        font-family: var(--app-font-mono);
         font-size: 0.72rem;
         font-weight: 600;
         padding: 0.1rem 0.4rem;
-        border-radius: 6px;
+        border-radius: var(--app-radius-sm);
         background: color-mix(in srgb, var(--dot-color) 18%, transparent);
         color: var(--dot-color);
         min-width: 1.4rem;
@@ -215,13 +213,11 @@
     }
 }
 
-/* Dark mode: active pill uses a dark surface instead of white */
+/* Dark mode: active pill uses a dark surface instead of white
+   (cień przełącza się sam przez nadpisanie --app-shadow-sm w .dark) */
 :host-context(.dark) {
     .pill.active {
         background: var(--p-surface-700);
-        box-shadow:
-            0 1px 2px rgba(0, 0, 0, 0.25),
-            0 4px 12px -4px rgba(0, 0, 0, 0.4);
     }
 }
 
@@ -243,23 +239,23 @@
         font-size: 0.85rem;
         color: var(--p-text-muted-color, var(--p-surface-400));
         pointer-events: none;
-        transition: color 0.18s ease;
+        transition: color var(--app-transition-base);
     }
 
     .search-input {
         width: 100%;
         height: 36px;
         padding: 0 2.4rem 0 2.2rem;
-        border-radius: 10px;
+        border-radius: var(--app-radius-md);
         border: 1px solid var(--p-form-field-border-color);
         /* form-field-background: surface.0 in light, surface.950 in dark */
         background: var(--p-form-field-background);
         color: var(--p-text-color);
         font-size: 0.85rem;
         transition:
-            border-color 0.18s ease,
-            background 0.18s ease,
-            box-shadow 0.18s ease;
+            border-color var(--app-transition-base),
+            background var(--app-transition-base),
+            box-shadow var(--app-transition-base);
 
         &::placeholder {
             color: var(--p-form-field-placeholder-color);
@@ -270,12 +266,7 @@
             outline: none;
             border-color: var(--p-primary-500, #3b82f6);
             background: var(--p-content-background);
-            box-shadow: 0 0 0 3px
-                color-mix(
-                    in srgb,
-                    var(--p-primary-500, #3b82f6) 18%,
-                    transparent
-                );
+            box-shadow: var(--app-focus-ring);
         }
     }
 
@@ -288,11 +279,11 @@
         right: 0.55rem;
         top: 50%;
         transform: translateY(-50%);
-        font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+        font-family: var(--app-font-mono);
         font-size: 0.7rem;
         font-weight: 600;
         padding: 0.15rem 0.4rem;
-        border-radius: 5px;
+        border-radius: var(--app-radius-xs);
         border: 1px solid var(--p-content-border-color);
         background: var(--p-content-background);
         color: var(--p-text-muted-color);
@@ -313,11 +304,11 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 6px;
+        border-radius: var(--app-radius-sm);
         color: var(--p-text-muted-color);
         cursor: pointer;
         font-size: 0.75rem;
-        transition: background 0.18s ease;
+        transition: background var(--app-transition-base);
 
         &:hover {
             background: color-mix(
@@ -372,7 +363,7 @@
     position: relative;
     flex: 1;
     height: 5px;
-    border-radius: 999px;
+    border-radius: var(--app-radius-full);
     background: color-mix(
         in srgb,
         var(--p-content-border-color) 80%,
@@ -386,7 +377,7 @@
     position: absolute;
     inset: 0 auto 0 0;
     width: 0;
-    border-radius: 999px;
+    border-radius: var(--app-radius-full);
     background: linear-gradient(
         90deg,
         var(--p-primary-500, #3b82f6),
@@ -400,7 +391,7 @@
     display: inline-flex;
     align-items: baseline;
     gap: 0.4rem;
-    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+    font-family: var(--app-font-mono);
     font-size: 0.72rem;
     font-weight: 500;
     color: var(--p-text-muted-color);
@@ -439,7 +430,7 @@
     }
     &::-webkit-scrollbar-thumb {
         background: var(--p-content-border-color);
-        border-radius: 10px;
+        border-radius: var(--app-radius-full);
     }
     &::-webkit-scrollbar-thumb:hover {
         background: var(--p-surface-400);
@@ -464,15 +455,15 @@
     align-items: start;
     gap: 0.65rem;
     padding: 0.65rem 0.85rem;
-    border-radius: 10px;
+    border-radius: var(--app-radius-md);
     /* --p-content-background: surface.0 (white) in light, surface.900 in dark */
     background: var(--p-content-background);
     border: 1px solid var(--p-content-border-color);
     transition:
-        background 0.18s ease,
-        border-color 0.18s ease,
-        transform 0.18s ease,
-        box-shadow 0.18s ease;
+        background var(--app-transition-base),
+        border-color var(--app-transition-base),
+        transform var(--app-transition-base),
+        box-shadow var(--app-transition-base);
     cursor: default;
 
     &:hover {
@@ -497,8 +488,7 @@
 
     &.is-focused {
         border-color: var(--p-primary-500, #3b82f6);
-        box-shadow: 0 0 0 3px
-            color-mix(in srgb, var(--p-primary-500, #3b82f6) 18%, transparent);
+        box-shadow: var(--app-focus-ring);
     }
 
     &.is-completed {
@@ -536,8 +526,8 @@
     color: var(--p-text-muted-color);
     cursor: grab;
     opacity: 0;
-    transition: opacity 0.18s ease;
-    border-radius: 4px;
+    transition: opacity var(--app-transition-base);
+    border-radius: var(--app-radius-xs);
 
     i {
         font-size: 0.7rem;
@@ -594,7 +584,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    transition: color 0.18s ease;
+    transition: color var(--app-transition-base);
 
     &.is-strike {
         text-decoration: line-through;
@@ -614,8 +604,8 @@
     opacity: 0;
     transform: translateX(4px);
     transition:
-        opacity 0.18s ease,
-        transform 0.18s ease;
+        opacity var(--app-transition-base),
+        transform var(--app-transition-base);
     pointer-events: none;
 }
 
@@ -628,12 +618,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: var(--app-radius-sm);
     color: var(--p-text-muted-color);
     cursor: pointer;
     transition:
-        background 0.18s ease,
-        color 0.18s ease;
+        background var(--app-transition-base),
+        color var(--app-transition-base);
 
     i {
         font-size: 0.78rem;
