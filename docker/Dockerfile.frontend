@@ -8,8 +8,8 @@ WORKDIR /app
 # Copy package files
 COPY frontend/package*.json ./
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Install exactly what package-lock.json pins - reproducible builds
+RUN npm ci
 
 # Copy source code
 COPY frontend/ .
