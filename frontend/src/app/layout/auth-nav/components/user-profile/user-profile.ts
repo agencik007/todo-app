@@ -141,7 +141,7 @@ export class UserProfileComponent {
                     });
                     this.#authStore.loadAvatar();
                 },
-                error: (error: any) => {
+                error: (error: unknown) => {
                     console.error(error);
                 },
             });
@@ -155,7 +155,7 @@ export class UserProfileComponent {
                 this.#authStore.loadAvatar();
                 this.isMenuOpen.set(false);
             },
-            error: (error: any) => {
+            error: (error: unknown) => {
                 console.error(error);
             },
         });

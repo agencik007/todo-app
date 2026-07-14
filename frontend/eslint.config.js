@@ -76,7 +76,9 @@ module.exports = defineConfig(
         rules: {
             "@typescript-eslint/explicit-function-return-type": "error",
             "@typescript-eslint/no-inferrable-types": "off",
-            "@typescript-eslint/no-explicit-any": "off",
+            // Surface remaining `any` usages without failing the build; new code
+            // should prefer `unknown` + narrowing (see core/utils/api-error.util.ts).
+            "@typescript-eslint/no-explicit-any": "warn",
             "@typescript-eslint/consistent-type-definitions": "off",
             "@typescript-eslint/consistent-indexed-object-style": "off",
             "@angular-eslint/prefer-inject": ["off"],

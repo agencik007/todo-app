@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Group, GroupCreate, GroupsService, GroupUpdate } from '@api';
+import { extractApiMessageCode } from '../../../core/utils/api-error.util';
 
 /**
  * GroupStore - Centralized state management for groups using Angular Signals.
@@ -68,12 +69,11 @@ export class GroupStore {
                 this.#groups.set(groups);
                 this.#loading.set(false);
             },
-            error: (err) => {
-                const errorDetail = err.error?.detail;
-                const messageCode =
-                    errorDetail?.messageCode || err.error?.messageCode;
+            error: (err: unknown) => {
                 this.#error.set(
-                    messageCode || err.message || 'Failed to load groups',
+                    extractApiMessageCode(err) ??
+                        (err instanceof Error ? err.message : null) ??
+                        'Failed to load groups',
                 );
                 this.#loading.set(false);
             },

@@ -6,6 +6,7 @@ import {
     signal,
 } from '@angular/core';
 import { Todo, TodoCreate, TodoUpdate } from '@api';
+import { extractApiMessageCode } from '../../../core/utils/api-error.util';
 import { GroupStore } from '../../groups/store/group.store';
 import { TodoService } from '../services/todo.service';
 
@@ -38,12 +39,9 @@ export class TodoStore {
     readonly error = computed(() => {
         const err = this.#todoService.todosResource.error();
         if (err) {
-            const msg =
-                (err as any)?.error?.detail?.messageCode ||
-                (err as any)?.error?.messageCode ||
-                (err as any)?.message ||
-                'An error occurred';
-            return msg as string;
+            return (
+                extractApiMessageCode(err) ?? err.message ?? 'An error occurred'
+            );
         }
         return null;
     });

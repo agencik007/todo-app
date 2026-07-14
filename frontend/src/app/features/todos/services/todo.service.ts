@@ -31,7 +31,7 @@ export class TodoService {
         return this.#todosService.updateTodoTodosTodoIdPut(id, todo);
     }
 
-    deleteTodo(id: number): Observable<{ [key: string]: any }> {
+    deleteTodo(id: number): Observable<unknown> {
         return this.#todosService.deleteTodoTodosTodoIdDelete(id);
     }
 

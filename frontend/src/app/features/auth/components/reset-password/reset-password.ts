@@ -14,6 +14,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
+import { extractApiMessageCode } from '../../../../core/utils/api-error.util';
 import { AuthService } from '../../services/auth.service';
 
 interface ResetPasswordData {
@@ -119,9 +120,8 @@ export class ResetPasswordComponent {
                 this.isLoading.set(false);
                 setTimeout(() => this.router.navigate(['/login']), 2000);
             },
-            error: (err) => {
-                const messageCode =
-                    err.error?.detail?.messageCode || err.error?.messageCode;
+            error: (err: unknown) => {
+                const messageCode = extractApiMessageCode(err);
 
                 if (messageCode) {
                     this.error.set(

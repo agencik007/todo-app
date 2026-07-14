@@ -5,6 +5,7 @@ import {
     OnDestroy,
     PLATFORM_ID,
     signal,
+    WritableSignal,
 } from '@angular/core';
 
 @Injectable({
@@ -47,7 +48,10 @@ export class ScreenSizeService implements OnDestroy {
         this.updateCompact();
     }
 
-    private setupQuery(queryStr: string, signalToUpdate: any): void {
+    private setupQuery(
+        queryStr: string,
+        signalToUpdate: WritableSignal<boolean>,
+    ): void {
         const query = window.matchMedia(queryStr);
         const listener = (event: MediaQueryListEvent): void => {
             signalToUpdate.set(event.matches);

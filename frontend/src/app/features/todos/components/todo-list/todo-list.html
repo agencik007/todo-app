@@ -315,12 +315,12 @@
 
                                     <!-- Line 2: meta -->
                                     <div class="row-line-2">
-                                        @if (todo.groupId && getGroupById(todo.groupId)) {
+                                        @if (getGroupById(todo.groupId); as todoGroup) {
                                             <app-group-badge
                                                 tooltipPosition="top"
                                                 size="sm"
                                                 [pTooltip]="'TODOS.LIST.TOOLTIP_GROUP' | translate"
-                                                [group]="getGroupById(todo.groupId)"
+                                                [group]="todoGroup"
                                             />
                                             <span
                                                 class="meta-sep"

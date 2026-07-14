@@ -19,6 +19,7 @@ import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { LoginAnimationService } from '../../../../core/services/login-animation.service';
 import { AuthStore } from '../../../../core/store/auth.store';
+import { extractApiMessageCode } from '../../../../core/utils/api-error.util';
 import { AuthService } from '../../services/auth.service';
 
 interface LoginData {
@@ -112,9 +113,8 @@ export class LoginComponent {
                     },
                 });
             },
-            error: (err) => {
-                const messageCode =
-                    err.error?.detail?.messageCode || err.error?.messageCode;
+            error: (err: unknown) => {
+                const messageCode = extractApiMessageCode(err);
 
                 this.error.set(
                     messageCode
