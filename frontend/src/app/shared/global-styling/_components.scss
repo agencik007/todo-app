@@ -1,7 +1,7 @@
 .p-menu {
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 0.5rem 0;
+    border-radius: var(--app-radius-lg);
+    box-shadow: var(--app-shadow-md);
+    padding: var(--app-space-2) 0;
 }
 
 .logout-item {
@@ -17,7 +17,11 @@
 }
 
 .dark .logout-item .p-menuitem-link:hover {
-    background: rgba(239, 68, 68, 0.1) !important;
+    background: color-mix(
+        in srgb,
+        var(--p-red-500) 10%,
+        transparent
+    ) !important;
 }
 
 .premium-dialog {
@@ -25,8 +29,8 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 1.25rem 1.5rem;
-        gap: 1rem;
+        padding: 1.25rem var(--app-space-5);
+        gap: var(--app-space-4);
 
         .p-dialog-title {
             margin-right: auto;
@@ -35,8 +39,8 @@
         .dialog-header-actions {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-left: 1rem;
+            gap: var(--app-space-2);
+            margin-left: var(--app-space-4);
         }
 
         .p-dialog-header-actions {

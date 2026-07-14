@@ -1,62 +1,65 @@
-// Kolory grup - badge, tagi, ikony
+// Kolory grup - badge, tagi, ikony.
+// Odcienie z palet PrimeUIX (--p-{kolor}-{50..950}) — te same wartości,
+// które wcześniej były zapisane hexami (green→emerald, yellow→amber,
+// purple→violet, bo tym paletom odpowiadały oryginalne hexy).
 .group-color-blue {
-    --group-color: #3b82f6;
-    --group-color-light: #dbeafe;
-    --group-color-dark: #1e40af;
+    --group-color: var(--p-blue-500);
+    --group-color-light: var(--p-blue-100);
+    --group-color-dark: var(--p-blue-800);
 }
 
 .group-color-green {
-    --group-color: #10b981;
-    --group-color-light: #d1fae5;
-    --group-color-dark: #047857;
+    --group-color: var(--p-emerald-500);
+    --group-color-light: var(--p-emerald-100);
+    --group-color-dark: var(--p-emerald-700);
 }
 
 .group-color-red {
-    --group-color: #ef4444;
-    --group-color-light: #fee2e2;
-    --group-color-dark: #b91c1c;
+    --group-color: var(--p-red-500);
+    --group-color-light: var(--p-red-100);
+    --group-color-dark: var(--p-red-700);
 }
 
 .group-color-yellow {
-    --group-color: #f59e0b;
-    --group-color-light: #fef3c7;
-    --group-color-dark: #d97706;
+    --group-color: var(--p-amber-500);
+    --group-color-light: var(--p-amber-100);
+    --group-color-dark: var(--p-amber-600);
 }
 
 .group-color-purple {
-    --group-color: #8b5cf6;
-    --group-color-light: #ede9fe;
-    --group-color-dark: #6d28d9;
+    --group-color: var(--p-violet-500);
+    --group-color-light: var(--p-violet-100);
+    --group-color-dark: var(--p-violet-700);
 }
 
 .group-color-pink {
-    --group-color: #ec4899;
-    --group-color-light: #fce7f3;
-    --group-color-dark: #be185d;
+    --group-color: var(--p-pink-500);
+    --group-color-light: var(--p-pink-100);
+    --group-color-dark: var(--p-pink-700);
 }
 
 .group-color-orange {
-    --group-color: #f97316;
-    --group-color-light: #ffedd5;
-    --group-color-dark: #c2410c;
+    --group-color: var(--p-orange-500);
+    --group-color-light: var(--p-orange-100);
+    --group-color-dark: var(--p-orange-700);
 }
 
 .group-color-teal {
-    --group-color: #14b8a6;
-    --group-color-light: #ccfbf1;
-    --group-color-dark: #0f766e;
+    --group-color: var(--p-teal-500);
+    --group-color-light: var(--p-teal-100);
+    --group-color-dark: var(--p-teal-700);
 }
 
 .group-color-indigo {
-    --group-color: #6366f1;
-    --group-color-light: #e0e7ff;
-    --group-color-dark: #4338ca;
+    --group-color: var(--p-indigo-500);
+    --group-color-light: var(--p-indigo-100);
+    --group-color-dark: var(--p-indigo-700);
 }
 
 .group-color-gray {
-    --group-color: #6b7280;
-    --group-color-light: #f3f4f6;
-    --group-color-dark: #374151;
+    --group-color: var(--p-gray-500);
+    --group-color-light: var(--p-gray-100);
+    --group-color-dark: var(--p-gray-700);
 }
 
 // Wspólne style dla elementów z kolorami grup
@@ -66,14 +69,16 @@
     &.badge {
         background-color: var(--group-color-light);
         border: 1px solid var(--group-color);
-        padding: 0.25rem 0.75rem;
-        border-radius: 1rem;
-        font-size: 0.875rem;
-        font-weight: 500;
+        padding: var(--app-space-1) var(--app-space-3);
+        border-radius: var(--app-radius-full);
+        font-size: var(--app-text-sm);
+        font-weight: var(--app-font-medium);
         display: inline-flex;
         align-items: center;
         gap: 0.375rem;
-        transition: all 0.2s ease;
+        transition:
+            background-color var(--app-transition-base),
+            color var(--app-transition-base);
 
         &:hover {
             background-color: var(--group-color);
@@ -98,7 +103,10 @@
         background-color: var(--group-color);
         border: 2px solid rgba(255, 255, 255, 0.1);
         cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        transition:
+            transform var(--app-transition-base),
+            box-shadow var(--app-transition-base),
+            border-color var(--app-transition-base);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -134,7 +142,7 @@
         }
 
         i {
-            font-size: 0.875rem;
+            font-size: var(--app-text-sm);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
             z-index: 1;
         }

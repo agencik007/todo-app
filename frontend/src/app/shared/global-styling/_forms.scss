@@ -1,7 +1,5 @@
-@use './variables';
-
 .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: var(--app-space-4);
 }
 
 .p-inputtext,
@@ -11,8 +9,8 @@
 
 .p-error {
     color: var(--p-red-500);
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
+    font-size: var(--app-text-sm);
+    margin-top: var(--app-space-1);
     display: block;
 }
 
@@ -23,8 +21,8 @@
     ); // Fallback to Cyan-700 if variable doesn't exist
     text-decoration: none;
     cursor: pointer;
-    font-weight: 500;
-    transition: color 0.2s;
+    font-weight: var(--app-font-medium);
+    transition: color var(--app-transition-base);
 
     &:hover {
         color: var(--p-primary-800, #155e75);
@@ -34,6 +32,6 @@
     &:focus-visible {
         outline: 2px solid var(--p-primary-color);
         outline-offset: 2px;
-        border-radius: 4px;
+        border-radius: var(--app-radius-xs);
     }
 }

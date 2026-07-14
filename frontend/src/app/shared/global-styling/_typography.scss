@@ -1,18 +1,36 @@
-@use './variables';
-
-html, body {
-  font-family: 'JetBrains Mono', monospace;
+html,
+body {
+    font-family: var(--app-font-mono);
 }
 
-.mb-2 { margin-bottom: 0.5rem; }
-.mb-3 { margin-bottom: 1rem; }
-.mb-4 { margin-bottom: 1.5rem; }
-.mt-1 { margin-top: 0.25rem; }
-.mt-4 { margin-top: 1.5rem; }
-.m-0 { margin: 0; }
+.mb-2 {
+    margin-bottom: var(--app-space-2);
+}
+.mb-3 {
+    margin-bottom: var(--app-space-4);
+}
+.mb-4 {
+    margin-bottom: var(--app-space-5);
+}
+.mt-1 {
+    margin-top: var(--app-space-1);
+}
+.mt-4 {
+    margin-top: var(--app-space-5);
+}
+.m-0 {
+    margin: 0;
+}
 
-.text-color-secondary { color: var(--p-text-muted-color); }
-.text-sm { font-size: 0.875rem; }
-.font-bold { font-weight: 700; }
-.font-semibold { font-weight: 600; }
-
+.text-color-secondary {
+    color: var(--p-text-muted-color);
+}
+.text-sm {
+    font-size: var(--app-text-sm);
+}
+.font-bold {
+    font-weight: var(--app-font-bold);
+}
+.font-semibold {
+    font-weight: var(--app-font-semibold);
+}

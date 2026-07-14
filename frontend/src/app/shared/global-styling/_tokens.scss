@@ -1,0 +1,68 @@
+// Design tokens — warstwa aplikacyjna nad tokenami motywu PrimeUIX (--p-*).
+// Kolory zawsze z motywu: semantyczne (--p-primary-*, --p-surface-*, --p-text-color,
+// --p-text-muted-color, --p-content-border-color) i palety (--p-{red,blue,amber,...}-{50..950}).
+// Tutaj mieszkają wyłącznie wartości, których motyw nie definiuje.
+
+:root {
+    // Typografia
+    --app-font-mono: 'JetBrains Mono', monospace;
+    --p-font-family: var(--app-font-mono);
+
+    --app-text-xs: 0.75rem;
+    --app-text-sm: 0.875rem;
+    --app-text-base: 1rem;
+    --app-text-lg: 1.125rem;
+    --app-text-xl: 1.25rem;
+    --app-text-2xl: 1.5rem;
+
+    --app-font-medium: 500;
+    --app-font-semibold: 600;
+    --app-font-bold: 700;
+
+    // Odstępy
+    --app-space-1: 0.25rem;
+    --app-space-2: 0.5rem;
+    --app-space-3: 0.75rem;
+    --app-space-4: 1rem;
+    --app-space-5: 1.5rem;
+    --app-space-6: 2rem;
+    --app-space-7: 2.5rem;
+    --app-space-8: 3rem;
+
+    // Promienie
+    --app-radius-xs: 4px;
+    --app-radius-sm: 6px;
+    --app-radius-md: 8px;
+    --app-radius-lg: 12px;
+    --app-radius-xl: 16px;
+    --app-radius-full: 999px;
+
+    // Cienie (elewacja) — ciemne odpowiedniki nadpisuje .dark poniżej
+    --app-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --app-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --app-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.15);
+    --app-shadow-overlay:
+        0 4px 6px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.1),
+        0 24px 56px rgba(0, 0, 0, 0.08);
+    --app-focus-ring: 0 0 0 3px
+        color-mix(in srgb, var(--p-primary-500) 18%, transparent);
+
+    // Przejścia
+    --app-transition-fast: 0.15s ease;
+    --app-transition-base: 0.2s ease;
+    --app-transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    // Szkło (panele z backdrop-filter)
+    --app-glass-blur: 12px;
+    --app-glass-border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark {
+    --app-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --app-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+    --app-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5);
+    --app-shadow-overlay:
+        0 4px 6px rgba(0, 0, 0, 0.2), 0 12px 32px rgba(0, 0, 0, 0.4),
+        0 24px 56px rgba(0, 0, 0, 0.3);
+    --app-glass-border: 1px solid rgba(255, 255, 255, 0.1);
+}
