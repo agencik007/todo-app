@@ -1,0 +1,36 @@
+{
+  "recommendations": [
+    // --- Backend: Python / FastAPI ---
+    // Ruff mirrors .lintstagedrc.js (`ruff format` + `ruff check --fix`), so
+    // format-on-save produces exactly what the pre-commit hook would.
+    "charliermarsh.ruff",
+    "ms-python.python",
+
+    // --- Frontend: Angular / TypeScript ---
+    "angular.ng-template",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+
+    // --- i18n: en.json / pl.json on both the frontend and backend side ---
+    "lokalise.i18n-ally",
+
+    // --- Infra ---
+    "ms-azuretools.vscode-docker",
+    "mikestead.dotenv",
+    "redhat.vscode-yaml",
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg",
+
+    // --- Quality of life ---
+    "eamodio.gitlens",
+    "usernamehw.errorlens",
+    "streetsidesoftware.code-spell-checker",
+    "streetsidesoftware.code-spell-checker-polish"
+  ],
+
+  // Pylance is blocked by Microsoft in VSCode forks such as Cursor, which ships
+  // its own `anysphere.cursorpyright` instead. Installing Pylance by hand there
+  // creates a dependency cycle with ms-python.python.
+  "unwantedRecommendations": ["ms-python.vscode-pylance"]
+}
