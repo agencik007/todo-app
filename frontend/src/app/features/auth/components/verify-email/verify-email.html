@@ -24,31 +24,29 @@
         }
 
         @if (status() === 'success') {
-            <div class="flex flex-column align-items-center text-center py-4">
-                <i
-                    style="font-size: 4rem"
-                    class="pi pi-check-circle text-primary mb-4"
-                ></i>
-                <h2 class="mt-0 mb-3 text-xl">{{ message() }}</h2>
-                <p class="mb-4 text-secondary">
-                    {{ 'AUTH.VERIFY_EMAIL.SUCCESS_REDIRECT' | translate }}
-                </p>
+            <app-empty-state
+                tone="primary"
+                size="lg"
+                icon="pi-check-circle"
+                [heading]="message()"
+                [description]="'AUTH.VERIFY_EMAIL.SUCCESS_REDIRECT' | translate"
+            >
                 <p-button
                     styleClass="w-full"
                     routerLink="/login"
                     icon="pi pi-sign-in"
                     [label]="'AUTH.VERIFY_EMAIL.LOGIN_NOW' | translate"
                 />
-            </div>
+            </app-empty-state>
         }
 
         @if (status() === 'error') {
-            <div class="flex flex-column align-items-center text-center py-4">
-                <i
-                    style="font-size: 4rem"
-                    class="pi pi-times-circle text-red-500 mb-4"
-                ></i>
-                <h3 class="mt-0 mb-3 text-xl">{{ message() }}</h3>
+            <app-empty-state
+                tone="danger"
+                size="lg"
+                icon="pi-times-circle"
+                [heading]="message()"
+            >
                 <p-message
                     styleClass="w-full mb-4"
                     severity="error"
@@ -69,7 +67,7 @@
                         [label]="'AUTH.VERIFY_EMAIL.REGISTER_AGAIN' | translate"
                     />
                 </div>
-            </div>
+            </app-empty-state>
         }
     </p-card>
 </main>

@@ -31,12 +31,13 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { AuthStore } from '../../../../core/store/auth.store';
+import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
+import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { IconButtonDirective } from '../../../../shared/ui/icon-button/icon-button.directive';
 import {
     formatDateTime,
     relativeTimeFrom,
 } from '../../../../shared/utils/date.util';
-import { GroupBadgeComponent } from '../../../groups/components/group-badge/group-badge.component';
 import { SidebarComponent } from '../../../groups/components/sidebar/sidebar.component';
 import { GroupStore } from '../../../groups/store/group.store';
 import { TodoStore } from '../../store/todo.store';
@@ -62,8 +63,9 @@ type StatusFilter = 'all' | 'pending' | 'completed';
         DragDropModule,
         TooltipModule,
         SidebarComponent,
-        GroupBadgeComponent,
+        BadgeComponent,
         IconButtonDirective,
+        EmptyStateComponent,
     ],
     providers: [ConfirmationService],
     templateUrl: './todo-list.html',

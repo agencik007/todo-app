@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -17,6 +18,7 @@ import { AuthService } from '../../services/auth.service';
         ProgressSpinnerModule,
         MessageModule,
         TranslatePipe,
+        EmptyStateComponent,
     ],
     templateUrl: './verify-email.html',
     styleUrl: './verify-email.scss',
