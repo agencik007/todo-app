@@ -43,7 +43,7 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 | Frontend tests                                              | None yet — `angular.json` has no `test` target                                |
 | Migrate to head                                             | `make migrate`                                                                |
 | New migration (autogenerate)                                | `DC exec backend alembic revision --autogenerate -m "description"`            |
-| Regenerate API types after backend changes                  | `cd frontend && npm run generate-api` — on the host, see [OpenAPI](#openapi)  |
+| Regenerate API types after backend changes                  | `make generate-api` — see [OpenAPI](#openapi)                                 |
 | Backend shell                                               | `make shell-backend`                                                          |
 | Database shell                                              | `make shell-db`                                                               |
 
@@ -51,7 +51,7 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 
 ## Workflow — before you finish a task
 
-1. **Backend:** if you changed models/schemas/routes → regenerate OpenAPI (`npm run generate-api`).
+1. **Backend:** if you changed models/schemas/routes → regenerate OpenAPI (`make generate-api`) and commit the regenerated files.
 2. **Backend:** if you changed models → create an Alembic migration (`alembic revision --autogenerate`), review it, then run `make migrate`.
 3. **Frontend:** run lint (`make lint-frontend`) before considering the task done.
 4. **Tests:** if you touched backend logic → run `make test-backend`. The frontend has no test runner yet, so lint + `ng build` are the checks there.
@@ -122,16 +122,23 @@ Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`.
 
 ### OpenAPI
 
-After changes to models, schemas, or routes, regenerate the OpenAPI models:
+After changes to models, schemas, or routes, regenerate the OpenAPI schema and the frontend client:
 
 ```bash
-cd frontend
-npm run generate-api
+make generate-api
 ```
 
-This produces TypeScript interfaces and enums in `frontend/src/libs/generated-api/`.
+It runs two steps, both in Docker (no running stack and no local Python/Java needed, only `docker/docker.env`):
 
-> **Exception to Docker-first:** this script can't run inside the containers — the frontend image (`node:22-alpine`) has no Python, no Java and no `backend/` directory. Run it on the host; it needs Python with `backend/requirements.txt` installed, a `backend/.env` (the app is imported to export the schema), and Java for `openapi-generator-cli`.
+1. `backend/openapi/export_openapi.py` in the backend container writes `backend/openapi/openapi.json`. It also rewrites file-upload fields to `format: binary` — without that the generated upload methods lose `FormData`.
+2. The `openapi-generator` tool service (`docker-compose.override.yml`, profile `tools`, image `openapitools/openapi-generator-cli:v7.19.0`) removes the previously generated files and regenerates `frontend/src/libs/generated-api/` (TypeScript interfaces, enums and services, imported via `@api`).
+
+Rules:
+
+- Both outputs are committed. Commit them in the same change as the backend change that caused them.
+- Never edit `frontend/src/libs/generated-api/` by hand.
+- To upgrade the generator, bump the image tag in `docker-compose.override.yml`, regenerate and review the diff.
+- The pre-commit hook warns (does not block) when `backend/models/`, `backend/routes/` or `backend/main.py` are committed without `backend/openapi/openapi.json`.
 
 ---
 
@@ -406,6 +413,6 @@ Rules:
 
 ### Working with AI agents in this repo
 
-- Always use Docker-based commands (`make ...` or `docker-compose exec ...`). Do not rely on locally installed Python/Node — even the backend and `alembic` run through `docker-compose exec backend`. The only exception is `npm run generate-api` (see [OpenAPI](#openapi)).
+- Always use Docker-based commands (`make ...` or `docker-compose exec ...`). Do not rely on locally installed Python/Node — even the backend and `alembic` run through `docker-compose exec backend`.
 - Use absolute paths, not relative ones.
 - DRY & KISS: do not introduce abstractions speculatively.

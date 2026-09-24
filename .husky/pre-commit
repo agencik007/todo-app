@@ -1,1 +1,13 @@
 npx lint-staged
+
+# Warn (never block) when backend code that shapes the OpenAPI schema is committed
+# without a regenerated schema - the frontend @api types would silently go stale.
+staged=$(git diff --cached --name-only)
+if echo "$staged" | grep -qE '^backend/(models/|routes/|main\.py$)' &&
+  ! echo "$staged" | grep -qE '^backend/openapi/openapi\.json$'; then
+  echo ""
+  echo "WARNING: backend models/routes changed but backend/openapi/openapi.json is not staged."
+  echo "  If the API changed, run 'make generate-api' and commit the regenerated files"
+  echo "  (backend/openapi/openapi.json, frontend/src/libs/generated-api/)."
+  echo ""
+fi

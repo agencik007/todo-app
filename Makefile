@@ -1,6 +1,6 @@
 # Todo App - Docker Development Commands
 .PHONY: help dev prod build up down restart logs logs-backend logs-frontend logs-db logs-pgadmin \
-	clean clean-volumes shell-backend shell-db migrate test-backend lint-frontend status \
+	clean clean-volumes shell-backend shell-db migrate test-backend lint-frontend generate-api status \
 	quick-start quick-dev
 
 # Env files used for docker-compose variable interpolation (POSTGRES_*, SECRET_KEY,
@@ -22,6 +22,11 @@ COMPOSE = $(COMPOSE_DEV)
 else
 $(error STACK must be "dev" or "prod", got "$(STACK)")
 endif
+
+# Containers run by generate-api write into the repo as the host user, not as root
+# (skipped where `id` is unavailable, e.g. plain Windows cmd).
+HOST_UID := $(shell id -u 2>/dev/null)
+AS_HOST_USER = $(if $(HOST_UID),--user "$(HOST_UID):$(shell id -g)")
 
 # Default target
 help: ## Show this help message
@@ -84,6 +89,12 @@ test-backend: ## Run backend tests
 
 lint-frontend: ## Run frontend lint (there is no frontend test runner yet)
 	$(COMPOSE) exec frontend npm run lint
+
+# Dev-only: the backend bind mount (docker-compose.override.yml) is what puts openapi.json
+# on the host. Needs no running stack and no local Python/Java.
+generate-api: ## Regenerate OpenAPI schema + frontend API types (@api) after backend API changes
+	$(COMPOSE_DEV) run --rm --no-deps $(AS_HOST_USER) backend python openapi/export_openapi.py
+	$(COMPOSE_DEV) run --rm $(AS_HOST_USER) openapi-generator
 
 status: ## Show status of all services
 	$(COMPOSE) ps

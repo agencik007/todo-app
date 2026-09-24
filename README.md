@@ -676,7 +676,7 @@ Before adding a new ad-hoc button, badge or empty state, check whether one of th
 
 ### Adding new features
 
-1. **Backend**: Add a new endpoint in `routes/`, model in `models/`
+1. **Backend**: Add a new endpoint in `routes/`, model in `models/`, then run `make generate-api`
 2. **Frontend**: Add components and a store under `features/<feature>/`; reuse `shared/ui` primitives and design tokens
 3. **Database**: Update SQLAlchemy model and generate a migration
 
@@ -686,6 +686,18 @@ Before adding a new ad-hoc button, badge or empty state, check whether one of th
 - **Frontend**: Rely on OnPush change detection, always provide `track` in `@for` loops
 - **Git**: Commit often with descriptive messages
 - **Tests**: Cover key business logic with tests
+
+### Regenerating API types (OpenAPI)
+
+The frontend never defines API models by hand — they are generated from the backend's OpenAPI schema into `frontend/src/libs/generated-api/` (imported via `@api`). After changing backend models, schemas or routes, run:
+
+```bash
+make generate-api
+```
+
+It exports `backend/openapi/openapi.json` from the backend container and regenerates the TypeScript client with the official `openapi-generator-cli` Docker image (v7.19.0). Only Docker and `docker/docker.env` are needed. Commit both outputs together with the backend change.
+
+The pre-commit hook prints a warning (it doesn't block the commit) when `backend/models/`, `backend/routes/` or `backend/main.py` change without `backend/openapi/openapi.json`.
 
 ### Useful Commands
 
@@ -697,8 +709,9 @@ alembic revision --autogenerate    # Database migrations
 # Frontend
 ng generate component component-name  # Skeleton for a new component
 ng generate service service-name      # Skeleton for a new service
-npm run generate-api                  # Regenerate API types (@api) after backend changes
-                                      # runs on the host: needs Python + backend deps, backend/.env and Java
+
+# API types
+make generate-api                     # Regenerate OpenAPI schema + frontend API types (@api)
 
 # Docker
 docker-compose logs -f service_name   # View container logs
