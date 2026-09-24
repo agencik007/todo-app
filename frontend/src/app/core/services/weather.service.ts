@@ -8,6 +8,15 @@ export interface WeatherData {
     weatherCode: number;
 }
 
+/** Shape of the open-meteo /v1/forecast response (only the fields we use). */
+interface OpenMeteoResponse {
+    current: {
+        temperature_2m: number;
+        wind_speed_10m: number;
+        weather_code: number;
+    };
+}
+
 @Injectable({
     providedIn: 'root',
 })
@@ -19,7 +28,7 @@ export class WeatherService {
 
     // Resource for fetching raw weather data
     // It automatically refetches when #location signal changes
-    readonly #weatherResource = httpResource<any>(() => {
+    readonly #weatherResource = httpResource<OpenMeteoResponse>(() => {
         const loc = this.#location();
         if (!loc) return undefined;
 

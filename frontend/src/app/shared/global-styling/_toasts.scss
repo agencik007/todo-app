@@ -1,3 +1,5 @@
+@use './mixins';
+
 .p-toast {
     opacity: 1;
     height: auto !important;
@@ -5,44 +7,42 @@
 
     @media (max-width: 768px) {
         width: calc(100% - 2rem) !important;
-        left: 1rem !important;
-        right: 1rem !important;
+        left: var(--app-space-4) !important;
+        right: var(--app-space-4) !important;
     }
 
     &.p-toast-bottom-right {
         top: auto !important;
-        bottom: 2rem !important;
+        bottom: var(--app-space-6) !important;
     }
 
     &.p-toast-top-right {
         bottom: auto !important;
-        top: 2rem !important;
+        top: var(--app-space-6) !important;
     }
 
     // Ensure bottom-left (used in app.html) is also covered
     &.p-toast-bottom-left {
         top: auto !important;
-        bottom: 2rem !important;
-        left: 2rem !important;
+        bottom: var(--app-space-6) !important;
+        left: var(--app-space-6) !important;
 
         @media (max-width: 768px) {
-            left: 1rem !important;
-            right: 1rem !important;
-            bottom: 1rem !important;
+            left: var(--app-space-4) !important;
+            right: var(--app-space-4) !important;
+            bottom: var(--app-space-4) !important;
         }
     }
 
     .p-toast-message {
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-radius: 12px;
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        margin-bottom: 1rem;
+        @include mixins.glass-panel;
+        border-radius: var(--app-radius-lg);
+        box-shadow: var(--app-shadow-lg);
+        margin-bottom: var(--app-space-4);
 
         .p-toast-message-content {
             padding: 1.25rem;
-            gap: 1rem;
+            gap: var(--app-space-4);
             align-items: center;
         }
 
@@ -52,14 +52,14 @@
 
         .p-toast-message-text {
             .p-toast-summary {
-                font-weight: 700;
-                margin-bottom: 0.25rem;
+                font-weight: var(--app-font-bold);
+                margin-bottom: var(--app-space-1);
                 font-size: 1.1rem;
             }
 
             .p-toast-detail {
                 font-size: 0.95rem;
-                font-weight: 500;
+                font-weight: var(--app-font-medium);
             }
         }
 
@@ -67,7 +67,9 @@
             width: 2.25rem;
             height: 2.25rem;
             border-radius: 50%;
-            transition: all 0.2s;
+            transition:
+                background var(--app-transition-base),
+                transform var(--app-transition-base);
 
             &:hover {
                 background: rgba(0, 0, 0, 0.1);
@@ -91,52 +93,63 @@
     }
 
     .p-toast-message-error {
-        background: rgba(254, 242, 242, 0.95) !important;
-        color: #991b1b !important;
-        border-left: 8px solid #ef4444 !important;
+        background: color-mix(
+            in srgb,
+            var(--p-red-50) 95%,
+            transparent
+        ) !important;
+        color: var(--p-red-800) !important;
+        border-left: 8px solid var(--p-red-500) !important;
 
         .p-toast-message-icon,
         .p-toast-summary,
         .p-toast-detail,
         .p-toast-icon-close {
-            color: #991b1b !important;
+            color: var(--p-red-800) !important;
         }
     }
 
     .p-toast-message-info {
-        background: rgba(239, 246, 255, 0.95) !important;
-        color: #1e40af !important;
-        border-left: 8px solid #3b82f6 !important;
+        background: color-mix(
+            in srgb,
+            var(--p-blue-50) 95%,
+            transparent
+        ) !important;
+        color: var(--p-blue-800) !important;
+        border-left: 8px solid var(--p-blue-500) !important;
 
         .p-toast-message-icon,
         .p-toast-summary,
         .p-toast-detail,
         .p-toast-icon-close {
-            color: #1e40af !important;
+            color: var(--p-blue-800) !important;
         }
     }
 
     .p-toast-message-warn {
-        background: rgba(255, 251, 235, 0.95) !important;
-        color: #92400e !important;
-        border-left: 8px solid #f59e0b !important;
+        background: color-mix(
+            in srgb,
+            var(--p-amber-50) 95%,
+            transparent
+        ) !important;
+        color: var(--p-amber-800) !important;
+        border-left: 8px solid var(--p-amber-500) !important;
 
         .p-toast-message-icon,
         .p-toast-summary,
         .p-toast-detail,
         .p-toast-icon-close {
-            color: #92400e !important;
+            color: var(--p-amber-800) !important;
         }
     }
 }
 
-// Dark mode adjustments
+// Dark mode adjustments (cień i ramka szkła przełączają się same przez
+// nadpisania --app-shadow-lg / --app-glass-border w .dark)
 .dark {
     .p-toast {
         .p-toast-message {
-            background: rgba(30, 41, 59, 1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+            background: var(--p-slate-800);
 
             .p-toast-icon-close:hover {
                 background: rgba(255, 255, 255, 0.15);
@@ -144,54 +157,70 @@
         }
 
         .p-toast-message-success {
-            background: rgba(6, 78, 59, 0.95) !important;
-            color: #6ee7b7 !important;
+            background: color-mix(
+                in srgb,
+                var(--p-emerald-900) 95%,
+                transparent
+            ) !important;
+            color: var(--p-emerald-300) !important;
             border-left: 8px solid var(--p-primary-500) !important;
 
             .p-toast-message-icon,
             .p-toast-summary,
             .p-toast-detail,
             .p-toast-icon-close {
-                color: #6ee7b7 !important;
+                color: var(--p-emerald-300) !important;
             }
         }
 
         .p-toast-message-error {
-            background: rgba(127, 29, 29, 0.95) !important;
-            color: #fca5a5 !important;
-            border-left: 8px solid #ef4444 !important;
+            background: color-mix(
+                in srgb,
+                var(--p-red-900) 95%,
+                transparent
+            ) !important;
+            color: var(--p-red-300) !important;
+            border-left: 8px solid var(--p-red-500) !important;
 
             .p-toast-message-icon,
             .p-toast-summary,
             .p-toast-detail,
             .p-toast-icon-close {
-                color: #fca5a5 !important;
+                color: var(--p-red-300) !important;
             }
         }
 
         .p-toast-message-info {
-            background: rgba(30, 58, 138, 0.95) !important;
-            color: #93c5fd !important;
-            border-left: 8px solid #3b82f6 !important;
+            background: color-mix(
+                in srgb,
+                var(--p-blue-900) 95%,
+                transparent
+            ) !important;
+            color: var(--p-blue-300) !important;
+            border-left: 8px solid var(--p-blue-500) !important;
 
             .p-toast-message-icon,
             .p-toast-summary,
             .p-toast-detail,
             .p-toast-icon-close {
-                color: #93c5fd !important;
+                color: var(--p-blue-300) !important;
             }
         }
 
         .p-toast-message-warn {
-            background: rgba(120, 53, 15, 0.95) !important;
-            color: #fcd34d !important;
-            border-left: 8px solid #f59e0b !important;
+            background: color-mix(
+                in srgb,
+                var(--p-amber-900) 95%,
+                transparent
+            ) !important;
+            color: var(--p-amber-300) !important;
+            border-left: 8px solid var(--p-amber-500) !important;
 
             .p-toast-message-icon,
             .p-toast-summary,
             .p-toast-detail,
             .p-toast-icon-close {
-                color: #fcd34d !important;
+                color: var(--p-amber-300) !important;
             }
         }
     }

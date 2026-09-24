@@ -24,23 +24,28 @@
 
 All major operations are managed via the root `Makefile`. Always prefer Docker-based commands (through `make` or `docker-compose exec`) over local ones — the project assumes a containerized toolchain.
 
-| Goal                                           | Command                                                                                   |
-| ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Dev environment (hot-reload, front+back+db+pgadmin) | `make dev`                                                                           |
-| Prod environment                               | `make prod`                                                                               |
-| Stop all services                              | `make down`                                                                               |
-| View logs                                      | `make logs`, `make logs-backend`, `make logs-frontend`                                    |
-| Clean environment (containers, images, volumes)| `make clean`                                                                              |
-| Backend tests                                  | `make test-backend`                                                                       |
-| Single backend test                            | `docker-compose -f docker/docker-compose.yml exec backend python -m pytest backend/tests/test_filename.py::test_function_name` |
-| Frontend tests (non-watching)                  | `make test-frontend`                                                                      |
-| Single frontend test                           | `docker-compose -f docker/docker-compose.yml exec frontend npx ng test --include=src/app/path/to/spec.ts` |
-| Frontend lint                                  | `docker-compose -f docker/docker-compose.yml exec frontend npm run lint`                  |
-| Migrate to head                                | `make migrate`                                                                            |
-| New migration (autogenerate)                   | `docker-compose -f docker/docker-compose.yml exec backend alembic revision --autogenerate -m "description"` |
-| Regenerate API types after backend changes     | `docker-compose -f docker/docker-compose.yml exec frontend npm run generate-api`          |
-| Backend shell                                  | `make shell-backend`                                                                      |
-| Database shell                                 | `make shell-db`                                                                           |
+**One-time setup:** `cp docker/docker.env.example docker/docker.env`. `docker-compose.yml` has no hardcoded credentials and refuses to start without this file.
+
+**Dev vs prod stack:** `make dev` / `make prod` start the respective stack. All operational targets (`down`, `logs*`, `shell-*`, `migrate`, `test-backend`, `lint-frontend`, `status`, `clean*`) target the **dev** stack by default; add `STACK=prod` to target production (`docker/docker.prod.env`, never committed), e.g. `make logs STACK=prod`.
+
+**Raw commands:** docker-compose always needs the env file. Below, `DC` means `docker-compose -f docker/docker-compose.yml --env-file docker/docker.env` (the dev stack must be running).
+
+| Goal                                                        | Command                                                                       |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Dev environment (hot-reload, front+back+db+pgadmin+mailhog) | `make dev`                                                                    |
+| Prod environment                                            | `make prod`                                                                   |
+| Stop all services                                           | `make down`                                                                   |
+| View logs                                                   | `make logs`, `make logs-backend`, `make logs-frontend`                        |
+| Clean environment (containers, images, volumes)             | `make clean`                                                                  |
+| Backend tests                                               | `make test-backend`                                                           |
+| Single backend test                                         | `DC exec backend python -m pytest tests/test_filename.py::test_function_name` |
+| Frontend lint                                               | `make lint-frontend`                                                          |
+| Frontend tests                                              | None yet — `angular.json` has no `test` target                                |
+| Migrate to head                                             | `make migrate`                                                                |
+| New migration (autogenerate)                                | `DC exec backend alembic revision --autogenerate -m "description"`            |
+| Regenerate API types after backend changes                  | `cd frontend && npm run generate-api` — on the host, see [OpenAPI](#openapi)  |
+| Backend shell                                               | `make shell-backend`                                                          |
+| Database shell                                              | `make shell-db`                                                               |
 
 ---
 
@@ -48,9 +53,10 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 
 1. **Backend:** if you changed models/schemas/routes → regenerate OpenAPI (`npm run generate-api`).
 2. **Backend:** if you changed models → create an Alembic migration (`alembic revision --autogenerate`), review it, then run `make migrate`.
-3. **Frontend:** run lint (`npm run lint`) before considering the task done.
-4. **Tests:** if you touched logic → run `make test-backend` and/or `make test-frontend`.
+3. **Frontend:** run lint (`make lint-frontend`) before considering the task done.
+4. **Tests:** if you touched backend logic → run `make test-backend`. The frontend has no test runner yet, so lint + `ng build` are the checks there.
 5. **i18n:** new API messages must have keys in both `frontend/src/assets/i18n/en.json` and `pl.json` under `API_MESSAGES`.
+6. **Docs:** if your change is one of the triggers listed in [Keeping README.md up to date](#keeping-readmemd-up-to-date) → update `README.md` (and this file, if it affects agent workflow) **in the same change**.
 
 ---
 
@@ -108,8 +114,8 @@ Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`.
 
 ### Testing
 
-- The full suite is 81+ tests; run with `make test-backend`.
-- Tests use the database configured by `DATABASE_URL`.
+- The full suite is 91 tests; run with `make test-backend`.
+- Tests never use the application database: `conftest.py` derives `<db>_test` from `DATABASE_URL` (created automatically if the DB user has permission), or uses `TEST_DATABASE_URL` if set.
 - An autouse fixture `db_cleanup` in `conftest.py` clears all data between tests.
 - **Rate limiting in tests:** rate limiting is enabled by default on sensitive endpoints (registration, login, verify email). Tests must run with `TESTING=1`, which `backend/tests/conftest.py` sets automatically via `os.environ["TESTING"] = "1"`.
 - **When adding new rate-limited endpoints**, always check `enabled=not IS_TESTING` or `os.getenv("TESTING") != "1"` so the test suite continues to bypass limiting.
@@ -119,10 +125,13 @@ Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`.
 After changes to models, schemas, or routes, regenerate the OpenAPI models:
 
 ```bash
-docker-compose -f docker/docker-compose.yml exec frontend npm run generate-api
+cd frontend
+npm run generate-api
 ```
 
 This produces TypeScript interfaces and enums in `frontend/src/libs/generated-api/`.
+
+> **Exception to Docker-first:** this script can't run inside the containers — the frontend image (`node:22-alpine`) has no Python, no Java and no `backend/` directory. Run it on the host; it needs Python with `backend/requirements.txt` installed, a `backend/.env` (the app is imported to export the schema), and Java for `openapi-generator-cli`.
 
 ---
 
@@ -220,6 +229,11 @@ Use auto-generated OpenAPI models from `@api`. Do **NOT** manually define interf
 
 Use SCSS partials in `src/app/shared/global-styling`.
 
+**Design system** (details in the README's _Design System_ section):
+
+- Use design tokens from `_tokens.scss` (`--app-space-*`, `--app-radius-*`, `--app-text-*`, `--app-shadow-*`, `--app-transition-*`) instead of hardcoded values. Colors come from the PrimeUIX theme (`--p-*` variables) — never hardcode hex colors.
+- Reuse the primitives in `src/app/shared/ui/` (`button[appIconButton]`, `app-badge`, `app-empty-state`, `app-form-field`) before creating ad-hoc equivalents. Add a new primitive only when a pattern repeats in at least two features.
+
 ### Formatting
 
 Single quotes, 2-space indentation, 100-character line limit.
@@ -273,7 +287,7 @@ Without these imports, Alembic will not detect new models.
 Generate the migration:
 
 ```bash
-docker-compose -f docker/docker-compose.yml exec backend alembic revision --autogenerate -m "descriptive_message"
+docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec backend alembic revision --autogenerate -m "descriptive_message"
 ```
 
 **Always review the generated migration** before running `make migrate`.
@@ -370,8 +384,28 @@ Stored in `.claude/commands/`:
 
 Location: `C:\Users\<user>\.claude\projects\D--Code-todo-app-agencik007\memory\`. Contains, among other things, Signal Forms rules; Claude reads them automatically when relevant.
 
+### Keeping README.md up to date
+
+`README.md` is the setup guide for humans; it goes stale silently because nothing tests it. **Every agent must update it in the same change** (same commit or PR) whenever the change touches any of these:
+
+- **Setup & configuration:** environment variables (new, renamed, removed, changed defaults or requirements), `.env` / `docker/docker.env.example` files, config validation at startup.
+- **Docker & infrastructure:** `docker/*` (Dockerfiles, compose files, services, ports, volumes, nginx), service URLs, credentials handling.
+- **Commands:** `Makefile` targets, `package.json` scripts, how to run, test, lint, migrate or build.
+- **Requirements & stack:** runtime versions (Python, Node, PostgreSQL), major dependencies or frameworks added/removed.
+- **API surface:** new or removed route prefixes, auth requirements, API docs availability.
+- **Architecture & conventions:** project structure, design system (tokens, `shared/ui` primitives), state management, i18n.
+- **Numbers the README quotes** (e.g. test count) when your change makes them wrong.
+
+Rules:
+
+- Verify every command and value you write against the code — never document from memory or from the previous README text.
+- Update all places that mention the changed thing (Quick Start, Installation, Docker section, Project Structure, ...), not just the first one found; `grep` the README for it.
+- If the change also affects how agents work (commands, workflow, conventions), update this `AGENTS.md` too.
+- Keep the README in English and keep the table of contents anchors valid when adding or renaming sections.
+- If you find the README already wrong about something unrelated to your change, fix it or flag it — don't leave it silently.
+
 ### Working with AI agents in this repo
 
-- Always use Docker-based commands (`make ...` or `docker-compose exec ...`). Do not rely on locally installed Python/Node — even the backend and `alembic` run through `docker-compose exec backend`.
+- Always use Docker-based commands (`make ...` or `docker-compose exec ...`). Do not rely on locally installed Python/Node — even the backend and `alembic` run through `docker-compose exec backend`. The only exception is `npm run generate-api` (see [OpenAPI](#openapi)).
 - Use absolute paths, not relative ones.
 - DRY & KISS: do not introduce abstractions speculatively.

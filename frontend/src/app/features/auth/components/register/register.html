@@ -24,17 +24,11 @@
             class="flex flex-column gap-3"
             (ngSubmit)="onSubmit()"
         >
-            <div class="form-group">
-                <label
-                    for="email"
-                    class="flex align-items-center mb-2 font-medium"
-                >
-                    <i
-                        style="margin-right: 0.5rem"
-                        class="pi pi-envelope"
-                    ></i>
-                    {{ 'AUTH.REGISTER.EMAIL_LABEL' | translate }}
-                </label>
+            <app-form-field
+                inputId="email"
+                icon="pi-envelope"
+                [label]="'AUTH.REGISTER.EMAIL_LABEL' | translate"
+            >
                 <input
                     type="email"
                     pInputText
@@ -62,19 +56,13 @@
                         }
                     </small>
                 }
-            </div>
+            </app-form-field>
 
-            <div class="form-group">
-                <label
-                    for="password"
-                    class="flex align-items-center mb-2 font-medium"
-                >
-                    <i
-                        style="margin-right: 0.5rem"
-                        class="pi pi-lock"
-                    ></i>
-                    {{ 'AUTH.REGISTER.PASSWORD_LABEL' | translate }}
-                </label>
+            <app-form-field
+                inputId="password"
+                icon="pi-lock"
+                [label]="'AUTH.REGISTER.PASSWORD_LABEL' | translate"
+            >
                 <p-password
                     inputStyleClass="w-full"
                     inputId="password"
@@ -101,19 +89,13 @@
                         }
                     </small>
                 }
-            </div>
+            </app-form-field>
 
-            <div class="form-group">
-                <label
-                    for="confirmPassword"
-                    class="flex align-items-center mb-2 font-medium"
-                >
-                    <i
-                        style="margin-right: 0.5rem"
-                        class="pi pi-lock"
-                    ></i>
-                    {{ 'AUTH.REGISTER.CONFIRM_PASSWORD_LABEL' | translate }}
-                </label>
+            <app-form-field
+                inputId="confirmPassword"
+                icon="pi-lock"
+                [label]="'AUTH.REGISTER.CONFIRM_PASSWORD_LABEL' | translate"
+            >
                 <p-password
                     inputStyleClass="w-full"
                     inputId="confirmPassword"
@@ -145,7 +127,7 @@
                         {{ 'AUTH.REGISTER.ERRORS.MISMATCH' | translate }}
                     </small>
                 }
-            </div>
+            </app-form-field>
 
             <p-button
                 type="submit"

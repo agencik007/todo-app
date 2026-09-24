@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
     FormField,
@@ -14,6 +15,8 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
+import { extractApiMessageCode } from '../../../../core/utils/api-error.util';
+import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
 import { AuthService } from '../../services/auth.service';
 
 interface ResetPasswordData {
@@ -38,6 +41,7 @@ const resetPasswordSchema = schema<ResetPasswordData>((p) => {
         ButtonModule,
         MessageModule,
         TranslatePipe,
+        FormFieldComponent,
     ],
     templateUrl: './reset-password.html',
     styleUrl: './reset-password.scss',
@@ -77,12 +81,14 @@ export class ResetPasswordComponent {
         );
 
         if (!this.token()) {
-            this.route.params.subscribe((params) => {
+            this.route.params.pipe(takeUntilDestroyed()).subscribe((params) => {
                 if (params['token']) this.token.set(params['token']);
             });
-            this.route.queryParams.subscribe((params) => {
-                if (params['token']) this.token.set(params['token']);
-            });
+            this.route.queryParams
+                .pipe(takeUntilDestroyed())
+                .subscribe((params) => {
+                    if (params['token']) this.token.set(params['token']);
+                });
         }
 
         setTimeout(() => {
@@ -119,9 +125,8 @@ export class ResetPasswordComponent {
                 this.isLoading.set(false);
                 setTimeout(() => this.router.navigate(['/login']), 2000);
             },
-            error: (err) => {
-                const messageCode =
-                    err.error?.detail?.messageCode || err.error?.messageCode;
+            error: (err: unknown) => {
+                const messageCode = extractApiMessageCode(err);
 
                 if (messageCode) {
                     this.error.set(

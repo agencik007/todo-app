@@ -1,5 +1,7 @@
 # Todo App - Docker Development Commands
-.PHONY: help build up down restart logs clean dev prod test
+.PHONY: help dev prod build up down restart logs logs-backend logs-frontend logs-db logs-pgadmin \
+	clean clean-volumes shell-backend shell-db migrate test-backend lint-frontend status \
+	quick-start quick-dev
 
 # Env files used for docker-compose variable interpolation (POSTGRES_*, SECRET_KEY,
 # DATABASE_URL, PGADMIN_*, ...). Copy docker/docker.env.example to docker/docker.env
@@ -10,11 +12,22 @@ PROD_ENV_FILE ?= docker/docker.prod.env
 COMPOSE_DEV = docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml --env-file $(DEV_ENV_FILE)
 COMPOSE_PROD = docker-compose -f docker/docker-compose.yml --env-file $(PROD_ENV_FILE)
 
+# Environment targeted by the operational commands below (down, logs, shell, migrate, tests, ...).
+# Defaults to dev; use e.g. `make logs STACK=prod` against the production stack.
+STACK ?= dev
+ifeq ($(STACK),prod)
+COMPOSE = $(COMPOSE_PROD)
+else ifeq ($(STACK),dev)
+COMPOSE = $(COMPOSE_DEV)
+else
+$(error STACK must be "dev" or "prod", got "$(STACK)")
+endif
+
 # Default target
 help: ## Show this help message
 	@echo "Todo App - Docker Commands"
 	@echo ""
-	@echo "Available commands:"
+	@echo "Available commands (operational ones target the dev stack; add STACK=prod for production):"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
 
 # Development commands
@@ -31,49 +44,49 @@ up: ## Start all services (production)
 	$(COMPOSE_PROD) up -d
 
 down: ## Stop all services
-	$(COMPOSE_DEV) down
+	$(COMPOSE) down
 
 restart: ## Restart all services
-	$(COMPOSE_DEV) restart
+	$(COMPOSE) restart
 
 logs: ## Show logs from all services
-	$(COMPOSE_PROD) logs -f
+	$(COMPOSE) logs -f
 
 logs-backend: ## Show backend logs
-	$(COMPOSE_PROD) logs -f backend
+	$(COMPOSE) logs -f backend
 
 logs-frontend: ## Show frontend logs
-	$(COMPOSE_PROD) logs -f frontend
+	$(COMPOSE) logs -f frontend
 
 logs-db: ## Show database logs
-	$(COMPOSE_PROD) logs -f db
+	$(COMPOSE) logs -f db
 
 logs-pgadmin: ## Show PgAdmin logs
-	$(COMPOSE_PROD) logs -f pgadmin
+	$(COMPOSE) logs -f pgadmin
 
 clean: ## Remove all containers, volumes, and images
-	$(COMPOSE_DEV) down -v --rmi all
+	$(COMPOSE) down -v --rmi all
 
 clean-volumes: ## Remove all volumes (WARNING: This will delete database data!)
-	$(COMPOSE_DEV) down -v
+	$(COMPOSE) down -v
 
 shell-backend: ## Open shell in backend container
-	$(COMPOSE_PROD) exec backend bash
+	$(COMPOSE) exec backend bash
 
 shell-db: ## Open shell in database container
-	$(COMPOSE_PROD) exec db sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
+	$(COMPOSE) exec db sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
 
 migrate: ## Run database migrations using Alembic
-	$(COMPOSE_PROD) exec backend alembic upgrade head
+	$(COMPOSE) exec backend alembic upgrade head
 
 test-backend: ## Run backend tests
-	$(COMPOSE_PROD) exec backend python -m pytest
+	$(COMPOSE) exec backend python -m pytest
 
-test-frontend: ## Run frontend tests
-	$(COMPOSE_PROD) exec frontend npm test -- --watch=false
+lint-frontend: ## Run frontend lint (there is no frontend test runner yet)
+	$(COMPOSE) exec frontend npm run lint
 
 status: ## Show status of all services
-	$(COMPOSE_PROD) ps
+	$(COMPOSE) ps
 
 # Quick start commands
 quick-start: build up ## Build and start production environment

@@ -86,45 +86,44 @@ export class AuthService {
     ): Observable<{ message: string }> {
         return this.apiAuthService
             .forgotPasswordAuthForgotPasswordPost(request)
-            .pipe(catchError(this.handleError)) as any;
+            .pipe(catchError(this.handleError));
     }
 
     resetPassword(resetData: PasswordReset): Observable<{ message: string }> {
         return this.apiAuthService
             .resetPasswordAuthResetPasswordPost(resetData)
-            .pipe(catchError(this.handleError)) as any;
+            .pipe(catchError(this.handleError));
     }
 
-    verifyEmail(token: string): Observable<{ message: string }> {
+    verifyEmail(token: string): Observable<unknown> {
         return this.apiAuthService
             .verifyEmailAuthVerifyEmailTokenGet(token)
-            .pipe(catchError(this.handleError)) as any;
+            .pipe(catchError(this.handleError));
     }
 
     resendVerification(): Observable<{ message: string }> {
         return this.apiAuthService
             .resendVerificationAuthResendVerificationPost()
-            .pipe(catchError(this.handleError)) as any;
+            .pipe(catchError(this.handleError));
     }
 
     uploadAvatar(file: File): Observable<{ avatarUrl: string }> {
         return this.apiUsersService.uploadAvatarUsersMeAvatarPost(file).pipe(
-            tap((response) => {
-                if ((response as any).avatarUrl)
-                    this.indexedDbService.saveAvatar(file);
+            tap((response: { avatarUrl: string }) => {
+                if (response.avatarUrl) this.indexedDbService.saveAvatar(file);
             }),
             catchError(this.handleError),
-        ) as any;
+        );
     }
 
     deleteAvatar(): Observable<{ message: string }> {
         return this.apiUsersService.deleteAvatarUsersMeAvatarDelete().pipe(
             tap(() => this.indexedDbService.deleteAvatar()),
             catchError(this.handleError),
-        ) as any;
+        );
     }
 
-    logout(): Observable<any> {
+    logout(): Observable<unknown> {
         // withCredentials: true so the browser sends the refresh cookie and
         // the backend can clear it via Set-Cookie: Max-Age=0.
         return this.http

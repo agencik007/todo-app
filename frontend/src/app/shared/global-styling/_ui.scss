@@ -1,0 +1,113 @@
+// Style prymitywów design systemu (shared/ui).
+// Klasy nadają dyrektywy/komponenty — nie używać ich bezpośrednio w templatkach.
+
+// ===================
+// IconButton (shared/ui/icon-button)
+// ===================
+.app-icon-btn {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: var(--app-radius-sm);
+    background: transparent;
+    color: var(--p-text-muted-color);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition:
+        background var(--app-transition-base),
+        color var(--app-transition-base),
+        opacity var(--app-transition-base),
+        transform var(--app-transition-base),
+        filter var(--app-transition-base);
+
+    &:focus-visible {
+        outline: 2px solid var(--p-primary-color);
+        outline-offset: 2px;
+    }
+}
+
+// Rozmiary
+.app-icon-btn--sm {
+    width: 24px;
+    height: 24px;
+
+    i {
+        font-size: 0.7rem;
+    }
+}
+
+.app-icon-btn--md {
+    width: 28px;
+    height: 28px;
+
+    i {
+        font-size: 0.78rem;
+    }
+}
+
+.app-icon-btn--lg {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--app-radius-md);
+
+    i {
+        font-size: var(--app-text-sm);
+    }
+}
+
+.app-icon-btn--xl {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--app-radius-md);
+
+    i {
+        font-size: var(--app-text-2xl);
+    }
+}
+
+// Warianty (color-mix na kolorach motywu adaptuje się do dark mode bez nadpisań)
+.app-icon-btn--ghost:hover {
+    background: color-mix(
+        in srgb,
+        var(--p-content-border-color) 70%,
+        transparent
+    );
+    color: var(--p-text-color);
+}
+
+.app-icon-btn--primary {
+    background: var(--p-primary-color);
+    color: var(--p-primary-contrast-color);
+
+    &:hover {
+        transform: scale(1.05);
+        filter: brightness(1.1);
+    }
+}
+
+.app-icon-btn--danger:hover {
+    background: color-mix(in srgb, var(--p-red-500) 12%, transparent);
+    color: var(--p-red-500);
+}
+
+.app-icon-btn--danger:focus-visible {
+    outline-color: var(--p-red-500);
+}
+
+// Odsłanianie przez kontener
+.app-icon-btn--reveal {
+    opacity: 0;
+
+    &:hover,
+    &:focus-visible {
+        opacity: 1;
+    }
+
+    // Na urządzeniach dotykowych brak hovera — zawsze widoczny
+    @media (max-width: 768px) {
+        opacity: 1;
+    }
+}

@@ -103,7 +103,9 @@
                         <button
                             type="button"
                             tooltipPosition="bottom"
+                            size="sm"
                             class="search-clear"
+                            appIconButton
                             [pTooltip]="'TODOS.SEARCH.CLEAR' | translate"
                             [attr.aria-label]="'TODOS.SEARCH.CLEAR' | translate"
                             (click)="clearSearch()"
@@ -125,9 +127,10 @@
                             'TODOS.LIST.FILTER_LABEL' | translate
                         }}</span>
                         @for (group of selectedGroups(); track group.id) {
-                            <app-group-badge
+                            <app-badge
                                 size="sm"
-                                [group]="group"
+                                [label]="group.name"
+                                [color]="group.color"
                             />
                         }
                     </div>
@@ -212,6 +215,7 @@
                         id="todoList"
                         class="todo-stream"
                         cdkDropList
+                        [cdkDropListDisabled]="!canReorder()"
                         (cdkDropListDropped)="onDrop($event)"
                     >
                         @for (todo of todos(); track todo.id; let idx = $index) {
@@ -229,8 +233,8 @@
                                 (cdkDragMoved)="onDragMoved($event)"
                                 (cdkDragEnded)="onDragEnded()"
                             >
-                                <!-- Drag handle -->
-                                @if (canEditTodo(todo)) {
+                                <!-- Drag handle (hidden while filters are active — see canReorder) -->
+                                @if (canEditTodo(todo) && canReorder()) {
                                     <button
                                         type="button"
                                         tooltipPosition="right"
@@ -273,7 +277,7 @@
                                                 <button
                                                     type="button"
                                                     tooltipPosition="top"
-                                                    class="row-action-btn"
+                                                    appIconButton
                                                     [pTooltip]="
                                                         'TODOS.LIST.TOOLTIP_EDIT' | translate
                                                     "
@@ -290,9 +294,10 @@
                                                     ></i>
                                                 </button>
                                                 <button
+                                                    variant="danger"
                                                     type="button"
                                                     tooltipPosition="top"
-                                                    class="row-action-btn row-action-danger"
+                                                    appIconButton
                                                     [pTooltip]="
                                                         'TODOS.LIST.TOOLTIP_DELETE' | translate
                                                     "
@@ -314,12 +319,13 @@
 
                                     <!-- Line 2: meta -->
                                     <div class="row-line-2">
-                                        @if (todo.groupId && getGroupById(todo.groupId)) {
-                                            <app-group-badge
+                                        @if (getGroupById(todo.groupId); as todoGroup) {
+                                            <app-badge
                                                 tooltipPosition="top"
                                                 size="sm"
                                                 [pTooltip]="'TODOS.LIST.TOOLTIP_GROUP' | translate"
-                                                [group]="getGroupById(todo.groupId)"
+                                                [label]="todoGroup.name"
+                                                [color]="todoGroup.color"
                                             />
                                             <span
                                                 class="meta-sep"
@@ -407,34 +413,27 @@
                 <!-- Empty State (truly empty) -->
                 @if (!loading() && todos().length === 0 && !isFiltered()) {
                     <p-card>
-                        <div class="flex flex-column align-items-center py-6">
-                            <span class="text-6xl mb-3">📝</span>
-                            <h3 class="m-0 mb-2">{{ 'TODOS.LIST.EMPTY_TITLE' | translate }}</h3>
-                            <p class="text-color-secondary mb-3">
-                                {{ 'TODOS.LIST.EMPTY_MESSAGE' | translate }}
-                            </p>
+                        <app-empty-state
+                            emoji="📝"
+                            [heading]="'TODOS.LIST.EMPTY_TITLE' | translate"
+                            [description]="'TODOS.LIST.EMPTY_MESSAGE' | translate"
+                        >
                             <p-button
                                 icon="pi pi-plus"
                                 [label]="'TODOS.LIST.ADD_FIRST' | translate"
                                 (onClick)="showCreateForm()"
                             />
-                        </div>
+                        </app-empty-state>
                     </p-card>
                 }
 
                 <!-- Empty State (filtered) -->
                 @if (!loading() && todos().length === 0 && isFiltered()) {
-                    <div class="empty-filtered">
-                        <i
-                            class="pi pi-filter-slash"
-                            aria-hidden="true"
-                        ></i>
-                        <h3 class="m-0 mb-1">
-                            {{ 'TODOS.FILTERS.EMPTY_FILTERED_TITLE' | translate }}
-                        </h3>
-                        <p class="text-color-secondary mb-3">
-                            {{ 'TODOS.FILTERS.EMPTY_FILTERED_MESSAGE' | translate }}
-                        </p>
+                    <app-empty-state
+                        icon="pi-filter-slash"
+                        [heading]="'TODOS.FILTERS.EMPTY_FILTERED_TITLE' | translate"
+                        [description]="'TODOS.FILTERS.EMPTY_FILTERED_MESSAGE' | translate"
+                    >
                         <p-button
                             size="small"
                             severity="secondary"
@@ -443,7 +442,7 @@
                             [label]="'TODOS.FILTERS.EMPTY_FILTERED_RESET' | translate"
                             (onClick)="resetFilters()"
                         />
-                    </div>
+                    </app-empty-state>
                 }
             </div>
 

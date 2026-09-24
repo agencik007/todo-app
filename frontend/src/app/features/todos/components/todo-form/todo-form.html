@@ -3,12 +3,10 @@
     class="flex flex-column gap-3"
     (ngSubmit)="onSubmit()"
 >
-    <div class="form-group">
-        <label
-            for="title"
-            class="block mb-2"
-            >{{ 'TODOS.FORM.FIELD_TITLE' | translate }}</label
-        >
+    <app-form-field
+        inputId="title"
+        [label]="'TODOS.FORM.FIELD_TITLE' | translate"
+    >
         <input
             type="text"
             pInputText
@@ -28,14 +26,12 @@
                 >
             }
         }
-    </div>
+    </app-form-field>
 
-    <div class="form-group">
-        <label
-            for="description"
-            class="block mb-2"
-            >{{ 'TODOS.FORM.FIELD_DESCRIPTION' | translate }}</label
-        >
+    <app-form-field
+        inputId="description"
+        [label]="'TODOS.FORM.FIELD_DESCRIPTION' | translate"
+    >
         <textarea
             rows="4"
             id="description"
@@ -44,14 +40,12 @@
             [formField]="todoForm.description"
         >
         </textarea>
-    </div>
+    </app-form-field>
 
-    <div class="form-group">
-        <label
-            for="group"
-            class="block mb-2"
-            >{{ 'TODOS.FORM.FIELD_GROUP' | translate }}</label
-        >
+    <app-form-field
+        inputId="group"
+        [label]="'TODOS.FORM.FIELD_GROUP' | translate"
+    >
         <p-select
             optionValue="id"
             optionLabel="name"
@@ -64,5 +58,5 @@
             (ngModelChange)="onGroupChange($event)"
         />
         <small class="text-color-secondary">{{ 'TODOS.FORM.FIELD_GROUP_HINT' | translate }}</small>
-    </div>
+    </app-form-field>
 </form>

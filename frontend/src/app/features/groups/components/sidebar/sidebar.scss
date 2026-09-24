@@ -21,7 +21,7 @@
     width: 260px;
     height: 100%;
     flex-shrink: 0;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width var(--app-transition-slow);
 
     &.collapsed {
         width: 68px;
@@ -44,8 +44,8 @@
     background: var(--p-surface-0);
     border-right: 1px solid var(--p-surface-200);
     transition:
-        width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width var(--app-transition-slow),
+        transform var(--app-transition-slow);
     overflow: hidden;
 
     &.collapsed {
@@ -145,203 +145,6 @@
     color: var(--p-primary-color);
     flex-shrink: 0;
 }
-.btn-brand-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border: none;
-    border-radius: 10px;
-    background: transparent;
-    color: var(--p-primary-color);
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: var(--p-surface-100);
-        transform: scale(1.05);
-    }
-
-    &:focus-visible {
-        outline: 2px solid var(--p-primary-color);
-        outline-offset: 2px;
-    }
-
-    i {
-        font-size: 1.5rem;
-    }
-}
-
-// ===================
-// SHARED BUTTON STYLES
-// ===================
-.btn-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border: none;
-    border-radius: 8px;
-    background: transparent;
-    color: var(--p-text-muted-color);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-
-    &:hover {
-        background: var(--p-surface-100);
-        color: var(--p-text-color);
-    }
-
-    &:focus-visible {
-        outline: 2px solid var(--p-primary-color);
-        outline-offset: 2px;
-    }
-
-    i {
-        font-size: 0.875rem;
-    }
-}
-
-.btn-add {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    border: none;
-    border-radius: 6px;
-    background: var(--p-primary-color);
-    color: #fff;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-
-    &:hover {
-        transform: scale(1.1);
-        filter: brightness(1.1);
-    }
-
-    &:focus-visible {
-        outline: 2px solid var(--p-primary-color);
-        outline-offset: 2px;
-    }
-
-    i {
-        font-size: 0.625rem;
-    }
-}
-
-.btn-clear {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    border: none;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--p-text-muted-color);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-
-    &:hover {
-        background: var(--p-surface-100);
-        color: var(--p-text-color);
-    }
-
-    &:focus-visible {
-        outline: 2px solid var(--p-primary-color);
-        outline-offset: 2px;
-    }
-
-    i {
-        font-size: 0.625rem;
-    }
-}
-
-.btn-edit {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    border: none;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--p-text-muted-color);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-    opacity: 0;
-
-    // Always visible on mobile (no hover on touch devices)
-    @media (max-width: 768px) {
-        opacity: 1;
-    }
-
-    &:hover {
-        background: var(--p-surface-100);
-        color: var(--p-text-color);
-    }
-
-    &:focus-visible {
-        opacity: 1;
-        outline: 2px solid var(--p-primary-color);
-        outline-offset: 2px;
-    }
-
-    i {
-        font-size: 0.75rem;
-    }
-}
-
-.btn-delete {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    border: none;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--p-text-muted-color);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-    opacity: 0;
-
-    // Always visible on mobile (no hover on touch devices)
-    @media (max-width: 768px) {
-        opacity: 1;
-    }
-
-    &:hover {
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--p-red-500);
-    }
-
-    &:focus-visible {
-        opacity: 1;
-        outline: 2px solid var(--p-red-500);
-        outline-offset: 2px;
-    }
-
-    i {
-        font-size: 0.75rem;
-    }
-}
-
 // ===================
 // NAVIGATION
 // ===================
@@ -359,7 +162,7 @@
 
     &::-webkit-scrollbar-thumb {
         background: var(--p-surface-300);
-        border-radius: 4px;
+        border-radius: var(--app-radius-full);
     }
 }
 
@@ -370,14 +173,17 @@
     width: 100%;
     padding: 0.75rem 1rem;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--app-radius-md);
     background: transparent;
     color: var(--p-text-muted-color);
     font-size: 0.9375rem;
-    font-weight: 500;
+    font-weight: var(--app-font-medium);
     text-align: left;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition:
+        background var(--app-transition-base),
+        color var(--app-transition-base),
+        filter var(--app-transition-base);
 
     i {
         font-size: 1.125rem;
@@ -437,15 +243,17 @@
     gap: 0.5rem;
     padding: 0.25rem 0.5rem;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--app-radius-sm);
     background: transparent;
     color: var(--p-text-muted-color);
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: var(--app-text-xs);
+    font-weight: var(--app-font-semibold);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition:
+        background var(--app-transition-base),
+        color var(--app-transition-base);
     position: relative; // For expansion dot
 
     &:hover {
@@ -534,11 +342,14 @@
     height: 30px; // Smaller size
     padding: 0;
     border: 1.5px solid transparent;
-    border-radius: 10px;
+    border-radius: var(--app-radius-md);
     background: var(--p-surface-100);
     color: var(--p-text-color);
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        transform var(--app-transition-base),
+        background var(--app-transition-base),
+        box-shadow var(--app-transition-base);
     position: relative;
     overflow: hidden;
 
@@ -595,15 +406,14 @@
     gap: 0.5rem;
     width: 100%;
     padding: 0.375rem 0.5rem;
-    border-radius: 8px;
+    border-radius: var(--app-radius-md);
     background: transparent;
-    transition: all 0.2s ease;
+    transition: background var(--app-transition-base);
 
     &:hover {
         background: var(--p-surface-100);
 
-        .btn-edit,
-        .btn-delete {
+        .app-icon-btn--reveal {
             opacity: 1;
         }
     }
@@ -633,9 +443,9 @@
     flex: 1;
     min-width: 0;
     color: var(--p-text-muted-color);
-    font-size: 0.875rem;
+    font-size: var(--app-text-sm);
     cursor: pointer;
-    transition: color 0.2s ease;
+    transition: color var(--app-transition-base);
 
     &:hover {
         color: var(--p-text-color);
@@ -736,17 +546,6 @@
         &:hover {
             background: var(--p-surface-800);
         }
-    }
-
-    .btn-icon:hover,
-    .btn-brand-icon:hover,
-    .btn-clear:hover,
-    .btn-edit:hover {
-        background: var(--p-surface-800);
-    }
-
-    .btn-delete:hover {
-        background: rgba(239, 68, 68, 0.15);
     }
 
     .group-mini-icon {

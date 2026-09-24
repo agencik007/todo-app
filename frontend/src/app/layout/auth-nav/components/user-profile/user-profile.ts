@@ -6,6 +6,7 @@ import {
     SecurityContext,
     signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DomSanitizer } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -67,6 +68,7 @@ export class UserProfileComponent {
             .pipe(
                 filter((event) => event instanceof NavigationEnd),
                 startWith(null),
+                takeUntilDestroyed(),
             )
             .subscribe(() => {
                 this.#currentUrl.set(this.#router.url);
@@ -141,7 +143,7 @@ export class UserProfileComponent {
                     });
                     this.#authStore.loadAvatar();
                 },
-                error: (error: any) => {
+                error: (error: unknown) => {
                     console.error(error);
                 },
             });
@@ -155,7 +157,7 @@ export class UserProfileComponent {
                 this.#authStore.loadAvatar();
                 this.isMenuOpen.set(false);
             },
-            error: (error: any) => {
+            error: (error: unknown) => {
                 console.error(error);
             },
         });
