@@ -634,7 +634,7 @@
           "users"
         ],
         "summary": "Upload Avatar",
-        "description": "Upload user avatar image.\n\nArgs:\n    file: Image file to upload.\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    dict: URL of the uploaded avatar.\n\nRaises:\n    HTTPException: If file is not an image or upload fails.",
+        "description": "Upload user avatar image.\n\nStreams the upload to a temporary file in chunks, enforcing the size\nlimit as it goes instead of buffering the whole file in memory first,\nthen identifies the real image format from its magic bytes - the\nclient-supplied Content-Type and filename are only used for the cheap\nearly rejection, not for the final saved extension.\n\nArgs:\n    file: Image file to upload.\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    dict: URL of the uploaded avatar.\n\nRaises:\n    HTTPException: If the file isn't a recognized image, is too large,\n        or the upload fails.",
         "operationId": "upload_avatar_users_me_avatar_post",
         "requestBody": {
           "content": {
@@ -1016,8 +1016,8 @@
         "properties": {
           "file": {
             "type": "string",
-            "format": "binary",
-            "title": "File"
+            "title": "File",
+            "format": "binary"
           }
         },
         "type": "object",
@@ -1546,6 +1546,13 @@
           "type": {
             "type": "string",
             "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
         },
         "type": "object",

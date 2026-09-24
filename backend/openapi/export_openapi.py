@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+from typing import Any
 
 # Get the absolute path of the directory where this script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -24,9 +25,29 @@ except ImportError as e:
     sys.exit(1)
 
 
+def _mark_binary_uploads(node: Any) -> None:
+    """
+    Rewrite OpenAPI 3.1 file fields into the `format: binary` form.
+
+    FastAPI describes `UploadFile` as `contentMediaType: application/octet-stream`,
+    which openapi-generator's typescript-angular client turns into a plain string
+    sent without multipart/form-data - breaking uploads such as the avatar.
+    """
+    if isinstance(node, dict):
+        if node.get("contentMediaType") == "application/octet-stream":
+            del node["contentMediaType"]
+            node["format"] = "binary"
+        for value in node.values():
+            _mark_binary_uploads(value)
+    elif isinstance(node, list):
+        for item in node:
+            _mark_binary_uploads(item)
+
+
 def export_openapi():
     # Use the app's openapi method to get the schema
     openapi_schema = app.openapi()
+    _mark_binary_uploads(openapi_schema)
 
     # Define the output path (in the same folder as this script)
     output_path = os.path.join(SCRIPT_DIR, "openapi.json")
