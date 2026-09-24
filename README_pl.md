@@ -195,17 +195,9 @@ Jeśli wolisz używać Docker, cała aplikacja może być uruchomiona w kontener
 
 ### Opcja 1: Uruchomienie bez Docker
 
-#### 1. Baza danych - migracje
+#### 1. Backend
 
-Zanim uruchomisz backend, załóż tabele w bazie utworzonej w kroku [4. Baza danych PostgreSQL](#4-baza-danych-postgresql):
-
-```bash
-cd backend
-# aktywuj venv, jeśli jeszcze nie jest aktywny (patrz sekcja "Instalacja")
-alembic upgrade head
-```
-
-#### 2. Backend
+Na **pierwszym uruchomieniu, na pustej bazie** (utworzonej w kroku [4. Baza danych PostgreSQL](#4-baza-danych-postgresql)) **nie** trzeba (i nie należy) ręcznie odpalać `alembic upgrade head` — wystarczy po prostu wystartować backend:
 
 ```bash
 cd backend
@@ -219,9 +211,14 @@ venv\Scripts\activate
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+> [!NOTE]
+> Przy starcie aplikacja sama tworzy wszystkie tabele na podstawie modeli SQLAlchemy (`Base.metadata.create_all`) i oznacza bazę jako będącą na najnowszej wersji Alembica (`_ensure_alembic_stamped()` w `backend/main.py`). Pierwsza migracja w repo (`658f4b511d04_initial_schema_camel_case`) jest celowo pusta — to tak samo działa w Dockerze (`Dockerfile.backend` też po prostu odpala `uvicorn`, bez `alembic upgrade head` przed startem).
+>
+> `alembic upgrade head` uruchamiaj **dopiero gdy baza już istnieje i działała chociaż raz** (np. po `git pull`, gdy w repo pojawiły się nowe pliki migracji) — wtedy dogrywa tylko przyrostowe zmiany.
+
 Backend będzie dostępny na: http://localhost:8000
 
-#### 3. (Opcjonalnie) MailHog - podgląd wysyłanych e-maili
+#### 2. (Opcjonalnie) MailHog - podgląd wysyłanych e-maili
 
 Bez Dockera MailHog nie startuje automatycznie. Jeśli chcesz widzieć e-maile weryfikacyjne/reset hasła, pobierz binarkę MailHoga ([github.com/mailhog/MailHog/releases](https://github.com/mailhog/MailHog/releases)) i uruchom ją lokalnie:
 
@@ -231,7 +228,7 @@ Bez Dockera MailHog nie startuje automatycznie. Jeśli chcesz widzieć e-maile w
 
 Jeśli tego pominiesz, aplikacja działa normalnie — po prostu maile nie zostaną nigdzie dostarczone.
 
-#### 4. Frontend
+#### 3. Frontend
 
 ```bash
 cd frontend

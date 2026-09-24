@@ -195,17 +195,9 @@ If you prefer using Docker, the entire application can be run in containers — 
 
 ### Option 1: Running without Docker
 
-#### 1. Database migrations
+#### 1. Backend
 
-Before starting the backend, create the tables in the database from [4. PostgreSQL Database](#4-postgresql-database):
-
-```bash
-cd backend
-# activate the venv first if it isn't active yet (see "Installation" above)
-alembic upgrade head
-```
-
-#### 2. Backend
+On the **first run, against an empty database** (created in [4. PostgreSQL Database](#4-postgresql-database)), you do **not** need to (and should not) run `alembic upgrade head` manually — just start the backend:
 
 ```bash
 cd backend
@@ -219,9 +211,14 @@ venv\Scripts\activate
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+> [!NOTE]
+> On startup the app creates all tables itself from the SQLAlchemy models (`Base.metadata.create_all`) and marks the database as being on the latest Alembic revision (`_ensure_alembic_stamped()` in `backend/main.py`). The first migration in the repo (`658f4b511d04_initial_schema_camel_case`) is intentionally empty — Docker works the same way (`Dockerfile.backend` also just runs `uvicorn`, with no `alembic upgrade head` before it starts).
+>
+> Only run `alembic upgrade head` once the database already exists and has run at least once (e.g. after a `git pull` that added new migration files) — it then applies just the incremental changes.
+
 The backend will be available at: http://localhost:8000
 
-#### 3. (Optional) MailHog - preview outgoing emails
+#### 2. (Optional) MailHog - preview outgoing emails
 
 Without Docker, MailHog doesn't start automatically. If you want to see verification/password-reset emails, download the MailHog binary ([github.com/mailhog/MailHog/releases](https://github.com/mailhog/MailHog/releases)) and run it locally:
 
@@ -231,7 +228,7 @@ Without Docker, MailHog doesn't start automatically. If you want to see verifica
 
 If you skip this, the app still works fine — emails just won't be delivered anywhere.
 
-#### 4. Frontend
+#### 3. Frontend
 
 ```bash
 cd frontend
