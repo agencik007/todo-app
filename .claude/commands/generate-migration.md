@@ -28,8 +28,9 @@ User provided: **$ARGUMENTS**
    - Examples: `add_avatar_to_user`, `drop_is_public_from_todo`, `create_group_invites_table`
 
 4. **Generate the migration** (inside the backend container):
+
    ```bash
-   docker-compose -f docker/docker-compose.yml exec backend alembic revision --autogenerate -m "<description>"
+   docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec backend alembic revision --autogenerate -m "<description>"
    ```
 
 5. **Review the generated file** in `backend/migrations/versions/`:
@@ -47,15 +48,20 @@ User provided: **$ARGUMENTS**
    - Verify that `down_revision` points to the previous head.
 
 6. **Apply the migration:**
+
    ```bash
    make migrate
    ```
-   (equivalent to: `docker-compose -f docker/docker-compose.yml exec backend alembic upgrade head`)
+
+   (equivalent to: `docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec backend alembic upgrade head`)
 
 7. **Regenerate OpenAPI** (if anything changed in schemas or models exposed through the API):
+
    ```bash
-   docker-compose -f docker/docker-compose.yml exec frontend npm run generate-api
+   cd frontend && npm run generate-api
    ```
+
+   Runs on the host, not in a container — see the OpenAPI section in `AGENTS.md` for requirements.
 
 8. **Report back to the user** — summarize:
    - Migration filename (`<hash>_<description>.py`)

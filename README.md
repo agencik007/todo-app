@@ -35,7 +35,7 @@ Open: http://localhost:4200
 make dev      # Development mode
 make prod     # Production mode
 make status   # Check status
-make logs     # View logs
+make logs     # View logs (add STACK=prod for the production stack)
 ```
 
 ### 📧 MailHog - Email Testing
@@ -294,6 +294,10 @@ All `/todos`, `/groups` and `/users` endpoints require an authenticated user wit
 The application has a comprehensive suite of tests (currently **91**), including API tests for Todo, Auth, and Groups.
 
 ```bash
+# In Docker (dev stack running)
+make test-backend
+
+# Or locally
 cd backend
 
 # Run all tests
@@ -315,11 +319,11 @@ pytest --cov=. --cov-report=html
 ### Frontend - Unit Tests
 
 > [!WARNING]
-> There is currently no test runner configured for the frontend — `angular.json` has no `test` target, so `ng test` / `make test-frontend` fail. Only lint is available:
+> There is currently no test runner configured for the frontend — `angular.json` has no `test` target, so `ng test` fails. Only lint is available:
 
 ```bash
-cd frontend
-npm run lint
+make lint-frontend        # in Docker
+# or locally: cd frontend && npm run lint
 ```
 
 ## 🚀 Quick Start
@@ -406,7 +410,7 @@ docker-compose -f docker/docker-compose.yml --env-file docker/docker.prod.env up
 ### Useful Docker Commands
 
 > [!NOTE]
-> Plain `docker-compose ...` commands in this README are shortened. Run them from the project root with the same files the Makefile uses, e.g. `docker-compose -f docker/docker-compose.yml --env-file docker/docker.env ps`. Also note that `logs-*`, `shell-*`, `migrate` and `test-*` targets use `docker/docker.prod.env`.
+> Plain `docker-compose ...` commands in this README are shortened. Run them from the project root with the same files the Makefile uses, e.g. `docker-compose -f docker/docker-compose.yml --env-file docker/docker.env ps`. Operational `make` targets (`down`, `logs*`, `shell-*`, `migrate`, `test-backend`, `lint-frontend`, `status`, `clean*`) target the dev stack (`docker/docker.env`); add `STACK=prod` to target production (`docker/docker.prod.env`), e.g. `make logs STACK=prod`.
 
 ```bash
 # List all available commands
@@ -589,7 +593,10 @@ alembic current
 If the app runs in containers, commands must be executed within the backend container:
 
 ```bash
-docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec backend alembic upgrade head
+make migrate   # alembic upgrade head in the backend container
+
+# other Alembic commands:
+docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec backend alembic current
 ```
 
 ---
@@ -690,6 +697,8 @@ alembic revision --autogenerate    # Database migrations
 # Frontend
 ng generate component component-name  # Skeleton for a new component
 ng generate service service-name      # Skeleton for a new service
+npm run generate-api                  # Regenerate API types (@api) after backend changes
+                                      # runs on the host: needs Python + backend deps, backend/.env and Java
 
 # Docker
 docker-compose logs -f service_name   # View container logs

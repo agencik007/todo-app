@@ -7,7 +7,7 @@
     "dev": "make dev",
     "prod": "make prod",
     "test:backend": "make test-backend",
-    "test:frontend": "make test-frontend",
+    "lint:frontend": "make lint-frontend",
     "clean": "make clean",
     "migrate": "make migrate",
     "logs": "make logs",
