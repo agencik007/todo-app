@@ -21,7 +21,6 @@ model/locationInner.ts
 model/models.ts
 model/passwordReset.ts
 model/passwordResetRequest.ts
-model/refreshTokenRequest.ts
 model/todo.ts
 model/todoCreate.ts
 model/todoUpdate.ts

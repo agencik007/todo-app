@@ -58,10 +58,10 @@ User provided: **$ARGUMENTS**
 7. **Regenerate OpenAPI** (if anything changed in schemas or models exposed through the API):
 
    ```bash
-   cd frontend && npm run generate-api
+   make generate-api
    ```
 
-   Runs on the host, not in a container — see the OpenAPI section in `AGENTS.md` for requirements.
+   Commit the regenerated `backend/openapi/openapi.json` and `frontend/src/libs/generated-api/` together with the migration.
 
 8. **Report back to the user** — summarize:
    - Migration filename (`<hash>_<description>.py`)

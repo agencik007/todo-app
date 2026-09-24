@@ -19,3 +19,21 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
     command: npx ng serve --host 0.0.0.0 --poll 1000
+
+  # Dev tool, not started by `make dev` (profile "tools"); run via `make generate-api`.
+  # Regenerates the frontend API client (@api) from backend/openapi/openapi.json.
+  # Files listed in .openapi-generator/FILES are removed first, because the
+  # generator never deletes models/services that disappeared from the schema.
+  # Keep the image version in sync with frontend/src/libs/generated-api/.openapi-generator/VERSION.
+  openapi-generator:
+    image: openapitools/openapi-generator-cli:v7.19.0
+    profiles: ["tools"]
+    volumes:
+      - ..:/local
+    working_dir: /local/frontend/src/libs/generated-api
+    entrypoint: ["sh", "-c"]
+    command:
+      - >-
+        if [ -f .openapi-generator/FILES ]; then xargs rm -f < .openapi-generator/FILES; fi &&
+        openapi-generator-cli generate -i /local/backend/openapi/openapi.json
+        -g typescript-angular -o . --skip-validate-spec
