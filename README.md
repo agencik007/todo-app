@@ -12,16 +12,20 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Angular 21 Frontend** - Signals, Control Flow, Standalone Components, SSR
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
-- ✅ **Backend Tests** - 86 unit and integration tests with coverage
+- ✅ **Backend Tests** - 91 unit and integration tests with coverage
 - ✅ **Simple Local Setup** - Single database for development and local testing
 
 ### 🚀 How to Run (3 Simple Steps):
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/todo-app.git
+git clone https://github.com/agencik007/todo-app.git
 cd todo-app
-make dev  # or: cd docker && docker-compose up --build
+cp docker/docker.env.example docker/docker.env   # then adjust the values
+make dev
 ```
+
+> [!IMPORTANT]
+> `docker/docker.env` is required — `docker-compose.yml` has no hardcoded credentials and refuses to start without `POSTGRES_*`, `PGADMIN_*` etc. `make dev` loads this file automatically; `make prod` loads `docker/docker.prod.env` instead (never committed).
 
 Open: http://localhost:4200
 
@@ -51,14 +55,21 @@ The application uses **MailHog** for testing email functionalities (email verifi
 
 ## 📋 Table of Contents
 
+- [🎯 Project Description](#-project-description)
+- [🛠 Technologies](#-technologies)
+- [📋 Prerequisites](#-prerequisites)
+- [🚀 Installation](#-installation)
+- [⚙️ Configuration](#️-configuration)
+- [🏃‍♂️ Running the app](#️-running-the-app)
+- [📚 API Documentation](#-api-documentation)
+- [🧪 Testing](#-testing)
 - [🚀 Quick Start](#-quick-start)
-- [Project Description](#project-description)
-- [Technologies](#technologies)
 - [🐳 Docker - Detailed Documentation](#-docker---detailed-documentation)
-- [API Documentation](#api-documentation)
-- [Testing](#testing)
-- [Project Structure](#project-structure)
-- [Development](#development)
+- [🗄️ Database Management (Alembic)](#️-database-management-alembic)
+- [📁 Project Structure](#-project-structure)
+- [✉️ API Message System](#️-api-message-system)
+- [🎨 Design System](#-design-system)
+- [🔧 Development](#-development)
 
 ## 🎯 Project Description
 
@@ -66,11 +77,11 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 
 ### Features
 
-- ✅ Create new tasks
-- ✅ Display a list of tasks
-- ✅ Edit tasks
-- ✅ Mark tasks as completed
-- ✅ Delete tasks
+- ✅ Create, edit, complete and delete tasks; drag & drop reordering
+- ✅ Groups for organizing tasks
+- ✅ User accounts: registration, email verification, password reset, avatar
+- ✅ Security: password strength validation, refresh token rotation with reuse detection, rate limiting, CSP and security headers
+- ✅ Polish / English UI (ngx-translate), light / dark mode and color themes
 - ✅ Responsive design
 
 ## 🛠 Technologies
@@ -86,11 +97,13 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 
 ### Frontend
 
-- **Angular 21** - frontend framework
+- **Angular 21** - frontend framework (standalone components, signals, SSR)
 - **TypeScript** - programming language
+- **@ngrx/signals** - signal-based stores (`AuthStore`, `TodoStore`)
 - **RxJS** - reactive programming
 - **OpenAPI Generator** - generates TypeScript types from backend
-- **PrimeNG** - UI component library
+- **PrimeNG** - UI component library (Aura theme)
+- **Design system** - design tokens + shared UI primitives on top of PrimeNG (see [Design System](#-design-system))
 
 ### DevOps
 
@@ -103,7 +116,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 Before starting, ensure you have installed:
 
 - **Python 3.12+** - [Download](https://www.python.org/downloads/)
-- **Node.js 18+** - [Download](https://nodejs.org/)
+- **Node.js 20.19+ or 22.12+** (required by Angular 21) - [Download](https://nodejs.org/)
 - **PostgreSQL** - [Download](https://www.postgresql.org/download/)
 - **Docker Desktop** - [Download](https://www.docker.com/products/docker-desktop/)
 - **Git** - [Download](https://git-scm.com/)
@@ -151,6 +164,8 @@ npm install
 CREATE USER todo_user WITH PASSWORD 'todo_password';
 CREATE DATABASE todo_db OWNER todo_user;
 GRANT ALL PRIVILEGES ON DATABASE todo_db TO todo_user;
+-- Separate database for the test suite (tests wipe all data on every run)
+CREATE DATABASE todo_db_test OWNER todo_user;
 ```
 
 ## ⚙️ Configuration
@@ -240,43 +255,35 @@ The frontend will be available at: http://localhost:4200
 ### Option 2: Running with Docker
 
 ```bash
-# Start all services
-docker-compose up --build
+# One-time: create the env file used by docker-compose
+cp docker/docker.env.example docker/docker.env
 
-# Or in detached mode
-docker-compose up -d --build
+# Start all services (hot-reload)
+make dev
 ```
 
 ## 📚 API Documentation
 
-After running the backend, API documentation is available at:
+After running the backend with `DEBUG=True`, API documentation is available at:
 
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 
+> [!NOTE]
+> With `DEBUG=False` (production) `/docs`, `/redoc` and `/openapi.json` are disabled. `make dev` sets `DEBUG=True` automatically.
+
 ### Available endpoints
 
-| Method | Endpoint      | Description           |
-| ------ | ------------- | --------------------- |
-| GET    | `/`           | Application status    |
-| GET    | `/health`     | Health check          |
-| GET    | `/todos`      | Get all tasks         |
-| GET    | `/todos/{id}` | Get task by ID        |
-| POST   | `/todos`      | Create new task       |
-| PUT    | `/todos/{id}` | Update task           |
-| DELETE | `/todos/{id}` | Delete task           |
+| Prefix    | Description                                                            |
+| --------- | ---------------------------------------------------------------------- |
+| `/`       | Application status                                                     |
+| `/health` | Health check                                                           |
+| `/auth`   | Registration, login, token refresh, email verification, password reset |
+| `/users`  | Current user's avatar and language preference                          |
+| `/todos`  | Tasks CRUD and reordering                                              |
+| `/groups` | Task groups CRUD                                                       |
 
-### Example requests
-
-```bash
-# Get all tasks
-curl http://localhost:8000/todos
-
-# Create new task
-curl -X POST http://localhost:8000/todos \
-  -H "Content-Type: application/json" \
-  -d '{"title": "My first task", "description": "Task description", "completed": false}'
-```
+All `/todos`, `/groups` and `/users` endpoints require an authenticated user with a verified email. The full, up-to-date list is in Swagger UI.
 
 ---
 
@@ -284,7 +291,7 @@ curl -X POST http://localhost:8000/todos \
 
 ### Backend - Tests (Pytest)
 
-The application has a comprehensive suite of tests (currently **86**), including API tests for Todo, Auth, and Groups.
+The application has a comprehensive suite of tests (currently **91**), including API tests for Todo, Auth, and Groups.
 
 ```bash
 cd backend
@@ -300,21 +307,19 @@ pytest --cov=. --cov-report=html
 ```
 
 > [!IMPORTANT]
-> **Note:** Local tests use the same database as development. Running tests clears test data between cases, but treat the database as a working environment for your local experiments.
+> Tests never touch the application database: they run against `<db>_test` derived from `DATABASE_URL` (e.g. `todo_db_test`), created automatically if the user has permission, or against `TEST_DATABASE_URL` if set. All data in the test database is wiped before every test.
 
 > [!NOTE]
 > **Rate Limiting:** During tests, request throttling is disabled (`TESTING=1`), allowing for fast test execution.
 
 ### Frontend - Unit Tests
 
+> [!WARNING]
+> There is currently no test runner configured for the frontend — `angular.json` has no `test` target, so `ng test` / `make test-frontend` fail. Only lint is available:
+
 ```bash
 cd frontend
-
-# Run tests
-ng test
-
-# With code coverage
-ng test --code-coverage
+npm run lint
 ```
 
 ## 🚀 Quick Start
@@ -333,11 +338,11 @@ cd todo-app
 ### Step 2: Start the application (Docker)
 
 ```bash
-# Navigate to the docker directory
-cd docker
+# One-time: create the env file and adjust the values
+cp docker/docker.env.example docker/docker.env
 
 # Start all services
-docker-compose up --build
+make dev
 ```
 
 ### Step 3: Access the app
@@ -347,9 +352,9 @@ Once started, open these in your browser:
 - **📱 Frontend App**: http://localhost:4200
 - **🔧 Backend API**: http://localhost:8000
 - **📚 API Documentation**: http://localhost:8000/docs
+- **📧 MailHog**: http://localhost:8025
 - **🗄️ PgAdmin** (Database Manager): http://localhost:5050
-  - Login: admin@example.com
-  - Password: admin123
+  - Login: `PGADMIN_EMAIL` / `PGADMIN_PASSWORD` from `docker/docker.env`
 
 ---
 
@@ -385,7 +390,7 @@ Once started, open these in your browser:
 make dev
 
 # Or directly:
-docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml up -d
+docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml --env-file docker/docker.env up --build
 ```
 
 #### Production Mode
@@ -394,11 +399,14 @@ docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.ym
 # From the project root
 make prod
 
-# Or directly:
-docker-compose -f docker/docker-compose.yml up --build -d
+# Or directly (production secrets in docker/docker.prod.env, never committed):
+docker-compose -f docker/docker-compose.yml --env-file docker/docker.prod.env up --build -d
 ```
 
 ### Useful Docker Commands
+
+> [!NOTE]
+> Plain `docker-compose ...` commands in this README are shortened. Run them from the project root with the same files the Makefile uses, e.g. `docker-compose -f docker/docker-compose.yml --env-file docker/docker.env ps`. Also note that `logs-*`, `shell-*`, `migrate` and `test-*` targets use `docker/docker.prod.env`.
 
 ```bash
 # List all available commands
@@ -438,9 +446,7 @@ make clean-volumes  # WARNING: Deletes database data!
 PgAdmin is a web tool for managing PostgreSQL:
 
 1. **Open**: http://localhost:5050
-2. **Log in**:
-   - Email: admin@example.com
-   - Password: admin123
+2. **Log in** with `PGADMIN_EMAIL` / `PGADMIN_PASSWORD` from `docker/docker.env`
 
 3. **Add Database Server**:
    - Click "Add New Server"
@@ -448,12 +454,10 @@ PgAdmin is a web tool for managing PostgreSQL:
    - "Connection" tab:
      - Host: db (or localhost if connecting from outside)
      - Port: 5432
-     - Username: todo_user
-     - Password: todo_password
-     - Database: todo_db
+     - Username / Password / Database: `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` from `docker/docker.env`
 
 4. **Browse data**:
-   - Expand "Todo Database" → "Databases" → "todo_db" → "Schemas" → "public" → "Tables"
+   - Expand "Todo Database" → "Databases" → your `POSTGRES_DB` → "Schemas" → "public" → "Tables"
    - Right-click "todos" → "View/Edit Data" → "All Rows"
 
 ### Docker Configuration Files
@@ -461,16 +465,17 @@ PgAdmin is a web tool for managing PostgreSQL:
 #### Dockerfile.backend
 
 - **Base**: Python 3.12 slim
-- **Server**: Uvicorn with hot-reload
+- **Server**: Uvicorn with 2 workers (production); `docker-compose.override.yml` switches it to `--reload` for development
 - **Security**: Non-root user
 - **Health checks**: Socket connection test
 
 #### Dockerfile.frontend
 
-- **Base**: Node.js 22 Alpine (multi-stage)
-- **Build**: Angular CLI production build
-- **Server**: HTTP-Server for static files
-- **Optimization**: Minification and compression
+- **Base**: Node.js 22 Alpine
+- **Install**: `npm ci` (reproducible install from `package-lock.json`)
+- **Build**: Angular CLI production build with SSR
+- **Server**: Angular SSR Node server (`dist/frontend/server/server.mjs`), which also sets the security headers and Content Security Policy (`frontend/src/server.ts`)
+- **Development**: `docker-compose.override.yml` runs `ng serve` with hot-reload instead
 
 #### docker-compose.yml
 
@@ -537,14 +542,11 @@ docker-compose exec frontend curl http://backend:8000/health
 ### Production deployment
 
 ```bash
-# Build for production
-docker-compose -f docker/docker-compose.yml build
-
-# Start in background
-cd docker && docker-compose up -d
+# Production secrets live in docker/docker.prod.env (never committed)
+make prod
 
 # Check status
-docker-compose ps
+make status
 
 # Monitoring
 docker stats
@@ -587,7 +589,7 @@ alembic current
 If the app runs in containers, commands must be executed within the backend container:
 
 ```bash
-docker-compose exec backend alembic upgrade head
+docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec backend alembic upgrade head
 ```
 
 ---
@@ -597,37 +599,36 @@ docker-compose exec backend alembic upgrade head
 ```
 todo-app/
 ├── backend/                 # Python FastAPI backend
-│   ├── config/
-│   │   └── database.py      # Database configuration
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── todo.py          # Todo model
-│   │   └── schemas.py       # Pydantic schemas
-│   ├── routes/
-│   │   └── todo.py          # API routes
+│   ├── config/              # database, auth, api_messages, password validation
+│   ├── models/              # SQLAlchemy models (user, todo, group, refresh_token) + Pydantic schemas
+│   ├── routes/              # API routes (auth, users, todos, groups)
+│   ├── services/            # Business logic (auth, email)
+│   ├── migrations/          # Alembic migrations
+│   ├── tests/               # Pytest suite
 │   ├── main.py              # Application entrypoint
 │   ├── requirements.txt     # Python dependencies
-│   └── .env                 # Environment variables
+│   └── .env                 # Environment variables (non-Docker setup)
 ├── frontend/                # Angular frontend
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── core/        # Core module
-│   │   │   │   └── store/   # Signal-based stores (AuthStore)
-│   │   │   ├── features/    # Feature modules
-│   │   │   │   └── todos/
-│   │   │   │       └── store/ # Feature stores (TodoStore)
-│   │   │   ├── shared/      # Shared components
+│   │   │   ├── core/        # Guards, interceptors, services, stores (AuthStore)
+│   │   │   ├── features/    # auth/, groups/, todos/ (each with components/, store/)
+│   │   │   ├── shared/
+│   │   │   │   ├── ui/              # Design system primitives (badge, empty-state, form-field, icon-button)
+│   │   │   │   ├── global-styling/  # SCSS partials, incl. _tokens.scss (design tokens)
+│   │   │   │   ├── components/      # Shared components
+│   │   │   │   └── pipes/
 │   │   │   └── layout/      # Layout components
-│   │   └── ...
+│   │   ├── libs/generated-api/  # Generated OpenAPI client (@api)
+│   │   ├── assets/i18n/     # en.json, pl.json
+│   │   └── server.ts        # SSR server (security headers, CSP)
 │   ├── angular.json
 │   ├── package.json
 │   └── ...
-├── docker/                  # Docker files
-│   ├── Dockerfile.backend
-│   ├── Dockerfile.frontend
-│   └── docker-compose.yml
-├── README.md                # Polish README
-├── README_en.md             # This file
+├── docker/                  # Dockerfiles, docker-compose files, docker.env.example
+├── Makefile                 # Entry point for all dev tasks
+├── AGENTS.md                # Guidelines for contributors and AI agents
+├── README.md                # This file
 └── .gitignore
 ```
 
@@ -643,18 +644,39 @@ The application uses a centralized messaging structure between backend and front
 2.  **Frontend (Toasts)**: `notificationInterceptor` automatically catches these codes and displays toasts.
 3.  **Translations**: A map from codes to text content (PL/EN) sits in `frontend/src/assets/i18n/`.
 
+## 🎨 Design System
+
+The frontend has a small design system layered on top of the PrimeNG (PrimeUIX Aura) theme.
+
+**Design tokens** — `frontend/src/app/shared/global-styling/_tokens.scss`
+
+- Colors always come from the theme: semantic `--p-primary-*`, `--p-surface-*`, `--p-text-color`, `--p-text-muted-color`, `--p-content-border-color` and palettes `--p-{red,blue,amber,...}-{50..950}`.
+- `--app-*` tokens hold only what the theme doesn't define: font sizes and weights (`--app-text-*`, `--app-font-*`), spacing (`--app-space-1..8`), radii (`--app-radius-*`), shadows (`--app-shadow-*`, dark variants under `.dark`), focus ring, transitions and glass panels.
+- Use tokens in component styles instead of hardcoded values.
+
+**Shared UI primitives** — `frontend/src/app/shared/ui/`
+
+| Primitive               | Usage                                                                                                                     |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `button[appIconButton]` | Square icon button; `variant` (`ghost` / `primary` / `danger`), `size` (`sm`–`xl`), `reveal` (visible on container hover) |
+| `app-badge`             | Small label / pill (e.g. group badge on a todo)                                                                           |
+| `app-empty-state`       | Empty list / info state with icon or emoji, heading and description                                                       |
+| `app-form-field`        | Label (with optional icon) + projected control and error messages; presentational only — validation stays in the form     |
+
+Before adding a new ad-hoc button, badge or empty state, check whether one of these fits.
+
 ## 🔧 Development
 
 ### Adding new features
 
 1. **Backend**: Add a new endpoint in `routes/`, model in `models/`
-2. **Frontend**: Create a new component in `components/`, service in `services/`
+2. **Frontend**: Add components and a store under `features/<feature>/`; reuse `shared/ui` primitives and design tokens
 3. **Database**: Update SQLAlchemy model and generate a migration
 
 ### Best Practices
 
 - **Backend**: Use Pydantic for validation, SQLAlchemy for queries
-- **Frontend**: Rely on OnPush change detection, use trackBy functions
+- **Frontend**: Rely on OnPush change detection, always provide `track` in `@for` loops
 - **Git**: Commit often with descriptive messages
 - **Tests**: Cover key business logic with tests
 
