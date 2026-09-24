@@ -157,40 +157,85 @@ GRANT ALL PRIVILEGES ON DATABASE todo_db TO todo_user;
 
 ### Environment Variables
 
-Create a `.env` file in the `backend/` directory:
+Copy the example file and fill in your own values:
+
+```bash
+cd backend
+cp .env.example .env   # Windows (PowerShell): copy .env.example .env
+```
+
+Minimal, working `backend/.env` for running without Docker:
 
 ```env
-# Database configuration
-DATABASE_URL=postgresql://todo_user:todo_password@localhost:5432/todo_db
-
-# Application settings
+SECRET_KEY=change-this-to-a-random-secret
 DEBUG=True
-SECRET_KEY=your-secret-key-here
+ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ORIGINS=http://localhost:4200,http://127.0.0.1:4200
+DATABASE_URL=postgresql://todo_user:todo_password@localhost:5432/todo_db
+SECURE_COOKIES=False
+
+# Email (verification, password reset) - without Docker there is no MailHog
+# reachable at the hostname "mailhog", so point it at localhost or a real SMTP server.
+USE_MAILHOG=true
+MAILHOG_HOST=localhost
+MAILHOG_PORT=1025
+FRONTEND_URL=http://localhost:4200
 ```
+
+> [!NOTE]
+> `ALLOWED_HOSTS` and `CORS_ORIGINS` are required — the backend refuses to start without them (see `backend/main.py`).
+>
+> If you don't run MailHog locally (see below), sending emails (verification, password reset) will simply fail and be logged as an error in the backend console — the rest of the app keeps working normally.
 
 ### Docker (Alternative Setup)
 
-If you prefer using Docker, the entire application can be run in containers.
+If you prefer using Docker, the entire application can be run in containers — see [Option 2](#option-2-running-with-docker) below.
 
 ## 🏃‍♂️ Running the app
 
 ### Option 1: Running without Docker
 
-#### Backend
+#### 1. Database migrations
+
+Before starting the backend, create the tables in the database from [4. PostgreSQL Database](#4-postgresql-database):
 
 ```bash
 cd backend
+# activate the venv first if it isn't active yet (see "Installation" above)
+alembic upgrade head
+```
+
+#### 2. Backend
+
+```bash
+cd backend
+
+# activate the virtual environment if it isn't active yet
+# Windows:
 venv\Scripts\activate
+# Linux/Mac:
+# source venv/bin/activate
+
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The backend will be available at: http://localhost:8000
 
-#### Frontend
+#### 3. (Optional) MailHog - preview outgoing emails
+
+Without Docker, MailHog doesn't start automatically. If you want to see verification/password-reset emails, download the MailHog binary ([github.com/mailhog/MailHog/releases](https://github.com/mailhog/MailHog/releases)) and run it locally:
+
+```bash
+./MailHog   # SMTP on :1025, UI on http://localhost:8025
+```
+
+If you skip this, the app still works fine — emails just won't be delivered anywhere.
+
+#### 4. Frontend
 
 ```bash
 cd frontend
-ng serve
+npm start   # equivalent to: ng serve
 ```
 
 The frontend will be available at: http://localhost:4200
