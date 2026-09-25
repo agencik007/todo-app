@@ -56,7 +56,7 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 3. **Frontend:** run lint (`make lint-frontend`) before considering the task done.
 4. **Tests:** if you touched backend logic → run `make test-backend`. The frontend has no test runner yet, so lint + `ng build` are the checks there.
 5. **i18n:** new API messages must have keys in both `frontend/src/assets/i18n/en.json` and `pl.json` under `API_MESSAGES`.
-6. **CI:** `.github/workflows/ci.yml` runs `ruff check`, `ruff format --check`, `pytest`, frontend lint + build and a Docker image build on every PR. Run the same checks locally before pushing, and update the workflow when you change the Python/Node versions in `docker/Dockerfile.*`.
+6. **CI:** `.github/workflows/ci.yml` runs `ruff check`, `ruff format --check`, `pytest`, frontend lint + Prettier check (`npm run format:check`) + build and a Docker image build on every PR. Run the same checks locally before pushing, and update the workflow when you change the Python/Node versions in `docker/Dockerfile.*`.
 7. **Docs:** if your change is one of the triggers listed in [Keeping README.md up to date](#keeping-readmemd-up-to-date) → update `README.md` (and this file, if it affects agent workflow) **in the same change**.
 
 ---
@@ -102,7 +102,7 @@ Makefile         # root entry point for all development tasks
   - Classes: `PascalCase`
   - Schemas: suffix with `Create`, `Update` where applicable (e.g. `TodoCreate`, `TodoUpdate`).
 - **Typing:** use Python type hints everywhere (`typing.List`, `Optional`, etc.).
-- **Formatting:** follow PEP 8. Double quotes for strings unless single quotes are required.
+- **Formatting:** follow PEP 8 (4-space indentation, enforced by `ruff format`). Double quotes for strings unless single quotes are required.
 
 ### Error handling and API messages
 
@@ -238,7 +238,7 @@ Use SCSS partials in `src/app/shared/global-styling`.
 
 ### Formatting
 
-Single quotes, 2-space indentation, 100-character line limit.
+Single quotes, 2-space indentation (`frontend/.prettierrc`, also used for SCSS, HTML and JSON; `.editorconfig` matches), 100-character line limit for HTML templates. Everything outside Python uses 2 spaces. CI fails on unformatted files — run `npx prettier --write .` in `frontend/`.
 
 ### Accessibility
 

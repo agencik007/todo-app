@@ -10,7 +10,8 @@
     "lint": "ng lint",
     "format": "prettier --write",
     "generate-api": "python ../backend/openapi/export_openapi.py && openapi-generator-cli generate -i ../backend/openapi/openapi.json -g typescript-angular -o src/libs/generated-api --skip-validate-spec",
-    "serve:ssr": "node dist/frontend/server/server.mjs"
+    "serve:ssr": "node dist/frontend/server/server.mjs",
+    "format:check": "prettier --check ."
   },
   "private": true,
   "dependencies": {
@@ -56,6 +57,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "lint-staged": "^16.2.7",
+    "prettier": "^3.9.9",
     "prettier-plugin-organize-attributes": "^1.0.0",
     "prettier-plugin-organize-imports": "^4.3.0",
     "typescript": "~5.9.2",

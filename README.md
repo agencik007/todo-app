@@ -334,10 +334,10 @@ make lint-frontend        # in Docker
 | Job        | What it checks                                                                                                 |
 | ---------- | -------------------------------------------------------------------------------------------------------------- |
 | `backend`  | `ruff check`, `ruff format --check` and the full `pytest` suite (with the coverage gate) against PostgreSQL 15 |
-| `frontend` | `npm ci`, `npm run lint` and `npm run build` (SSR + prerender)                                                 |
+| `frontend` | `npm ci`, `npm run lint`, `npm run format:check` (Prettier) and `npm run build` (SSR + prerender)              |
 | `docker`   | Builds `docker/Dockerfile.backend` and `docker/Dockerfile.frontend` (no push)                                  |
 
-To reproduce the backend job locally, format and lint with `ruff format` / `ruff check` in `backend/` (the pre-commit hook already does this for staged files) and run `make test-backend`.
+To reproduce the backend job locally, format and lint with `ruff format` / `ruff check` in `backend/` (the pre-commit hook already does this for staged files) and run `make test-backend`. For the frontend job, run `npm run lint` and `npm run format:check` in `frontend/` (`npx prettier --write .` fixes formatting).
 
 ## 🚀 Quick Start
 
