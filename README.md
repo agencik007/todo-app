@@ -12,7 +12,8 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Angular 21 Frontend** - Signals, Control Flow, Standalone Components, SSR
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
-- ✅ **Backend Tests** - 91 unit and integration tests with coverage
+- ✅ **Backend Tests** - 89 unit and integration tests with coverage (min. 80% enforced)
+- ✅ **CI** - GitHub Actions runs lint, tests and builds on every push and pull request
 - ✅ **Simple Local Setup** - Single database for development and local testing
 
 ### 🚀 How to Run (3 Simple Steps):
@@ -110,6 +111,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - **Docker** - containerization
 - **Docker Compose** - container orchestration
 - **PostgreSQL** - database in container
+- **GitHub Actions** - CI (see [Continuous Integration](#continuous-integration-github-actions))
 
 ## 📋 Prerequisites
 
@@ -291,7 +293,7 @@ All `/todos`, `/groups` and `/users` endpoints require an authenticated user wit
 
 ### Backend - Tests (Pytest)
 
-The application has a comprehensive suite of tests (currently **91**), including API tests for Todo, Auth, and Groups.
+The application has a comprehensive suite of tests (currently **89**), including API tests for Todo, Auth, and Groups. `pytest.ini` always measures coverage and fails the run below **80%**.
 
 ```bash
 # In Docker (dev stack running)
@@ -306,8 +308,7 @@ pytest
 # Run a specific test file
 pytest tests/test_groups.py -v
 
-# With code coverage
-pytest --cov=. --cov-report=html
+# Coverage runs automatically (terminal report + htmlcov/)
 ```
 
 > [!IMPORTANT]
@@ -325,6 +326,18 @@ pytest --cov=. --cov-report=html
 make lint-frontend        # in Docker
 # or locally: cd frontend && npm run lint
 ```
+
+### Continuous Integration (GitHub Actions)
+
+`.github/workflows/ci.yml` runs on every push to `main` and on every pull request. Merge only when all jobs are green (a branch protection rule on `main` can enforce this):
+
+| Job        | What it checks                                                                                                 |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| `backend`  | `ruff check`, `ruff format --check` and the full `pytest` suite (with the coverage gate) against PostgreSQL 15 |
+| `frontend` | `npm ci`, `npm run lint` and `npm run build` (SSR + prerender)                                                 |
+| `docker`   | Builds `docker/Dockerfile.backend` and `docker/Dockerfile.frontend` (no push)                                  |
+
+To reproduce the backend job locally, format and lint with `ruff format` / `ruff check` in `backend/` (the pre-commit hook already does this for staged files) and run `make test-backend`.
 
 ## 🚀 Quick Start
 
@@ -633,6 +646,7 @@ todo-app/
 │   ├── package.json
 │   └── ...
 ├── docker/                  # Dockerfiles, docker-compose files, docker.env.example
+├── .github/workflows/       # CI (GitHub Actions)
 ├── Makefile                 # Entry point for all dev tasks
 ├── AGENTS.md                # Guidelines for contributors and AI agents
 ├── README.md                # This file

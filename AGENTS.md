@@ -56,7 +56,8 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 3. **Frontend:** run lint (`make lint-frontend`) before considering the task done.
 4. **Tests:** if you touched backend logic → run `make test-backend`. The frontend has no test runner yet, so lint + `ng build` are the checks there.
 5. **i18n:** new API messages must have keys in both `frontend/src/assets/i18n/en.json` and `pl.json` under `API_MESSAGES`.
-6. **Docs:** if your change is one of the triggers listed in [Keeping README.md up to date](#keeping-readmemd-up-to-date) → update `README.md` (and this file, if it affects agent workflow) **in the same change**.
+6. **CI:** `.github/workflows/ci.yml` runs `ruff check`, `ruff format --check`, `pytest`, frontend lint + build and a Docker image build on every PR. Run the same checks locally before pushing, and update the workflow when you change the Python/Node versions in `docker/Dockerfile.*`.
+7. **Docs:** if your change is one of the triggers listed in [Keeping README.md up to date](#keeping-readmemd-up-to-date) → update `README.md` (and this file, if it affects agent workflow) **in the same change**.
 
 ---
 
@@ -76,6 +77,7 @@ frontend/src/app/
   shared/        # components, global-styling, pipes
   layout/
 docker/          # Dockerfiles and docker-compose configurations
+.github/workflows/ # CI (GitHub Actions)
 Makefile         # root entry point for all development tasks
 ```
 
@@ -114,7 +116,7 @@ Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`.
 
 ### Testing
 
-- The full suite is 91 tests; run with `make test-backend`.
+- The full suite is 89 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
 - Tests never use the application database: `conftest.py` derives `<db>_test` from `DATABASE_URL` (created automatically if the DB user has permission), or uses `TEST_DATABASE_URL` if set.
 - An autouse fixture `db_cleanup` in `conftest.py` clears all data between tests.
 - **Rate limiting in tests:** rate limiting is enabled by default on sensitive endpoints (registration, login, verify email). Tests must run with `TESTING=1`, which `backend/tests/conftest.py` sets automatically via `os.environ["TESTING"] = "1"`.
