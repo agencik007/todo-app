@@ -10,78 +10,78 @@ import { AuthStore } from '../store/auth.store';
 import { API_URL } from '../tokens/api-url.token';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-    // Lazy inject to avoid circular dependency (AuthService → HttpClient → AuthInterceptor → AuthService)
-    const injector = inject(Injector);
-    const translateService = inject(TranslateService);
-    const messageService = inject(MessageService);
-    const router = inject(Router);
-    const platformId = inject(PLATFORM_ID);
-    const isBrowser = isPlatformBrowser(platformId);
-    const apiUrl = inject(API_URL);
+  // Lazy inject to avoid circular dependency (AuthService → HttpClient → AuthInterceptor → AuthService)
+  const injector = inject(Injector);
+  const translateService = inject(TranslateService);
+  const messageService = inject(MessageService);
+  const router = inject(Router);
+  const platformId = inject(PLATFORM_ID);
+  const isBrowser = isPlatformBrowser(platformId);
+  const apiUrl = inject(API_URL);
 
-    const authService = injector.get(AuthService);
-    const accessToken = authService.getAccessToken();
+  const authService = injector.get(AuthService);
+  const accessToken = authService.getAccessToken();
 
-    const isApiRequest = req.url.startsWith(apiUrl);
+  const isApiRequest = req.url.startsWith(apiUrl);
 
-    // Attach Authorization header for authenticated requests (skip auth endpoints
-    // that don't need it and would create confusion).
-    // Only attach for requests pointing to our own API.
-    if (
-        isApiRequest &&
-        accessToken &&
-        !req.url.includes('/auth/login') &&
-        !req.url.includes('/auth/register')
-    ) {
-        req = req.clone({
-            setHeaders: { Authorization: `Bearer ${accessToken}` },
-            // withCredentials ensures the HttpOnly refresh cookie is sent when needed.
+  // Attach Authorization header for authenticated requests (skip auth endpoints
+  // that don't need it and would create confusion).
+  // Only attach for requests pointing to our own API.
+  if (
+    isApiRequest &&
+    accessToken &&
+    !req.url.includes('/auth/login') &&
+    !req.url.includes('/auth/register')
+  ) {
+    req = req.clone({
+      setHeaders: { Authorization: `Bearer ${accessToken}` },
+      // withCredentials ensures the HttpOnly refresh cookie is sent when needed.
+      withCredentials: true,
+    });
+  }
+
+  return next(req).pipe(
+    catchError((error: HttpErrorResponse) => {
+      // Only handle 401 on the browser side and for non-auth endpoints.
+      if (
+        !isBrowser ||
+        !isApiRequest ||
+        error.status !== 401 ||
+        req.url.includes('/auth/login') ||
+        req.url.includes('/auth/refresh')
+      ) {
+        return throwError(() => error);
+      }
+
+      // Access token expired — try silent refresh.
+      // The browser will automatically include the HttpOnly refresh cookie.
+      return authService.refreshToken().pipe(
+        switchMap((newToken) => {
+          const retryReq = req.clone({
+            setHeaders: {
+              Authorization: `Bearer ${newToken.accessToken}`,
+            },
             withCredentials: true,
-        });
-    }
-
-    return next(req).pipe(
-        catchError((error: HttpErrorResponse) => {
-            // Only handle 401 on the browser side and for non-auth endpoints.
-            if (
-                !isBrowser ||
-                !isApiRequest ||
-                error.status !== 401 ||
-                req.url.includes('/auth/login') ||
-                req.url.includes('/auth/refresh')
-            ) {
-                return throwError(() => error);
-            }
-
-            // Access token expired — try silent refresh.
-            // The browser will automatically include the HttpOnly refresh cookie.
-            return authService.refreshToken().pipe(
-                switchMap((newToken) => {
-                    const retryReq = req.clone({
-                        setHeaders: {
-                            Authorization: `Bearer ${newToken.accessToken}`,
-                        },
-                        withCredentials: true,
-                    });
-                    return next(retryReq);
-                }),
-                catchError((refreshError) => {
-                    const authStore = injector.get(AuthStore);
-                    authStore.clearUser();
-                    messageService.add({
-                        severity: 'warn',
-                        summary: translateService.instant(
-                            'AUTH.LOGIN.ERRORS.SESSION_EXPIRED',
-                        ),
-                        detail: translateService.instant(
-                            'AUTH.LOGIN.ERRORS.SESSION_EXPIRED_DETAIL',
-                        ),
-                        life: 5000,
-                    });
-                    router.navigate(['/login']);
-                    return throwError(() => refreshError);
-                }),
-            );
+          });
+          return next(retryReq);
         }),
-    );
+        catchError((refreshError) => {
+          const authStore = injector.get(AuthStore);
+          authStore.clearUser();
+          messageService.add({
+            severity: 'warn',
+            summary: translateService.instant(
+              'AUTH.LOGIN.ERRORS.SESSION_EXPIRED',
+            ),
+            detail: translateService.instant(
+              'AUTH.LOGIN.ERRORS.SESSION_EXPIRED_DETAIL',
+            ),
+            life: 5000,
+          });
+          router.navigate(['/login']);
+          return throwError(() => refreshError);
+        }),
+      );
+    }),
+  );
 };

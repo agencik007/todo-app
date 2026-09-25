@@ -11,69 +11,69 @@ import { ThemeService } from './theme.service';
 
 // Mock dependencies
 class MockAuthStore {
-    isAuthenticated = signal(true);
-    userAvatar = signal(null);
+  isAuthenticated = signal(true);
+  userAvatar = signal(null);
 }
 
 class MockGroupStore {
-    groups = signal([]);
-    selectedGroupIds = signal([]);
-    createGroup = jasmine.createSpy('createGroup');
+  groups = signal([]);
+  selectedGroupIds = signal([]);
+  createGroup = jasmine.createSpy('createGroup');
 }
 
 class MockTodoStore {
-    todos = signal([]);
+  todos = signal([]);
 }
 
 describe('CommandPaletteService', () => {
-    let service: CommandPaletteService;
-    let groupStore: MockGroupStore;
+  let service: CommandPaletteService;
+  let groupStore: MockGroupStore;
 
-    beforeEach(() => {
-        TestBed.configureTestingModule({
-            providers: [
-                CommandPaletteService,
-                { provide: GroupStore, useClass: MockGroupStore },
-                { provide: AuthStore, useClass: MockAuthStore },
-                { provide: TodoStore, useClass: MockTodoStore },
-                {
-                    provide: ColorService,
-                    useValue: { setColorPalette: jasmine.createSpy() },
-                },
-                {
-                    provide: ThemeService,
-                    useValue: { setMode: jasmine.createSpy() },
-                },
-                {
-                    provide: LanguageService,
-                    useValue: { setLanguage: jasmine.createSpy() },
-                },
-                {
-                    provide: Router,
-                    useValue: { navigate: jasmine.createSpy() },
-                },
-            ],
-        });
-
-        service = TestBed.inject(CommandPaletteService);
-        groupStore = TestBed.inject(GroupStore) as unknown as MockGroupStore;
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        CommandPaletteService,
+        { provide: GroupStore, useClass: MockGroupStore },
+        { provide: AuthStore, useClass: MockAuthStore },
+        { provide: TodoStore, useClass: MockTodoStore },
+        {
+          provide: ColorService,
+          useValue: { setColorPalette: jasmine.createSpy() },
+        },
+        {
+          provide: ThemeService,
+          useValue: { setMode: jasmine.createSpy() },
+        },
+        {
+          provide: LanguageService,
+          useValue: { setLanguage: jasmine.createSpy() },
+        },
+        {
+          provide: Router,
+          useValue: { navigate: jasmine.createSpy() },
+        },
+      ],
     });
 
-    it('should be created', () => {
-        expect(service).toBeTruthy();
-    });
+    service = TestBed.inject(CommandPaletteService);
+    groupStore = TestBed.inject(GroupStore) as unknown as MockGroupStore;
+  });
 
-    it('should call createGroup with correct casing', () => {
-        const query = 'My Group';
-        const commands = service.getTaskCommands(query);
-        const addCommand = commands.find((c) => c.id === 'group-add-dynamic');
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
 
-        expect(addCommand).toBeDefined();
-        if (addCommand) {
-            addCommand.action();
-            expect(groupStore.createGroup).toHaveBeenCalledWith({
-                name: 'My Group',
-            });
-        }
-    });
+  it('should call createGroup with correct casing', () => {
+    const query = 'My Group';
+    const commands = service.getTaskCommands(query);
+    const addCommand = commands.find((c) => c.id === 'group-add-dynamic');
+
+    expect(addCommand).toBeDefined();
+    if (addCommand) {
+      addCommand.action();
+      expect(groupStore.createGroup).toHaveBeenCalledWith({
+        name: 'My Group',
+      });
+    }
+  });
 });

@@ -1,61 +1,61 @@
 <main class="auth-container">
-    <p-card [style]="{ width: '100%', maxWidth: '400px' }">
-        <ng-template pTemplate="header">
-            <h1
-                style="text-align: center; margin-top: 0.5rem"
-                class="text-2xl font-bold m-0"
-            >
-                {{ 'AUTH.CHECK_EMAIL.TITLE' | translate }}
-            </h1>
-        </ng-template>
+  <p-card [style]="{ width: '100%', maxWidth: '400px' }">
+    <ng-template pTemplate="header">
+      <h1
+        style="text-align: center; margin-top: 0.5rem"
+        class="text-2xl font-bold m-0"
+      >
+        {{ 'AUTH.CHECK_EMAIL.TITLE' | translate }}
+      </h1>
+    </ng-template>
 
-        <div class="flex flex-column text-center gap-3">
-            <p class="m-0 text-secondary">
-                {{ 'AUTH.CHECK_EMAIL.MESSAGE' | translate }}
-            </p>
+    <div class="flex flex-column text-center gap-3">
+      <p class="m-0 text-secondary">
+        {{ 'AUTH.CHECK_EMAIL.MESSAGE' | translate }}
+      </p>
 
-            @if (email()) {
-                <p class="m-0 font-bold text-xl text-primary">
-                    {{ email() }}
-                </p>
-            }
+      @if (email()) {
+        <p class="m-0 font-bold text-xl text-primary">
+          {{ email() }}
+        </p>
+      }
 
-            <p class="m-0 text-sm text-secondary">
-                {{ 'AUTH.CHECK_EMAIL.INSTRUCTION' | translate }}
-            </p>
+      <p class="m-0 text-sm text-secondary">
+        {{ 'AUTH.CHECK_EMAIL.INSTRUCTION' | translate }}
+      </p>
 
-            <p-message
-                styleClass="w-full text-left"
-                severity="info"
-            >
-                {{ 'AUTH.CHECK_EMAIL.EXPIRE' | translate }}
-            </p-message>
+      <p-message
+        styleClass="w-full text-left"
+        severity="info"
+      >
+        {{ 'AUTH.CHECK_EMAIL.EXPIRE' | translate }}
+      </p-message>
 
-            <div class="flex flex-column gap-3 mt-2">
-                <p-button
-                    styleClass="w-full p-button-secondary p-button-outlined"
-                    icon="pi pi-refresh"
-                    [loading]="isLoading()"
-                    [label]="'AUTH.CHECK_EMAIL.SPAM_FOLDER' | translate"
-                    (onClick)="resendEmail()"
-                />
+      <div class="flex flex-column gap-3 mt-2">
+        <p-button
+          styleClass="w-full p-button-secondary p-button-outlined"
+          icon="pi pi-refresh"
+          [loading]="isLoading()"
+          [label]="'AUTH.CHECK_EMAIL.SPAM_FOLDER' | translate"
+          (onClick)="resendEmail()"
+        />
 
-                <p-button
-                    styleClass="w-full"
-                    routerLink="/login"
-                    icon="pi pi-arrow-left"
-                    [label]="'AUTH.CHECK_EMAIL.GO_TO_LOGIN' | translate"
-                />
-            </div>
+        <p-button
+          styleClass="w-full"
+          routerLink="/login"
+          icon="pi pi-arrow-left"
+          [label]="'AUTH.CHECK_EMAIL.GO_TO_LOGIN' | translate"
+        />
+      </div>
 
-            @if (resendStatus() === 'success') {
-                <p-message
-                    styleClass="w-full text-left"
-                    severity="success"
-                >
-                    {{ 'AUTH.CHECK_EMAIL.RESEND_SUCCESS' | translate }}
-                </p-message>
-            }
-        </div>
-    </p-card>
+      @if (resendStatus() === 'success') {
+        <p-message
+          styleClass="w-full text-left"
+          severity="success"
+        >
+          {{ 'AUTH.CHECK_EMAIL.RESEND_SUCCESS' | translate }}
+        </p-message>
+      }
+    </div>
+  </p-card>
 </main>

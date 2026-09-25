@@ -1,108 +1,108 @@
 <main class="auth-container">
-    <p-card [style]="{ width: '100%', maxWidth: '400px' }">
-        <ng-template pTemplate="header">
-            <h1
-                style="text-align: center; margin-top: 0.5rem"
-                class="text-2xl font-bold m-0"
-            >
-                {{ 'AUTH.LOGIN.TITLE' | translate }}
-            </h1>
-        </ng-template>
+  <p-card [style]="{ width: '100%', maxWidth: '400px' }">
+    <ng-template pTemplate="header">
+      <h1
+        style="text-align: center; margin-top: 0.5rem"
+        class="text-2xl font-bold m-0"
+      >
+        {{ 'AUTH.LOGIN.TITLE' | translate }}
+      </h1>
+    </ng-template>
 
-        @if (error()) {
-            <p-message
-                severity="error"
-                role="alert"
-                class="mb-3 w-full"
-                aria-live="polite"
-            >
-                {{ error() }}
-            </p-message>
+    @if (error()) {
+      <p-message
+        severity="error"
+        role="alert"
+        class="mb-3 w-full"
+        aria-live="polite"
+      >
+        {{ error() }}
+      </p-message>
+    }
+
+    <form
+      class="flex flex-column gap-3"
+      (ngSubmit)="onSubmit()"
+    >
+      <app-form-field
+        inputId="email"
+        icon="pi-envelope"
+        [label]="'AUTH.LOGIN.EMAIL_LABEL' | translate"
+      >
+        <input
+          type="email"
+          pInputText
+          id="email"
+          class="w-full"
+          autocomplete="email"
+          [placeholder]="'AUTH.LOGIN.EMAIL_PLACEHOLDER' | translate"
+          [formField]="loginForm.email"
+          [class.ng-invalid]="loginForm.email().invalid() && loginForm.email().touched()"
+          [class.ng-dirty]="loginForm.email().invalid() && loginForm.email().touched()"
+        />
+        @if (loginForm.email().invalid() && loginForm.email().touched()) {
+          <small
+            role="alert"
+            class="p-error"
+          >
+            @if (loginForm.email().errors()[0]?.kind === 'required') {
+              {{ 'AUTH.LOGIN.ERRORS.EMAIL_REQUIRED' | translate }}
+            } @else if (loginForm.email().errors()[0]?.kind === 'email') {
+              {{ 'AUTH.LOGIN.ERRORS.EMAIL_FORMAT' | translate }}
+            }
+          </small>
         }
+      </app-form-field>
 
-        <form
-            class="flex flex-column gap-3"
-            (ngSubmit)="onSubmit()"
-        >
-            <app-form-field
-                inputId="email"
-                icon="pi-envelope"
-                [label]="'AUTH.LOGIN.EMAIL_LABEL' | translate"
-            >
-                <input
-                    type="email"
-                    pInputText
-                    id="email"
-                    class="w-full"
-                    autocomplete="email"
-                    [placeholder]="'AUTH.LOGIN.EMAIL_PLACEHOLDER' | translate"
-                    [formField]="loginForm.email"
-                    [class.ng-invalid]="loginForm.email().invalid() && loginForm.email().touched()"
-                    [class.ng-dirty]="loginForm.email().invalid() && loginForm.email().touched()"
-                />
-                @if (loginForm.email().invalid() && loginForm.email().touched()) {
-                    <small
-                        role="alert"
-                        class="p-error"
-                    >
-                        @if (loginForm.email().errors()[0]?.kind === 'required') {
-                            {{ 'AUTH.LOGIN.ERRORS.EMAIL_REQUIRED' | translate }}
-                        } @else if (loginForm.email().errors()[0]?.kind === 'email') {
-                            {{ 'AUTH.LOGIN.ERRORS.EMAIL_FORMAT' | translate }}
-                        }
-                    </small>
-                }
-            </app-form-field>
+      <app-form-field
+        inputId="password"
+        icon="pi-lock"
+        [label]="'AUTH.LOGIN.PASSWORD_LABEL' | translate"
+      >
+        <p-password
+          inputStyleClass="w-full"
+          inputId="password"
+          class="w-full"
+          autocomplete="current-password"
+          [toggleMask]="true"
+          [placeholder]="'AUTH.LOGIN.PASSWORD_PLACEHOLDER' | translate"
+          [formField]="$any(loginForm.password)"
+          [feedback]="false"
+        />
+        @if (loginForm.password().invalid() && loginForm.password().touched()) {
+          <small
+            role="alert"
+            class="p-error"
+          >
+            @if (loginForm.password().errors()[0]?.kind === 'required') {
+              {{ 'AUTH.LOGIN.ERRORS.PASSWORD_REQUIRED' | translate }}
+            } @else if (loginForm.password().errors()[0]?.kind === 'minLength') {
+              {{ 'AUTH.LOGIN.ERRORS.PASSWORD_MIN_LENGTH' | translate }}
+            }
+          </small>
+        }
+      </app-form-field>
 
-            <app-form-field
-                inputId="password"
-                icon="pi-lock"
-                [label]="'AUTH.LOGIN.PASSWORD_LABEL' | translate"
-            >
-                <p-password
-                    inputStyleClass="w-full"
-                    inputId="password"
-                    class="w-full"
-                    autocomplete="current-password"
-                    [toggleMask]="true"
-                    [placeholder]="'AUTH.LOGIN.PASSWORD_PLACEHOLDER' | translate"
-                    [formField]="$any(loginForm.password)"
-                    [feedback]="false"
-                />
-                @if (loginForm.password().invalid() && loginForm.password().touched()) {
-                    <small
-                        role="alert"
-                        class="p-error"
-                    >
-                        @if (loginForm.password().errors()[0]?.kind === 'required') {
-                            {{ 'AUTH.LOGIN.ERRORS.PASSWORD_REQUIRED' | translate }}
-                        } @else if (loginForm.password().errors()[0]?.kind === 'minLength') {
-                            {{ 'AUTH.LOGIN.ERRORS.PASSWORD_MIN_LENGTH' | translate }}
-                        }
-                    </small>
-                }
-            </app-form-field>
+      <p-button
+        type="submit"
+        styleClass="w-full"
+        [loading]="isLoading()"
+        [label]="'AUTH.LOGIN.SUBMIT' | translate"
+        [disabled]="loginForm().invalid() || isLoading()"
+      />
+    </form>
 
-            <p-button
-                type="submit"
-                styleClass="w-full"
-                [loading]="isLoading()"
-                [label]="'AUTH.LOGIN.SUBMIT' | translate"
-                [disabled]="loginForm().invalid() || isLoading()"
-            />
-        </form>
-
-        <div class="flex flex-column gap-2 mt-4 text-center">
-            <a
-                routerLink="/forgot-password"
-                class="p-link text-sm"
-                >{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}</a
-            >
-            <a
-                routerLink="/register"
-                class="p-link text-sm font-medium"
-                >{{ 'AUTH.LOGIN.NO_ACCOUNT' | translate }}</a
-            >
-        </div>
-    </p-card>
+    <div class="flex flex-column gap-2 mt-4 text-center">
+      <a
+        routerLink="/forgot-password"
+        class="p-link text-sm"
+        >{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}</a
+      >
+      <a
+        routerLink="/register"
+        class="p-link text-sm font-medium"
+        >{{ 'AUTH.LOGIN.NO_ACCOUNT' | translate }}</a
+      >
+    </div>
+  </p-card>
 </main>

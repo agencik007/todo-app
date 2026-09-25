@@ -1,19 +1,19 @@
 import {
-    CdkDragDrop,
-    CdkDragMove,
-    DragDropModule,
+  CdkDragDrop,
+  CdkDragMove,
+  DragDropModule,
 } from '@angular/cdk/drag-drop';
 import { isPlatformBrowser } from '@angular/common';
 import {
-    Component,
-    computed,
-    ElementRef,
-    HostListener,
-    inject,
-    OnInit,
-    PLATFORM_ID,
-    signal,
-    viewChild,
+  Component,
+  computed,
+  ElementRef,
+  HostListener,
+  inject,
+  OnInit,
+  PLATFORM_ID,
+  signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Group, Todo, TodoCreate, UserResponse } from '@api';
@@ -35,8 +35,8 @@ import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { IconButtonDirective } from '../../../../shared/ui/icon-button/icon-button.directive';
 import {
-    formatDateTime,
-    relativeTimeFrom,
+  formatDateTime,
+  relativeTimeFrom,
 } from '../../../../shared/utils/date.util';
 import { SidebarComponent } from '../../../groups/components/sidebar/sidebar.component';
 import { GroupStore } from '../../../groups/store/group.store';
@@ -46,420 +46,408 @@ import { TodoFormComponent } from '../todo-form/todo-form';
 type StatusFilter = 'all' | 'pending' | 'completed';
 
 @Component({
-    selector: 'app-todo-list',
-    imports: [
-        FormsModule,
-        TodoFormComponent,
-        CardModule,
-        ButtonModule,
-        CheckboxModule,
-        TagModule,
-        SkeletonModule,
-        DialogModule,
-        MessageModule,
-        ConfirmDialogModule,
-        InputTextModule,
-        TranslatePipe,
-        DragDropModule,
-        TooltipModule,
-        SidebarComponent,
-        BadgeComponent,
-        IconButtonDirective,
-        EmptyStateComponent,
-    ],
-    providers: [ConfirmationService],
-    templateUrl: './todo-list.html',
-    styleUrl: './todo-list.scss',
+  selector: 'app-todo-list',
+  imports: [
+    FormsModule,
+    TodoFormComponent,
+    CardModule,
+    ButtonModule,
+    CheckboxModule,
+    TagModule,
+    SkeletonModule,
+    DialogModule,
+    MessageModule,
+    ConfirmDialogModule,
+    InputTextModule,
+    TranslatePipe,
+    DragDropModule,
+    TooltipModule,
+    SidebarComponent,
+    BadgeComponent,
+    IconButtonDirective,
+    EmptyStateComponent,
+  ],
+  providers: [ConfirmationService],
+  templateUrl: './todo-list.html',
+  styleUrl: './todo-list.scss',
 })
 export class TodoListComponent implements OnInit {
-    readonly store = inject(TodoStore);
-    private authStore = inject(AuthStore);
-    private groupStore = inject(GroupStore);
-    private confirmationService = inject(ConfirmationService);
-    private platformId = inject(PLATFORM_ID);
-    private translate = inject(TranslateService);
-    public screenSize = inject(ScreenSizeService);
+  readonly store = inject(TodoStore);
+  private authStore = inject(AuthStore);
+  private groupStore = inject(GroupStore);
+  private confirmationService = inject(ConfirmationService);
+  private platformId = inject(PLATFORM_ID);
+  private translate = inject(TranslateService);
+  public screenSize = inject(ScreenSizeService);
 
-    isBrowser = signal(false);
+  isBrowser = signal(false);
 
-    userName = computed(() => {
-        const user = this.currentUser;
-        if (!user || !user.email) return '';
-        return user.email.split('@')[0];
-    });
+  userName = computed(() => {
+    const user = this.currentUser;
+    if (!user || !user.email) return '';
+    return user.email.split('@')[0];
+  });
 
-    readonly loading = this.store.loading;
-    readonly error = this.store.error;
-    readonly editingTodo = this.store.editingTodo;
-    readonly formVisible = this.store.formVisible;
-    readonly completedTodos = this.store.completedTodos;
-    readonly pendingTodos = this.store.pendingTodos;
-    readonly totalTodos = this.store.totalCount;
+  readonly loading = this.store.loading;
+  readonly error = this.store.error;
+  readonly editingTodo = this.store.editingTodo;
+  readonly formVisible = this.store.formVisible;
+  readonly completedTodos = this.store.completedTodos;
+  readonly pendingTodos = this.store.pendingTodos;
+  readonly totalTodos = this.store.totalCount;
 
-    readonly selectedGroups = this.groupStore.selectedGroups;
-    readonly hasGroupSelection = this.groupStore.hasSelection;
+  readonly selectedGroups = this.groupStore.selectedGroups;
+  readonly hasGroupSelection = this.groupStore.hasSelection;
 
-    readonly statusFilter = signal<StatusFilter>('all');
-    readonly searchQuery = signal('');
-    readonly focusedIndex = signal(-1);
+  readonly statusFilter = signal<StatusFilter>('all');
+  readonly searchQuery = signal('');
+  readonly focusedIndex = signal(-1);
 
-    readonly displayedTodos = computed(() => {
-        const status = this.statusFilter();
-        const query = this.searchQuery().trim().toLowerCase();
-        let list = this.store.filteredTodos();
+  readonly displayedTodos = computed(() => {
+    const status = this.statusFilter();
+    const query = this.searchQuery().trim().toLowerCase();
+    let list = this.store.filteredTodos();
 
-        if (status === 'pending') {
-            list = list.filter((t) => !t.completed);
-        } else if (status === 'completed') {
-            list = list.filter((t) => t.completed);
-        }
-
-        if (query) {
-            list = list.filter(
-                (t) =>
-                    t.title.toLowerCase().includes(query) ||
-                    (t.description?.toLowerCase().includes(query) ?? false),
-            );
-        }
-
-        return list;
-    });
-
-    readonly todos = this.displayedTodos;
-
-    readonly progressPercent = computed(() => {
-        const total = this.store.totalCount();
-        if (total === 0) return 0;
-        return Math.round((this.completedTodos().length / total) * 100);
-    });
-
-    readonly isFiltered = computed(
-        () =>
-            this.statusFilter() !== 'all' ||
-            this.searchQuery().trim().length > 0,
-    );
-
-    // Reordering maps displayed-list indices onto the full list, so it is only
-    // valid when the displayed list IS the full list (no status/search/group
-    // filter). Otherwise a drop at "index 2" of a filtered view would splice
-    // the wrong position in the unfiltered list.
-    readonly canReorder = computed(
-        () => !this.isFiltered() && !this.hasGroupSelection(),
-    );
-
-    addButton = viewChild<Button>('addButton');
-    scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
-    searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
-    todoForm = viewChild(TodoFormComponent);
-
-    #scrollSpeed = 0;
-    #scrollAnimationId: number | null = null;
-
-    get currentUser(): UserResponse | null {
-        return this.authStore.currentUser();
+    if (status === 'pending') {
+      list = list.filter((t) => !t.completed);
+    } else if (status === 'completed') {
+      list = list.filter((t) => t.completed);
     }
 
-    ngOnInit(): void {
-        this.isBrowser.set(isPlatformBrowser(this.platformId));
-        if (this.isBrowser()) {
-            this.groupStore.loadGroups();
-        }
+    if (query) {
+      list = list.filter(
+        (t) =>
+          t.title.toLowerCase().includes(query) ||
+          (t.description?.toLowerCase().includes(query) ?? false),
+      );
     }
 
-    setStatusFilter(filter: StatusFilter): void {
-        this.statusFilter.set(filter);
-        this.focusedIndex.set(-1);
-    }
+    return list;
+  });
 
-    onSearchInput(value: string): void {
-        this.searchQuery.set(value);
-        this.focusedIndex.set(-1);
-    }
+  readonly todos = this.displayedTodos;
 
-    clearSearch(): void {
+  readonly progressPercent = computed(() => {
+    const total = this.store.totalCount();
+    if (total === 0) return 0;
+    return Math.round((this.completedTodos().length / total) * 100);
+  });
+
+  readonly isFiltered = computed(
+    () => this.statusFilter() !== 'all' || this.searchQuery().trim().length > 0,
+  );
+
+  // Reordering maps displayed-list indices onto the full list, so it is only
+  // valid when the displayed list IS the full list (no status/search/group
+  // filter). Otherwise a drop at "index 2" of a filtered view would splice
+  // the wrong position in the unfiltered list.
+  readonly canReorder = computed(
+    () => !this.isFiltered() && !this.hasGroupSelection(),
+  );
+
+  addButton = viewChild<Button>('addButton');
+  scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
+  searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
+  todoForm = viewChild(TodoFormComponent);
+
+  #scrollSpeed = 0;
+  #scrollAnimationId: number | null = null;
+
+  get currentUser(): UserResponse | null {
+    return this.authStore.currentUser();
+  }
+
+  ngOnInit(): void {
+    this.isBrowser.set(isPlatformBrowser(this.platformId));
+    if (this.isBrowser()) {
+      this.groupStore.loadGroups();
+    }
+  }
+
+  setStatusFilter(filter: StatusFilter): void {
+    this.statusFilter.set(filter);
+    this.focusedIndex.set(-1);
+  }
+
+  onSearchInput(value: string): void {
+    this.searchQuery.set(value);
+    this.focusedIndex.set(-1);
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+    this.searchInput()?.nativeElement.focus();
+  }
+
+  resetFilters(): void {
+    this.statusFilter.set('all');
+    this.searchQuery.set('');
+    this.focusedIndex.set(-1);
+  }
+
+  focusSearch(): void {
+    const el = this.searchInput()?.nativeElement;
+    if (el) {
+      el.focus();
+      el.select();
+    }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboard(event: KeyboardEvent): void {
+    if (this.formVisible()) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+    const target = event.target as HTMLElement | null;
+    const isTyping =
+      !!target &&
+      (target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable);
+
+    if (isTyping) {
+      if (event.key === 'Escape' && target?.id === 'todo-search-input') {
+        event.preventDefault();
         this.searchQuery.set('');
-        this.searchInput()?.nativeElement.focus();
+        target.blur();
+      }
+      return;
     }
 
-    resetFilters(): void {
-        this.statusFilter.set('all');
-        this.searchQuery.set('');
-        this.focusedIndex.set(-1);
+    switch (event.key) {
+      case 'n':
+      case 'N':
+        event.preventDefault();
+        this.showCreateForm();
+        break;
+      case '/':
+        event.preventDefault();
+        this.focusSearch();
+        break;
+      case 'j':
+      case 'J':
+        event.preventDefault();
+        this.moveFocus(1);
+        break;
+      case 'k':
+      case 'K':
+        event.preventDefault();
+        this.moveFocus(-1);
+        break;
+      case 'x':
+      case 'X':
+        event.preventDefault();
+        this.toggleFocusedTodo();
+        break;
     }
+  }
 
-    focusSearch(): void {
-        const el = this.searchInput()?.nativeElement;
-        if (el) {
-            el.focus();
-            el.select();
+  moveFocus(delta: number): void {
+    const list = this.todos();
+    if (list.length === 0) return;
+    const current = this.focusedIndex();
+    let next = current + delta;
+    if (current === -1) {
+      next = delta > 0 ? 0 : list.length - 1;
+    }
+    next = Math.max(0, Math.min(list.length - 1, next));
+    this.focusedIndex.set(next);
+    this.scrollFocusedIntoView();
+  }
+
+  setFocus(index: number): void {
+    this.focusedIndex.set(index);
+  }
+
+  toggleFocusedTodo(): void {
+    const idx = this.focusedIndex();
+    const list = this.todos();
+    if (idx < 0 || idx >= list.length) return;
+    const todo = list[idx];
+    if (!this.canEditTodo(todo)) return;
+    this.toggleTodoCompletion(todo);
+  }
+
+  private scrollFocusedIntoView(): void {
+    if (!this.isBrowser()) return;
+    queueMicrotask(() => {
+      const container = this.scrollContainer()?.nativeElement;
+      if (!container) return;
+      const el = container.querySelector<HTMLElement>('.todo-row.is-focused');
+      if (el) {
+        el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    });
+  }
+
+  showCreateForm(): void {
+    this.store.showCreateForm();
+  }
+
+  editTodo(todo: Todo): void {
+    if (!this.canEditTodo(todo)) {
+      this.store.setError(
+        this.translate.instant('TODOS.MESSAGES.ERROR_NO_PERM_EDIT'),
+      );
+      return;
+    }
+    this.store.showEditForm(todo.id);
+  }
+
+  onVisibleChange(isVisible: boolean): void {
+    if (!isVisible) {
+      this.store.hideForm();
+    }
+  }
+
+  onDialogHide(): void {
+    this.restoreFocus();
+  }
+
+  closeForm(): void {
+    this.store.hideForm();
+  }
+
+  restoreFocus(): void {
+    setTimeout(() => {
+      const buttonEl = this.addButton();
+      if (buttonEl?.el?.nativeElement) {
+        const nativeButton = buttonEl.el.nativeElement.querySelector('button');
+        if (nativeButton) {
+          nativeButton.focus();
         }
+      }
+    }, 100);
+  }
+
+  saveTodo(todoData: TodoCreate): void {
+    const editing = this.store.editingTodo();
+    if (editing) {
+      this.store.updateTodo(editing.id, todoData);
+    } else {
+      this.store.createTodo(todoData);
+    }
+  }
+
+  toggleTodoCompletion(todo: Todo): void {
+    this.store.toggleTodo(todo);
+  }
+
+  deleteTodo(todo: Todo): void {
+    if (!this.canEditTodo(todo)) {
+      this.store.setError(
+        this.translate.instant('TODOS.MESSAGES.ERROR_NO_PERM_DELETE'),
+      );
+      return;
     }
 
-    @HostListener('window:keydown', ['$event'])
-    handleKeyboard(event: KeyboardEvent): void {
-        if (this.formVisible()) return;
-        if (event.ctrlKey || event.metaKey || event.altKey) return;
+    this.confirmationService.confirm({
+      message: this.translate.instant('TODOS.MESSAGES.DELETE_CONFIRM_MESSAGE', {
+        title: todo.title,
+      }),
+      header: this.translate.instant('TODOS.MESSAGES.DELETE_CONFIRM_TITLE'),
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel:
+        this.translate.instant('TODOS.FORM.SUBMIT_DELETE') || 'Tak, usuń',
+      rejectLabel: this.translate.instant('TODOS.FORM.CANCEL'),
+      accept: () => {
+        this.store.deleteTodo(todo.id);
+      },
+    });
+  }
 
-        const target = event.target as HTMLElement | null;
-        const isTyping =
-            !!target &&
-            (target.tagName === 'INPUT' ||
-                target.tagName === 'TEXTAREA' ||
-                target.isContentEditable);
+  canEditTodo(todo: Todo): boolean {
+    const user = this.currentUser;
+    return !!user && user.id === todo.userId;
+  }
 
-        if (isTyping) {
-            if (event.key === 'Escape' && target?.id === 'todo-search-input') {
-                event.preventDefault();
-                this.searchQuery.set('');
-                target.blur();
-            }
-            return;
-        }
-
-        switch (event.key) {
-            case 'n':
-            case 'N':
-                event.preventDefault();
-                this.showCreateForm();
-                break;
-            case '/':
-                event.preventDefault();
-                this.focusSearch();
-                break;
-            case 'j':
-            case 'J':
-                event.preventDefault();
-                this.moveFocus(1);
-                break;
-            case 'k':
-            case 'K':
-                event.preventDefault();
-                this.moveFocus(-1);
-                break;
-            case 'x':
-            case 'X':
-                event.preventDefault();
-                this.toggleFocusedTodo();
-                break;
-        }
+  onDrop(event: CdkDragDrop<Todo[]>): void {
+    this.#stopScrollLoop();
+    if (!this.canReorder()) return;
+    if (event.previousContainer === event.container) {
+      if (event.previousIndex === event.currentIndex) {
+        return;
+      }
+      const todoToMove = this.todos()[event.previousIndex];
+      this.store.reorderTodo(todoToMove.id, event.currentIndex);
     }
+  }
 
-    moveFocus(delta: number): void {
-        const list = this.todos();
-        if (list.length === 0) return;
-        const current = this.focusedIndex();
-        let next = current + delta;
-        if (current === -1) {
-            next = delta > 0 ? 0 : list.length - 1;
-        }
-        next = Math.max(0, Math.min(list.length - 1, next));
-        this.focusedIndex.set(next);
-        this.scrollFocusedIntoView();
+  onDragMoved(event: CdkDragMove): void {
+    const container = this.scrollContainer()?.nativeElement;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const pointerY = event.pointerPosition.y;
+
+    const threshold = 100;
+    const maxSpeed = 15;
+
+    if (pointerY < rect.top + threshold) {
+      const distance = rect.top + threshold - pointerY;
+      this.#scrollSpeed = -Math.min(
+        maxSpeed,
+        (distance / threshold) * maxSpeed,
+      );
+      this.#startScrollLoop();
+    } else if (pointerY > rect.bottom - threshold) {
+      const distance = pointerY - (rect.bottom - threshold);
+      this.#scrollSpeed = Math.min(maxSpeed, (distance / threshold) * maxSpeed);
+      this.#startScrollLoop();
+    } else {
+      this.#scrollSpeed = 0;
+      this.#stopScrollLoop();
     }
+  }
 
-    setFocus(index: number): void {
-        this.focusedIndex.set(index);
-    }
+  onDragEnded(): void {
+    this.#stopScrollLoop();
+  }
 
-    toggleFocusedTodo(): void {
-        const idx = this.focusedIndex();
-        const list = this.todos();
-        if (idx < 0 || idx >= list.length) return;
-        const todo = list[idx];
-        if (!this.canEditTodo(todo)) return;
-        this.toggleTodoCompletion(todo);
-    }
+  #startScrollLoop(): void {
+    if (this.#scrollAnimationId !== null) return;
 
-    private scrollFocusedIntoView(): void {
-        if (!this.isBrowser()) return;
-        queueMicrotask(() => {
-            const container = this.scrollContainer()?.nativeElement;
-            if (!container) return;
-            const el = container.querySelector<HTMLElement>(
-                '.todo-row.is-focused',
-            );
-            if (el) {
-                el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-            }
-        });
-    }
-
-    showCreateForm(): void {
-        this.store.showCreateForm();
-    }
-
-    editTodo(todo: Todo): void {
-        if (!this.canEditTodo(todo)) {
-            this.store.setError(
-                this.translate.instant('TODOS.MESSAGES.ERROR_NO_PERM_EDIT'),
-            );
-            return;
-        }
-        this.store.showEditForm(todo.id);
-    }
-
-    onVisibleChange(isVisible: boolean): void {
-        if (!isVisible) {
-            this.store.hideForm();
-        }
-    }
-
-    onDialogHide(): void {
-        this.restoreFocus();
-    }
-
-    closeForm(): void {
-        this.store.hideForm();
-    }
-
-    restoreFocus(): void {
-        setTimeout(() => {
-            const buttonEl = this.addButton();
-            if (buttonEl?.el?.nativeElement) {
-                const nativeButton =
-                    buttonEl.el.nativeElement.querySelector('button');
-                if (nativeButton) {
-                    nativeButton.focus();
-                }
-            }
-        }, 100);
-    }
-
-    saveTodo(todoData: TodoCreate): void {
-        const editing = this.store.editingTodo();
-        if (editing) {
-            this.store.updateTodo(editing.id, todoData);
-        } else {
-            this.store.createTodo(todoData);
-        }
-    }
-
-    toggleTodoCompletion(todo: Todo): void {
-        this.store.toggleTodo(todo);
-    }
-
-    deleteTodo(todo: Todo): void {
-        if (!this.canEditTodo(todo)) {
-            this.store.setError(
-                this.translate.instant('TODOS.MESSAGES.ERROR_NO_PERM_DELETE'),
-            );
-            return;
-        }
-
-        this.confirmationService.confirm({
-            message: this.translate.instant(
-                'TODOS.MESSAGES.DELETE_CONFIRM_MESSAGE',
-                { title: todo.title },
-            ),
-            header: this.translate.instant(
-                'TODOS.MESSAGES.DELETE_CONFIRM_TITLE',
-            ),
-            icon: 'pi pi-exclamation-triangle',
-            acceptLabel:
-                this.translate.instant('TODOS.FORM.SUBMIT_DELETE') ||
-                'Tak, usuń',
-            rejectLabel: this.translate.instant('TODOS.FORM.CANCEL'),
-            accept: () => {
-                this.store.deleteTodo(todo.id);
-            },
-        });
-    }
-
-    canEditTodo(todo: Todo): boolean {
-        const user = this.currentUser;
-        return !!user && user.id === todo.userId;
-    }
-
-    onDrop(event: CdkDragDrop<Todo[]>): void {
-        this.#stopScrollLoop();
-        if (!this.canReorder()) return;
-        if (event.previousContainer === event.container) {
-            if (event.previousIndex === event.currentIndex) {
-                return;
-            }
-            const todoToMove = this.todos()[event.previousIndex];
-            this.store.reorderTodo(todoToMove.id, event.currentIndex);
-        }
-    }
-
-    onDragMoved(event: CdkDragMove): void {
-        const container = this.scrollContainer()?.nativeElement;
-        if (!container) return;
-
-        const rect = container.getBoundingClientRect();
-        const pointerY = event.pointerPosition.y;
-
-        const threshold = 100;
-        const maxSpeed = 15;
-
-        if (pointerY < rect.top + threshold) {
-            const distance = rect.top + threshold - pointerY;
-            this.#scrollSpeed = -Math.min(
-                maxSpeed,
-                (distance / threshold) * maxSpeed,
-            );
-            this.#startScrollLoop();
-        } else if (pointerY > rect.bottom - threshold) {
-            const distance = pointerY - (rect.bottom - threshold);
-            this.#scrollSpeed = Math.min(
-                maxSpeed,
-                (distance / threshold) * maxSpeed,
-            );
-            this.#startScrollLoop();
-        } else {
-            this.#scrollSpeed = 0;
-            this.#stopScrollLoop();
-        }
-    }
-
-    onDragEnded(): void {
-        this.#stopScrollLoop();
-    }
-
-    #startScrollLoop(): void {
-        if (this.#scrollAnimationId !== null) return;
-
-        const loop = (): void => {
-            const container = this.scrollContainer()?.nativeElement;
-            if (container && this.#scrollSpeed !== 0) {
-                container.scrollTop += this.#scrollSpeed;
-                this.#scrollAnimationId = requestAnimationFrame(loop);
-            } else {
-                this.#scrollAnimationId = null;
-            }
-        };
-
+    const loop = (): void => {
+      const container = this.scrollContainer()?.nativeElement;
+      if (container && this.#scrollSpeed !== 0) {
+        container.scrollTop += this.#scrollSpeed;
         this.#scrollAnimationId = requestAnimationFrame(loop);
-    }
+      } else {
+        this.#scrollAnimationId = null;
+      }
+    };
 
-    #stopScrollLoop(): void {
-        if (this.#scrollAnimationId !== null) {
-            cancelAnimationFrame(this.#scrollAnimationId);
-            this.#scrollAnimationId = null;
-        }
-        this.#scrollSpeed = 0;
-    }
+    this.#scrollAnimationId = requestAnimationFrame(loop);
+  }
 
-    clearError(): void {
-        this.store.clearError();
+  #stopScrollLoop(): void {
+    if (this.#scrollAnimationId !== null) {
+      cancelAnimationFrame(this.#scrollAnimationId);
+      this.#scrollAnimationId = null;
     }
+    this.#scrollSpeed = 0;
+  }
 
-    getGroupById(groupId: number | null | undefined): Group | undefined {
-        if (!groupId) return undefined;
-        return this.#groupsById().get(groupId);
-    }
+  clearError(): void {
+    this.store.clearError();
+  }
 
-    readonly #groupsById = computed(
-        () => new Map(this.groupStore.groups().map((g) => [g.id, g])),
-    );
+  getGroupById(groupId: number | null | undefined): Group | undefined {
+    if (!groupId) return undefined;
+    return this.#groupsById().get(groupId);
+  }
 
-    formatDate(dateString: string | undefined): string {
-        return formatDateTime(dateString);
-    }
+  readonly #groupsById = computed(
+    () => new Map(this.groupStore.groups().map((g) => [g.id, g])),
+  );
 
-    getRelativeTime(dateString: string | undefined): string {
-        const lang =
-            this.translate.currentLang || this.translate.defaultLang || 'en';
-        return relativeTimeFrom(dateString, lang);
-    }
+  formatDate(dateString: string | undefined): string {
+    return formatDateTime(dateString);
+  }
+
+  getRelativeTime(dateString: string | undefined): string {
+    const lang =
+      this.translate.currentLang || this.translate.defaultLang || 'en';
+    return relativeTimeFrom(dateString, lang);
+  }
 }

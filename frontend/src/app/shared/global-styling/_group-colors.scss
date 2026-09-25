@@ -3,148 +3,148 @@
 // które wcześniej były zapisane hexami (green→emerald, yellow→amber,
 // purple→violet, bo tym paletom odpowiadały oryginalne hexy).
 .group-color-blue {
-    --group-color: var(--p-blue-500);
-    --group-color-light: var(--p-blue-100);
-    --group-color-dark: var(--p-blue-800);
+  --group-color: var(--p-blue-500);
+  --group-color-light: var(--p-blue-100);
+  --group-color-dark: var(--p-blue-800);
 }
 
 .group-color-green {
-    --group-color: var(--p-emerald-500);
-    --group-color-light: var(--p-emerald-100);
-    --group-color-dark: var(--p-emerald-700);
+  --group-color: var(--p-emerald-500);
+  --group-color-light: var(--p-emerald-100);
+  --group-color-dark: var(--p-emerald-700);
 }
 
 .group-color-red {
-    --group-color: var(--p-red-500);
-    --group-color-light: var(--p-red-100);
-    --group-color-dark: var(--p-red-700);
+  --group-color: var(--p-red-500);
+  --group-color-light: var(--p-red-100);
+  --group-color-dark: var(--p-red-700);
 }
 
 .group-color-yellow {
-    --group-color: var(--p-amber-500);
-    --group-color-light: var(--p-amber-100);
-    --group-color-dark: var(--p-amber-600);
+  --group-color: var(--p-amber-500);
+  --group-color-light: var(--p-amber-100);
+  --group-color-dark: var(--p-amber-600);
 }
 
 .group-color-purple {
-    --group-color: var(--p-violet-500);
-    --group-color-light: var(--p-violet-100);
-    --group-color-dark: var(--p-violet-700);
+  --group-color: var(--p-violet-500);
+  --group-color-light: var(--p-violet-100);
+  --group-color-dark: var(--p-violet-700);
 }
 
 .group-color-pink {
-    --group-color: var(--p-pink-500);
-    --group-color-light: var(--p-pink-100);
-    --group-color-dark: var(--p-pink-700);
+  --group-color: var(--p-pink-500);
+  --group-color-light: var(--p-pink-100);
+  --group-color-dark: var(--p-pink-700);
 }
 
 .group-color-orange {
-    --group-color: var(--p-orange-500);
-    --group-color-light: var(--p-orange-100);
-    --group-color-dark: var(--p-orange-700);
+  --group-color: var(--p-orange-500);
+  --group-color-light: var(--p-orange-100);
+  --group-color-dark: var(--p-orange-700);
 }
 
 .group-color-teal {
-    --group-color: var(--p-teal-500);
-    --group-color-light: var(--p-teal-100);
-    --group-color-dark: var(--p-teal-700);
+  --group-color: var(--p-teal-500);
+  --group-color-light: var(--p-teal-100);
+  --group-color-dark: var(--p-teal-700);
 }
 
 .group-color-indigo {
-    --group-color: var(--p-indigo-500);
-    --group-color-light: var(--p-indigo-100);
-    --group-color-dark: var(--p-indigo-700);
+  --group-color: var(--p-indigo-500);
+  --group-color-light: var(--p-indigo-100);
+  --group-color-dark: var(--p-indigo-700);
 }
 
 .group-color-gray {
-    --group-color: var(--p-gray-500);
-    --group-color-light: var(--p-gray-100);
-    --group-color-dark: var(--p-gray-700);
+  --group-color: var(--p-gray-500);
+  --group-color-light: var(--p-gray-100);
+  --group-color-dark: var(--p-gray-700);
 }
 
 // Wspólne style dla elementów z kolorami grup
 [class*='group-color-'] {
-    color: var(--group-color);
+  color: var(--group-color);
 
-    &.badge {
-        background-color: var(--group-color-light);
-        border: 1px solid var(--group-color);
-        padding: var(--app-space-1) var(--app-space-3);
-        border-radius: var(--app-radius-full);
-        font-size: var(--app-text-sm);
-        font-weight: var(--app-font-medium);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-        transition:
-            background-color var(--app-transition-base),
-            color var(--app-transition-base);
+  &.badge {
+    background-color: var(--group-color-light);
+    border: 1px solid var(--group-color);
+    padding: var(--app-space-1) var(--app-space-3);
+    border-radius: var(--app-radius-full);
+    font-size: var(--app-text-sm);
+    font-weight: var(--app-font-medium);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    transition:
+      background-color var(--app-transition-base),
+      color var(--app-transition-base);
 
-        &:hover {
-            background-color: var(--group-color);
-            color: white;
-            cursor: pointer;
-        }
+    &:hover {
+      background-color: var(--group-color);
+      color: white;
+      cursor: pointer;
+    }
+  }
+
+  &.dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    background-color: var(--group-color);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  &.color-button {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background-color: var(--group-color);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition:
+      transform var(--app-transition-base),
+      box-shadow var(--app-transition-base),
+      border-color var(--app-transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    position: relative;
+    padding: 0;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.4);
     }
 
-    &.dot {
-        width: 0.75rem;
-        height: 0.75rem;
+    &:focus-visible {
+      outline: 2px solid var(--group-color);
+      outline-offset: 2px;
+    }
+
+    &.selected {
+      border-color: white;
+      box-shadow:
+        0 0 0 2px var(--group-color-light),
+        0 4px 12px rgba(0, 0, 0, 0.4);
+      transform: scale(1.1);
+
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border: 2px solid rgba(0, 0, 0, 0.2);
         border-radius: 50%;
-        background-color: var(--group-color);
-        display: inline-block;
-        flex-shrink: 0;
+      }
     }
 
-    &.color-button {
-        width: 2.25rem;
-        height: 2.25rem;
-        border-radius: 50%;
-        background-color: var(--group-color);
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        cursor: pointer;
-        transition:
-            transform var(--app-transition-base),
-            box-shadow var(--app-transition-base),
-            border-color var(--app-transition-base);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        position: relative;
-        padding: 0;
-
-        &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            border-color: rgba(255, 255, 255, 0.4);
-        }
-
-        &:focus-visible {
-            outline: 2px solid var(--group-color);
-            outline-offset: 2px;
-        }
-
-        &.selected {
-            border-color: white;
-            box-shadow:
-                0 0 0 2px var(--group-color-light),
-                0 4px 12px rgba(0, 0, 0, 0.4);
-            transform: scale(1.1);
-
-            &::after {
-                content: '';
-                position: absolute;
-                inset: 3px;
-                border: 2px solid rgba(0, 0, 0, 0.2);
-                border-radius: 50%;
-            }
-        }
-
-        i {
-            font-size: var(--app-text-sm);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-            z-index: 1;
-        }
+    i {
+      font-size: var(--app-text-sm);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      z-index: 1;
     }
+  }
 }

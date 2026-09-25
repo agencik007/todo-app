@@ -8,33 +8,33 @@ import { CommandPaletteComponent } from './shared/components/command-palette/com
 import { DynamicBackgroundComponent } from './shared/components/dynamic-background/dynamic-background.component';
 import { LoginAnimationComponent } from './shared/components/login-animation/login-animation';
 @Component({
-    selector: 'app-root',
-    imports: [
-        RouterOutlet,
-        AuthNavComponent,
-        ToastModule,
-        CommandPaletteComponent,
-        DynamicBackgroundComponent,
-        LoginAnimationComponent,
-    ],
-    templateUrl: './app.html',
-    styleUrl: './app.scss',
+  selector: 'app-root',
+  imports: [
+    RouterOutlet,
+    AuthNavComponent,
+    ToastModule,
+    CommandPaletteComponent,
+    DynamicBackgroundComponent,
+    LoginAnimationComponent,
+  ],
+  templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
 export class App implements OnInit {
-    protected readonly title = 'Todo App';
-    private readonly translate = inject(TranslateService);
-    private readonly document = inject(DOCUMENT);
+  protected readonly title = 'Todo App';
+  private readonly translate = inject(TranslateService);
+  private readonly document = inject(DOCUMENT);
 
-    ngOnInit(): void {
-        this.translate.onLangChange.subscribe((event) => {
-            this.document.documentElement.lang = event.lang;
-        });
+  ngOnInit(): void {
+    this.translate.onLangChange.subscribe((event) => {
+      this.document.documentElement.lang = event.lang;
+    });
 
-        // Set initial lang
-        const currentLang =
-            this.translate.currentLang || this.translate.defaultLang;
-        if (currentLang) {
-            this.document.documentElement.lang = currentLang;
-        }
+    // Set initial lang
+    const currentLang =
+      this.translate.currentLang || this.translate.defaultLang;
+    if (currentLang) {
+      this.document.documentElement.lang = currentLang;
     }
+  }
 }

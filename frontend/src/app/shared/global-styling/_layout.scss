@@ -2,104 +2,104 @@
 
 html,
 body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-    background-color: var(--p-surface-ground);
-    color: var(--p-text-color);
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background-color: var(--p-surface-ground);
+  color: var(--p-text-color);
 }
 
 .app-shell {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
 }
 
 .main-content {
-    flex: 1;
-    overflow: hidden; // Allow children (like sidebar) to manage their own scrolling with 100% height
-    display: flex;
-    flex-direction: column;
+  flex: 1;
+  overflow: hidden; // Allow children (like sidebar) to manage their own scrolling with 100% height
+  display: flex;
+  flex-direction: column;
 }
 
 .container {
-    width: 100%;
-    margin-right: auto;
-    margin-left: auto;
-    padding-right: 1rem;
-    padding-left: 1rem;
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 1rem;
+  padding-left: 1rem;
 
-    @include responsive.min-width(responsive.$sm) {
-        max-width: responsive.$container-sm;
-    }
+  @include responsive.min-width(responsive.$sm) {
+    max-width: responsive.$container-sm;
+  }
 
-    @include responsive.min-width(responsive.$md) {
-        max-width: responsive.$container-md;
-    }
+  @include responsive.min-width(responsive.$md) {
+    max-width: responsive.$container-md;
+  }
 
-    @include responsive.min-width(responsive.$lg) {
-        max-width: responsive.$container-lg;
-    }
+  @include responsive.min-width(responsive.$lg) {
+    max-width: responsive.$container-lg;
+  }
 
-    @include responsive.min-width(responsive.$xl) {
-        max-width: responsive.$container-xl;
-    }
+  @include responsive.min-width(responsive.$xl) {
+    max-width: responsive.$container-xl;
+  }
 }
 
 .auth-container {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
 }
 
 // Flex utilities
 .flex {
-    display: flex;
+  display: flex;
 }
 .flex-column {
-    flex-direction: column;
+  flex-direction: column;
 }
 .justify-content-center {
-    justify-content: center;
+  justify-content: center;
 }
 .justify-content-between {
-    justify-content: space-between;
+  justify-content: space-between;
 }
 .justify-content-end {
-    justify-content: flex-end;
+  justify-content: flex-end;
 }
 .align-center,
 .align-items-center {
-    align-items: center;
+  align-items: center;
 }
 .flex-grow-1 {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 // Spacing & Sizing
 .w-full {
-    width: 100%;
+  width: 100%;
 }
 .h-full {
-    height: 100%;
+  height: 100%;
 }
 .block {
-    display: block;
+  display: block;
 }
 .gap-1 {
-    gap: var(--app-space-1);
+  gap: var(--app-space-1);
 }
 .gap-2 {
-    gap: var(--app-space-2);
+  gap: var(--app-space-2);
 }
 .gap-3 {
-    gap: var(--app-space-4);
+  gap: var(--app-space-4);
 }
 
 // Card spacing
 .p-card {
-    margin-bottom: var(--app-space-4);
+  margin-bottom: var(--app-space-4);
 }

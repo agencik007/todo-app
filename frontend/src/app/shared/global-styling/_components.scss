@@ -1,50 +1,46 @@
 .p-menu {
-    border-radius: var(--app-radius-lg);
-    box-shadow: var(--app-shadow-md);
-    padding: var(--app-space-2) 0;
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-md);
+  padding: var(--app-space-2) 0;
 }
 
 .logout-item {
-    .p-menuitem-link {
-        .p-menuitem-text,
-        .p-menuitem-icon {
-            color: var(--p-red-500) !important;
-        }
-        &:hover {
-            background: var(--p-red-50) !important;
-        }
+  .p-menuitem-link {
+    .p-menuitem-text,
+    .p-menuitem-icon {
+      color: var(--p-red-500) !important;
     }
+    &:hover {
+      background: var(--p-red-50) !important;
+    }
+  }
 }
 
 .dark .logout-item .p-menuitem-link:hover {
-    background: color-mix(
-        in srgb,
-        var(--p-red-500) 10%,
-        transparent
-    ) !important;
+  background: color-mix(in srgb, var(--p-red-500) 10%, transparent) !important;
 }
 
 .premium-dialog {
-    .p-dialog-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1.25rem var(--app-space-5);
-        gap: var(--app-space-4);
+  .p-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem var(--app-space-5);
+    gap: var(--app-space-4);
 
-        .p-dialog-title {
-            margin-right: auto;
-        }
-
-        .dialog-header-actions {
-            display: flex;
-            align-items: center;
-            gap: var(--app-space-2);
-            margin-left: var(--app-space-4);
-        }
-
-        .p-dialog-header-actions {
-            margin-left: 0;
-        }
+    .p-dialog-title {
+      margin-right: auto;
     }
+
+    .dialog-header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--app-space-2);
+      margin-left: var(--app-space-4);
+    }
+
+    .p-dialog-header-actions {
+      margin-left: 0;
+    }
+  }
 }

@@ -1,24 +1,24 @@
 import { Injectable, signal } from '@angular/core';
 
 @Injectable({
-    providedIn: 'root',
+  providedIn: 'root',
 })
 export class SidebarService {
-    isMobileVisible = signal(false);
+  isMobileVisible = signal(false);
 
-    toggleMobile(): void {
-        this.isMobileVisible.update((v) => !v);
-    }
+  toggleMobile(): void {
+    this.isMobileVisible.update((v) => !v);
+  }
 
-    closeMobile(): void {
-        if (this.isMobileVisible()) {
-            this.isMobileVisible.set(false);
-        }
+  closeMobile(): void {
+    if (this.isMobileVisible()) {
+      this.isMobileVisible.set(false);
     }
+  }
 
-    openMobile(): void {
-        if (!this.isMobileVisible()) {
-            this.isMobileVisible.set(true);
-        }
+  openMobile(): void {
+    if (!this.isMobileVisible()) {
+      this.isMobileVisible.set(true);
     }
+  }
 }
