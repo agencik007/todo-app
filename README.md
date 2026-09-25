@@ -329,7 +329,7 @@ make lint-frontend        # in Docker
 
 ### Continuous Integration (GitHub Actions)
 
-`.github/workflows/ci.yml` runs on every push to `main` and on every pull request. Merge only when all jobs are green (a branch protection rule on `main` can enforce this):
+`.github/workflows/ci.yml` runs on every push to `develop` and on every pull request. Merge only when all jobs are green (a branch protection rule on `develop` can enforce this):
 
 | Job        | What it checks                                                                                                 |
 | ---------- | -------------------------------------------------------------------------------------------------------------- |
