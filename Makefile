@@ -1,7 +1,7 @@
 # Todo App - Docker Development Commands
 .PHONY: help dev prod build up down restart logs logs-backend logs-frontend logs-db logs-pgadmin \
 	clean clean-volumes shell-backend shell-db migrate test-backend lint-frontend status \
-	quick-start quick-dev
+	quick-start quick-dev test-e2e e2e-up e2e-down
 
 # Env files used for docker-compose variable interpolation (POSTGRES_*, SECRET_KEY,
 # DATABASE_URL, PGADMIN_*, ...). Copy docker/docker.env.example to docker/docker.env
@@ -11,6 +11,10 @@ PROD_ENV_FILE ?= docker/docker.prod.env
 
 COMPOSE_DEV = docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml --env-file $(DEV_ENV_FILE)
 COMPOSE_PROD = docker-compose -f docker/docker-compose.yml --env-file $(PROD_ENV_FILE)
+
+# Isolated stack for the Playwright e2e tests (own project, throwaway DB, no env file).
+# `docker compose` (v2) because the targets rely on `up --wait`.
+COMPOSE_E2E = docker compose -p todo-e2e -f docker/docker-compose.e2e.yml
 
 # Environment targeted by the operational commands below (down, logs, shell, migrate, tests, ...).
 # Defaults to dev; use e.g. `make logs STACK=prod` against the production stack.
@@ -28,7 +32,7 @@ help: ## Show this help message
 	@echo "Todo App - Docker Commands"
 	@echo ""
 	@echo "Available commands (operational ones target the dev stack; add STACK=prod for production):"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
 
 # Development commands
 dev: ## Start development environment with hot-reload
@@ -84,6 +88,19 @@ test-backend: ## Run backend tests
 
 lint-frontend: ## Run frontend lint (there is no frontend test runner yet)
 	$(COMPOSE) exec frontend npm run lint
+
+# End-to-end tests. The stack runs in Docker; Playwright runs on the host (needs Node 22)
+# because the frontend calls the API at http://localhost:8000. Stop the dev stack first.
+e2e-up: ## Start the isolated e2e stack (ports 4200/8000/8025)
+	$(COMPOSE_E2E) up --build --wait
+
+e2e-down: ## Stop the e2e stack and drop its data
+	$(COMPOSE_E2E) down -v
+
+test-e2e: ## Run Playwright e2e tests against a fresh e2e stack, then tear it down
+	$(COMPOSE_E2E) up --build --wait
+	(cd e2e && npm ci && npx playwright install chromium && npx playwright test); \
+	status=$$?; $(COMPOSE_E2E) down -v; exit $$status
 
 status: ## Show status of all services
 	$(COMPOSE) ps

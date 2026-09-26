@@ -30,22 +30,23 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 
 **Raw commands:** docker-compose always needs the env file. Below, `DC` means `docker-compose -f docker/docker-compose.yml --env-file docker/docker.env` (the dev stack must be running).
 
-| Goal                                                        | Command                                                                       |
-| ----------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Dev environment (hot-reload, front+back+db+pgadmin+mailhog) | `make dev`                                                                    |
-| Prod environment                                            | `make prod`                                                                   |
-| Stop all services                                           | `make down`                                                                   |
-| View logs                                                   | `make logs`, `make logs-backend`, `make logs-frontend`                        |
-| Clean environment (containers, images, volumes)             | `make clean`                                                                  |
-| Backend tests                                               | `make test-backend`                                                           |
-| Single backend test                                         | `DC exec backend python -m pytest tests/test_filename.py::test_function_name` |
-| Frontend lint                                               | `make lint-frontend`                                                          |
-| Frontend tests                                              | None yet — `angular.json` has no `test` target                                |
-| Migrate to head                                             | `make migrate`                                                                |
-| New migration (autogenerate)                                | `DC exec backend alembic revision --autogenerate -m "description"`            |
-| Regenerate API types after backend changes                  | `cd frontend && npm run generate-api` — on the host, see [OpenAPI](#openapi)  |
-| Backend shell                                               | `make shell-backend`                                                          |
-| Database shell                                              | `make shell-db`                                                               |
+| Goal                                                         | Command                                                                       |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| Dev environment (hot-reload, front+back+db+pgadmin+mailhog)  | `make dev`                                                                    |
+| Prod environment                                             | `make prod`                                                                   |
+| Stop all services                                            | `make down`                                                                   |
+| View logs                                                    | `make logs`, `make logs-backend`, `make logs-frontend`                        |
+| Clean environment (containers, images, volumes)              | `make clean`                                                                  |
+| Backend tests                                                | `make test-backend`                                                           |
+| Single backend test                                          | `DC exec backend python -m pytest tests/test_filename.py::test_function_name` |
+| Frontend lint                                                | `make lint-frontend`                                                          |
+| Frontend tests                                               | None yet — `angular.json` has no `test` target                                |
+| E2E tests (Playwright, full stack; stop the dev stack first) | `make test-e2e` — see [E2E tests](#e2e-tests)                                 |
+| Migrate to head                                              | `make migrate`                                                                |
+| New migration (autogenerate)                                 | `DC exec backend alembic revision --autogenerate -m "description"`            |
+| Regenerate API types after backend changes                   | `cd frontend && npm run generate-api` — on the host, see [OpenAPI](#openapi)  |
+| Backend shell                                                | `make shell-backend`                                                          |
+| Database shell                                               | `make shell-db`                                                               |
 
 ---
 
@@ -54,9 +55,9 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 1. **Backend:** if you changed models/schemas/routes → regenerate OpenAPI (`npm run generate-api`).
 2. **Backend:** if you changed models → create an Alembic migration (`alembic revision --autogenerate`), review it, then run `make migrate`.
 3. **Frontend:** run lint (`make lint-frontend`) before considering the task done.
-4. **Tests:** if you touched backend logic → run `make test-backend`. The frontend has no test runner yet, so lint + `ng build` are the checks there.
+4. **Tests:** if you touched backend logic → run `make test-backend`. The frontend has no unit test runner yet, so lint + `ng build` are the checks there. If you changed a user-facing flow (auth, todos, anything the e2e tests click through) → run `make test-e2e` and update the tests.
 5. **i18n:** new API messages must have keys in both `frontend/src/assets/i18n/en.json` and `pl.json` under `API_MESSAGES`.
-6. **CI:** `.github/workflows/ci.yml` runs `ruff check`, `ruff format --check`, `pytest`, frontend lint + Prettier check (`npm run format:check`) + build and a Docker image build on every PR. Run the same checks locally before pushing, and update the workflow when you change the Python/Node versions in `docker/Dockerfile.*`.
+6. **CI:** `.github/workflows/ci.yml` runs `ruff check`, `ruff format --check`, `pytest`, frontend lint + Prettier check (`npm run format:check`) + build, and the Playwright e2e tests against the production Docker images on every PR. Run the same checks locally before pushing, and update the workflow when you change the Python/Node versions in `docker/Dockerfile.*`.
 7. **Docs:** if your change is one of the triggers listed in [Keeping README.md up to date](#keeping-readmemd-up-to-date) → update `README.md` (and this file, if it affects agent workflow) **in the same change**.
 
 ---
@@ -76,7 +77,8 @@ frontend/src/app/
   features/      # auth/, groups/, todos/ (each with components/, store/)
   shared/        # components, global-styling, pipes
   layout/
-docker/          # Dockerfiles and docker-compose configurations
+docker/          # Dockerfiles and docker-compose configurations (docker-compose.e2e.yml = e2e stack)
+e2e/             # Playwright tests: fixtures/ (API, MailHog), pages/ (page objects), tests/
 .github/workflows/ # CI (GitHub Actions)
 Makefile         # root entry point for all development tasks
 ```
@@ -121,6 +123,14 @@ Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`.
 - An autouse fixture `db_cleanup` in `conftest.py` clears all data between tests.
 - **Rate limiting in tests:** rate limiting is enabled by default on sensitive endpoints (registration, login, verify email). Tests must run with `TESTING=1`, which `backend/tests/conftest.py` sets automatically via `os.environ["TESTING"] = "1"`.
 - **When adding new rate-limited endpoints**, always check `enabled=not IS_TESTING` or `os.getenv("TESTING") != "1"` so the test suite continues to bypass limiting.
+
+### E2E tests
+
+- Playwright lives in `e2e/` and tests the running stack from `docker/docker-compose.e2e.yml` (production images, throwaway DB, MailHog, `TESTING=1`). `make test-e2e` starts it, runs everything and tears it down; `make e2e-up` / `make e2e-down` keep it running while you iterate with `cd e2e && npx playwright test`.
+- **Exception to Docker-first:** Playwright runs on the host (Node 22) because the frontend calls the API at `http://localhost:8000` — the browser must reach both on `localhost`.
+- Every test gets its own user from the `user` / `loggedIn` fixtures in `e2e/fixtures/test.ts` (registered and verified through the API + MailHog). Never share accounts between tests.
+- Locate elements by role and accessible name (`getByRole`, `getByLabel`), in English (`locale: 'en-US'`). Keep selectors in page objects under `e2e/pages/`. Add `data-testid` to a template only when there is no accessible way to reach an element.
+- Run `npm run typecheck` in `e2e/` after changing tests; CI runs it too.
 
 ### OpenAPI
 
@@ -408,6 +418,6 @@ Rules:
 
 ### Working with AI agents in this repo
 
-- Always use Docker-based commands (`make ...` or `docker-compose exec ...`). Do not rely on locally installed Python/Node — even the backend and `alembic` run through `docker-compose exec backend`. The only exception is `npm run generate-api` (see [OpenAPI](#openapi)).
+- Always use Docker-based commands (`make ...` or `docker-compose exec ...`). Do not rely on locally installed Python/Node — even the backend and `alembic` run through `docker-compose exec backend`. The only exceptions are `npm run generate-api` (see [OpenAPI](#openapi)) and the Playwright runner (see [E2E tests](#e2e-tests)).
 - Use absolute paths, not relative ones.
 - DRY & KISS: do not introduce abstractions speculatively.

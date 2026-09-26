@@ -13,7 +13,8 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
 - ✅ **Backend Tests** - 89 unit and integration tests with coverage (min. 80% enforced)
-- ✅ **CI** - GitHub Actions runs lint, tests and builds on every push and pull request
+- ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, tasks)
+- ✅ **CI** - GitHub Actions runs lint, tests, builds and E2E tests on every push and pull request
 - ✅ **Simple Local Setup** - Single database for development and local testing
 
 ### 🚀 How to Run (3 Simple Steps):
@@ -112,6 +113,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - **Docker Compose** - container orchestration
 - **PostgreSQL** - database in container
 - **GitHub Actions** - CI (see [Continuous Integration](#continuous-integration-github-actions))
+- **Playwright** - end-to-end tests (see [End-to-End Tests](#end-to-end-tests-playwright))
 
 ## 📋 Prerequisites
 
@@ -327,6 +329,29 @@ make lint-frontend        # in Docker
 # or locally: cd frontend && npm run lint
 ```
 
+### End-to-End Tests (Playwright)
+
+`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, and creating, editing, completing, filtering and deleting tasks.
+
+They run against a separate, throwaway stack defined in `docker/docker-compose.e2e.yml`: production images (SSR frontend), a PostgreSQL database on tmpfs, MailHog, and rate limiting disabled (`TESTING=1`). Each test registers its own user, so tests are independent and run in parallel.
+
+```bash
+make down        # the e2e stack uses the same ports (4200, 8000, 8025) as the dev stack
+make test-e2e    # start the e2e stack, run all tests, tear the stack down
+```
+
+For writing and debugging tests, keep the stack running:
+
+```bash
+make e2e-up                     # start the e2e stack and wait until it is healthy
+cd e2e && npm ci && npx playwright install chromium
+npx playwright test             # or: npm run test:ui (interactive), npm run report (last HTML report)
+make e2e-down                   # stop it and drop its data
+```
+
+> [!NOTE]
+> Playwright runs on the host (Node 22), not in a container: the frontend calls the API at `http://localhost:8000`, so the browser must reach both the app and the API on `localhost`. `make test-e2e` needs Docker Compose v2 (`docker compose`).
+
 ### Continuous Integration (GitHub Actions)
 
 `.github/workflows/ci.yml` runs on every push to `develop` and on every pull request. Merge only when all jobs are green (a branch protection rule on `develop` can enforce this):
@@ -335,9 +360,9 @@ make lint-frontend        # in Docker
 | ---------- | -------------------------------------------------------------------------------------------------------------- |
 | `backend`  | `ruff check`, `ruff format --check` and the full `pytest` suite (with the coverage gate) against PostgreSQL 15 |
 | `frontend` | `npm ci`, `npm run lint`, `npm run format:check` (Prettier) and `npm run build` (SSR + prerender)              |
-| `docker`   | Builds `docker/Dockerfile.backend` and `docker/Dockerfile.frontend` (no push)                                  |
+| `e2e`      | Builds the production Docker images, starts `docker/docker-compose.e2e.yml` and runs the Playwright tests      |
 
-To reproduce the backend job locally, format and lint with `ruff format` / `ruff check` in `backend/` (the pre-commit hook already does this for staged files) and run `make test-backend`. For the frontend job, run `npm run lint` and `npm run format:check` in `frontend/` (`npx prettier --write .` fixes formatting).
+To reproduce the backend job locally, format and lint with `ruff format` / `ruff check` in `backend/` (the pre-commit hook already does this for staged files) and run `make test-backend`. For the frontend job, run `npm run lint` and `npm run format:check` in `frontend/` (`npx prettier --write .` fixes formatting). For the e2e job, run `make test-e2e`; when it fails in CI, the HTML report (with traces and screenshots) is attached to the run as the `playwright-report` artifact.
 
 ## 🚀 Quick Start
 
@@ -645,7 +670,8 @@ todo-app/
 │   ├── angular.json
 │   ├── package.json
 │   └── ...
-├── docker/                  # Dockerfiles, docker-compose files, docker.env.example
+├── docker/                  # Dockerfiles, docker-compose files (incl. the e2e stack), docker.env.example
+├── e2e/                     # Playwright end-to-end tests (fixtures/, pages/, tests/)
 ├── .github/workflows/       # CI (GitHub Actions)
 ├── Makefile                 # Entry point for all dev tasks
 ├── AGENTS.md                # Guidelines for contributors and AI agents
