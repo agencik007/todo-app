@@ -11,23 +11,23 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * </app-form-field>
  */
 @Component({
-    selector: 'app-form-field',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
-        <label [for]="inputId()">
-            @if (icon()) {
-                <i class="pi {{ icon() }}" aria-hidden="true"></i>
-            }
-            {{ label() }}
-        </label>
-        <ng-content />
-    `,
-    styleUrl: './form-field.component.scss',
+  selector: 'app-form-field',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <label [for]="inputId()">
+      @if (icon()) {
+        <i class="pi {{ icon() }}" aria-hidden="true"></i>
+      }
+      {{ label() }}
+    </label>
+    <ng-content />
+  `,
+  styleUrl: './form-field.component.scss',
 })
 export class FormFieldComponent {
-    readonly label = input.required<string>();
-    /** Klasa ikony PrimeIcons, np. 'pi-envelope'. */
-    readonly icon = input<string>();
-    /** Id projektowanej kontrolki — trafia do atrybutu for etykiety. */
-    readonly inputId = input<string>();
+  readonly label = input.required<string>();
+  /** Klasa ikony PrimeIcons, np. 'pi-envelope'. */
+  readonly icon = input<string>();
+  /** Id projektowanej kontrolki — trafia do atrybutu for etykiety. */
+  readonly inputId = input<string>();
 }

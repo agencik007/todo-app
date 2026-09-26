@@ -10,78 +10,70 @@ import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-sta
 import { AuthService } from '../../services/auth.service';
 
 @Component({
-    selector: 'app-verify-email',
-    imports: [
-        RouterModule,
-        CardModule,
-        ButtonModule,
-        ProgressSpinnerModule,
-        MessageModule,
-        TranslatePipe,
-        EmptyStateComponent,
-    ],
-    templateUrl: './verify-email.html',
-    styleUrl: './verify-email.scss',
+  selector: 'app-verify-email',
+  imports: [
+    RouterModule,
+    CardModule,
+    ButtonModule,
+    ProgressSpinnerModule,
+    MessageModule,
+    TranslatePipe,
+    EmptyStateComponent,
+  ],
+  templateUrl: './verify-email.html',
+  styleUrl: './verify-email.scss',
 })
 export class VerifyEmailComponent implements OnInit {
-    private route = inject(ActivatedRoute);
-    private router = inject(Router);
-    private authService = inject(AuthService);
-    private messageService = inject(MessageService);
-    private translate = inject(TranslateService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private authService = inject(AuthService);
+  private messageService = inject(MessageService);
+  private translate = inject(TranslateService);
 
-    status = signal<'loading' | 'success' | 'error'>('loading');
-    message = signal('');
-    errorDetail = signal('');
+  status = signal<'loading' | 'success' | 'error'>('loading');
+  message = signal('');
+  errorDetail = signal('');
 
-    ngOnInit(): void {
-        const token =
-            this.route.snapshot.paramMap.get('token') ||
-            this.route.snapshot.queryParamMap.get('token');
-        if (token) {
-            this.authService.verifyEmail(token).subscribe({
-                next: () => {
-                    this.status.set('success');
-                    this.router.navigate(['/login'], {
-                        queryParams: { verified: 'success' },
-                    });
-                },
-                error: (err) => {
-                    this.status.set('error');
-                    this.message.set(
-                        this.translate.instant(
-                            'AUTH.VERIFY_EMAIL.ERRORS.FAILED',
-                        ),
-                    );
-                    if (err.message?.includes('expired')) {
-                        this.errorDetail.set(
-                            this.translate.instant(
-                                'AUTH.VERIFY_EMAIL.ERRORS.EXPIRED',
-                            ),
-                        );
-                    } else {
-                        this.errorDetail.set(
-                            err.message ||
-                                this.translate.instant(
-                                    'AUTH.VERIFY_EMAIL.ERRORS.GENERAL',
-                                ),
-                        );
-                    }
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: this.translate.instant(
-                            'AUTH.VERIFY_EMAIL.ERRORS.SUMMARY',
-                        ),
-                        detail: this.errorDetail(),
-                        life: 8000,
-                    });
-                },
-            });
-        } else {
-            this.status.set('error');
-            this.message.set(
-                this.translate.instant('AUTH.VERIFY_EMAIL.ERRORS.NO_TOKEN'),
+  ngOnInit(): void {
+    const token =
+      this.route.snapshot.paramMap.get('token') ||
+      this.route.snapshot.queryParamMap.get('token');
+    if (token) {
+      this.authService.verifyEmail(token).subscribe({
+        next: () => {
+          this.status.set('success');
+          this.router.navigate(['/login'], {
+            queryParams: { verified: 'success' },
+          });
+        },
+        error: (err) => {
+          this.status.set('error');
+          this.message.set(
+            this.translate.instant('AUTH.VERIFY_EMAIL.ERRORS.FAILED'),
+          );
+          if (err.message?.includes('expired')) {
+            this.errorDetail.set(
+              this.translate.instant('AUTH.VERIFY_EMAIL.ERRORS.EXPIRED'),
             );
-        }
+          } else {
+            this.errorDetail.set(
+              err.message ||
+                this.translate.instant('AUTH.VERIFY_EMAIL.ERRORS.GENERAL'),
+            );
+          }
+          this.messageService.add({
+            severity: 'error',
+            summary: this.translate.instant('AUTH.VERIFY_EMAIL.ERRORS.SUMMARY'),
+            detail: this.errorDetail(),
+            life: 8000,
+          });
+        },
+      });
+    } else {
+      this.status.set('error');
+      this.message.set(
+        this.translate.instant('AUTH.VERIFY_EMAIL.ERRORS.NO_TOKEN'),
+      );
     }
+  }
 }

@@ -3,7 +3,7 @@
 // Panel "szkła": rozmycie tła + subtelna ramka. Tło ustawia wołający
 // (każde użycie ma inne — severity toastów, slate tooltipa itd.).
 @mixin glass-panel($blur: var(--app-glass-blur)) {
-    backdrop-filter: blur($blur);
-    -webkit-backdrop-filter: blur($blur);
-    border: var(--app-glass-border);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: var(--app-glass-border);
 }

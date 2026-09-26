@@ -8,17 +8,17 @@ import { HttpErrorResponse } from '@angular/common/http';
  * result to translate as `API_MESSAGES.<code>`.
  */
 export function extractApiMessageCode(error: unknown): string | null {
-    if (!(error instanceof HttpErrorResponse)) return null;
+  if (!(error instanceof HttpErrorResponse)) return null;
 
-    const body: unknown = error.error;
-    if (typeof body !== 'object' || body === null) return null;
+  const body: unknown = error.error;
+  if (typeof body !== 'object' || body === null) return null;
 
-    const detail = (body as { detail?: unknown }).detail;
-    const fromDetail =
-        typeof detail === 'object' && detail !== null
-            ? (detail as { messageCode?: unknown }).messageCode
-            : undefined;
+  const detail = (body as { detail?: unknown }).detail;
+  const fromDetail =
+    typeof detail === 'object' && detail !== null
+      ? (detail as { messageCode?: unknown }).messageCode
+      : undefined;
 
-    const code = fromDetail ?? (body as { messageCode?: unknown }).messageCode;
-    return typeof code === 'string' ? code : null;
+  const code = fromDetail ?? (body as { messageCode?: unknown }).messageCode;
+  return typeof code === 'string' ? code : null;
 }

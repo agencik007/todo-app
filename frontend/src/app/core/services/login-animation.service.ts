@@ -1,19 +1,19 @@
 import { Injectable, signal } from '@angular/core';
 
 @Injectable({
-    providedIn: 'root',
+  providedIn: 'root',
 })
 @Injectable({
-    providedIn: 'root',
+  providedIn: 'root',
 })
 export class LoginAnimationService {
-    readonly isAnimating = signal(false);
+  readonly isAnimating = signal(false);
 
-    trigger(): void {
-        this.isAnimating.set(true);
-    }
+  trigger(): void {
+    this.isAnimating.set(true);
+  }
 
-    done(): void {
-        this.isAnimating.set(false);
-    }
+  done(): void {
+    this.isAnimating.set(false);
+  }
 }

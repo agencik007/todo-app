@@ -1,36 +1,36 @@
 html,
 body {
-    font-family: var(--app-font-mono);
+  font-family: var(--app-font-mono);
 }
 
 .mb-2 {
-    margin-bottom: var(--app-space-2);
+  margin-bottom: var(--app-space-2);
 }
 .mb-3 {
-    margin-bottom: var(--app-space-4);
+  margin-bottom: var(--app-space-4);
 }
 .mb-4 {
-    margin-bottom: var(--app-space-5);
+  margin-bottom: var(--app-space-5);
 }
 .mt-1 {
-    margin-top: var(--app-space-1);
+  margin-top: var(--app-space-1);
 }
 .mt-4 {
-    margin-top: var(--app-space-5);
+  margin-top: var(--app-space-5);
 }
 .m-0 {
-    margin: 0;
+  margin: 0;
 }
 
 .text-color-secondary {
-    color: var(--p-text-muted-color);
+  color: var(--p-text-muted-color);
 }
 .text-sm {
-    font-size: var(--app-text-sm);
+  font-size: var(--app-text-sm);
 }
 .font-bold {
-    font-weight: var(--app-font-bold);
+  font-weight: var(--app-font-bold);
 }
 .font-semibold {
-    font-weight: var(--app-font-semibold);
+  font-weight: var(--app-font-semibold);
 }

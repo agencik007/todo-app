@@ -1,512 +1,486 @@
 @if (isBrowser()) {
-    <div class="flex h-full overflow-hidden relative">
-        <!-- Sidebar -->
-        <app-sidebar class="h-full" />
+  <div class="flex h-full overflow-hidden relative">
+    <!-- Sidebar -->
+    <app-sidebar class="h-full" />
 
-        <div class="container flex-grow-1 overflow-y-auto">
-            <!-- Header (slim) -->
-            <header class="todo-header">
-                <div class="todo-header-titles">
-                    <h1 class="todo-greeting">
-                        {{ 'TODOS.GREETING' | translate: { name: userName() } }}
-                    </h1>
-                    <span class="todo-shortcuts-hint">
-                        {{ 'TODOS.SHORTCUTS.HINT' | translate }}
-                    </span>
-                </div>
-            </header>
-
-            <!-- Sticky Command Bar -->
-            <div class="command-bar">
-                <!-- Status filter pills -->
-                <div
-                    role="tablist"
-                    class="status-pills"
-                    aria-label="Status filter"
-                >
-                    <button
-                        type="button"
-                        tooltipPosition="bottom"
-                        role="tab"
-                        class="pill pill-all"
-                        [pTooltip]="'TODOS.FILTERS.TOOLTIP_ALL' | translate"
-                        [class.active]="statusFilter() === 'all'"
-                        [attr.aria-selected]="statusFilter() === 'all'"
-                        (click)="setStatusFilter('all')"
-                    >
-                        <span
-                            class="pill-dot"
-                            aria-hidden="true"
-                        ></span>
-                        <span class="pill-label">{{ 'TODOS.STATS.ALL' | translate }}</span>
-                        <span class="pill-count">{{ totalTodos() }}</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        tooltipPosition="bottom"
-                        role="tab"
-                        class="pill pill-pending"
-                        [pTooltip]="'TODOS.FILTERS.TOOLTIP_PENDING' | translate"
-                        [class.active]="statusFilter() === 'pending'"
-                        [attr.aria-selected]="statusFilter() === 'pending'"
-                        (click)="setStatusFilter('pending')"
-                    >
-                        <span
-                            class="pill-dot"
-                            aria-hidden="true"
-                        ></span>
-                        <span class="pill-label">{{ 'TODOS.STATS.PENDING' | translate }}</span>
-                        <span class="pill-count">{{ pendingTodos().length }}</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        tooltipPosition="bottom"
-                        role="tab"
-                        class="pill pill-completed"
-                        [pTooltip]="'TODOS.FILTERS.TOOLTIP_COMPLETED' | translate"
-                        [class.active]="statusFilter() === 'completed'"
-                        [attr.aria-selected]="statusFilter() === 'completed'"
-                        (click)="setStatusFilter('completed')"
-                    >
-                        <span
-                            class="pill-dot"
-                            aria-hidden="true"
-                        ></span>
-                        <span class="pill-label">{{ 'TODOS.STATS.COMPLETED' | translate }}</span>
-                        <span class="pill-count">{{ completedTodos().length }}</span>
-                    </button>
-                </div>
-
-                <!-- Search -->
-                <div
-                    class="search-box"
-                    [class.has-value]="searchQuery().length > 0"
-                >
-                    <i
-                        class="pi pi-search search-icon"
-                        aria-hidden="true"
-                    ></i>
-                    <input
-                        type="text"
-                        pInputText
-                        id="todo-search-input"
-                        class="search-input"
-                        autocomplete="off"
-                        #searchInput
-                        [placeholder]="'TODOS.SEARCH.PLACEHOLDER' | translate"
-                        [ngModel]="searchQuery()"
-                        (ngModelChange)="onSearchInput($event)"
-                    />
-                    @if (searchQuery().length > 0) {
-                        <button
-                            type="button"
-                            tooltipPosition="bottom"
-                            size="sm"
-                            class="search-clear"
-                            appIconButton
-                            [pTooltip]="'TODOS.SEARCH.CLEAR' | translate"
-                            [attr.aria-label]="'TODOS.SEARCH.CLEAR' | translate"
-                            (click)="clearSearch()"
-                        >
-                            <i
-                                class="pi pi-times"
-                                aria-hidden="true"
-                            ></i>
-                        </button>
-                    } @else {
-                        <kbd class="search-kbd">/</kbd>
-                    }
-                </div>
-
-                <!-- Group filter chips (only when groups selected) -->
-                @if (hasGroupSelection()) {
-                    <div class="group-chips-row">
-                        <span class="group-chips-label">{{
-                            'TODOS.LIST.FILTER_LABEL' | translate
-                        }}</span>
-                        @for (group of selectedGroups(); track group.id) {
-                            <app-badge
-                                size="sm"
-                                [label]="group.name"
-                                [color]="group.color"
-                            />
-                        }
-                    </div>
-                }
-
-                <!-- Progress strip -->
-                <div
-                    class="progress-strip"
-                    [attr.aria-label]="
-                        'TODOS.FILTERS.PROGRESS_LABEL'
-                            | translate
-                                : {
-                                      done: completedTodos().length,
-                                      total: totalTodos(),
-                                  }
-                    "
-                >
-                    <div class="progress-rail">
-                        <div
-                            class="progress-fill"
-                            [style.width.%]="progressPercent()"
-                        ></div>
-                    </div>
-                    <span class="progress-text">
-                        <span class="progress-numbers">
-                            {{ completedTodos().length }}<span class="progress-slash">/</span
-                            >{{ totalTodos() }}
-                        </span>
-                        <span class="progress-pct">{{ progressPercent() }}%</span>
-                    </span>
-                </div>
-            </div>
-
-            <!-- Error Message -->
-            @if (error()) {
-                <p-message
-                    styleClass="mb-3 w-full"
-                    severity="error"
-                    [closable]="true"
-                    (onClose)="clearError()"
-                >
-                    {{ error() }}
-                </p-message>
-            }
-
-            <div
-                class="scrollable-area"
-                cdkScrollable
-                #scrollContainer
-            >
-                <!-- Loading State (Skeletons) -->
-                @if (loading()) {
-                    <ul class="todo-stream">
-                        @for (i of [1, 2, 3, 4, 5]; track i) {
-                            <li class="todo-row is-skeleton">
-                                <p-skeleton
-                                    size="20px"
-                                    shape="circle"
-                                />
-                                <div class="row-body">
-                                    <div class="row-line-1">
-                                        <p-skeleton
-                                            width="55%"
-                                            height="1rem"
-                                        />
-                                    </div>
-                                    <div class="row-line-2">
-                                        <p-skeleton
-                                            width="35%"
-                                            height="0.7rem"
-                                        />
-                                    </div>
-                                </div>
-                            </li>
-                        }
-                    </ul>
-                }
-
-                <!-- Todo List -->
-                @if (!loading() && todos().length > 0) {
-                    <ul
-                        id="todoList"
-                        class="todo-stream"
-                        cdkDropList
-                        [cdkDropListDisabled]="!canReorder()"
-                        (cdkDropListDropped)="onDrop($event)"
-                    >
-                        @for (todo of todos(); track todo.id; let idx = $index) {
-                            <li
-                                tabindex="0"
-                                class="todo-row"
-                                cdkDrag
-                                [class.is-focused]="focusedIndex() === idx"
-                                [class.is-completed]="todo.completed"
-                                [class.can-edit]="canEditTodo(todo)"
-                                [cdkDragDisabled]="!canEditTodo(todo)"
-                                [cdkDragData]="todo"
-                                (keydown.enter)="setFocus(idx)"
-                                (click)="setFocus(idx)"
-                                (cdkDragMoved)="onDragMoved($event)"
-                                (cdkDragEnded)="onDragEnded()"
-                            >
-                                <!-- Drag handle (hidden while filters are active — see canReorder) -->
-                                @if (canEditTodo(todo) && canReorder()) {
-                                    <button
-                                        type="button"
-                                        tooltipPosition="right"
-                                        class="row-handle"
-                                        cdkDragHandle
-                                        [pTooltip]="'TODOS.DRAG_HANDLE' | translate"
-                                        [attr.aria-label]="'TODOS.DRAG_HANDLE' | translate"
-                                    >
-                                        <i
-                                            class="pi pi-bars"
-                                            aria-hidden="true"
-                                        ></i>
-                                    </button>
-                                } @else {
-                                    <span class="row-handle row-handle-spacer"></span>
-                                }
-
-                                <!-- Checkbox -->
-                                <p-checkbox
-                                    class="row-check"
-                                    [ngModel]="todo.completed"
-                                    [disabled]="!canEditTodo(todo)"
-                                    [binary]="true"
-                                    (onChange)="toggleTodoCompletion(todo)"
-                                    (click)="$event.stopPropagation()"
-                                />
-
-                                <!-- Body (2 lines) -->
-                                <div class="row-body">
-                                    <!-- Line 1: title + actions -->
-                                    <div class="row-line-1">
-                                        <span
-                                            class="row-title"
-                                            [class.is-strike]="todo.completed"
-                                        >
-                                            {{ todo.title }}
-                                        </span>
-                                        @if (canEditTodo(todo)) {
-                                            <div class="row-actions">
-                                                <button
-                                                    type="button"
-                                                    tooltipPosition="top"
-                                                    appIconButton
-                                                    [pTooltip]="
-                                                        'TODOS.LIST.TOOLTIP_EDIT' | translate
-                                                    "
-                                                    [attr.aria-label]="
-                                                        'TODOS.LIST.TOOLTIP_EDIT' | translate
-                                                    "
-                                                    (click)="
-                                                        editTodo(todo); $event.stopPropagation()
-                                                    "
-                                                >
-                                                    <i
-                                                        class="pi pi-pencil"
-                                                        aria-hidden="true"
-                                                    ></i>
-                                                </button>
-                                                <button
-                                                    variant="danger"
-                                                    type="button"
-                                                    tooltipPosition="top"
-                                                    appIconButton
-                                                    [pTooltip]="
-                                                        'TODOS.LIST.TOOLTIP_DELETE' | translate
-                                                    "
-                                                    [attr.aria-label]="
-                                                        'TODOS.LIST.TOOLTIP_DELETE' | translate
-                                                    "
-                                                    (click)="
-                                                        deleteTodo(todo); $event.stopPropagation()
-                                                    "
-                                                >
-                                                    <i
-                                                        class="pi pi-trash"
-                                                        aria-hidden="true"
-                                                    ></i>
-                                                </button>
-                                            </div>
-                                        }
-                                    </div>
-
-                                    <!-- Line 2: meta -->
-                                    <div class="row-line-2">
-                                        @if (getGroupById(todo.groupId); as todoGroup) {
-                                            <app-badge
-                                                tooltipPosition="top"
-                                                size="sm"
-                                                [pTooltip]="'TODOS.LIST.TOOLTIP_GROUP' | translate"
-                                                [label]="todoGroup.name"
-                                                [color]="todoGroup.color"
-                                            />
-                                            <span
-                                                class="meta-sep"
-                                                aria-hidden="true"
-                                                >·</span
-                                            >
-                                        }
-
-                                        <span
-                                            tooltipPosition="top"
-                                            class="meta-item"
-                                            [pTooltip]="
-                                                ('TODOS.LIST.CREATED_AT' | translate) +
-                                                ': ' +
-                                                formatDate(todo.createdAt)
-                                            "
-                                        >
-                                            <i
-                                                class="pi pi-clock"
-                                                aria-hidden="true"
-                                            ></i>
-                                            {{ getRelativeTime(todo.createdAt) }}
-                                        </span>
-
-                                        @if (todo.updatedAt !== todo.createdAt) {
-                                            <span
-                                                class="meta-sep"
-                                                aria-hidden="true"
-                                                >·</span
-                                            >
-                                            <span
-                                                tooltipPosition="top"
-                                                class="meta-item"
-                                                [pTooltip]="
-                                                    ('TODOS.LIST.UPDATED_AT' | translate) +
-                                                    ': ' +
-                                                    formatDate(todo.updatedAt)
-                                                "
-                                            >
-                                                <i
-                                                    class="pi pi-pencil"
-                                                    aria-hidden="true"
-                                                ></i>
-                                                {{ getRelativeTime(todo.updatedAt) }}
-                                            </span>
-                                        }
-
-                                        @if (todo.ownerEmail) {
-                                            <span
-                                                class="meta-sep"
-                                                aria-hidden="true"
-                                                >·</span
-                                            >
-                                            <span
-                                                tooltipPosition="top"
-                                                class="meta-item"
-                                                [pTooltip]="
-                                                    'TODOS.LIST.OWNER_INFO'
-                                                        | translate: { email: todo.ownerEmail }
-                                                "
-                                            >
-                                                <i
-                                                    class="pi pi-user"
-                                                    aria-hidden="true"
-                                                ></i>
-                                                {{ todo.ownerEmail }}
-                                            </span>
-                                        }
-
-                                        @if (todo.description) {
-                                            <span
-                                                class="meta-sep"
-                                                aria-hidden="true"
-                                                >·</span
-                                            >
-                                            <span class="meta-desc">{{ todo.description }}</span>
-                                        }
-                                    </div>
-                                </div>
-                            </li>
-                        }
-                    </ul>
-                }
-
-                <!-- Empty State (truly empty) -->
-                @if (!loading() && todos().length === 0 && !isFiltered()) {
-                    <p-card>
-                        <app-empty-state
-                            emoji="📝"
-                            [heading]="'TODOS.LIST.EMPTY_TITLE' | translate"
-                            [description]="'TODOS.LIST.EMPTY_MESSAGE' | translate"
-                        >
-                            <p-button
-                                icon="pi pi-plus"
-                                [label]="'TODOS.LIST.ADD_FIRST' | translate"
-                                (onClick)="showCreateForm()"
-                            />
-                        </app-empty-state>
-                    </p-card>
-                }
-
-                <!-- Empty State (filtered) -->
-                @if (!loading() && todos().length === 0 && isFiltered()) {
-                    <app-empty-state
-                        icon="pi-filter-slash"
-                        [heading]="'TODOS.FILTERS.EMPTY_FILTERED_TITLE' | translate"
-                        [description]="'TODOS.FILTERS.EMPTY_FILTERED_MESSAGE' | translate"
-                    >
-                        <p-button
-                            size="small"
-                            severity="secondary"
-                            icon="pi pi-times"
-                            [text]="true"
-                            [label]="'TODOS.FILTERS.EMPTY_FILTERED_RESET' | translate"
-                            (onClick)="resetFilters()"
-                        />
-                    </app-empty-state>
-                }
-            </div>
-
-            <!-- Floating Action Button -->
-            @if (!loading() && !formVisible()) {
-                <button
-                    type="button"
-                    tooltipPosition="left"
-                    class="fab"
-                    #addButton
-                    [pTooltip]="'TODOS.FAB.TOOLTIP' | translate"
-                    [attr.aria-label]="'TODOS.ADD_BUTTON' | translate"
-                    (click)="showCreateForm()"
-                >
-                    <i
-                        class="pi pi-plus fab-icon"
-                        aria-hidden="true"
-                    ></i>
-                </button>
-            }
-
-            <!-- Todo Form Dialog -->
-            <p-dialog
-                styleClass="premium-dialog"
-                [visible]="formVisible()"
-                [style]="{ width: '400px', maxWidth: '95vw' }"
-                [modal]="true"
-                (visibleChange)="onVisibleChange($event)"
-                (onHide)="onDialogHide()"
-            >
-                <ng-template pTemplate="header">
-                    <span class="p-dialog-title">
-                        {{
-                            (editingTodo() ? 'TODOS.FORM.TITLE_EDIT' : 'TODOS.FORM.TITLE_ADD')
-                                | translate
-                        }}
-                    </span>
-                    <div class="dialog-header-actions">
-                        <p-button
-                            type="button"
-                            size="small"
-                            [loading]="tf.isSubmitting()"
-                            [label]="
-                                (editingTodo() ? 'TODOS.FORM.SUBMIT_SAVE' : 'TODOS.FORM.SUBMIT_ADD')
-                                    | translate
-                            "
-                            [icon]="editingTodo() ? 'pi pi-save' : 'pi pi-plus'"
-                            [disabled]="tf.isSubmitting() || !tf.todoModel().title.trim()"
-                            (onClick)="tf.onSubmit()"
-                        />
-                    </div>
-                </ng-template>
-
-                <app-todo-form
-                    #tf
-                    [todo]="editingTodo()"
-                    (save)="saveTodo($event)"
-                    (cancelTodo)="closeForm()"
-                >
-                </app-todo-form>
-            </p-dialog>
-
-            <!-- Confirm Delete Dialog -->
-            <p-confirmDialog />
+    <div class="container flex-grow-1 overflow-y-auto">
+      <!-- Header (slim) -->
+      <header class="todo-header">
+        <div class="todo-header-titles">
+          <h1 class="todo-greeting">
+            {{ 'TODOS.GREETING' | translate: { name: userName() } }}
+          </h1>
+          <span class="todo-shortcuts-hint">
+            {{ 'TODOS.SHORTCUTS.HINT' | translate }}
+          </span>
         </div>
+      </header>
+
+      <!-- Sticky Command Bar -->
+      <div class="command-bar">
+        <!-- Status filter pills -->
+        <div
+          role="tablist"
+          class="status-pills"
+          aria-label="Status filter"
+        >
+          <button
+            type="button"
+            tooltipPosition="bottom"
+            role="tab"
+            class="pill pill-all"
+            [pTooltip]="'TODOS.FILTERS.TOOLTIP_ALL' | translate"
+            [class.active]="statusFilter() === 'all'"
+            [attr.aria-selected]="statusFilter() === 'all'"
+            (click)="setStatusFilter('all')"
+          >
+            <span
+              class="pill-dot"
+              aria-hidden="true"
+            ></span>
+            <span class="pill-label">{{ 'TODOS.STATS.ALL' | translate }}</span>
+            <span class="pill-count">{{ totalTodos() }}</span>
+          </button>
+
+          <button
+            type="button"
+            tooltipPosition="bottom"
+            role="tab"
+            class="pill pill-pending"
+            [pTooltip]="'TODOS.FILTERS.TOOLTIP_PENDING' | translate"
+            [class.active]="statusFilter() === 'pending'"
+            [attr.aria-selected]="statusFilter() === 'pending'"
+            (click)="setStatusFilter('pending')"
+          >
+            <span
+              class="pill-dot"
+              aria-hidden="true"
+            ></span>
+            <span class="pill-label">{{ 'TODOS.STATS.PENDING' | translate }}</span>
+            <span class="pill-count">{{ pendingTodos().length }}</span>
+          </button>
+
+          <button
+            type="button"
+            tooltipPosition="bottom"
+            role="tab"
+            class="pill pill-completed"
+            [pTooltip]="'TODOS.FILTERS.TOOLTIP_COMPLETED' | translate"
+            [class.active]="statusFilter() === 'completed'"
+            [attr.aria-selected]="statusFilter() === 'completed'"
+            (click)="setStatusFilter('completed')"
+          >
+            <span
+              class="pill-dot"
+              aria-hidden="true"
+            ></span>
+            <span class="pill-label">{{ 'TODOS.STATS.COMPLETED' | translate }}</span>
+            <span class="pill-count">{{ completedTodos().length }}</span>
+          </button>
+        </div>
+
+        <!-- Search -->
+        <div
+          class="search-box"
+          [class.has-value]="searchQuery().length > 0"
+        >
+          <i
+            class="pi pi-search search-icon"
+            aria-hidden="true"
+          ></i>
+          <input
+            type="text"
+            pInputText
+            id="todo-search-input"
+            class="search-input"
+            autocomplete="off"
+            #searchInput
+            [placeholder]="'TODOS.SEARCH.PLACEHOLDER' | translate"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchInput($event)"
+          />
+          @if (searchQuery().length > 0) {
+            <button
+              type="button"
+              tooltipPosition="bottom"
+              size="sm"
+              class="search-clear"
+              appIconButton
+              [pTooltip]="'TODOS.SEARCH.CLEAR' | translate"
+              [attr.aria-label]="'TODOS.SEARCH.CLEAR' | translate"
+              (click)="clearSearch()"
+            >
+              <i
+                class="pi pi-times"
+                aria-hidden="true"
+              ></i>
+            </button>
+          } @else {
+            <kbd class="search-kbd">/</kbd>
+          }
+        </div>
+
+        <!-- Group filter chips (only when groups selected) -->
+        @if (hasGroupSelection()) {
+          <div class="group-chips-row">
+            <span class="group-chips-label">{{ 'TODOS.LIST.FILTER_LABEL' | translate }}</span>
+            @for (group of selectedGroups(); track group.id) {
+              <app-badge
+                size="sm"
+                [label]="group.name"
+                [color]="group.color"
+              />
+            }
+          </div>
+        }
+
+        <!-- Progress strip -->
+        <div
+          class="progress-strip"
+          [attr.aria-label]="
+            'TODOS.FILTERS.PROGRESS_LABEL'
+              | translate
+                : {
+                    done: completedTodos().length,
+                    total: totalTodos(),
+                  }
+          "
+        >
+          <div class="progress-rail">
+            <div
+              class="progress-fill"
+              [style.width.%]="progressPercent()"
+            ></div>
+          </div>
+          <span class="progress-text">
+            <span class="progress-numbers">
+              {{ completedTodos().length }}<span class="progress-slash">/</span>{{ totalTodos() }}
+            </span>
+            <span class="progress-pct">{{ progressPercent() }}%</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      @if (error()) {
+        <p-message
+          styleClass="mb-3 w-full"
+          severity="error"
+          [closable]="true"
+          (onClose)="clearError()"
+        >
+          {{ error() }}
+        </p-message>
+      }
+
+      <div
+        class="scrollable-area"
+        cdkScrollable
+        #scrollContainer
+      >
+        <!-- Loading State (Skeletons) -->
+        @if (loading()) {
+          <ul class="todo-stream">
+            @for (i of [1, 2, 3, 4, 5]; track i) {
+              <li class="todo-row is-skeleton">
+                <p-skeleton
+                  size="20px"
+                  shape="circle"
+                />
+                <div class="row-body">
+                  <div class="row-line-1">
+                    <p-skeleton
+                      width="55%"
+                      height="1rem"
+                    />
+                  </div>
+                  <div class="row-line-2">
+                    <p-skeleton
+                      width="35%"
+                      height="0.7rem"
+                    />
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+
+        <!-- Todo List -->
+        @if (!loading() && todos().length > 0) {
+          <ul
+            id="todoList"
+            class="todo-stream"
+            cdkDropList
+            [cdkDropListDisabled]="!canReorder()"
+            (cdkDropListDropped)="onDrop($event)"
+          >
+            @for (todo of todos(); track todo.id; let idx = $index) {
+              <li
+                tabindex="0"
+                class="todo-row"
+                cdkDrag
+                [class.is-focused]="focusedIndex() === idx"
+                [class.is-completed]="todo.completed"
+                [class.can-edit]="canEditTodo(todo)"
+                [cdkDragDisabled]="!canEditTodo(todo)"
+                [cdkDragData]="todo"
+                (keydown.enter)="setFocus(idx)"
+                (click)="setFocus(idx)"
+                (cdkDragMoved)="onDragMoved($event)"
+                (cdkDragEnded)="onDragEnded()"
+              >
+                <!-- Drag handle (hidden while filters are active — see canReorder) -->
+                @if (canEditTodo(todo) && canReorder()) {
+                  <button
+                    type="button"
+                    tooltipPosition="right"
+                    class="row-handle"
+                    cdkDragHandle
+                    [pTooltip]="'TODOS.DRAG_HANDLE' | translate"
+                    [attr.aria-label]="'TODOS.DRAG_HANDLE' | translate"
+                  >
+                    <i
+                      class="pi pi-bars"
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                } @else {
+                  <span class="row-handle row-handle-spacer"></span>
+                }
+
+                <!-- Checkbox -->
+                <p-checkbox
+                  class="row-check"
+                  [ngModel]="todo.completed"
+                  [disabled]="!canEditTodo(todo)"
+                  [binary]="true"
+                  (onChange)="toggleTodoCompletion(todo)"
+                  (click)="$event.stopPropagation()"
+                />
+
+                <!-- Body (2 lines) -->
+                <div class="row-body">
+                  <!-- Line 1: title + actions -->
+                  <div class="row-line-1">
+                    <span
+                      class="row-title"
+                      [class.is-strike]="todo.completed"
+                    >
+                      {{ todo.title }}
+                    </span>
+                    @if (canEditTodo(todo)) {
+                      <div class="row-actions">
+                        <button
+                          type="button"
+                          tooltipPosition="top"
+                          appIconButton
+                          [pTooltip]="'TODOS.LIST.TOOLTIP_EDIT' | translate"
+                          [attr.aria-label]="'TODOS.LIST.TOOLTIP_EDIT' | translate"
+                          (click)="editTodo(todo); $event.stopPropagation()"
+                        >
+                          <i
+                            class="pi pi-pencil"
+                            aria-hidden="true"
+                          ></i>
+                        </button>
+                        <button
+                          variant="danger"
+                          type="button"
+                          tooltipPosition="top"
+                          appIconButton
+                          [pTooltip]="'TODOS.LIST.TOOLTIP_DELETE' | translate"
+                          [attr.aria-label]="'TODOS.LIST.TOOLTIP_DELETE' | translate"
+                          (click)="deleteTodo(todo); $event.stopPropagation()"
+                        >
+                          <i
+                            class="pi pi-trash"
+                            aria-hidden="true"
+                          ></i>
+                        </button>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Line 2: meta -->
+                  <div class="row-line-2">
+                    @if (getGroupById(todo.groupId); as todoGroup) {
+                      <app-badge
+                        tooltipPosition="top"
+                        size="sm"
+                        [pTooltip]="'TODOS.LIST.TOOLTIP_GROUP' | translate"
+                        [label]="todoGroup.name"
+                        [color]="todoGroup.color"
+                      />
+                      <span
+                        class="meta-sep"
+                        aria-hidden="true"
+                        >·</span
+                      >
+                    }
+
+                    <span
+                      tooltipPosition="top"
+                      class="meta-item"
+                      [pTooltip]="
+                        ('TODOS.LIST.CREATED_AT' | translate) + ': ' + formatDate(todo.createdAt)
+                      "
+                    >
+                      <i
+                        class="pi pi-clock"
+                        aria-hidden="true"
+                      ></i>
+                      {{ getRelativeTime(todo.createdAt) }}
+                    </span>
+
+                    @if (todo.updatedAt !== todo.createdAt) {
+                      <span
+                        class="meta-sep"
+                        aria-hidden="true"
+                        >·</span
+                      >
+                      <span
+                        tooltipPosition="top"
+                        class="meta-item"
+                        [pTooltip]="
+                          ('TODOS.LIST.UPDATED_AT' | translate) + ': ' + formatDate(todo.updatedAt)
+                        "
+                      >
+                        <i
+                          class="pi pi-pencil"
+                          aria-hidden="true"
+                        ></i>
+                        {{ getRelativeTime(todo.updatedAt) }}
+                      </span>
+                    }
+
+                    @if (todo.ownerEmail) {
+                      <span
+                        class="meta-sep"
+                        aria-hidden="true"
+                        >·</span
+                      >
+                      <span
+                        tooltipPosition="top"
+                        class="meta-item"
+                        [pTooltip]="'TODOS.LIST.OWNER_INFO' | translate: { email: todo.ownerEmail }"
+                      >
+                        <i
+                          class="pi pi-user"
+                          aria-hidden="true"
+                        ></i>
+                        {{ todo.ownerEmail }}
+                      </span>
+                    }
+
+                    @if (todo.description) {
+                      <span
+                        class="meta-sep"
+                        aria-hidden="true"
+                        >·</span
+                      >
+                      <span class="meta-desc">{{ todo.description }}</span>
+                    }
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+
+        <!-- Empty State (truly empty) -->
+        @if (!loading() && todos().length === 0 && !isFiltered()) {
+          <p-card>
+            <app-empty-state
+              emoji="📝"
+              [heading]="'TODOS.LIST.EMPTY_TITLE' | translate"
+              [description]="'TODOS.LIST.EMPTY_MESSAGE' | translate"
+            >
+              <p-button
+                icon="pi pi-plus"
+                [label]="'TODOS.LIST.ADD_FIRST' | translate"
+                (onClick)="showCreateForm()"
+              />
+            </app-empty-state>
+          </p-card>
+        }
+
+        <!-- Empty State (filtered) -->
+        @if (!loading() && todos().length === 0 && isFiltered()) {
+          <app-empty-state
+            icon="pi-filter-slash"
+            [heading]="'TODOS.FILTERS.EMPTY_FILTERED_TITLE' | translate"
+            [description]="'TODOS.FILTERS.EMPTY_FILTERED_MESSAGE' | translate"
+          >
+            <p-button
+              size="small"
+              severity="secondary"
+              icon="pi pi-times"
+              [text]="true"
+              [label]="'TODOS.FILTERS.EMPTY_FILTERED_RESET' | translate"
+              (onClick)="resetFilters()"
+            />
+          </app-empty-state>
+        }
+      </div>
+
+      <!-- Floating Action Button -->
+      @if (!loading() && !formVisible()) {
+        <button
+          type="button"
+          tooltipPosition="left"
+          class="fab"
+          #addButton
+          [pTooltip]="'TODOS.FAB.TOOLTIP' | translate"
+          [attr.aria-label]="'TODOS.ADD_BUTTON' | translate"
+          (click)="showCreateForm()"
+        >
+          <i
+            class="pi pi-plus fab-icon"
+            aria-hidden="true"
+          ></i>
+        </button>
+      }
+
+      <!-- Todo Form Dialog -->
+      <p-dialog
+        styleClass="premium-dialog"
+        [visible]="formVisible()"
+        [style]="{ width: '400px', maxWidth: '95vw' }"
+        [modal]="true"
+        (visibleChange)="onVisibleChange($event)"
+        (onHide)="onDialogHide()"
+      >
+        <ng-template pTemplate="header">
+          <span class="p-dialog-title">
+            {{ (editingTodo() ? 'TODOS.FORM.TITLE_EDIT' : 'TODOS.FORM.TITLE_ADD') | translate }}
+          </span>
+          <div class="dialog-header-actions">
+            <p-button
+              type="button"
+              size="small"
+              [loading]="tf.isSubmitting()"
+              [label]="
+                (editingTodo() ? 'TODOS.FORM.SUBMIT_SAVE' : 'TODOS.FORM.SUBMIT_ADD') | translate
+              "
+              [icon]="editingTodo() ? 'pi pi-save' : 'pi pi-plus'"
+              [disabled]="tf.isSubmitting() || !tf.todoModel().title.trim()"
+              (onClick)="tf.onSubmit()"
+            />
+          </div>
+        </ng-template>
+
+        <app-todo-form
+          #tf
+          [todo]="editingTodo()"
+          (save)="saveTodo($event)"
+          (cancelTodo)="closeForm()"
+        >
+        </app-todo-form>
+      </p-dialog>
+
+      <!-- Confirm Delete Dialog -->
+      <p-confirmDialog />
     </div>
+  </div>
 }

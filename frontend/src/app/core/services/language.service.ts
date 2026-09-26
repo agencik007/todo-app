@@ -3,82 +3,77 @@ import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
-    providedIn: 'root',
+  providedIn: 'root',
 })
 export class LanguageService {
-    private translate = inject(TranslateService);
-    private platformId = inject(PLATFORM_ID);
+  private translate = inject(TranslateService);
+  private platformId = inject(PLATFORM_ID);
 
-    currentLang = signal<string>('en');
+  currentLang = signal<string>('en');
 
-    availableLanguages: { code: string; name: string; flag: string }[] = [
-        { code: 'en', name: 'English', flag: '🇺🇸' },
-        { code: 'pl', name: 'Polski', flag: '🇵🇱' },
-    ];
+  availableLanguages: { code: string; name: string; flag: string }[] = [
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'pl', name: 'Polski', flag: '🇵🇱' },
+  ];
 
-    constructor() {
-        // Set available languages
-        this.translate.addLangs(this.availableLanguages.map((l) => l.code));
+  constructor() {
+    // Set available languages
+    this.translate.addLangs(this.availableLanguages.map((l) => l.code));
+  }
+
+  init(): Promise<void> {
+    if (isPlatformBrowser(this.platformId)) {
+      const savedLang = localStorage.getItem('lang');
+      const browserLang = this.translate.getBrowserLang();
+      const initialLang =
+        savedLang ||
+        (browserLang && browserLang.match(/en|pl/) ? browserLang : 'en');
+
+      this.translate.setFallbackLang(initialLang);
+      return this.setLanguage(initialLang);
+    } else {
+      // On server, use english without making HTTP request
+      this.translate.setFallbackLang('en');
+      this.translate.use('en').subscribe();
+      this.currentLang.set('en');
+      return Promise.resolve();
     }
+  }
 
-    init(): Promise<void> {
-        if (isPlatformBrowser(this.platformId)) {
-            const savedLang = localStorage.getItem('lang');
-            const browserLang = this.translate.getBrowserLang();
-            const initialLang =
-                savedLang ||
-                (browserLang && browserLang.match(/en|pl/)
-                    ? browserLang
-                    : 'en');
-
-            this.translate.setFallbackLang(initialLang);
-            return this.setLanguage(initialLang);
-        } else {
-            // On server, use english without making HTTP request
-            this.translate.setFallbackLang('en');
-            this.translate.use('en').subscribe();
-            this.currentLang.set('en');
-            return Promise.resolve();
+  setAuthPageLanguage(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      const savedLang = localStorage.getItem('lang');
+      if (savedLang) {
+        if (savedLang !== this.currentLang()) {
+          this.setLanguage(savedLang);
         }
+        return;
+      }
     }
+    const browserLang = this.translate.getBrowserLang();
+    const lang = browserLang === 'pl' ? 'pl' : 'en';
+    if (lang !== this.currentLang()) {
+      this.setLanguage(lang);
+    }
+  }
 
-    setAuthPageLanguage(): void {
-        if (isPlatformBrowser(this.platformId)) {
-            const savedLang = localStorage.getItem('lang');
-            if (savedLang) {
-                if (savedLang !== this.currentLang()) {
-                    this.setLanguage(savedLang);
-                }
-                return;
-            }
-        }
-        const browserLang = this.translate.getBrowserLang();
-        const lang = browserLang === 'pl' ? 'pl' : 'en';
-        if (lang !== this.currentLang()) {
-            this.setLanguage(lang);
-        }
-    }
-
-    setLanguage(lang: string): Promise<void> {
-        // Subscribe to the observable to trigger the HTTP request
-        return new Promise((resolve) => {
-            this.translate.use(lang).subscribe({
-                next: () => {
-                    this.currentLang.set(lang);
-                    if (isPlatformBrowser(this.platformId)) {
-                        localStorage.setItem('lang', lang);
-                        document.documentElement.lang = lang;
-                    }
-                    resolve();
-                },
-                error: (err) => {
-                    console.error(
-                        `Failed to load translations for ${lang}:`,
-                        err,
-                    );
-                    resolve();
-                },
-            });
-        });
-    }
+  setLanguage(lang: string): Promise<void> {
+    // Subscribe to the observable to trigger the HTTP request
+    return new Promise((resolve) => {
+      this.translate.use(lang).subscribe({
+        next: () => {
+          this.currentLang.set(lang);
+          if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('lang', lang);
+            document.documentElement.lang = lang;
+          }
+          resolve();
+        },
+        error: (err) => {
+          console.error(`Failed to load translations for ${lang}:`, err);
+          resolve();
+        },
+      });
+    });
+  }
 }

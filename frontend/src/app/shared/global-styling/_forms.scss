@@ -1,33 +1,33 @@
 .p-inputtext,
 .p-password {
-    width: 100%;
+  width: 100%;
 }
 
 .p-error {
-    color: var(--p-red-500);
-    font-size: var(--app-text-sm);
-    margin-top: var(--app-space-1);
-    display: block;
+  color: var(--p-red-500);
+  font-size: var(--app-text-sm);
+  margin-top: var(--app-space-1);
+  display: block;
 }
 
 .p-link {
-    color: var(
-        --p-primary-700,
-        #0e7490
-    ); // Fallback to Cyan-700 if variable doesn't exist
-    text-decoration: none;
-    cursor: pointer;
-    font-weight: var(--app-font-medium);
-    transition: color var(--app-transition-base);
+  color: var(
+    --p-primary-700,
+    #0e7490
+  ); // Fallback to Cyan-700 if variable doesn't exist
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: var(--app-font-medium);
+  transition: color var(--app-transition-base);
 
-    &:hover {
-        color: var(--p-primary-800, #155e75);
-        text-decoration: underline;
-    }
+  &:hover {
+    color: var(--p-primary-800, #155e75);
+    text-decoration: underline;
+  }
 
-    &:focus-visible {
-        outline: 2px solid var(--p-primary-color);
-        outline-offset: 2px;
-        border-radius: var(--app-radius-xs);
-    }
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-color);
+    outline-offset: 2px;
+    border-radius: var(--app-radius-xs);
+  }
 }

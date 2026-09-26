@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+
+# Cancel superseded runs of the same branch / PR.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (ruff + pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: todo
+          POSTGRES_PASSWORD: todo
+          POSTGRES_DB: todo_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U todo -d todo_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # conftest.py derives the test database (todo_ci_test) from DATABASE_URL
+      # and creates it; tests never touch todo_ci itself.
+      DATABASE_URL: postgresql://todo:todo@localhost:5432/todo_ci
+      # CI-only value - the app refuses to start without a 32+ char key.
+      SECRET_KEY: ci-only-secret-key-not-used-anywhere-0123456789
+      ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      CORS_ORIGINS: http://localhost:4200
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          # Keep in sync with docker/Dockerfile.backend.
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Ruff lint
+        run: ruff check .
+
+      - name: Ruff format
+        run: ruff format --check .
+
+      - name: Pytest
+        run: python -m pytest
+
+  frontend:
+    name: Frontend (lint + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          # Keep in sync with docker/Dockerfile.frontend.
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Prettier
+        run: npm run format:check
+
+      - name: Build (SSR + prerender)
+        run: npm run build
+
+  docker:
+    name: Docker images build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build backend image
+        run: docker build -f docker/Dockerfile.backend -t todo-backend:ci .
+
+      - name: Build frontend image
+        run: docker build -f docker/Dockerfile.frontend -t todo-frontend:ci .

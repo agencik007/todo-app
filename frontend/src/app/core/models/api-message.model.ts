@@ -1,13 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
 export interface ApiErrorDetail {
-    messageCode: string;
+  messageCode: string;
 }
 
 export interface ApiError extends HttpErrorResponse {
-    error: ApiErrorDetail;
+  error: ApiErrorDetail;
 }
 
 export interface ApiSuccessResponse {
-    message?: string;
+  message?: string;
 }

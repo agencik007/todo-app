@@ -1,57 +1,57 @@
 .p-tooltip {
-    // Ciemny slate w obu trybach (w dark odrobinę jaśniejszy) — stąd lokalna
-    // zmienna zamiast tokenów szkła, których jasna/ciemna logika tu nie pasuje.
-    --tooltip-bg: color-mix(in srgb, var(--p-slate-900) 90%, transparent);
-    z-index: 1000000 !important;
+  // Ciemny slate w obu trybach (w dark odrobinę jaśniejszy) — stąd lokalna
+  // zmienna zamiast tokenów szkła, których jasna/ciemna logika tu nie pasuje.
+  --tooltip-bg: color-mix(in srgb, var(--p-slate-900) 90%, transparent);
+  z-index: 1000000 !important;
 
-    .p-tooltip-text {
-        background: var(--tooltip-bg);
-        color: #ffffff;
-        padding: 0.6rem 0.8rem;
-        border-radius: var(--app-radius-md);
-        font-size: var(--app-text-sm);
-        font-weight: var(--app-font-semibold);
-        box-shadow: var(--app-shadow-md);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        white-space: nowrap;
-        width: max-content;
+  .p-tooltip-text {
+    background: var(--tooltip-bg);
+    color: #ffffff;
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--app-radius-md);
+    font-size: var(--app-text-sm);
+    font-weight: var(--app-font-semibold);
+    box-shadow: var(--app-shadow-md);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+    width: max-content;
 
-        @media screen and (max-width: 768px) {
-            white-space: normal;
-            word-break: break-word;
-            max-width: calc(80vw - 100px);
-        }
+    @media screen and (max-width: 768px) {
+      white-space: normal;
+      word-break: break-word;
+      max-width: calc(80vw - 100px);
     }
+  }
 
-    // Arrows
-    .p-tooltip-arrow {
-        border-bottom-color: var(--tooltip-bg) !important;
-    }
+  // Arrows
+  .p-tooltip-arrow {
+    border-bottom-color: var(--tooltip-bg) !important;
+  }
 
-    &.p-tooltip-top .p-tooltip-arrow {
-        border-top-color: var(--tooltip-bg) !important;
-    }
+  &.p-tooltip-top .p-tooltip-arrow {
+    border-top-color: var(--tooltip-bg) !important;
+  }
 
-    &.p-tooltip-bottom .p-tooltip-arrow {
-        border-bottom-color: var(--tooltip-bg) !important;
-    }
+  &.p-tooltip-bottom .p-tooltip-arrow {
+    border-bottom-color: var(--tooltip-bg) !important;
+  }
 
-    &.p-tooltip-left .p-tooltip-arrow {
-        border-left-color: var(--tooltip-bg) !important;
-    }
+  &.p-tooltip-left .p-tooltip-arrow {
+    border-left-color: var(--tooltip-bg) !important;
+  }
 
-    &.p-tooltip-right .p-tooltip-arrow {
-        border-right-color: var(--tooltip-bg) !important;
-    }
+  &.p-tooltip-right .p-tooltip-arrow {
+    border-right-color: var(--tooltip-bg) !important;
+  }
 }
 
 // Dark mode adjustments
 .dark .p-tooltip {
-    --tooltip-bg: color-mix(in srgb, var(--p-slate-800) 95%, transparent);
+  --tooltip-bg: color-mix(in srgb, var(--p-slate-800) 95%, transparent);
 
-    .p-tooltip-text {
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
+  .p-tooltip-text {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
 }

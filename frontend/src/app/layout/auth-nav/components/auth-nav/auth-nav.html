@@ -1,89 +1,89 @@
 <p-menubar class="auth-menubar">
-    <ng-template #start>
-        <div class="flex align-items-center w-full menubar-inner">
-            <!-- Mobile Hamburger -->
-            @if (isInitialized() && isMobile() && isAuthenticated()) {
-                <button
-                    type="button"
-                    class="hamburger-btn mr-3"
-                    (click)="onToggleSidebar()"
-                >
-                    <i class="pi pi-bars"></i>
-                </button>
-            }
+  <ng-template #start>
+    <div class="flex align-items-center w-full menubar-inner">
+      <!-- Mobile Hamburger -->
+      @if (isInitialized() && isMobile() && isAuthenticated()) {
+        <button
+          type="button"
+          class="hamburger-btn mr-3"
+          (click)="onToggleSidebar()"
+        >
+          <i class="pi pi-bars"></i>
+        </button>
+      }
 
-            <!-- Left: Title removed -->
-            <!-- Center: Command Palette (Desktop) -->
-            @if (isInitialized() && !isCompact() && (isAuthenticated() || !isAuthPage())) {
-                <div class="search-container-desktop">
-                    <button
-                        type="button"
-                        class="search-trigger-btn flex align-items-center gap-2 px-3 py-2 cursor-pointer transition-all transition-duration-200"
-                        (click)="onOpenCommandPalette()"
-                    >
-                        <i class="pi pi-search text-secondary"></i>
-                        <span class="text-secondary font-semibold">{{
-                            'COMMAND_PALETTE.SEARCH' | translate
-                        }}</span>
-                        <kbd
-                            class="shortcut-badge text-xs px-1 border-1 border-round surface-border text-secondary"
-                            >CTRL + K</kbd
-                        >
-                    </button>
-                </div>
-            }
+      <!-- Left: Title removed -->
+      <!-- Center: Command Palette (Desktop) -->
+      @if (isInitialized() && !isCompact() && (isAuthenticated() || !isAuthPage())) {
+        <div class="search-container-desktop">
+          <button
+            type="button"
+            class="search-trigger-btn flex align-items-center gap-2 px-3 py-2 cursor-pointer transition-all transition-duration-200"
+            (click)="onOpenCommandPalette()"
+          >
+            <i class="pi pi-search text-secondary"></i>
+            <span class="text-secondary font-semibold">{{
+              'COMMAND_PALETTE.SEARCH' | translate
+            }}</span>
+            <kbd
+              class="shortcut-badge text-xs px-1 border-1 border-round surface-border text-secondary"
+              >CTRL + K</kbd
+            >
+          </button>
         </div>
-    </ng-template>
+      }
+    </div>
+  </ng-template>
 
-    <ng-template #end>
-        <div class="flex align-items-center gap-3">
-            <!-- Mobile Search Icon -->
-            @if (isInitialized() && isCompact() && (isAuthenticated() || !isAuthPage())) {
-                <button
-                    type="button"
-                    class="search-trigger-btn-mobile mr-2"
-                    (click)="onOpenCommandPalette()"
-                >
-                    <i class="pi pi-search"></i>
-                </button>
-            }
+  <ng-template #end>
+    <div class="flex align-items-center gap-3">
+      <!-- Mobile Search Icon -->
+      @if (isInitialized() && isCompact() && (isAuthenticated() || !isAuthPage())) {
+        <button
+          type="button"
+          class="search-trigger-btn-mobile mr-2"
+          (click)="onOpenCommandPalette()"
+        >
+          <i class="pi pi-search"></i>
+        </button>
+      }
 
-            @if (isLoading() || !isInitialized()) {
-                <p-progressSpinner
-                    strokeWidth="4"
-                    [style]="{ width: '24px', height: '24px' }"
-                />
-            } @else {
-                <div class="flex align-items-center gap-2">
-                    <!-- Weather Widget -->
-                    @if (isAuthenticated()) {
-                        <app-weather-widget />
-                    }
+      @if (isLoading() || !isInitialized()) {
+        <p-progressSpinner
+          strokeWidth="4"
+          [style]="{ width: '24px', height: '24px' }"
+        />
+      } @else {
+        <div class="flex align-items-center gap-2">
+          <!-- Weather Widget -->
+          @if (isAuthenticated()) {
+            <app-weather-widget />
+          }
 
-                    <!-- User/Settings Menu (hidden on auth pages) -->
-                    @if (!isAuthPage()) {
-                        <app-user-profile></app-user-profile>
-                    }
+          <!-- User/Settings Menu (hidden on auth pages) -->
+          @if (!isAuthPage()) {
+            <app-user-profile></app-user-profile>
+          }
 
-                    <!-- Primary Actions for Guests (Desktop) -->
-                    @if (!isAuthenticated() && !isCompact() && !isAuthPage()) {
-                        <div class="flex gap-2 ml-1">
-                            <p-button
-                                size="small"
-                                severity="secondary"
-                                routerLink="/login"
-                                [outlined]="true"
-                                [label]="'NAV.LOGIN' | translate"
-                            />
-                            <p-button
-                                size="small"
-                                routerLink="/register"
-                                [label]="'NAV.REGISTER' | translate"
-                            />
-                        </div>
-                    }
-                </div>
-            }
+          <!-- Primary Actions for Guests (Desktop) -->
+          @if (!isAuthenticated() && !isCompact() && !isAuthPage()) {
+            <div class="flex gap-2 ml-1">
+              <p-button
+                size="small"
+                severity="secondary"
+                routerLink="/login"
+                [outlined]="true"
+                [label]="'NAV.LOGIN' | translate"
+              />
+              <p-button
+                size="small"
+                routerLink="/register"
+                [label]="'NAV.REGISTER' | translate"
+              />
+            </div>
+          }
         </div>
-    </ng-template>
+      }
+    </div>
+  </ng-template>
 </p-menubar>

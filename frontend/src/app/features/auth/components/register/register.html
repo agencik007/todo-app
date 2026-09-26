@@ -1,149 +1,142 @@
 <main class="auth-container">
-    <p-card [style]="{ width: '100%', maxWidth: '400px' }">
-        <ng-template pTemplate="header">
-            <h1
-                style="text-align: center; margin-top: 0.5rem"
-                class="text-2xl font-bold m-0"
-            >
-                {{ 'AUTH.REGISTER.TITLE' | translate }}
-            </h1>
-        </ng-template>
+  <p-card [style]="{ width: '100%', maxWidth: '400px' }">
+    <ng-template pTemplate="header">
+      <h1
+        style="text-align: center; margin-top: 0.5rem"
+        class="text-2xl font-bold m-0"
+      >
+        {{ 'AUTH.REGISTER.TITLE' | translate }}
+      </h1>
+    </ng-template>
 
-        @if (error()) {
-            <p-message
-                styleClass="mb-3 w-full"
-                severity="error"
-                role="alert"
-                aria-live="polite"
-            >
-                {{ error() }}
-            </p-message>
+    @if (error()) {
+      <p-message
+        styleClass="mb-3 w-full"
+        severity="error"
+        role="alert"
+        aria-live="polite"
+      >
+        {{ error() }}
+      </p-message>
+    }
+
+    <form
+      class="flex flex-column gap-3"
+      (ngSubmit)="onSubmit()"
+    >
+      <app-form-field
+        inputId="email"
+        icon="pi-envelope"
+        [label]="'AUTH.REGISTER.EMAIL_LABEL' | translate"
+      >
+        <input
+          type="email"
+          pInputText
+          id="email"
+          class="w-full"
+          autocomplete="email"
+          [placeholder]="'AUTH.REGISTER.EMAIL_PLACEHOLDER' | translate"
+          [formField]="registerForm.email"
+          [class.ng-invalid]="registerForm.email().invalid() && registerForm.email().touched()"
+          [class.ng-dirty]="registerForm.email().invalid() && registerForm.email().touched()"
+        />
+        @if (registerForm.email().invalid() && registerForm.email().touched()) {
+          <small
+            role="alert"
+            class="p-error"
+          >
+            @if (registerForm.email().errors()[0]?.kind === 'required') {
+              {{ 'AUTH.REGISTER.ERRORS.EMAIL_REQUIRED' | translate }}
+            } @else if (registerForm.email().errors()[0]?.kind === 'email') {
+              {{ 'AUTH.REGISTER.ERRORS.EMAIL_FORMAT' | translate }}
+            }
+          </small>
         }
+      </app-form-field>
 
-        <form
-            class="flex flex-column gap-3"
-            (ngSubmit)="onSubmit()"
-        >
-            <app-form-field
-                inputId="email"
-                icon="pi-envelope"
-                [label]="'AUTH.REGISTER.EMAIL_LABEL' | translate"
-            >
-                <input
-                    type="email"
-                    pInputText
-                    id="email"
-                    class="w-full"
-                    autocomplete="email"
-                    [placeholder]="'AUTH.REGISTER.EMAIL_PLACEHOLDER' | translate"
-                    [formField]="registerForm.email"
-                    [class.ng-invalid]="
-                        registerForm.email().invalid() && registerForm.email().touched()
-                    "
-                    [class.ng-dirty]="
-                        registerForm.email().invalid() && registerForm.email().touched()
-                    "
-                />
-                @if (registerForm.email().invalid() && registerForm.email().touched()) {
-                    <small
-                        role="alert"
-                        class="p-error"
-                    >
-                        @if (registerForm.email().errors()[0]?.kind === 'required') {
-                            {{ 'AUTH.REGISTER.ERRORS.EMAIL_REQUIRED' | translate }}
-                        } @else if (registerForm.email().errors()[0]?.kind === 'email') {
-                            {{ 'AUTH.REGISTER.ERRORS.EMAIL_FORMAT' | translate }}
-                        }
-                    </small>
-                }
-            </app-form-field>
+      <app-form-field
+        inputId="password"
+        icon="pi-lock"
+        [label]="'AUTH.REGISTER.PASSWORD_LABEL' | translate"
+      >
+        <p-password
+          inputStyleClass="w-full"
+          inputId="password"
+          class="w-full"
+          autocomplete="new-password"
+          [weakLabel]="'AUTH.RESET_PASSWORD.PASS_STRENGTH.WEAK' | translate"
+          [toggleMask]="true"
+          [strongLabel]="'AUTH.RESET_PASSWORD.PASS_STRENGTH.STRONG' | translate"
+          [promptLabel]="'AUTH.RESET_PASSWORD.PASS_STRENGTH.PROMPT' | translate"
+          [placeholder]="'AUTH.REGISTER.PASSWORD_PLACEHOLDER' | translate"
+          [mediumLabel]="'AUTH.RESET_PASSWORD.PASS_STRENGTH.MEDIUM' | translate"
+          [formField]="$any(registerForm.password)"
+          [feedback]="true"
+        />
+        @if (registerForm.password().invalid() && registerForm.password().touched()) {
+          <small
+            role="alert"
+            class="p-error"
+          >
+            @if (registerForm.password().errors()[0]?.kind === 'required') {
+              {{ 'AUTH.REGISTER.ERRORS.PASSWORD_REQUIRED' | translate }}
+            } @else if (registerForm.password().errors()[0]?.kind === 'minLength') {
+              {{ 'AUTH.REGISTER.ERRORS.PASSWORD_MIN_LENGTH' | translate }}
+            }
+          </small>
+        }
+      </app-form-field>
 
-            <app-form-field
-                inputId="password"
-                icon="pi-lock"
-                [label]="'AUTH.REGISTER.PASSWORD_LABEL' | translate"
-            >
-                <p-password
-                    inputStyleClass="w-full"
-                    inputId="password"
-                    class="w-full"
-                    autocomplete="new-password"
-                    [weakLabel]="'AUTH.RESET_PASSWORD.PASS_STRENGTH.WEAK' | translate"
-                    [toggleMask]="true"
-                    [strongLabel]="'AUTH.RESET_PASSWORD.PASS_STRENGTH.STRONG' | translate"
-                    [promptLabel]="'AUTH.RESET_PASSWORD.PASS_STRENGTH.PROMPT' | translate"
-                    [placeholder]="'AUTH.REGISTER.PASSWORD_PLACEHOLDER' | translate"
-                    [mediumLabel]="'AUTH.RESET_PASSWORD.PASS_STRENGTH.MEDIUM' | translate"
-                    [formField]="$any(registerForm.password)"
-                    [feedback]="true"
-                />
-                @if (registerForm.password().invalid() && registerForm.password().touched()) {
-                    <small
-                        role="alert"
-                        class="p-error"
-                    >
-                        @if (registerForm.password().errors()[0]?.kind === 'required') {
-                            {{ 'AUTH.REGISTER.ERRORS.PASSWORD_REQUIRED' | translate }}
-                        } @else if (registerForm.password().errors()[0]?.kind === 'minLength') {
-                            {{ 'AUTH.REGISTER.ERRORS.PASSWORD_MIN_LENGTH' | translate }}
-                        }
-                    </small>
-                }
-            </app-form-field>
+      <app-form-field
+        inputId="confirmPassword"
+        icon="pi-lock"
+        [label]="'AUTH.REGISTER.CONFIRM_PASSWORD_LABEL' | translate"
+      >
+        <p-password
+          inputStyleClass="w-full"
+          inputId="confirmPassword"
+          class="w-full"
+          autocomplete="new-password"
+          [toggleMask]="true"
+          [placeholder]="'AUTH.REGISTER.CONFIRM_PASSWORD_PLACEHOLDER' | translate"
+          [formField]="$any(registerForm.confirmPassword)"
+          [feedback]="false"
+        />
+        @if (registerForm.confirmPassword().invalid() && registerForm.confirmPassword().touched()) {
+          <small
+            role="alert"
+            class="p-error"
+          >
+            @if (registerForm.confirmPassword().errors()[0]?.kind === 'required') {
+              {{ 'AUTH.REGISTER.ERRORS.CONFIRM_REQUIRED' | translate }}
+            }
+          </small>
+        }
+        @if (passwordMismatch()) {
+          <small
+            role="alert"
+            class="p-error"
+          >
+            {{ 'AUTH.REGISTER.ERRORS.MISMATCH' | translate }}
+          </small>
+        }
+      </app-form-field>
 
-            <app-form-field
-                inputId="confirmPassword"
-                icon="pi-lock"
-                [label]="'AUTH.REGISTER.CONFIRM_PASSWORD_LABEL' | translate"
-            >
-                <p-password
-                    inputStyleClass="w-full"
-                    inputId="confirmPassword"
-                    class="w-full"
-                    autocomplete="new-password"
-                    [toggleMask]="true"
-                    [placeholder]="'AUTH.REGISTER.CONFIRM_PASSWORD_PLACEHOLDER' | translate"
-                    [formField]="$any(registerForm.confirmPassword)"
-                    [feedback]="false"
-                />
-                @if (
-                    registerForm.confirmPassword().invalid() &&
-                    registerForm.confirmPassword().touched()
-                ) {
-                    <small
-                        role="alert"
-                        class="p-error"
-                    >
-                        @if (registerForm.confirmPassword().errors()[0]?.kind === 'required') {
-                            {{ 'AUTH.REGISTER.ERRORS.CONFIRM_REQUIRED' | translate }}
-                        }
-                    </small>
-                }
-                @if (passwordMismatch()) {
-                    <small
-                        role="alert"
-                        class="p-error"
-                    >
-                        {{ 'AUTH.REGISTER.ERRORS.MISMATCH' | translate }}
-                    </small>
-                }
-            </app-form-field>
+      <p-button
+        type="submit"
+        styleClass="w-full"
+        [loading]="isLoading()"
+        [label]="'AUTH.REGISTER.SUBMIT' | translate"
+        [disabled]="registerForm().invalid() || passwordMismatch() || isLoading()"
+      />
+    </form>
 
-            <p-button
-                type="submit"
-                styleClass="w-full"
-                [loading]="isLoading()"
-                [label]="'AUTH.REGISTER.SUBMIT' | translate"
-                [disabled]="registerForm().invalid() || passwordMismatch() || isLoading()"
-            />
-        </form>
-
-        <div class="flex justify-content-center mt-4">
-            <a
-                routerLink="/login"
-                class="p-link"
-                >{{ 'AUTH.REGISTER.HAVE_ACCOUNT' | translate }}</a
-            >
-        </div>
-    </p-card>
+    <div class="flex justify-content-center mt-4">
+      <a
+        routerLink="/login"
+        class="p-link"
+        >{{ 'AUTH.REGISTER.HAVE_ACCOUNT' | translate }}</a
+      >
+    </div>
+  </p-card>
 </main>

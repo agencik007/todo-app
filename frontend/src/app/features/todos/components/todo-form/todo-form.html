@@ -1,62 +1,62 @@
 <form
-    novalidate
-    class="flex flex-column gap-3"
-    (ngSubmit)="onSubmit()"
+  novalidate
+  class="flex flex-column gap-3"
+  (ngSubmit)="onSubmit()"
 >
-    <app-form-field
-        inputId="title"
-        [label]="'TODOS.FORM.FIELD_TITLE' | translate"
-    >
-        <input
-            type="text"
-            pInputText
-            id="title"
-            class="w-full"
-            [placeholder]="'TODOS.FORM.FIELD_TITLE_PLACEHOLDER' | translate"
-            [formField]="todoForm.title"
-            [class.ng-invalid]="todoForm.title().invalid() && todoForm.title().touched()"
-            [class.ng-dirty]="todoForm.title().invalid() && todoForm.title().touched()"
-        />
-        @if (todoForm.title().touched() && todoForm.title().invalid()) {
-            @for (error of todoForm.title().errors(); track error) {
-                <small
-                    role="alert"
-                    class="p-error"
-                    >{{ error.message }}</small
-                >
-            }
-        }
-    </app-form-field>
-
-    <app-form-field
-        inputId="description"
-        [label]="'TODOS.FORM.FIELD_DESCRIPTION' | translate"
-    >
-        <textarea
-            rows="4"
-            id="description"
-            class="p-inputtext w-full"
-            [placeholder]="'TODOS.FORM.FIELD_DESCRIPTION_PLACEHOLDER' | translate"
-            [formField]="todoForm.description"
+  <app-form-field
+    inputId="title"
+    [label]="'TODOS.FORM.FIELD_TITLE' | translate"
+  >
+    <input
+      type="text"
+      pInputText
+      id="title"
+      class="w-full"
+      [placeholder]="'TODOS.FORM.FIELD_TITLE_PLACEHOLDER' | translate"
+      [formField]="todoForm.title"
+      [class.ng-invalid]="todoForm.title().invalid() && todoForm.title().touched()"
+      [class.ng-dirty]="todoForm.title().invalid() && todoForm.title().touched()"
+    />
+    @if (todoForm.title().touched() && todoForm.title().invalid()) {
+      @for (error of todoForm.title().errors(); track error) {
+        <small
+          role="alert"
+          class="p-error"
+          >{{ error.message }}</small
         >
-        </textarea>
-    </app-form-field>
+      }
+    }
+  </app-form-field>
 
-    <app-form-field
-        inputId="group"
-        [label]="'TODOS.FORM.FIELD_GROUP' | translate"
+  <app-form-field
+    inputId="description"
+    [label]="'TODOS.FORM.FIELD_DESCRIPTION' | translate"
+  >
+    <textarea
+      rows="4"
+      id="description"
+      class="p-inputtext w-full"
+      [placeholder]="'TODOS.FORM.FIELD_DESCRIPTION_PLACEHOLDER' | translate"
+      [formField]="todoForm.description"
     >
-        <p-select
-            optionValue="id"
-            optionLabel="name"
-            inputId="group"
-            class="w-full"
-            [showClear]="true"
-            [options]="groups()"
-            [ngModelOptions]="{ standalone: true }"
-            [ngModel]="todoModel().groupId"
-            (ngModelChange)="onGroupChange($event)"
-        />
-        <small class="text-color-secondary">{{ 'TODOS.FORM.FIELD_GROUP_HINT' | translate }}</small>
-    </app-form-field>
+    </textarea>
+  </app-form-field>
+
+  <app-form-field
+    inputId="group"
+    [label]="'TODOS.FORM.FIELD_GROUP' | translate"
+  >
+    <p-select
+      optionValue="id"
+      optionLabel="name"
+      inputId="group"
+      class="w-full"
+      [showClear]="true"
+      [options]="groups()"
+      [ngModelOptions]="{ standalone: true }"
+      [ngModel]="todoModel().groupId"
+      (ngModelChange)="onGroupChange($event)"
+    />
+    <small class="text-color-secondary">{{ 'TODOS.FORM.FIELD_GROUP_HINT' | translate }}</small>
+  </app-form-field>
 </form>

@@ -1,17 +1,17 @@
-import { Injectable, signal, inject, PLATFORM_ID, effect } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ThemeService {
   private platformId = inject(PLATFORM_ID);
-  
+
   // Current user preference
   readonly mode = signal<ThemeMode>('system');
-  
+
   // Actual calculated state (is it dark now?)
   readonly isDark = signal<boolean>(false);
 
@@ -23,9 +23,9 @@ export class ThemeService {
       if (savedMode) {
         this.mode.set(savedMode);
       }
-      
+
       this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      
+
       // Update actual theme based on mode and system preference
       effect(() => {
         const currentMode = this.mode();
@@ -59,7 +59,7 @@ export class ThemeService {
     }
 
     this.isDark.set(dark);
-    
+
     if (dark) {
       document.documentElement.classList.add('dark');
     } else {

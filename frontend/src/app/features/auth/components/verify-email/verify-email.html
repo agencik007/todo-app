@@ -1,73 +1,73 @@
 <main class="auth-container">
-    <p-card [style]="{ width: '100%', maxWidth: '400px' }">
-        <ng-template pTemplate="header">
-            <h1
-                style="text-align: center; margin-top: 0.5rem"
-                class="text-2xl font-bold m-0"
-            >
-                {{ 'AUTH.VERIFY_EMAIL.TITLE' | translate }}
-            </h1>
-        </ng-template>
+  <p-card [style]="{ width: '100%', maxWidth: '400px' }">
+    <ng-template pTemplate="header">
+      <h1
+        style="text-align: center; margin-top: 0.5rem"
+        class="text-2xl font-bold m-0"
+      >
+        {{ 'AUTH.VERIFY_EMAIL.TITLE' | translate }}
+      </h1>
+    </ng-template>
 
-        @if (status() === 'loading') {
-            <div class="flex flex-column align-items-center py-4">
-                <p-progressSpinner
-                    styleClass="w-3rem h-3rem mb-3"
-                    strokeWidth="4"
-                    animationDuration=".5s"
-                >
-                </p-progressSpinner>
-                <p class="m-0 text-secondary">
-                    {{ 'AUTH.VERIFY_EMAIL.LOADING' | translate }}
-                </p>
-            </div>
-        }
+    @if (status() === 'loading') {
+      <div class="flex flex-column align-items-center py-4">
+        <p-progressSpinner
+          styleClass="w-3rem h-3rem mb-3"
+          strokeWidth="4"
+          animationDuration=".5s"
+        >
+        </p-progressSpinner>
+        <p class="m-0 text-secondary">
+          {{ 'AUTH.VERIFY_EMAIL.LOADING' | translate }}
+        </p>
+      </div>
+    }
 
-        @if (status() === 'success') {
-            <app-empty-state
-                tone="primary"
-                size="lg"
-                icon="pi-check-circle"
-                [heading]="message()"
-                [description]="'AUTH.VERIFY_EMAIL.SUCCESS_REDIRECT' | translate"
-            >
-                <p-button
-                    styleClass="w-full"
-                    routerLink="/login"
-                    icon="pi pi-sign-in"
-                    [label]="'AUTH.VERIFY_EMAIL.LOGIN_NOW' | translate"
-                />
-            </app-empty-state>
-        }
+    @if (status() === 'success') {
+      <app-empty-state
+        tone="primary"
+        size="lg"
+        icon="pi-check-circle"
+        [heading]="message()"
+        [description]="'AUTH.VERIFY_EMAIL.SUCCESS_REDIRECT' | translate"
+      >
+        <p-button
+          styleClass="w-full"
+          routerLink="/login"
+          icon="pi pi-sign-in"
+          [label]="'AUTH.VERIFY_EMAIL.LOGIN_NOW' | translate"
+        />
+      </app-empty-state>
+    }
 
-        @if (status() === 'error') {
-            <app-empty-state
-                tone="danger"
-                size="lg"
-                icon="pi-times-circle"
-                [heading]="message()"
-            >
-                <p-message
-                    styleClass="w-full mb-4"
-                    severity="error"
-                >
-                    {{ errorDetail() }}
-                </p-message>
-                <div class="flex flex-column gap-3 w-full">
-                    <p-button
-                        styleClass="w-full"
-                        routerLink="/login"
-                        icon="pi pi-sign-in"
-                        [label]="'AUTH.VERIFY_EMAIL.GO_TO_LOGIN' | translate"
-                    />
-                    <p-button
-                        styleClass="w-full p-button-secondary p-button-outlined"
-                        routerLink="/register"
-                        icon="pi pi-user-plus"
-                        [label]="'AUTH.VERIFY_EMAIL.REGISTER_AGAIN' | translate"
-                    />
-                </div>
-            </app-empty-state>
-        }
-    </p-card>
+    @if (status() === 'error') {
+      <app-empty-state
+        tone="danger"
+        size="lg"
+        icon="pi-times-circle"
+        [heading]="message()"
+      >
+        <p-message
+          styleClass="w-full mb-4"
+          severity="error"
+        >
+          {{ errorDetail() }}
+        </p-message>
+        <div class="flex flex-column gap-3 w-full">
+          <p-button
+            styleClass="w-full"
+            routerLink="/login"
+            icon="pi pi-sign-in"
+            [label]="'AUTH.VERIFY_EMAIL.GO_TO_LOGIN' | translate"
+          />
+          <p-button
+            styleClass="w-full p-button-secondary p-button-outlined"
+            routerLink="/register"
+            icon="pi pi-user-plus"
+            [label]="'AUTH.VERIFY_EMAIL.REGISTER_AGAIN' | translate"
+          />
+        </div>
+      </app-empty-state>
+    }
+  </p-card>
 </main>
