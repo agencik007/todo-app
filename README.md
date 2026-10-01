@@ -22,12 +22,14 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 ```bash
 git clone https://github.com/agencik007/todo-app.git
 cd todo-app
-cp docker/docker.env.example docker/docker.env   # then adjust the values
+cp docker/docker.env.example docker/docker.env   # then adjust the values (at least SECRET_KEY)
 make dev
 ```
 
 > [!IMPORTANT]
 > `docker/docker.env` is required — `docker-compose.yml` has no hardcoded credentials and refuses to start without `POSTGRES_*`, `PGADMIN_*` etc. `make dev` loads this file automatically; `make prod` loads `docker/docker.prod.env` instead (never committed). Compose interpolates `$` in that file; write a literal dollar sign as `$$`.
+>
+> Replace `SECRET_KEY` with a random value of at least 32 characters (`openssl rand -hex 32`) — the placeholder from the example file is rejected and the backend won't start. Docker does not need a `backend/.env`; `ALLOWED_HOSTS` and `CORS_ORIGINS` default to localhost values in `docker-compose.yml` and can be overridden in `docker/docker.env`.
 
 Open: http://localhost:4200
 
@@ -186,7 +188,7 @@ cp .env.example .env   # Windows (PowerShell): copy .env.example .env
 Minimal, working `backend/.env` for running without Docker:
 
 ```env
-SECRET_KEY=change-this-to-a-random-secret
+SECRET_KEY=<output of: openssl rand -hex 32>
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 CORS_ORIGINS=http://localhost:4200,http://127.0.0.1:4200
@@ -202,7 +204,9 @@ FRONTEND_URL=http://localhost:4200
 ```
 
 > [!NOTE]
-> `ALLOWED_HOSTS` and `CORS_ORIGINS` are required — the backend refuses to start without them (see `backend/main.py`).
+> `ALLOWED_HOSTS` and `CORS_ORIGINS` are required — the backend refuses to start without them (see `backend/main.py`). `SECRET_KEY` must be at least 32 characters and not a known placeholder (see `backend/services/auth_service.py`).
+>
+> This file is only for running without Docker. The Docker stack takes all its settings from `docker/docker.env`.
 >
 > If you don't run MailHog locally (see below), sending emails (verification, password reset) will simply fail and be logged as an error in the backend console — the rest of the app keeps working normally.
 
@@ -259,7 +263,8 @@ The frontend will be available at: http://localhost:4200
 ### Option 2: Running with Docker
 
 ```bash
-# One-time: create the env file used by docker-compose
+# One-time: create the env file used by docker-compose,
+# then set SECRET_KEY in it (openssl rand -hex 32)
 cp docker/docker.env.example docker/docker.env
 
 # Start all services (hot-reload)
@@ -381,6 +386,7 @@ cd todo-app
 
 ```bash
 # One-time: create the env file and adjust the values
+# (at least SECRET_KEY: a random value of 32+ characters, e.g. openssl rand -hex 32)
 cp docker/docker.env.example docker/docker.env
 
 # Start all services

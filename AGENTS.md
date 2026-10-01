@@ -24,7 +24,7 @@
 
 All major operations are managed via the root `Makefile`. Always prefer Docker-based commands (through `make` or `docker-compose exec`) over local ones — the project assumes a containerized toolchain.
 
-**One-time setup:** `cp docker/docker.env.example docker/docker.env`. `docker-compose.yml` has no hardcoded credentials and refuses to start without this file.
+**One-time setup:** `cp docker/docker.env.example docker/docker.env`, then set `SECRET_KEY` in it (32+ random characters; the placeholder is rejected). `docker-compose.yml` has no hardcoded credentials and refuses to start without this file. No `backend/.env` is needed for Docker — `ALLOWED_HOSTS`/`CORS_ORIGINS` have localhost defaults in the compose file.
 
 **Dev vs prod stack:** `make dev` / `make prod` start the respective stack. All operational targets (`down`, `logs*`, `shell-*`, `migrate`, `test-backend`, `lint-frontend`, `status`, `clean*`) target the **dev** stack by default; add `STACK=prod` to target production (`docker/docker.prod.env`, never committed), e.g. `make logs STACK=prod`.
 

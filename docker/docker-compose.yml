@@ -37,6 +37,10 @@ services:
       - DEBUG=False
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set (e.g. openssl rand -hex 32)}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:4200}
+      # Required by backend/main.py (comma-separated). "backend" lets other
+      # containers on todo-network reach the API by its service name.
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
       # ── Email ──────────────────────────────────────────────────────────────
       - EMAIL_FROM=${EMAIL_FROM:-noreply@example.com}
       - USE_MAILHOG=${USE_MAILHOG:-true}
