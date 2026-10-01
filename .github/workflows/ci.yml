@@ -96,15 +96,47 @@ jobs:
       - name: Build (SSR + prerender)
         run: npm run build
 
-  docker:
-    name: Docker images build
+  e2e:
+    name: E2E (Playwright)
     runs-on: ubuntu-latest
+    env:
+      COMPOSE_E2E: docker compose -p todo-e2e -f docker/docker-compose.e2e.yml
 
     steps:
       - uses: actions/checkout@v5
 
-      - name: Build backend image
-        run: docker build -f docker/Dockerfile.backend -t todo-backend:ci .
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
 
-      - name: Build frontend image
-        run: docker build -f docker/Dockerfile.frontend -t todo-frontend:ci .
+      # Builds the production backend and frontend images, so this job also
+      # covers "the Docker images build".
+      - name: Start the e2e stack
+        run: $COMPOSE_E2E up --build --wait
+
+      - name: Install Playwright
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Typecheck
+        working-directory: e2e
+        run: npm run typecheck
+
+      - name: Run tests
+        working-directory: e2e
+        run: npx playwright test
+
+      - name: Stack logs
+        if: failure()
+        run: $COMPOSE_E2E logs --no-color
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7

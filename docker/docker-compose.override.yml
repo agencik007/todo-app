@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Tutaj możesz dodać lokalne nadpisania konfiguracji, np. inne porty lub zmienne środowiskowe
   backend:

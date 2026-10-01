@@ -1,0 +1,77 @@
+# Isolated stack for the Playwright end-to-end tests (`make test-e2e`, CI).
+#
+# Run it as its own compose project (-p todo-e2e): throwaway database on tmpfs,
+# production images (SSR frontend), rate limiting off (TESTING=1). The frontend
+# calls the API at http://localhost:8000, so it publishes the same ports as the
+# dev stack - stop the dev stack (`make down`) first.
+#
+# Test-only credentials; never reuse them anywhere else.
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: todo
+      POSTGRES_PASSWORD: todo
+      POSTGRES_DB: todo_e2e
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U todo -d todo_e2e"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "8025:8025" # HTTP API, read by the tests to follow email links
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    environment:
+      - DATABASE_URL=postgresql://todo:todo@db:5432/todo_e2e
+      - SECRET_KEY=e2e-only-secret-key-not-used-anywhere-0123456789
+      - DEBUG=False
+      - TESTING=1
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - CORS_ORIGINS=http://localhost:4200
+      - FRONTEND_URL=http://localhost:4200
+      - USE_MAILHOG=true
+      - MAILHOG_HOST=mailhog
+      - MAILHOG_PORT=1025
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import socket; s = socket.socket(); s.connect(('localhost', 8000)); s.close()",
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:4200/login"]
+      interval: 2s
+      timeout: 5s
+      retries: 30

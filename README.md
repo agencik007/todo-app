@@ -13,7 +13,8 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
 - ✅ **Backend Tests** - 89 unit and integration tests with coverage (min. 80% enforced)
-- ✅ **CI** - GitHub Actions runs lint, tests and builds on every push and pull request
+- ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, tasks)
+- ✅ **CI** - GitHub Actions runs lint, tests, builds and E2E tests on every push and pull request
 - ✅ **Simple Local Setup** - Single database for development and local testing
 
 ### 🚀 How to Run (3 Simple Steps):
@@ -21,12 +22,14 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 ```bash
 git clone https://github.com/agencik007/todo-app.git
 cd todo-app
-cp docker/docker.env.example docker/docker.env   # then adjust the values
+cp docker/docker.env.example docker/docker.env   # then adjust the values (at least SECRET_KEY)
 make dev
 ```
 
 > [!IMPORTANT]
-> `docker/docker.env` is required — `docker-compose.yml` has no hardcoded credentials and refuses to start without `POSTGRES_*`, `PGADMIN_*` etc. `make dev` loads this file automatically; `make prod` loads `docker/docker.prod.env` instead (never committed).
+> `docker/docker.env` is required — `docker-compose.yml` has no hardcoded credentials and refuses to start without `POSTGRES_*`, `PGADMIN_*` etc. `make dev` loads this file automatically; `make prod` loads `docker/docker.prod.env` instead (never committed). Compose interpolates `$` in that file; write a literal dollar sign as `$$`.
+>
+> Replace `SECRET_KEY` with a random value of at least 32 characters (`openssl rand -hex 32`) — the placeholder from the example file is rejected and the backend won't start. Docker does not need a `backend/.env`; `ALLOWED_HOSTS` and `CORS_ORIGINS` default to localhost values in `docker-compose.yml` and can be overridden in `docker/docker.env`.
 
 Open: http://localhost:4200
 
@@ -112,6 +115,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - **Docker Compose** - container orchestration
 - **PostgreSQL** - database in container
 - **GitHub Actions** - CI (see [Continuous Integration](#continuous-integration-github-actions))
+- **Playwright** - end-to-end tests (see [End-to-End Tests](#end-to-end-tests-playwright))
 
 ## 📋 Prerequisites
 
@@ -184,7 +188,7 @@ cp .env.example .env   # Windows (PowerShell): copy .env.example .env
 Minimal, working `backend/.env` for running without Docker:
 
 ```env
-SECRET_KEY=change-this-to-a-random-secret
+SECRET_KEY=<output of: openssl rand -hex 32>
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 CORS_ORIGINS=http://localhost:4200,http://127.0.0.1:4200
@@ -200,7 +204,9 @@ FRONTEND_URL=http://localhost:4200
 ```
 
 > [!NOTE]
-> `ALLOWED_HOSTS` and `CORS_ORIGINS` are required — the backend refuses to start without them (see `backend/main.py`).
+> `ALLOWED_HOSTS` and `CORS_ORIGINS` are required — the backend refuses to start without them (see `backend/main.py`). `SECRET_KEY` must be at least 32 characters and not a known placeholder (see `backend/services/auth_service.py`).
+>
+> This file is only for running without Docker. The Docker stack takes all its settings from `docker/docker.env`.
 >
 > If you don't run MailHog locally (see below), sending emails (verification, password reset) will simply fail and be logged as an error in the backend console — the rest of the app keeps working normally.
 
@@ -257,7 +263,8 @@ The frontend will be available at: http://localhost:4200
 ### Option 2: Running with Docker
 
 ```bash
-# One-time: create the env file used by docker-compose
+# One-time: create the env file used by docker-compose,
+# then set SECRET_KEY in it (openssl rand -hex 32)
 cp docker/docker.env.example docker/docker.env
 
 # Start all services (hot-reload)
@@ -327,6 +334,29 @@ make lint-frontend        # in Docker
 # or locally: cd frontend && npm run lint
 ```
 
+### End-to-End Tests (Playwright)
+
+`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, and creating, editing, completing, filtering and deleting tasks.
+
+They run against a separate, throwaway stack defined in `docker/docker-compose.e2e.yml`: production images (SSR frontend), a PostgreSQL database on tmpfs, MailHog, and rate limiting disabled (`TESTING=1`). Each test registers its own user, so tests are independent and run in parallel.
+
+```bash
+make down        # the e2e stack uses the same ports (4200, 8000, 8025) as the dev stack
+make test-e2e    # start the e2e stack, run all tests, tear the stack down
+```
+
+For writing and debugging tests, keep the stack running:
+
+```bash
+make e2e-up                     # start the e2e stack and wait until it is healthy
+cd e2e && npm ci && npx playwright install chromium
+npx playwright test             # or: npm run test:ui (interactive), npm run report (last HTML report)
+make e2e-down                   # stop it and drop its data
+```
+
+> [!NOTE]
+> Playwright runs on the host (Node 22), not in a container: the frontend calls the API at `http://localhost:8000`, so the browser must reach both the app and the API on `localhost`. `make test-e2e` needs Docker Compose v2 (`docker compose`).
+
 ### Continuous Integration (GitHub Actions)
 
 `.github/workflows/ci.yml` runs on every push to `develop` and on every pull request. Merge only when all jobs are green (a branch protection rule on `develop` can enforce this):
@@ -335,9 +365,9 @@ make lint-frontend        # in Docker
 | ---------- | -------------------------------------------------------------------------------------------------------------- |
 | `backend`  | `ruff check`, `ruff format --check` and the full `pytest` suite (with the coverage gate) against PostgreSQL 15 |
 | `frontend` | `npm ci`, `npm run lint`, `npm run format:check` (Prettier) and `npm run build` (SSR + prerender)              |
-| `docker`   | Builds `docker/Dockerfile.backend` and `docker/Dockerfile.frontend` (no push)                                  |
+| `e2e`      | Builds the production Docker images, starts `docker/docker-compose.e2e.yml` and runs the Playwright tests      |
 
-To reproduce the backend job locally, format and lint with `ruff format` / `ruff check` in `backend/` (the pre-commit hook already does this for staged files) and run `make test-backend`. For the frontend job, run `npm run lint` and `npm run format:check` in `frontend/` (`npx prettier --write .` fixes formatting).
+To reproduce the backend job locally, format and lint with `ruff format` / `ruff check` in `backend/` (the pre-commit hook already does this for staged files) and run `make test-backend`. For the frontend job, run `npm run lint` and `npm run format:check` in `frontend/` (`npx prettier --write .` fixes formatting). For the e2e job, run `make test-e2e`; when it fails in CI, the HTML report (with traces and screenshots) is attached to the run as the `playwright-report` artifact.
 
 ## 🚀 Quick Start
 
@@ -356,6 +386,7 @@ cd todo-app
 
 ```bash
 # One-time: create the env file and adjust the values
+# (at least SECRET_KEY: a random value of 32+ characters, e.g. openssl rand -hex 32)
 cp docker/docker.env.example docker/docker.env
 
 # Start all services
@@ -645,8 +676,10 @@ todo-app/
 │   ├── angular.json
 │   ├── package.json
 │   └── ...
-├── docker/                  # Dockerfiles, docker-compose files, docker.env.example
+├── docker/                  # Dockerfiles, docker-compose files (incl. the e2e stack), docker.env.example
+├── e2e/                     # Playwright end-to-end tests (fixtures/, pages/, tests/)
 ├── .github/workflows/       # CI (GitHub Actions)
+├── .dockerignore            # Keeps host node_modules out of image builds
 ├── Makefile                 # Entry point for all dev tasks
 ├── AGENTS.md                # Guidelines for contributors and AI agents
 ├── README.md                # This file

@@ -83,8 +83,6 @@ dist/
 .bazelrc
 .bazelrc.user
 
-# Docker
-.dockerignore
 # Production env with secrets — never commit!
 docker/docker.prod.env
 docker/docker.env

@@ -1,0 +1,31 @@
+# Build context is the repo root (see docker-compose.yml `context: ..`).
+# Dependencies are installed inside the image; host copies (especially Windows
+# node_modules) overwrite them and break `npm run build` on Alpine.
+
+**/.git
+**/.github
+**/.vscode
+**/.idea
+**/.claude
+**/.cursor
+
+**/node_modules
+**/.angular
+**/dist
+**/venv
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+
+**/.env
+**/.env.*
+docker/docker.env
+docker/docker.prod.env
+
+**/postgres_data
+**/pgadmin_data
+**/*.log
+**/*.md
