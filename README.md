@@ -27,7 +27,7 @@ make dev
 ```
 
 > [!IMPORTANT]
-> `docker/docker.env` is required — `docker-compose.yml` has no hardcoded credentials and refuses to start without `POSTGRES_*`, `PGADMIN_*` etc. `make dev` loads this file automatically; `make prod` loads `docker/docker.prod.env` instead (never committed).
+> `docker/docker.env` is required — `docker-compose.yml` has no hardcoded credentials and refuses to start without `POSTGRES_*`, `PGADMIN_*` etc. `make dev` loads this file automatically; `make prod` loads `docker/docker.prod.env` instead (never committed). Compose interpolates `$` in that file; write a literal dollar sign as `$$`.
 
 Open: http://localhost:4200
 
@@ -673,6 +673,7 @@ todo-app/
 ├── docker/                  # Dockerfiles, docker-compose files (incl. the e2e stack), docker.env.example
 ├── e2e/                     # Playwright end-to-end tests (fixtures/, pages/, tests/)
 ├── .github/workflows/       # CI (GitHub Actions)
+├── .dockerignore            # Keeps host node_modules out of image builds
 ├── Makefile                 # Entry point for all dev tasks
 ├── AGENTS.md                # Guidelines for contributors and AI agents
 ├── README.md                # This file
