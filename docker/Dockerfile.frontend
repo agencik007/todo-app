@@ -20,6 +20,13 @@ EXPOSE 4200
 # Set port environment variable
 ENV PORT=4200
 
+# URL the browser calls the API at, baked into the production bundle.
+# The default matches environment.prod.ts (local/e2e stack); set it to the public
+# origin when deploying behind a reverse proxy.
+ARG API_URL=http://localhost:8000
+RUN sed -i "s|apiUrl: '.*'|apiUrl: '${API_URL}'|" src/environments/environment.prod.ts \
+  && grep -qF "apiUrl: '${API_URL}'" src/environments/environment.prod.ts
+
 # By default, run the build and start the SSR server
 # In development, this will be overridden by docker-compose
 RUN npm run build

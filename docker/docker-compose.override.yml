@@ -17,3 +17,8 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
     command: npx ng serve --host 0.0.0.0 --poll 1000
+    # Dev-only: bind-mount source for hot-reload. Production runs the built
+    # SSR image as-is.
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
