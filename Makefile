@@ -1,7 +1,7 @@
 # Todo App - Docker Development Commands
 .PHONY: help dev prod build up down restart logs logs-backend logs-frontend logs-db logs-pgadmin \
 	clean clean-volumes shell-backend shell-db migrate test-backend lint-frontend status \
-	quick-start quick-dev test-e2e e2e-up e2e-down
+	quick-start quick-dev test-e2e e2e-up e2e-down deploy
 
 # Env files used for docker-compose variable interpolation (POSTGRES_*, SECRET_KEY,
 # DATABASE_URL, PGADMIN_*, ...). Copy docker/docker.env.example to docker/docker.env
@@ -40,6 +40,25 @@ dev: ## Start development environment with hot-reload
 
 prod: ## Start production environment
 	$(COMPOSE_PROD) up --build -d
+
+# Continuous deployment (run on the server by .github/workflows/deploy.yml).
+# Pulls the images CI pushed to GHCR instead of building them here, migrates the
+# database with the new backend image, then swaps the containers.
+# Usage: make deploy IMAGE_TAG=<commit sha> BACKEND_IMAGE=ghcr.io/... FRONTEND_IMAGE=ghcr.io/...
+DEPLOY_KEEP_IMAGES ?= 3
+COMPOSE_DEPLOY = IMAGE_TAG=$(IMAGE_TAG) BACKEND_IMAGE=$(BACKEND_IMAGE) FRONTEND_IMAGE=$(FRONTEND_IMAGE) $(COMPOSE_PROD)
+
+deploy: ## Deploy prebuilt images to production (IMAGE_TAG, BACKEND_IMAGE, FRONTEND_IMAGE required)
+	@test -n "$(IMAGE_TAG)" -a -n "$(BACKEND_IMAGE)" -a -n "$(FRONTEND_IMAGE)" \
+		|| { echo "IMAGE_TAG, BACKEND_IMAGE and FRONTEND_IMAGE must be set"; exit 1; }
+	$(COMPOSE_DEPLOY) pull backend frontend
+	$(COMPOSE_DEPLOY) run --rm -T backend alembic upgrade head
+	$(COMPOSE_DEPLOY) up -d --no-build --wait
+	@# Keep the newest $(DEPLOY_KEEP_IMAGES) releases of each image for quick rollbacks.
+	for img in $(BACKEND_IMAGE) $(FRONTEND_IMAGE); do \
+		docker images "$$img" --format '{{.Repository}}:{{.Tag}}' | tail -n +$$(( $(DEPLOY_KEEP_IMAGES) + 1 )) \
+			| xargs -r docker rmi || true; \
+	done
 
 build: ## Build all services
 	$(COMPOSE_PROD) build

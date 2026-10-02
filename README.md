@@ -369,6 +369,8 @@ make e2e-down                   # stop it and drop its data
 
 To reproduce the backend job locally, format and lint with `ruff format` / `ruff check` in `backend/` (the pre-commit hook already does this for staged files) and run `make test-backend`. For the frontend job, run `npm run lint` and `npm run format:check` in `frontend/` (`npx prettier --write .` fixes formatting). For the e2e job, run `make test-e2e`; when it fails in CI, the HTML report (with traces and screenshots) is attached to the run as the `playwright-report` artifact.
 
+When CI passes on a push to `develop`, `.github/workflows/deploy.yml` deploys that commit to production — see [Continuous deployment](#continuous-deployment-github-actions).
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -531,6 +533,7 @@ PgAdmin is a web tool for managing PostgreSQL:
 - **Volumes**: Persistent PostgreSQL data
 - **Health checks**: Service dependencies
 - **Ports**: Port mapping host:container
+- **Images**: backend and frontend are tagged `${BACKEND_IMAGE:-todo-backend}:${IMAGE_TAG:-local}` / `${FRONTEND_IMAGE:-todo-frontend}:${IMAGE_TAG:-local}`; local builds use the defaults, `make deploy` points them at the GHCR images
 
 ### Troubleshooting Docker
 
@@ -601,6 +604,42 @@ make status
 # Monitoring
 docker stats
 ```
+
+### Continuous deployment (GitHub Actions)
+
+`.github/workflows/deploy.yml` runs after the `CI` workflow succeeds on a push to `develop` (PR runs never deploy):
+
+1. **build** — builds the production backend and frontend images and pushes them to GHCR as `ghcr.io/<owner>/<repo>-backend:<commit sha>` and `...-frontend:<commit sha>`. The frontend gets `API_URL` from the `PUBLIC_URL` variable, so `API_URL` in `docker.prod.env` only matters for `make prod`.
+2. **deploy** — connects to the server over SSH, checks out the same commit in the server's clone (`git checkout --detach <sha>`, so `docker-compose.yml` and the `Makefile` match the images) and runs `make deploy`, which pulls the images, runs `alembic upgrade head` with the new backend image, recreates the containers (`up -d --no-build --wait`, needs Docker Compose v2) and keeps the 3 newest releases of each image. The job's short-lived `GITHUB_TOKEN` is used for `docker login ghcr.io` and logged out afterwards, so the server needs no registry credentials.
+3. **smoke test** — `GET <PUBLIC_URL>/login` must return 2xx.
+
+Deploys never run in parallel. **Rollback:** Actions → Deploy → _Run workflow_ with `sha` set to the full commit SHA of an earlier release (its images are already in GHCR, nothing is rebuilt). With `sha` empty, _Run workflow_ builds and deploys the selected branch.
+
+**One-time setup**
+
+On the server (the clone that already runs `make prod`, with `docker/docker.prod.env` in place):
+
+```bash
+# Key pair used only by GitHub Actions; the deploy user must be in the docker group
+ssh-keygen -t ed25519 -N "" -C github-deploy -f ~/.ssh/github_deploy
+cat ~/.ssh/github_deploy.pub >> ~/.ssh/authorized_keys
+cat ~/.ssh/github_deploy        # -> SSH_PRIVATE_KEY secret, then delete this file
+ssh-keyscan -p 22 <server host> # -> SSH_KNOWN_HOSTS secret (run it from your own machine)
+```
+
+`git fetch` must work non-interactively in the clone (public repo, or a read-only deploy key for a private one). From now on deploy through the workflow rather than `make prod`, which rebuilds the images locally.
+
+In GitHub → Settings → Secrets and variables → Actions add the secrets and **repository** variables below (the build job needs `PUBLIC_URL` and runs outside any environment). The deploy job runs in the `production` environment, created on the first run; in Settings → Environments you can limit it to `develop` or add required reviewers, and keep the secrets there instead of at repository level.
+
+| Name              | Kind     | Value                                                                 |
+| ----------------- | -------- | --------------------------------------------------------------------- |
+| `SSH_HOST`        | secret   | Server hostname or IP                                                 |
+| `SSH_USER`        | secret   | SSH user that owns the clone                                          |
+| `SSH_PRIVATE_KEY` | secret   | Private key generated above                                           |
+| `SSH_KNOWN_HOSTS` | secret   | `ssh-keyscan` output for the server                                   |
+| `DEPLOY_PATH`     | variable | Absolute path of the clone on the server                              |
+| `PUBLIC_URL`      | variable | Site origin without a trailing slash, e.g. `https://todo.example.com` |
+| `SSH_PORT`        | variable | Optional, defaults to `22`                                            |
 
 ### Database Backup and Restore
 
@@ -680,7 +719,7 @@ todo-app/
 │   └── ...
 ├── docker/                  # Dockerfiles, docker-compose files (incl. the e2e stack), docker.env.example
 ├── e2e/                     # Playwright end-to-end tests (fixtures/, pages/, tests/)
-├── .github/workflows/       # CI (GitHub Actions)
+├── .github/workflows/       # CI and CD (GitHub Actions)
 ├── .dockerignore            # Keeps host node_modules out of image builds
 ├── Makefile                 # Entry point for all dev tasks
 ├── AGENTS.md                # Guidelines for contributors and AI agents

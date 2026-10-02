@@ -27,6 +27,9 @@ services:
 
   # FastAPI Backend
   backend:
+    # Local builds are tagged todo-backend:local. The CD workflow sets
+    # BACKEND_IMAGE / IMAGE_TAG so `make deploy` pulls the image built in CI.
+    image: ${BACKEND_IMAGE:-todo-backend}:${IMAGE_TAG:-local}
     build:
       context: ..
       dockerfile: docker/Dockerfile.backend
@@ -83,6 +86,7 @@ services:
 
   # Angular Frontend
   frontend:
+    image: ${FRONTEND_IMAGE:-todo-frontend}:${IMAGE_TAG:-local}
     build:
       context: ..
       dockerfile: docker/Dockerfile.frontend

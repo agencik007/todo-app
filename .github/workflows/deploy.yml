@@ -1,0 +1,176 @@
+name: Deploy
+
+# Continuous deployment to the production server.
+#
+# - Automatically after CI succeeds on a push to develop.
+# - Manually from the Actions tab ("Run workflow"): deploys the selected branch,
+#   or, with `sha` set, redeploys an earlier release (rollback) without rebuilding.
+#
+# Images are built here and pushed to GHCR, tagged with the commit SHA. The server
+# only pulls them: it checks out the same commit (for docker-compose.yml and the
+# Makefile) and runs `make deploy`. Setup: README "Continuous deployment".
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Full commit SHA of an earlier release to redeploy (empty = build and deploy the selected branch)
+        required: false
+        default: ""
+
+# One deployment at a time; never cancel one half-way through.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  BACKEND_IMAGE: ghcr.io/${{ github.repository }}-backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository }}-frontend
+
+jobs:
+  build:
+    name: Build and push images
+    # Only after a successful CI run on a push (not on PRs), or when the manual
+    # run does not just redeploy an existing release.
+    if: >-
+      (github.event_name == 'workflow_run'
+        && github.event.workflow_run.conclusion == 'success'
+        && github.event.workflow_run.event == 'push')
+      || (github.event_name == 'workflow_dispatch' && inputs.sha == '')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      sha: ${{ steps.sha.outputs.sha }}
+
+    steps:
+      - name: Resolve commit
+        id: sha
+        run: echo "sha=${{ github.event.workflow_run.head_sha || github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.sha.outputs.sha }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.backend
+          push: true
+          tags: ${{ env.BACKEND_IMAGE }}:${{ steps.sha.outputs.sha }}
+          # Links the package to this repo, so GITHUB_TOKEN can pull it on the server.
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
+
+      - name: Frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.frontend
+          push: true
+          tags: ${{ env.FRONTEND_IMAGE }}:${{ steps.sha.outputs.sha }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          # Baked into the bundle: the public origin the browser calls the API at.
+          build-args: API_URL=${{ vars.PUBLIC_URL }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
+
+  deploy:
+    name: Deploy to production
+    needs: build
+    # Also runs when `build` was skipped for a manual redeploy of an existing SHA.
+    if: >-
+      always()
+      && (needs.build.result == 'success'
+        || (needs.build.result == 'skipped' && github.event_name == 'workflow_dispatch' && inputs.sha != ''))
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.PUBLIC_URL }}
+    permissions:
+      contents: read
+      # The short-lived GITHUB_TOKEN is handed to the server to pull from GHCR.
+      packages: read
+    env:
+      SHA: ${{ needs.build.outputs.sha || inputs.sha }}
+
+    steps:
+      - name: Check configuration
+        env:
+          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          missing=0
+          for name in PUBLIC_URL DEPLOY_PATH SSH_HOST SSH_USER SSH_PRIVATE_KEY SSH_KNOWN_HOSTS; do
+            if [ -z "${!name}" ]; then echo "::error::$name is not configured"; missing=1; fi
+          done
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::'$SHA' is not a full commit SHA"; missing=1; }
+          exit $missing
+
+      - name: Set up SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_deploy ~/.ssh/known_hosts
+
+      - name: Deploy
+        env:
+          SSH_TARGET: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ vars.SSH_PORT || '22' }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Line 1 of stdin is the token (kept off command lines), the rest is the
+          # script. The server reads both up front and runs the script with stdin
+          # detached, so nothing in it can swallow the remaining script lines.
+          {
+            echo "$GHCR_TOKEN"
+            cat <<EOF
+          set -euo pipefail
+          cd $(printf '%q' "$DEPLOY_PATH")
+          git fetch --quiet origin
+          git checkout --quiet --detach $SHA
+          echo "\$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          trap 'docker logout ghcr.io >/dev/null' EXIT
+          make deploy IMAGE_TAG=$SHA BACKEND_IMAGE=$BACKEND_IMAGE FRONTEND_IMAGE=$FRONTEND_IMAGE
+          EOF
+          } | ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o BatchMode=yes "$SSH_TARGET" \
+              'IFS= read -r GHCR_TOKEN && export GHCR_TOKEN && script=$(cat) && exec bash -c "$script" </dev/null'
+
+      - name: Smoke test
+        env:
+          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+        run: |
+          for i in $(seq 1 10); do
+            if curl -fsSL -o /dev/null "$PUBLIC_URL/login"; then
+              echo "$PUBLIC_URL is up"; exit 0
+            fi
+            sleep 6
+          done
+          echo "::error::$PUBLIC_URL/login did not respond with 2xx after deploy"
+          exit 1
