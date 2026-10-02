@@ -204,7 +204,7 @@ async def login(
 
     if not email or not password:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=api_error(ApiMessages.AUTH_EMAIL_PASSWORD_REQUIRED),
         )
 
