@@ -53,7 +53,7 @@ The application uses **MailHog** for testing email functionalities (email verifi
 3. All emails sent by the application will appear in the MailHog interface
 4. You can view content, headers, and test email features
 
-**Note:** MailHog only runs in the development environment. In production, use a real SMTP server.
+**Note:** MailHog is part of `docker-compose.yml`, so it also starts with `make prod`. In production set `USE_MAILHOG=false` and the `SMTP_*` variables so emails go through a real SMTP server.
 
 ---
 
@@ -521,7 +521,7 @@ PgAdmin is a web tool for managing PostgreSQL:
 
 - **Base**: Node.js 22 Alpine
 - **Install**: `npm ci` (reproducible install from `package-lock.json`)
-- **Build**: Angular CLI production build with SSR
+- **Build**: Angular CLI production build with SSR. The `API_URL` build arg (from `API_URL` in the env file, default `http://localhost:8000`) sets the URL the browser calls the API at; rebuild the image after changing it
 - **Server**: Angular SSR Node server (`dist/frontend/server/server.mjs`), which also sets the security headers and Content Security Policy (`frontend/src/server.ts`)
 - **Development**: `docker-compose.override.yml` runs `ng serve` with hot-reload instead
 
@@ -588,6 +588,8 @@ docker-compose exec frontend curl http://backend:8000/health
 5. **Debug**: `docker-compose logs -f` for real-time logs
 
 ### Production deployment
+
+When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200). In `docker/docker.prod.env` set `API_URL` to the site origin (e.g. `https://todo.example.com`), `SECURE_COOKIES=True`, `ALLOWED_HOSTS` and `CORS_ORIGINS`/`FRONTEND_URL` to the domain, and `FORWARDED_ALLOW_IPS` to the Docker network range so rate limiting sees real client IPs.
 
 ```bash
 # Production secrets live in docker/docker.prod.env (never committed)
