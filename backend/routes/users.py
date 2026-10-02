@@ -9,14 +9,24 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    UploadFile,
+    File,
+    HTTPException,
+    Response,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from config.auth import get_current_verified_user
 from config.database import get_db
 from config.api_messages import ApiMessages, api_error, api_success
 from models.user import User
-from models.schemas import UserLanguageUpdate
+from models.schemas import UserDeleteConfirm, UserLanguageUpdate
+from routes.auth import _clear_refresh_cookie
+from services.auth_service import verify_password
 
 router = APIRouter(prefix="/users", tags=["users"])
 logger = logging.getLogger(__name__)
@@ -53,6 +63,16 @@ def _sniff_image_extension(prefix: bytes) -> Optional[str]:
         return ".webp"
 
     return None
+
+
+def _remove_user_uploads(user_id: int) -> None:
+    """Delete the user's upload directory, logging (not raising) on failure."""
+    try:
+        user_dir = UPLOAD_DIR / str(user_id)
+        if user_dir.exists():
+            shutil.rmtree(user_dir)
+    except Exception:
+        logger.exception("Error deleting user uploads")
 
 
 @router.post("/me/avatar")
@@ -164,14 +184,8 @@ async def delete_avatar(
         dict: Success message.
     """
     if current_user.avatar_url:
-        # Delete user's upload directory
-        try:
-            user_dir = UPLOAD_DIR / str(current_user.id)
-            if user_dir.exists():
-                shutil.rmtree(user_dir)
-        except Exception:
-            logger.exception("Error deleting avatar file")
-            # Continue to clear DB even if file delete fails
+        # Continue to clear DB even if file delete fails
+        _remove_user_uploads(current_user.id)
 
         current_user.avatar_url = None
         db.commit()
@@ -204,3 +218,44 @@ async def update_language(
     return api_success(
         ApiMessages.USER_LANGUAGE_UPDATED, language=current_user.language
     )
+
+
+@router.delete("/me")
+async def delete_account(
+    confirm: UserDeleteConfirm,
+    response: Response,
+    current_user: User = Depends(get_current_verified_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Permanently delete the current user's account.
+
+    Requires the current password. Removes the user's todos, groups and
+    refresh tokens (via cascade), their uploaded files, and clears the
+    refresh cookie.
+
+    Args:
+        confirm: The user's current password.
+        response: FastAPI response object (used to clear the refresh cookie).
+        current_user: Current authenticated user.
+        db: Database session.
+
+    Returns:
+        dict: Success message.
+
+    Raises:
+        HTTPException: If the password is wrong.
+    """
+    if not verify_password(confirm.password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=api_error(ApiMessages.USER_INVALID_PASSWORD),
+        )
+
+    user_id = current_user.id
+    db.delete(current_user)
+    db.commit()
+    _remove_user_uploads(user_id)
+
+    _clear_refresh_cookie(response)
+    return api_success(ApiMessages.USER_ACCOUNT_DELETED)

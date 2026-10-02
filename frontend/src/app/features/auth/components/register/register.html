@@ -131,11 +131,16 @@
       />
     </form>
 
-    <div class="flex justify-content-center mt-4">
+    <div class="flex flex-column align-items-center gap-2 mt-4">
       <a
         routerLink="/login"
         class="p-link"
         >{{ 'AUTH.REGISTER.HAVE_ACCOUNT' | translate }}</a
+      >
+      <a
+        routerLink="/privacy"
+        class="p-link text-xs text-secondary"
+        >{{ 'NAV.PRIVACY' | translate }}</a
       >
     </div>
   </p-card>

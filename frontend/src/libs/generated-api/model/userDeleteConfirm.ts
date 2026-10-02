@@ -10,9 +10,9 @@
 
 
 /**
- * Schema for token refresh request.
+ * Schema for confirming account deletion with the current password.
  */
-export interface RefreshTokenRequest { 
-    refreshToken: string;
+export interface UserDeleteConfirm { 
+    password: string;
 }
 

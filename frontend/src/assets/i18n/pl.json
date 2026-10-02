@@ -14,7 +14,16 @@
     "LANGUAGE": "Język",
     "GUEST": "Gość",
     "WELCOME": "Witaj!",
-    "SETTINGS": "Ustawienia"
+    "SETTINGS": "Ustawienia",
+    "DELETE_ACCOUNT": {
+      "MENU": "Usuń konto",
+      "TITLE": "Usuń konto",
+      "WARNING": "To trwale usunie Twoje konto, wszystkie zadania, grupy i avatar. Tej operacji nie można cofnąć.",
+      "PASSWORD_LABEL": "Potwierdź hasłem",
+      "CANCEL": "Anuluj",
+      "CONFIRM": "Usuń na zawsze"
+    },
+    "PRIVACY": "Polityka prywatności"
   },
   "LANGUAGE": {
     "SELECT": "Język",
@@ -332,7 +341,9 @@
     "USER_AVATAR_DELETED": "Awatar został usunięty",
     "USER_LANGUAGE_UPDATED": "Preferencje językowe zostały zaktualizowane",
     "TODO_REORDER_SUCCESS": "Kolejność zadania zaktualizowana pomyślnie",
-    "TODO_INVALID_INDEX": "Nieprawidłowy indeks zadania"
+    "TODO_INVALID_INDEX": "Nieprawidłowy indeks zadania",
+    "USER_ACCOUNT_DELETED": "Twoje konto zostało usunięte",
+    "USER_INVALID_PASSWORD": "Nieprawidłowe hasło"
   },
   "GROUPS": {
     "SIDEBAR": {
@@ -390,5 +401,36 @@
       "school": "Styl szkolny",
       "modern": "Glassmorph"
     }
+  },
+  "PRIVACY": {
+    "TITLE": "Polityka prywatności",
+    "UPDATED": "Ostatnia aktualizacja: 2 października 2026",
+    "BACK": "Wróć",
+    "SECTIONS": [
+      {
+        "TITLE": "Jakie dane zbieramy",
+        "BODY": "Przy zakładaniu konta zapisujemy Twój adres e-mail i bezpiecznie zahaszowane hasło (nigdy samo hasło). Przechowujemy też treści, które tworzysz: zadania, grupy, język interfejsu oraz – jeśli go dodasz – avatar."
+      },
+      {
+        "TITLE": "W jakim celu",
+        "BODY": "Dane służą wyłącznie do działania aplikacji: logowania, synchronizacji zadań między urządzeniami i wysyłki wiadomości dotyczących konta (weryfikacja adresu, reset hasła). Nie sprzedajemy danych, nie wyświetlamy reklam i nie profilujemy użytkowników."
+      },
+      {
+        "TITLE": "Ciasteczka i pamięć lokalna",
+        "BODY": "Używamy jednego niezbędnego ciasteczka HttpOnly, które utrzymuje zalogowanie. Na urządzeniu zapisywane są też ustawienia interfejsu (motyw, kolory, tło, język) oraz kopia avatara. Nie używamy ciasteczek śledzących ani reklamowych."
+      },
+      {
+        "TITLE": "Lokalizacja i pogoda",
+        "BODY": "Widżet pogody pyta o lokalizację tylko za Twoją zgodą. Współrzędne są wysyłane bezpośrednio z Twojego urządzenia do Open-Meteo (open-meteo.com) w celu pobrania prognozy i nie są przez nas zapisywane."
+      },
+      {
+        "TITLE": "Przechowywanie i usuwanie",
+        "BODY": "Dane przechowujemy tak długo, jak istnieje Twoje konto. W każdej chwili możesz usunąć konto z menu konta (Usuń konto) – natychmiast i trwale usuwa to konto, zadania, grupy i avatar."
+      },
+      {
+        "TITLE": "Twoje prawa",
+        "BODY": "Masz prawo dostępu do danych, ich poprawiania, przeniesienia i usunięcia oraz prawo wniesienia skargi do organu nadzorczego (w Polsce: Prezes UODO). Aby skorzystać z tych praw, skontaktuj się z operatorem aplikacji przez dane kontaktowe podane w sklepie z aplikacjami."
+      }
+    ]
   }
 }

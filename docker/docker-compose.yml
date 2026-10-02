@@ -84,6 +84,8 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.frontend
+      args:
+        API_URL: ${API_URL:-http://localhost:8000}
     container_name: todo-frontend
     restart: unless-stopped
     ports:

@@ -634,7 +634,7 @@
           "users"
         ],
         "summary": "Upload Avatar",
-        "description": "Upload user avatar image.\n\nArgs:\n    file: Image file to upload.\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    dict: URL of the uploaded avatar.\n\nRaises:\n    HTTPException: If file is not an image or upload fails.",
+        "description": "Upload user avatar image.\n\nStreams the upload to a temporary file in chunks, enforcing the size\nlimit as it goes instead of buffering the whole file in memory first,\nthen identifies the real image format from its magic bytes - the\nclient-supplied Content-Type and filename are only used for the cheap\nearly rejection, not for the final saved extension.\n\nArgs:\n    file: Image file to upload.\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    dict: URL of the uploaded avatar.\n\nRaises:\n    HTTPException: If the file isn't a recognized image, is too large,\n        or the upload fails.",
         "operationId": "upload_avatar_users_me_avatar_post",
         "requestBody": {
           "content": {
@@ -709,6 +709,51 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UserLanguageUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/users/me": {
+      "delete": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Delete Account",
+        "description": "Permanently delete the current user's account.\n\nRequires the current password. Removes the user's todos, groups and\nrefresh tokens (via cascade), their uploaded files, and clears the\nrefresh cookie.\n\nArgs:\n    confirm: The user's current password.\n    response: FastAPI response object (used to clear the refresh cookie).\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    dict: Success message.\n\nRaises:\n    HTTPException: If the password is wrong.",
+        "operationId": "delete_account_users_me_delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDeleteConfirm"
               }
             }
           },
@@ -1016,8 +1061,8 @@
         "properties": {
           "file": {
             "type": "string",
-            "format": "binary",
-            "title": "File"
+            "title": "File",
+            "format": "binary"
           }
         },
         "type": "object",
@@ -1439,6 +1484,21 @@
         "title": "UserCreate",
         "description": "Schema for user registration."
       },
+      "UserDeleteConfirm": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "UserDeleteConfirm",
+        "description": "Schema for confirming account deletion with the current password."
+      },
       "UserLanguageUpdate": {
         "properties": {
           "language": {
@@ -1546,6 +1606,13 @@
           "type": {
             "type": "string",
             "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
         },
         "type": "object",

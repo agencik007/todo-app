@@ -12,7 +12,7 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Angular 21 Frontend** - Signals, Control Flow, Standalone Components, SSR
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
-- ✅ **Backend Tests** - 89 unit and integration tests with coverage (min. 80% enforced)
+- ✅ **Backend Tests** - 93 unit and integration tests with coverage (min. 80% enforced)
 - ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, tasks)
 - ✅ **CI** - GitHub Actions runs lint, tests, builds and E2E tests on every push and pull request
 - ✅ **Simple Local Setup** - Single database for development and local testing
@@ -83,7 +83,8 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 
 - ✅ Create, edit, complete and delete tasks; drag & drop reordering
 - ✅ Groups for organizing tasks
-- ✅ User accounts: registration, email verification, password reset, avatar
+- ✅ User accounts: registration, email verification, password reset, avatar, self-service account deletion
+- ✅ Public privacy policy page (`/privacy`, English and Polish)
 - ✅ Security: password strength validation, refresh token rotation with reuse detection, rate limiting, CSP and security headers
 - ✅ Polish / English UI (ngx-translate), light / dark mode and color themes
 - ✅ Responsive design
@@ -288,7 +289,7 @@ After running the backend with `DEBUG=True`, API documentation is available at:
 | `/`       | Application status                                                     |
 | `/health` | Health check                                                           |
 | `/auth`   | Registration, login, token refresh, email verification, password reset |
-| `/users`  | Current user's avatar and language preference                          |
+| `/users`  | Current user's avatar, language preference and account deletion        |
 | `/todos`  | Tasks CRUD and reordering                                              |
 | `/groups` | Task groups CRUD                                                       |
 
@@ -300,7 +301,7 @@ All `/todos`, `/groups` and `/users` endpoints require an authenticated user wit
 
 ### Backend - Tests (Pytest)
 
-The application has a comprehensive suite of tests (currently **89**), including API tests for Todo, Auth, and Groups. `pytest.ini` always measures coverage and fails the run below **80%**.
+The application has a comprehensive suite of tests (currently **93**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
 
 ```bash
 # In Docker (dev stack running)
@@ -589,6 +590,8 @@ docker-compose exec frontend curl http://backend:8000/health
 
 ### Production deployment
 
+The API URL is baked into the frontend bundle at build time. Set `API_URL` in `docker/docker.prod.env` to the public HTTPS address of the backend (e.g. `https://api.example.com`); `docker-compose.yml` passes it to `docker/Dockerfile.frontend` as a build arg, which runs `ng build --define "NG_APP_API_URL='...'"`. Without it the bundle points at `http://localhost:8000`. Add the frontend origin to `CORS_ORIGINS`, and for the native mobile apps also `capacitor://localhost,https://localhost`.
+
 ```bash
 # Production secrets live in docker/docker.prod.env (never committed)
 make prod
@@ -663,7 +666,7 @@ todo-app/
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── core/        # Guards, interceptors, services, stores (AuthStore)
-│   │   │   ├── features/    # auth/, groups/, todos/ (each with components/, store/)
+│   │   │   ├── features/    # auth/, groups/, todos/ (each with components/, store/), legal/ (privacy policy)
 │   │   │   ├── shared/
 │   │   │   │   ├── ui/              # Design system primitives (badge, empty-state, form-field, icon-button)
 │   │   │   │   ├── global-styling/  # SCSS partials, incl. _tokens.scss (design tokens)

@@ -1,0 +1,25 @@
+<main class="privacy-container">
+  <p-card styleClass="privacy-card">
+    <ng-template pTemplate="header">
+      <div class="privacy-header">
+        <h1>{{ 'PRIVACY.TITLE' | translate }}</h1>
+        <p>{{ 'PRIVACY.UPDATED' | translate }}</p>
+      </div>
+    </ng-template>
+
+    @for (section of asSections('PRIVACY.SECTIONS' | translate); track section.TITLE) {
+      <section class="privacy-section">
+        <h2>{{ section.TITLE }}</h2>
+        <p>{{ section.BODY }}</p>
+      </section>
+    }
+
+    <p-button
+      severity="secondary"
+      routerLink="/"
+      icon="pi pi-arrow-left"
+      [text]="true"
+      [label]="'PRIVACY.BACK' | translate"
+    />
+  </p-card>
+</main>

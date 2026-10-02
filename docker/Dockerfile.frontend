@@ -20,7 +20,11 @@ EXPOSE 4200
 # Set port environment variable
 ENV PORT=4200
 
+# Public URL of the backend API, baked into the bundle at build time
+# (e.g. https://api.example.com). Defaults to the local backend.
+ARG API_URL=http://localhost:8000
+
 # By default, run the build and start the SSR server
 # In development, this will be overridden by docker-compose
-RUN npm run build
+RUN npm run build -- --define "NG_APP_API_URL='${API_URL}'"
 CMD ["node", "dist/frontend/server/server.mjs"]

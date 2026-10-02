@@ -23,8 +23,6 @@ import { PasswordReset } from '../model/passwordReset';
 // @ts-ignore
 import { PasswordResetRequest } from '../model/passwordResetRequest';
 // @ts-ignore
-import { RefreshTokenRequest } from '../model/refreshTokenRequest';
-// @ts-ignore
 import { Token } from '../model/token';
 // @ts-ignore
 import { UserCreate } from '../model/userCreate';
@@ -172,7 +170,7 @@ export class AuthService extends BaseService {
 
     /**
      * Login
-     * Login endpoint - accepts both form data and JSON.  Supports two formats: - **Form data**: &#x60;username&#x60; (email) and &#x60;password&#x60; fields (OAuth2 standard) - **JSON body**: &#x60;{\&quot;email\&quot;: \&quot;...\&quot;, \&quot;password\&quot;: \&quot;...\&quot;}&#x60; (frontend-friendly)  Args:     request: FastAPI request object.     db: Database session.  Returns:     Token: Access and refresh tokens.  Raises:     HTTPException: If credentials are invalid or user is inactive.
+     * Login endpoint - accepts both form data and JSON.  Supports two formats: - **Form data**: &#x60;username&#x60; (email) and &#x60;password&#x60; fields (OAuth2 standard) - **JSON body**: &#x60;{\&quot;email\&quot;: \&quot;...\&quot;, \&quot;password\&quot;: \&quot;...\&quot;}&#x60; (frontend-friendly)  The refresh token is returned as an HttpOnly cookie; the access token is returned in the response body.  Args:     request: FastAPI request object.     response: FastAPI response object (used to set the refresh cookie).     db: Database session.  Returns:     Token: Access token (refresh token is in Set-Cookie header).  Raises:     HTTPException: If credentials are invalid or user is inactive.
      * @endpoint post /auth/login
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -225,7 +223,7 @@ export class AuthService extends BaseService {
 
     /**
      * Logout
-     * Logout endpoint.  Note: With JWT tokens, logout is handled client-side by discarding tokens.  Args:     current_user: Current authenticated user.  Returns:     dict: Success message.
+     * Logout endpoint.  Revokes the current refresh token server-side (not just clearing the cookie, so a copied/stolen cookie can\&#39;t keep refreshing access tokens after logout) and clears the HttpOnly cookie. The client is responsible for discarding the in-memory access token.  Args:     request: FastAPI request object (cookie is read from here).     response: FastAPI response object (used to clear the refresh cookie).     current_user: Current authenticated user.     db: Database session.  Returns:     dict: Success message.
      * @endpoint post /auth/logout
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -281,20 +279,16 @@ export class AuthService extends BaseService {
 
     /**
      * Refresh Access Token
-     * Refresh access token using refresh token.  Args:     request: Refresh token request.     db: Database session.  Returns:     Token: New access and refresh tokens.  Raises:     HTTPException: If refresh token is invalid or user not found.
+     * Refresh access token using the HttpOnly refresh token cookie.  Reads the refresh token from the cookie (never from the body). On success, issues a new access token in the body and rotates the refresh token cookie. If the presented token was already rotated away (reuse - a sign of theft), the whole session family is revoked and the client must log in again.  Args:     request: FastAPI request object (cookie is read from here).     response: FastAPI response object (used to set the new refresh cookie).     db: Database session.  Returns:     Token: New access token (new refresh token is in Set-Cookie header).  Raises:     HTTPException: If the refresh token cookie is missing, invalid,         expired, or reused.
      * @endpoint post /auth/refresh
-     * @param refreshTokenRequest 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public refreshAccessTokenAuthRefreshPost(refreshTokenRequest: RefreshTokenRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Token>;
-    public refreshAccessTokenAuthRefreshPost(refreshTokenRequest: RefreshTokenRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Token>>;
-    public refreshAccessTokenAuthRefreshPost(refreshTokenRequest: RefreshTokenRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Token>>;
-    public refreshAccessTokenAuthRefreshPost(refreshTokenRequest: RefreshTokenRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (refreshTokenRequest === null || refreshTokenRequest === undefined) {
-            throw new Error('Required parameter refreshTokenRequest was null or undefined when calling refreshAccessTokenAuthRefreshPost.');
-        }
+    public refreshAccessTokenAuthRefreshPost(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Token>;
+    public refreshAccessTokenAuthRefreshPost(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Token>>;
+    public refreshAccessTokenAuthRefreshPost(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Token>>;
+    public refreshAccessTokenAuthRefreshPost(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -309,15 +303,6 @@ export class AuthService extends BaseService {
 
         const localVarTransferCache: boolean = options?.transferCache ?? true;
 
-
-        // to determine the Content-Type header
-        const consumes: string[] = [
-            'application/json'
-        ];
-        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
-        if (httpContentTypeSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
-        }
 
         let responseType_: 'text' | 'json' | 'blob' = 'json';
         if (localVarHttpHeaderAcceptSelected) {
@@ -335,7 +320,6 @@ export class AuthService extends BaseService {
         return this.httpClient.request<Token>('post', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                body: refreshTokenRequest,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,

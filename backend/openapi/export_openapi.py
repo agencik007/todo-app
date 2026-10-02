@@ -24,9 +24,29 @@ except ImportError as e:
     sys.exit(1)
 
 
+def _mark_binary_uploads(node):
+    """
+    Turn OpenAPI 3.1 file fields back into `format: binary`.
+
+    FastAPI describes UploadFile as `contentMediaType: application/octet-stream`,
+    which openapi-generator's typescript-angular types as `string` instead of
+    `Blob`, breaking file uploads in the generated client.
+    """
+    if isinstance(node, dict):
+        if node.get("contentMediaType") == "application/octet-stream":
+            node.pop("contentMediaType")
+            node["format"] = "binary"
+        for value in node.values():
+            _mark_binary_uploads(value)
+    elif isinstance(node, list):
+        for value in node:
+            _mark_binary_uploads(value)
+
+
 def export_openapi():
     # Use the app's openapi method to get the schema
     openapi_schema = app.openapi()
+    _mark_binary_uploads(openapi_schema)
 
     # Define the output path (in the same folder as this script)
     output_path = os.path.join(SCRIPT_DIR, "openapi.json")

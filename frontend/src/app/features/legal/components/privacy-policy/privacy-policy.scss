@@ -1,0 +1,40 @@
+.privacy-container {
+  display: flex;
+  justify-content: center;
+  padding: var(--app-space-6) var(--app-space-4);
+}
+
+:host ::ng-deep .privacy-card {
+  width: 100%;
+  max-width: 720px;
+}
+
+.privacy-header {
+  padding: var(--app-space-5) var(--app-space-5) 0;
+
+  h1 {
+    margin: 0;
+    font-size: var(--app-text-2xl);
+  }
+
+  p {
+    margin: var(--app-space-1) 0 0;
+    color: var(--p-text-muted-color);
+    font-size: var(--app-text-sm);
+  }
+}
+
+.privacy-section {
+  margin-bottom: var(--app-space-5);
+
+  h2 {
+    margin: 0 0 var(--app-space-2);
+    font-size: var(--app-text-lg);
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--p-text-color);
+  }
+}

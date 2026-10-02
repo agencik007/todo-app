@@ -1,7 +1,7 @@
 import { newUser, registerUser, VERIFY_EMAIL_PATH } from '../fixtures/api';
 import { waitForEmailLink } from '../fixtures/mailhog';
 import { expect, test } from '../fixtures/test';
-import { LoginPage, RegisterPage } from '../pages/auth.pages';
+import { LoginPage, RegisterPage, UserMenu } from '../pages/auth.pages';
 import { TodosPage } from '../pages/todos.page';
 
 test('a new user registers, verifies the email, logs in and logs out', async ({
@@ -57,4 +57,26 @@ test('a logged-in session survives a page reload', async ({ page, loggedIn }) =>
   await page.reload();
   await expect(page).toHaveURL(/\/todos/);
   await expect(todos.greeting(loggedIn.email.split('@')[0])).toBeVisible();
+});
+
+test('a user deletes their account and can no longer log in', async ({ page, loggedIn }) => {
+  const todos = new TodosPage(page);
+  await todos.goto();
+  await expect(todos.greeting(loggedIn.email.split('@')[0])).toBeVisible();
+
+  await new UserMenu(page).deleteAccount(loggedIn);
+  await expect(page).toHaveURL(/\/login/);
+
+  const login = new LoginPage(page);
+  await login.login(loggedIn);
+  await expect(login.error).toContainText(/invalid e-?mail or password/i);
+});
+
+test('the privacy policy is public and linked from the login page', async ({ page }) => {
+  const login = new LoginPage(page);
+  await login.goto();
+  await page.getByRole('link', { name: 'Privacy policy' }).click();
+
+  await expect(page).toHaveURL(/\/privacy/);
+  await expect(page.getByRole('heading', { name: 'Privacy policy' })).toBeVisible();
 });

@@ -19,6 +19,8 @@ import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 // @ts-ignore
 import { HTTPValidationError } from '../model/hTTPValidationError';
 // @ts-ignore
+import { UserDeleteConfirm } from '../model/userDeleteConfirm';
+// @ts-ignore
 import { UserLanguageUpdate } from '../model/userLanguageUpdate';
 
 // @ts-ignore
@@ -35,6 +37,76 @@ export class UsersService extends BaseService {
 
     constructor(protected httpClient: HttpClient, @Optional() @Inject(BASE_PATH) basePath: string|string[], @Optional() configuration?: Configuration) {
         super(basePath, configuration);
+    }
+
+    /**
+     * Delete Account
+     * Permanently delete the current user\&#39;s account.  Requires the current password. Removes the user\&#39;s todos, groups and refresh tokens (via cascade), their uploaded files, and clears the refresh cookie.  Args:     confirm: The user\&#39;s current password.     response: FastAPI response object (used to clear the refresh cookie).     current_user: Current authenticated user.     db: Database session.  Returns:     dict: Success message.  Raises:     HTTPException: If the password is wrong.
+     * @endpoint delete /users/me
+     * @param userDeleteConfirm 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public deleteAccountUsersMeDelete(userDeleteConfirm: UserDeleteConfirm, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
+    public deleteAccountUsersMeDelete(userDeleteConfirm: UserDeleteConfirm, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
+    public deleteAccountUsersMeDelete(userDeleteConfirm: UserDeleteConfirm, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public deleteAccountUsersMeDelete(userDeleteConfirm: UserDeleteConfirm, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (userDeleteConfirm === null || userDeleteConfirm === undefined) {
+            throw new Error('Required parameter userDeleteConfirm was null or undefined when calling deleteAccountUsersMeDelete.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (OAuth2PasswordBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('OAuth2PasswordBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/users/me`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: userDeleteConfirm,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
     }
 
     /**
@@ -165,7 +237,7 @@ export class UsersService extends BaseService {
 
     /**
      * Upload Avatar
-     * Upload user avatar image.  Args:     file: Image file to upload.     current_user: Current authenticated user.     db: Database session.  Returns:     dict: URL of the uploaded avatar.  Raises:     HTTPException: If file is not an image or upload fails.
+     * Upload user avatar image.  Streams the upload to a temporary file in chunks, enforcing the size limit as it goes instead of buffering the whole file in memory first, then identifies the real image format from its magic bytes - the client-supplied Content-Type and filename are only used for the cheap early rejection, not for the final saved extension.  Args:     file: Image file to upload.     current_user: Current authenticated user.     db: Database session.  Returns:     dict: URL of the uploaded avatar.  Raises:     HTTPException: If the file isn\&#39;t a recognized image, is too large,         or the upload fails.
      * @endpoint post /users/me/avatar
      * @param file 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

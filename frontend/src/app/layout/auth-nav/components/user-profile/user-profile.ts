@@ -23,6 +23,7 @@ import { BackgroundToggleComponent } from '../../../../shared/components/backgro
 import { ColorToggleComponent } from '../../../../shared/components/color-toggle/color-toggle.component';
 import { LanguageSelectorComponent } from '../../../../shared/components/language-selector/language-selector.component';
 import { ThemeToggleComponent } from '../../../../shared/components/theme-toggle/theme-toggle.component';
+import { DeleteAccountDialogComponent } from '../delete-account-dialog/delete-account-dialog';
 
 @Component({
   selector: 'app-user-profile',
@@ -37,6 +38,7 @@ import { ThemeToggleComponent } from '../../../../shared/components/theme-toggle
     ColorToggleComponent,
     BackgroundToggleComponent,
     LanguageSelectorComponent,
+    DeleteAccountDialogComponent,
   ],
   templateUrl: './user-profile.html',
   styleUrl: './user-profile.scss',
@@ -58,6 +60,7 @@ export class UserProfileComponent {
   readonly userAvatar = this.#authStore.userAvatar;
   readonly isPreviewVisible = signal(false);
   readonly isMenuOpen = signal(false);
+  readonly isDeleteAccountVisible = signal(false);
   readonly activePanel = signal<'profile' | 'settings'>('profile');
   readonly isCompact = computed(() => this.#screenSize.isCompact());
 
@@ -126,6 +129,11 @@ export class UserProfileComponent {
     this.#authStore.logout();
     this.#router.navigate(['/login']);
     this.isMenuOpen.set(false);
+  }
+
+  onOpenDeleteAccount(): void {
+    this.isMenuOpen.set(false);
+    this.isDeleteAccountVisible.set(true);
   }
 
   onFileSelected(event: Event): void {
