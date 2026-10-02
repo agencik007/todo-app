@@ -59,6 +59,46 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 5. **i18n:** new API messages must have keys in both `frontend/src/assets/i18n/en.json` and `pl.json` under `API_MESSAGES`.
 6. **CI:** `.github/workflows/ci.yml` runs `ruff check`, `ruff format --check`, `pytest`, frontend lint + Prettier check (`npm run format:check`) + build, and the Playwright e2e tests against the production Docker images on every PR. Run the same checks locally before pushing, and update the workflow when you change the Python/Node versions in `docker/Dockerfile.*`.
 7. **Docs:** if your change is one of the triggers listed in [Keeping README.md up to date](#keeping-readmemd-up-to-date) → update `README.md` (and this file, if it affects agent workflow) **in the same change**.
+8. **Git:** commit, branch and open the PR following [Git — commits, branches, PRs](#git--commits-branches-prs).
+
+---
+
+## Git — commits, branches, PRs
+
+Every commit uses [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+type(scope): subject
+
+Optional body explaining why the change was made.
+```
+
+- **Types:** `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `style`, `chore`, `ci`, `build`.
+- **Scope** (optional, exactly one): `backend`, `frontend`, `auth`, `todos`, `groups`, `ds`, `docker`, `e2e`, `ci`, `security`, `readme`, `agents`. Pick the narrowest one that fits; omit it when the change spans the whole repo.
+- **Subject:** English, imperative mood ("add", not "added"/"adds"), lowercase first letter, no trailing period, at most 72 characters including the prefix.
+- **Body** (optional): separated from the subject by a blank line, wrapped at 72 characters, explains _why_ rather than restating the diff.
+- **Breaking changes:** add `!` after the scope (`feat(auth)!: ...`) and a `BREAKING CHANGE:` footer describing the migration.
+- **One logical change per commit.** Unrelated changes go into separate commits, even within one PR.
+
+Good:
+
+```
+fix(security): return 404 instead of 403 for other users' todos/groups
+test(e2e): add Playwright end-to-end tests and run them in CI
+chore: drop dead Tailwind/PostCSS config
+```
+
+Bad:
+
+```
+- fixed bugs                                  # no type, past tense, says nothing
+feat: add X fix: resolve Y docs: update Z     # several changes in one subject
+Smooth out login avatar final fade phase      # no type
+```
+
+**Branches:** `<type>/<short-kebab-description>` (e.g. `fix/refresh-cookie-path`, `docs/commit-conventions`), always created from `develop`. Never commit directly to `develop`.
+
+**Pull requests:** base `develop`; title in the same `type(scope): subject` format; description with a `## Summary` (what and why, as bullets) and a `## Test plan` (the checks you ran). Create them with `gh pr create --base develop`.
 
 ---
 
