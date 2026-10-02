@@ -101,7 +101,8 @@ services:
     networks:
       - todo-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4200/"]
+      # node:22-alpine ships wget (BusyBox), not curl.
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:4200/"]
       interval: 30s
       timeout: 10s
       retries: 3
