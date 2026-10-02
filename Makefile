@@ -112,7 +112,7 @@ quick-start: build up ## Build and start production environment
 	@echo "📱 Frontend: http://localhost:4200"
 	@echo "🔧 Backend API: http://localhost:8000"
 	@echo "📊 API Docs: http://localhost:8000/docs"
-	@echo "🗄️ Database: localhost:5432"
+	@echo "🗄️ Database: localhost:5433"
 	@echo "🛠️ PgAdmin: http://localhost:5050"
 
 quick-dev: ## Start development environment

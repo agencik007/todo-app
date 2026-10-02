@@ -12,8 +12,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     ports:
-      # Bound to loopback only - not reachable from the network.
-      - "127.0.0.1:5432:5432"
+      # Bound to loopback only. Host port 5433 leaves 5432 free for a local PostgreSQL.
+      - "127.0.0.1:5433:5432"
     networks:
       - todo-network
     healthcheck:

@@ -197,9 +197,8 @@ class TestAuthAPI:
 
     def test_refresh_token_invalid(self, client: TestClient):
         """Test POST /auth/refresh with invalid token cookie."""
-        response = client.post(
-            "/auth/refresh", cookies={REFRESH_COOKIE_NAME: "invalid_token"}
-        )
+        client.cookies.set(REFRESH_COOKIE_NAME, "invalid_token", path="/auth/refresh")
+        response = client.post("/auth/refresh")
 
         assert response.status_code == 401
         data = response.json()
@@ -219,22 +218,19 @@ class TestAuthAPI:
         )
         old_token = login_response.cookies[REFRESH_COOKIE_NAME]
 
-        rotate_response = client.post(
-            "/auth/refresh", cookies={REFRESH_COOKIE_NAME: old_token}
-        )
+        client.cookies.set(REFRESH_COOKIE_NAME, old_token, path="/auth/refresh")
+        rotate_response = client.post("/auth/refresh")
         assert rotate_response.status_code == 200
         new_token = rotate_response.cookies[REFRESH_COOKIE_NAME]
 
         # Replaying the old (already-rotated-away) token is rejected.
-        reuse_response = client.post(
-            "/auth/refresh", cookies={REFRESH_COOKIE_NAME: old_token}
-        )
+        client.cookies.set(REFRESH_COOKIE_NAME, old_token, path="/auth/refresh")
+        reuse_response = client.post("/auth/refresh")
         assert reuse_response.status_code == 401
 
         # The legitimate, never-yet-used token is now revoked too.
-        followup_response = client.post(
-            "/auth/refresh", cookies={REFRESH_COOKIE_NAME: new_token}
-        )
+        client.cookies.set(REFRESH_COOKIE_NAME, new_token, path="/auth/refresh")
+        followup_response = client.post("/auth/refresh")
         assert followup_response.status_code == 401
 
     def test_logout_revokes_refresh_token_server_side(
@@ -248,18 +244,18 @@ class TestAuthAPI:
         refresh_token = login_response.cookies[REFRESH_COOKIE_NAME]
         access_token = login_response.json()["accessToken"]
 
+        # Cookie path is /auth/refresh, so the jar would not send it to /auth/logout.
+        client.cookies.set(REFRESH_COOKIE_NAME, refresh_token, path="/auth/logout")
         logout_response = client.post(
             "/auth/logout",
             headers={"Authorization": f"Bearer {access_token}"},
-            cookies={REFRESH_COOKIE_NAME: refresh_token},
         )
         assert logout_response.status_code == 200
 
         # The refresh token is now revoked server-side - replaying the raw
         # cookie value (as a thief with a copy of it would) must fail.
-        response = client.post(
-            "/auth/refresh", cookies={REFRESH_COOKIE_NAME: refresh_token}
-        )
+        client.cookies.set(REFRESH_COOKIE_NAME, refresh_token, path="/auth/refresh")
+        response = client.post("/auth/refresh")
         assert response.status_code == 401
 
     def test_forgot_password(self, client: TestClient, test_user):

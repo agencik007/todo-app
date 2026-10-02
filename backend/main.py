@@ -153,13 +153,13 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         if match:
             message_code = match.group(0)
             return JSONResponse(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 content={"detail": {"messageCode": message_code}},
             )
 
     # Fallback to default behavior
     return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content={"detail": errors},
     )
 

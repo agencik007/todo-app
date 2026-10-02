@@ -414,7 +414,7 @@ Once started, open these in your browser:
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │────│    Backend      │────│   PostgreSQL    │
 │   (Angular)     │    │   (FastAPI)     │    │   (Alpine)      │
-│   Port: 4200    │    │   Port: 8000    │    │   Port: 5432    │
+│   Port: 4200    │    │   Port: 8000    │    │   Port: 5433    │
 │   Single Page   │    │   REST API      │    │   Persistent    │
 │   Application   │    │   + Swagger     │    │   Volume        │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
@@ -500,8 +500,8 @@ PgAdmin is a web tool for managing PostgreSQL:
    - Click "Add New Server"
    - "General" tab: Name: "Todo Database"
    - "Connection" tab:
-     - Host: db (or localhost if connecting from outside)
-     - Port: 5432
+     - Host: `db` from PgAdmin, or `127.0.0.1` from the host machine
+     - Port: `5432` inside Docker, `5433` from the host
      - Username / Password / Database: `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` from `docker/docker.env`
 
 4. **Browse data**:
