@@ -1,7 +1,7 @@
 # Todo App - Docker Development Commands
 .PHONY: help dev prod build up down restart logs logs-backend logs-frontend logs-db logs-pgadmin \
 	clean clean-volumes shell-backend shell-db migrate test-backend lint-frontend status \
-	quick-start quick-dev test-e2e e2e-up e2e-down deploy
+	quick-start quick-dev test-e2e e2e-up e2e-down deploy backup-db
 
 # Env files used for docker-compose variable interpolation (POSTGRES_*, SECRET_KEY,
 # DATABASE_URL, PGADMIN_*, ...). Copy docker/docker.env.example to docker/docker.env
@@ -52,6 +52,8 @@ deploy: ## Deploy prebuilt images to production (IMAGE_TAG, BACKEND_IMAGE, FRONT
 	@test -n "$(IMAGE_TAG)" -a -n "$(BACKEND_IMAGE)" -a -n "$(FRONTEND_IMAGE)" \
 		|| { echo "IMAGE_TAG, BACKEND_IMAGE and FRONTEND_IMAGE must be set"; exit 1; }
 	$(COMPOSE_DEPLOY) pull backend frontend
+	@# Migrations run automatically, so snapshot the database first.
+	$(MAKE) --no-print-directory backup-db STACK=prod
 	$(COMPOSE_DEPLOY) run --rm -T backend alembic upgrade head
 	$(COMPOSE_DEPLOY) up -d --no-build --wait
 	@# Keep the newest $(DEPLOY_KEEP_IMAGES) releases of each image for quick rollbacks.
@@ -59,6 +61,20 @@ deploy: ## Deploy prebuilt images to production (IMAGE_TAG, BACKEND_IMAGE, FRONT
 		docker images "$$img" --format '{{.Repository}}:{{.Tag}}' | tail -n +$$(( $(DEPLOY_KEEP_IMAGES) + 1 )) \
 			| xargs -r docker rmi || true; \
 	done
+
+# Database dumps (pg_dump custom format, restore with pg_restore - see README).
+# Kept outside git and the Docker build context (.gitignore, .dockerignore).
+BACKUP_DIR ?= backups
+BACKUP_KEEP ?= 10
+
+backup-db: ## Dump the database to backups/ (keeps the newest 10; STACK=prod for production)
+	mkdir -p $(BACKUP_DIR)
+	$(COMPOSE) up -d --wait db
+	umask 077; f="$(BACKUP_DIR)/$(STACK)-$$(date -u +%Y%m%dT%H%M%SZ).dump"; \
+	$(COMPOSE) exec -T db sh -c 'pg_dump -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" --format=custom' > "$$f.tmp" \
+		&& mv "$$f.tmp" "$$f" && echo "Database backup: $$f" \
+		|| { rm -f "$$f.tmp"; echo "Database backup failed"; exit 1; }
+	ls -1t $(BACKUP_DIR)/$(STACK)-*.dump | tail -n +$$(( $(BACKUP_KEEP) + 1 )) | xargs -r rm --
 
 build: ## Build all services
 	$(COMPOSE_PROD) build

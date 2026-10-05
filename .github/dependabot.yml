@@ -1,0 +1,63 @@
+# Dependency update PRs. Every merge to develop is deployed, so updates are
+# grouped (one PR per ecosystem for minor/patch) and arrive weekly, not daily.
+# Commit prefixes follow the Conventional Commits rules in AGENTS.md.
+#
+# Docker base images (python:3.12-slim, node:22-alpine, postgres:15-alpine) are
+# not tracked here: their versions must move together with ci.yml, so they are
+# bumped by hand.
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: build(backend)
+    groups:
+      backend-minor:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: build(frontend)
+    # Angular/PrimeNG majors need `ng update` and code changes - do them by hand.
+    ignore:
+      - dependency-name: "*"
+        update-types: [version-update:semver-major]
+    groups:
+      frontend-minor:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /e2e
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: build(e2e)
+    groups:
+      e2e-minor:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: build
+    groups:
+      tooling-minor:
+        update-types: [minor, patch]
