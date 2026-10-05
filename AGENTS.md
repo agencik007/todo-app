@@ -120,7 +120,7 @@ frontend/src/app/
   layout/
 docker/          # Dockerfiles and docker-compose configurations (docker-compose.e2e.yml = e2e stack)
 e2e/             # Playwright tests: fixtures/ (API, MailHog), pages/ (page objects), tests/
-.github/workflows/ # CI and CD (GitHub Actions)
+.github/workflows/ # CI and CD (GitHub Actions); .github/dependabot.yml = dependency update PRs
 Makefile         # root entry point for all development tasks
 ```
 

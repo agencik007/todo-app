@@ -641,6 +641,8 @@ In GitHub → Settings → Secrets and variables → Actions add the secrets and
 | `PUBLIC_URL`      | variable | Site origin without a trailing slash, e.g. `https://todo.example.com` |
 | `SSH_PORT`        | variable | Optional, defaults to `22`                                            |
 
+Dependency updates come from Dependabot (`.github/dependabot.yml`): one grouped PR per ecosystem each week for minor/patch updates, separate PRs for majors (frontend majors are ignored — run `ng update` by hand). Merging one deploys it like any other change.
+
 ### Database Backup and Restore
 
 ```bash
