@@ -44,6 +44,7 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 | Frontend tests                                               | None yet — `angular.json` has no `test` target                                |
 | E2E tests (Playwright, full stack; stop the dev stack first) | `make test-e2e` — see [E2E tests](#e2e-tests)                                 |
 | Migrate to head                                              | `make migrate`                                                                |
+| Database dump to `backups/` (`STACK=prod` for production)    | `make backup-db`                                                              |
 | New migration (autogenerate)                                 | `DC exec backend alembic revision --autogenerate -m "description"`            |
 | Regenerate API types after backend changes                   | `cd frontend && npm run generate-api` — on the host, see [OpenAPI](#openapi)  |
 | Backend shell                                                | `make shell-backend`                                                          |
@@ -58,7 +59,7 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 3. **Frontend:** run lint (`make lint-frontend`) before considering the task done.
 4. **Tests:** if you touched backend logic → run `make test-backend`. The frontend has no unit test runner yet, so lint + `ng build` are the checks there. If you changed a user-facing flow (auth, todos, anything the e2e tests click through) → run `make test-e2e` and update the tests.
 5. **i18n:** new API messages must have keys in both `frontend/src/assets/i18n/en.json` and `pl.json` under `API_MESSAGES`.
-6. **CI:** `.github/workflows/ci.yml` runs `ruff check`, `ruff format --check`, `pytest`, frontend lint + Prettier check (`npm run format:check`) + build, and the Playwright e2e tests against the production Docker images on every PR. Run the same checks locally before pushing, and update the workflow when you change the Python/Node versions in `docker/Dockerfile.*`. Every push to `develop` that passes CI is deployed to production by `.github/workflows/deploy.yml` (images to GHCR, then `make deploy` over SSH, which also runs the migrations) — a merge to `develop` is a release.
+6. **CI:** `.github/workflows/ci.yml` runs `ruff check`, `ruff format --check`, `pytest`, frontend lint + Prettier check (`npm run format:check`) + build, and the Playwright e2e tests against the production Docker images on every PR. Run the same checks locally before pushing, and update the workflow when you change the Python/Node versions in `docker/Dockerfile.*`. Every push to `develop` that passes CI is deployed to production by `.github/workflows/deploy.yml` (images to GHCR, then `make deploy` over SSH, which dumps the database and runs the migrations) — a merge to `develop` is a release.
 7. **Docs:** if your change is one of the triggers listed in [Keeping README.md up to date](#keeping-readmemd-up-to-date) → update `README.md` (and this file, if it affects agent workflow) **in the same change**.
 8. **Git:** commit, branch and open the PR following [Git — commits, branches, PRs](#git--commits-branches-prs).
 

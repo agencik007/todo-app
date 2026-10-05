@@ -610,7 +610,7 @@ docker stats
 `.github/workflows/deploy.yml` runs after the `CI` workflow succeeds on a push to `develop` (PR runs never deploy):
 
 1. **build** — on a native ARM runner (`ubuntu-24.04-arm`, because the production server is ARM64; switch it to `ubuntu-latest` for an x86_64 server) builds the production backend and frontend images and pushes them to GHCR as `ghcr.io/<owner>/<repo>-backend:<commit sha>` and `...-frontend:<commit sha>`. The frontend gets `API_URL` from the `PUBLIC_URL` variable, so `API_URL` in `docker.prod.env` only matters for `make prod`.
-2. **deploy** — connects to the server over SSH, checks out the same commit in the server's clone (`git checkout --detach <sha>`, so `docker-compose.yml` and the `Makefile` match the images) and runs `make deploy`, which pulls the images, runs `alembic upgrade head` with the new backend image, recreates the containers (`up -d --no-build --wait`, needs Docker Compose v2) and keeps the 3 newest releases of each image. The job's short-lived `GITHUB_TOKEN` is used for `docker login ghcr.io` and logged out afterwards, so the server needs no registry credentials.
+2. **deploy** — connects to the server over SSH, checks out the same commit in the server's clone (`git checkout --detach <sha>`, so `docker-compose.yml` and the `Makefile` match the images) and runs `make deploy`, which pulls the images, dumps the database with `make backup-db STACK=prod` (see [Database Backup and Restore](#database-backup-and-restore)), runs `alembic upgrade head` with the new backend image, recreates the containers (`up -d --no-build --wait`, needs Docker Compose v2) and keeps the 3 newest releases of each image. The job's short-lived `GITHUB_TOKEN` is used for `docker login ghcr.io` and logged out afterwards, so the server needs no registry credentials.
 3. **smoke test** — `GET <PUBLIC_URL>/login` must return 2xx.
 
 Deploys never run in parallel. **Rollback:** Actions → Deploy → _Run workflow_ with `sha` set to the full commit SHA of an earlier release (its images are already in GHCR, nothing is rebuilt). With `sha` empty, _Run workflow_ builds and deploys the selected branch.
@@ -652,12 +652,18 @@ Dependency updates come from Dependabot (`.github/dependabot.yml`): one grouped 
 ### Database Backup and Restore
 
 ```bash
-# Backup
-docker-compose exec db pg_dump -U todo_user todo_db > backup.sql
+# Backup to backups/<stack>-<UTC timestamp>.dump (pg_dump custom format, mode 600).
+# Keeps the newest 10 per stack (BACKUP_KEEP=..., BACKUP_DIR=... to change).
+make backup-db               # dev stack
+make backup-db STACK=prod    # production; `make deploy` runs this before every migration
 
-# Restore
-docker-compose exec -T db psql -U todo_user todo_db < backup.sql
+# Restore a dump (replaces the objects it contains). Production: use docker/docker.prod.env
+docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec -T db \
+  sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --no-owner' \
+  < backups/dev-20260101T120000Z.dump
 ```
+
+`backups/` is ignored by git and by the Docker build context. The dumps stay on the same machine as the database, so they protect against a bad migration or deploy, not against losing the server — copy them elsewhere for that.
 
 ## 🗄️ Database Management (Alembic)
 

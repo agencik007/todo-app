@@ -29,3 +29,6 @@ docker/docker.prod.env
 **/pgadmin_data
 **/*.log
 **/*.md
+
+# Database dumps from `make backup-db`
+backups

@@ -137,3 +137,6 @@ uploadedFiles/
 CLAUDE.md
 .claude/settings.local.json
 .opencode/
+
+# Database dumps from `make backup-db` / `make deploy`
+/backups/
