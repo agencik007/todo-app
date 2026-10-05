@@ -48,6 +48,13 @@ updates:
       interval: weekly
     commit-message:
       prefix: build(e2e)
+    ignore:
+      # Types must match the Node runtime (22, see ci.yml / Dockerfiles).
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
+      # Compiler majors (e.g. the TypeScript 7 rewrite) are migrations, not bumps.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
     groups:
       e2e-minor:
         update-types: [minor, patch]
