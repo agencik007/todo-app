@@ -624,8 +624,12 @@ On the server (the clone that already runs `make prod`, with `docker/docker.prod
 ssh-keygen -t ed25519 -N "" -C github-deploy -f ~/.ssh/github_deploy
 cat ~/.ssh/github_deploy.pub >> ~/.ssh/authorized_keys
 cat ~/.ssh/github_deploy        # -> SSH_PRIVATE_KEY secret, then delete this file
-ssh-keyscan -p 22 <server host> # -> SSH_KNOWN_HOSTS secret (run it from your own machine)
+# -> SSH_KNOWN_HOSTS secret: the server's own host keys, labelled with the name(s)
+#    you put in SSH_HOST (for a non-22 port use [host]:port instead)
+for f in /etc/ssh/ssh_host_*_key.pub; do echo "todo.example.com,203.0.113.10 $(cut -d' ' -f1,2 "$f")"; done
 ```
+
+(`ssh-keyscan <host>` from your own machine works too, except with the Windows OpenSSH build, which fails against OpenSSH 9.x servers with `choose_kex: unsupported KEX method`.)
 
 `git fetch` must work non-interactively in the clone (public repo, or a read-only deploy key for a private one). From now on deploy through the workflow rather than `make prod`, which rebuilds the images locally.
 
@@ -633,13 +637,15 @@ In GitHub → Settings → Secrets and variables → Actions add the secrets and
 
 | Name              | Kind     | Value                                                                 |
 | ----------------- | -------- | --------------------------------------------------------------------- |
-| `SSH_HOST`        | secret   | Server hostname or IP                                                 |
-| `SSH_USER`        | secret   | SSH user that owns the clone                                          |
 | `SSH_PRIVATE_KEY` | secret   | Private key generated above                                           |
-| `SSH_KNOWN_HOSTS` | secret   | `ssh-keyscan` output for the server                                   |
+| `SSH_KNOWN_HOSTS` | secret   | Host key lines generated above                                        |
+| `SSH_HOST`        | variable | Server hostname or IP                                                 |
+| `SSH_USER`        | variable | SSH user that owns the clone                                          |
 | `DEPLOY_PATH`     | variable | Absolute path of the clone on the server                              |
 | `PUBLIC_URL`      | variable | Site origin without a trailing slash, e.g. `https://todo.example.com` |
 | `SSH_PORT`        | variable | Optional, defaults to `22`                                            |
+
+Only the key material is secret. Keep `SSH_HOST` and `SSH_USER` as variables: GitHub masks every secret value in all logs, so a secret holding the domain or the repo owner's name hides the site URL and image names (`https://***`) and stops the environment URL from being shown.
 
 Dependency updates come from Dependabot (`.github/dependabot.yml`): one grouped PR per ecosystem each week for minor/patch updates, separate PRs for majors (frontend majors are ignored — run `ng update` by hand). Merging one deploys it like any other change.
 

@@ -119,14 +119,14 @@ jobs:
         env:
           PUBLIC_URL: ${{ vars.PUBLIC_URL }}
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ vars.SSH_HOST }}
+          SSH_USER: ${{ vars.SSH_USER }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
         run: |
           missing=0
           for name in PUBLIC_URL DEPLOY_PATH SSH_HOST SSH_USER SSH_PRIVATE_KEY SSH_KNOWN_HOSTS; do
-            if [ -z "${!name}" ]; then echo "::error::$name is not configured"; missing=1; fi
+            if [ -z "${!name}" ]; then echo "::error::$name is not configured (README: Continuous deployment)"; missing=1; fi
           done
           [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::'$SHA' is not a full commit SHA"; missing=1; }
           exit $missing
@@ -143,7 +143,10 @@ jobs:
 
       - name: Deploy
         env:
-          SSH_TARGET: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
+          # Host and user are plain variables, not secrets: GitHub masks secret
+          # values everywhere, which hid the site URL (and the repo owner) in logs
+          # and stopped the environment URL from being set. Only the key is secret.
+          SSH_TARGET: ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}
           SSH_PORT: ${{ vars.SSH_PORT || '22' }}
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
