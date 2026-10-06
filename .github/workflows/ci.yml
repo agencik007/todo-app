@@ -46,9 +46,9 @@ jobs:
       CORS_ORIGINS: http://localhost:4200
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           # Keep in sync with docker/Dockerfile.backend.
           python-version: "3.12"
@@ -75,9 +75,9 @@ jobs:
         working-directory: frontend
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           # Keep in sync with docker/Dockerfile.frontend.
           node-version: 22
@@ -103,9 +103,9 @@ jobs:
       COMPOSE_E2E: docker compose -p todo-e2e -f docker/docker-compose.e2e.yml
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -134,7 +134,7 @@ jobs:
         if: failure()
         run: $COMPOSE_E2E logs --no-color
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
