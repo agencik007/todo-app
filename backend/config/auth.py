@@ -2,8 +2,6 @@
 Authentication configuration - OAuth2 scheme and user dependencies.
 """
 
-from typing import Optional
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -42,8 +40,11 @@ async def get_current_user(
     if payload is None:
         raise credentials_exception
 
-    user_id: Optional[int] = payload.get("sub")
-    if user_id is None:
+    # JWT "sub" is a string; compare as int, or Postgres rejects the query
+    # (integer = varchar) once parameters are bound server-side (psycopg 3).
+    try:
+        user_id = int(payload["sub"])
+    except (KeyError, TypeError, ValueError):
         raise credentials_exception
 
     user = db.query(User).filter(User.id == user_id).first()
