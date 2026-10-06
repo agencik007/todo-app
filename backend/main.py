@@ -20,7 +20,7 @@ from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-from sqlalchemy import inspect as sa_inspect, text
+from sqlalchemy import Connection, inspect as sa_inspect, text
 
 from config.database import engine, Base
 from routes import auth_router, todo_router, users_router, groups_router
@@ -56,7 +56,12 @@ ALLOWED_HOSTS = _split_env_list("ALLOWED_HOSTS")
 CORS_ORIGINS = _split_env_list("CORS_ORIGINS")
 
 
-def _ensure_alembic_stamped() -> None:
+# Arbitrary key for the Postgres advisory lock that serialises the schema
+# bootstrap below across uvicorn workers.
+SCHEMA_BOOTSTRAP_LOCK_ID = 4_712_903
+
+
+def _ensure_alembic_stamped(conn: Connection) -> None:
     """
     Stamp the database at the current Alembic head if it doesn't have
     version tracking yet (e.g. it was just bootstrapped by create_all()
@@ -66,14 +71,14 @@ def _ensure_alembic_stamped() -> None:
     migration from scratch - including CREATE TABLE statements for tables
     create_all() already made - and fail with "already exists" errors.
 
-    Writes directly through the `engine` used by this app (not Alembic's
-    own env.py, which resolves its own DATABASE_URL from the environment
-    and could target a different database than `engine` does, e.g. in
-    tests where `engine` is swapped for a dedicated test database).
-    Alembic's ScriptDirectory is only used to read the head revision id
-    from the migration files - it doesn't touch any database.
+    Writes through the app's own connection (not Alembic's env.py, which
+    resolves its own DATABASE_URL from the environment and could target a
+    different database than `engine` does, e.g. in tests where `engine` is
+    swapped for a dedicated test database). Alembic's ScriptDirectory is
+    only used to read the head revision id from the migration files - it
+    doesn't touch any database.
     """
-    if "alembic_version" in sa_inspect(engine).get_table_names():
+    if "alembic_version" in sa_inspect(conn).get_table_names():
         return
 
     from alembic.config import Config as AlembicConfig
@@ -85,7 +90,8 @@ def _ensure_alembic_stamped() -> None:
         if head_revision is None:
             return
 
-        with engine.begin() as conn:
+        # Savepoint: a failure here must not roll back create_all() as well.
+        with conn.begin_nested():
             conn.execute(
                 text(
                     "CREATE TABLE alembic_version ("
@@ -101,12 +107,30 @@ def _ensure_alembic_stamped() -> None:
         logger.exception("Failed to stamp Alembic revision after create_all()")
 
 
+def _bootstrap_schema() -> None:
+    """
+    Create missing tables and stamp Alembic, one process at a time.
+
+    Every uvicorn worker runs the lifespan, so on an empty database several
+    of them would race through create_all() and fail with duplicate-key
+    errors on the enum types and tables. The transaction-scoped advisory
+    lock makes the others wait; they then find the schema already there.
+    """
+    with engine.begin() as conn:
+        if conn.dialect.name == "postgresql":
+            conn.execute(
+                text("SELECT pg_advisory_xact_lock(:lock_id)"),
+                {"lock_id": SCHEMA_BOOTSTRAP_LOCK_ID},
+            )
+        Base.metadata.create_all(bind=conn)
+        _ensure_alembic_stamped(conn)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler - runs on startup and shutdown."""
     # Startup: Create database tables
-    Base.metadata.create_all(bind=engine)
-    _ensure_alembic_stamped()
+    _bootstrap_schema()
     yield
     # Shutdown: Cleanup if needed
 
