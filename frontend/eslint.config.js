@@ -28,7 +28,9 @@ module.exports = defineConfig(
       '**/*.test.ts',
 
       // Ignoruj konkretne ścieżki
-      'src/libs/generated-api/**',
+      // Leading **/ so it also matches when eslint runs from the repo root
+      // (the pre-commit hook passes --config frontend/eslint.config.js).
+      '**/src/libs/generated-api/**',
 
       // Ignoruj pliki konfiguracyjne
       'eslint.config.js',
