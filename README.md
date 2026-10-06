@@ -647,7 +647,7 @@ In GitHub → Settings → Secrets and variables → Actions add the secrets and
 
 Only the key material is secret. Keep `SSH_HOST` and `SSH_USER` as variables: GitHub masks every secret value in all logs, so a secret holding the domain or the repo owner's name hides the site URL and image names (`https://***`) and stops the environment URL from being shown.
 
-Dependency updates come from Dependabot (`.github/dependabot.yml`): one grouped PR per ecosystem each week for minor/patch updates, separate PRs for majors (ignored: frontend majors — run `ng update` by hand — and `@types/node` / `typescript` majors in `e2e/`). Merging one deploys it like any other change.
+Dependency updates come from Dependabot (`.github/dependabot.yml`): one grouped PR per ecosystem each week for minor/patch updates, separate PRs for majors (ignored: frontend majors — run `ng update` by hand — and `@types/node` / `typescript` majors in `e2e/`). In the backend, `pytest*` packages are grouped together (their version ranges depend on each other) and `ruff` updates get their own PR, since new ruff versions add lint rules. Merging one deploys it like any other change.
 
 ### Database Backup and Restore
 
