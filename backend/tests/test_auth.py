@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from models.user import User
 from services.auth_service import (
+    create_access_token,
     hash_password,
     hash_one_time_token,
 )
@@ -256,6 +257,14 @@ class TestAuthAPI:
         # cookie value (as a thief with a copy of it would) must fail.
         client.cookies.set(REFRESH_COOKIE_NAME, refresh_token, path="/auth/refresh")
         response = client.post("/auth/refresh")
+        assert response.status_code == 401
+
+    def test_access_token_with_non_numeric_sub_is_rejected(self, client: TestClient):
+        """A validly signed token whose 'sub' is not a user id gets 401, not a DB error."""
+        token = create_access_token(data={"sub": "not-a-number"})
+
+        response = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
+
         assert response.status_code == 401
 
     def test_forgot_password(self, client: TestClient, test_user):

@@ -12,7 +12,7 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Angular 21 Frontend** - Signals, Control Flow, Standalone Components, SSR
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
-- ✅ **Backend Tests** - 89 unit and integration tests with coverage (min. 80% enforced)
+- ✅ **Backend Tests** - 90 unit and integration tests with coverage (min. 80% enforced)
 - ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, tasks)
 - ✅ **CI** - GitHub Actions runs lint, tests, builds and E2E tests on every push and pull request
 - ✅ **Simple Local Setup** - Single database for development and local testing
