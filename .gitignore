@@ -140,3 +140,6 @@ CLAUDE.md
 
 # Database dumps from `make backup-db` / `make deploy`
 /backups/
+
+# Server-side deploy state (`make deploy`, .github/workflows/deploy.yml)
+/.deploy/
