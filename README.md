@@ -585,11 +585,21 @@ docker-compose exec frontend curl http://backend:8000/health
 
 ### Development workflow
 
-1. **Code**: Edit files locally
-2. **Build**: `docker-compose build` (only when modifying a Dockerfile)
-3. **Run**: `docker-compose up` (automatically reloads code)
+1. **Run**: `make dev` once; afterwards the stopped containers can also be started from Docker Desktop (▶), which doesn't rebuild anything
+2. **Code**: Edit files locally — `backend/` and `frontend/` are bind-mounted, so uvicorn `--reload` restarts the API and `ng serve` rebuilds and refreshes the browser
+3. **Rebuild**: `make dev` again after changing dependencies (`requirements.txt`, `package.json`), `docker/*` or `docker/docker.env`
 4. **Test**: Open http://localhost:4200 in the browser
-5. **Debug**: `docker-compose logs -f` for real-time logs
+5. **Debug**: `make logs` for real-time logs
+
+#### Switching branches
+
+Checking out another branch (CLI, Sourcetree, IDE) changes the files on disk, and hot-reload picks them up. The Git hook `.husky/post-checkout` handles the rest while the dev stack is running:
+
+- dependencies or `docker/*` differ between the branches → rebuilds and recreates the containers (`up -d --build --renew-anon-volumes`, so `node_modules` is refreshed too),
+- `backend/migrations/versions/` differs → runs `alembic upgrade head`,
+- the new branch lacks a migration the previous one had → prints a warning: the database may be ahead of the code; downgrade on the previous branch or reset the database (`make clean-volumes && make dev`).
+
+The hook is installed by Husky: run `npm install` once in the project root (it sets `core.hooksPath`). It does nothing when the dev stack isn't running; set `HUSKY=0` to skip it. To check it works, switch to a branch whose dependencies or migrations differ — the hook's `[post-checkout]` lines appear in the terminal or in Sourcetree's command output.
 
 ### Production deployment
 
@@ -737,6 +747,7 @@ todo-app/
 ├── docker/                  # Dockerfiles, docker-compose files (incl. the e2e stack), docker.env.example
 ├── e2e/                     # Playwright end-to-end tests (fixtures/, pages/, tests/)
 ├── .github/workflows/       # CI and CD (GitHub Actions)
+├── .husky/                  # Git hooks: pre-commit (lint-staged), post-checkout (syncs the dev stack)
 ├── .dockerignore            # Keeps host node_modules out of image builds
 ├── Makefile                 # Entry point for all dev tasks
 ├── AGENTS.md                # Guidelines for contributors and AI agents
