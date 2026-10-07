@@ -32,3 +32,6 @@ docker/docker.prod.env
 
 # Database dumps from `make backup-db`
 backups
+
+# Server-side deploy state
+.deploy

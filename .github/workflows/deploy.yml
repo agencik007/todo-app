@@ -6,6 +6,10 @@ name: Deploy
 # - Manually from the Actions tab ("Run workflow"): deploys the selected branch,
 #   or, with `sha` set, redeploys an earlier release (rollback) without rebuilding.
 #
+# If the deploy or the smoke test fails, the job rolls production back to the
+# last release that passed the smoke test (and restores the pre-deploy database
+# dump if the failed release migrated the schema), then fails.
+#
 # Images are built here and pushed to GHCR, tagged with the commit SHA. The server
 # only pulls them: it checks out the same commit (for docker-compose.yml and the
 # Makefile) and runs `make deploy`. Setup: README "Continuous deployment".
@@ -113,12 +117,18 @@ jobs:
       packages: read
     env:
       SHA: ${{ needs.build.outputs.sha || inputs.sha }}
+      PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+      # Host and user are plain variables, not secrets: GitHub masks secret
+      # values everywhere, which hid the site URL (and the repo owner) in logs
+      # and stopped the environment URL from being set. Only the key is secret.
+      SSH_TARGET: ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}
+      SSH_PORT: ${{ vars.SSH_PORT || '22' }}
+      GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Check configuration
         env:
-          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
-          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
           SSH_HOST: ${{ vars.SSH_HOST }}
           SSH_USER: ${{ vars.SSH_USER }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -131,7 +141,7 @@ jobs:
           [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::'$SHA' is not a full commit SHA"; missing=1; }
           exit $missing
 
-      - name: Set up SSH
+      - name: Set up SSH and helpers
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
@@ -141,42 +151,87 @@ jobs:
           printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/id_deploy ~/.ssh/known_hosts
 
-      - name: Deploy
-        env:
-          # Host and user are plain variables, not secrets: GitHub masks secret
-          # values everywhere, which hid the site URL (and the repo owner) in logs
-          # and stopped the environment URL from being set. Only the key is secret.
-          SSH_TARGET: ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}
-          SSH_PORT: ${{ vars.SSH_PORT || '22' }}
-          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Line 1 of stdin is the token (kept off command lines), the rest is the
-          # script. The server reads both up front and runs the script with stdin
-          # detached, so nothing in it can swallow the remaining script lines.
+          # `remote` runs the bash script on its stdin on the server, in DEPLOY_PATH
+          # and logged in to GHCR. Line 1 of the ssh stdin is the token (kept off
+          # command lines), the rest is the script. The server reads both up front
+          # and runs the script with stdin detached, so nothing in it can swallow
+          # the remaining script lines.
+          cat > "$RUNNER_TEMP/remote" <<'EOF'
+          #!/bin/bash
+          set -euo pipefail
           {
             echo "$GHCR_TOKEN"
-            cat <<EOF
-          set -euo pipefail
-          cd $(printf '%q' "$DEPLOY_PATH")
-          git fetch --quiet origin
-          git checkout --quiet --detach $SHA
-          echo "\$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          trap 'docker logout ghcr.io >/dev/null' EXIT
-          make deploy IMAGE_TAG=$SHA BACKEND_IMAGE=$BACKEND_IMAGE FRONTEND_IMAGE=$FRONTEND_IMAGE
-          EOF
+            printf 'set -euo pipefail\ncd %q\n' "$DEPLOY_PATH"
+            printf 'echo "$GHCR_TOKEN" | docker login ghcr.io -u %q --password-stdin >/dev/null\n' "$GITHUB_ACTOR"
+            echo "trap 'docker logout ghcr.io >/dev/null' EXIT"
+            cat
           } | ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o BatchMode=yes "$SSH_TARGET" \
               'IFS= read -r GHCR_TOKEN && export GHCR_TOKEN && script=$(cat) && exec bash -c "$script" </dev/null'
+          EOF
 
-      - name: Smoke test
-        env:
-          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
-        run: |
+          cat > "$RUNNER_TEMP/smoke-test" <<'EOF'
+          #!/bin/bash
           for i in $(seq 1 10); do
             if curl -fsSL -o /dev/null "$PUBLIC_URL/login"; then
               echo "$PUBLIC_URL is up"; exit 0
             fi
             sleep 6
           done
-          echo "::error::$PUBLIC_URL/login did not respond with 2xx after deploy"
+          echo "::error::$PUBLIC_URL/login did not respond with 2xx"
           exit 1
+          EOF
+          chmod +x "$RUNNER_TEMP/remote" "$RUNNER_TEMP/smoke-test"
+
+      - name: Deploy
+        id: deploy
+        run: |
+          "$RUNNER_TEMP/remote" <<EOF
+          # .deploy/release is the last release that passed the smoke test, the
+          # target of an automatic rollback. The first deploy that keeps it seeds
+          # it with the commit checked out now. The rest of .deploy/ describes the
+          # deploy in progress, so drop what an earlier one left behind.
+          mkdir -p .deploy
+          [ -s .deploy/release ] || git rev-parse HEAD > .deploy/release
+          rm -f .deploy/backup .deploy/db-revision
+          git fetch --quiet origin
+          git checkout --quiet --detach $SHA
+          make deploy IMAGE_TAG=$SHA BACKEND_IMAGE=$BACKEND_IMAGE FRONTEND_IMAGE=$FRONTEND_IMAGE
+          EOF
+
+      - name: Smoke test
+        id: smoke
+        run: '"$RUNNER_TEMP/smoke-test"'
+
+      - name: Record release
+        run: echo "echo $SHA > .deploy/release" | "$RUNNER_TEMP/remote"
+
+      # A failed deploy or smoke test puts back the last release that passed the
+      # smoke test, together with the database as it was before this deploy's
+      # migrations (if it ran any). The job still fails, so the bad release shows.
+      - name: Roll back
+        id: rollback
+        if: failure() && (steps.deploy.outcome == 'failure' || steps.smoke.outcome == 'failure')
+        run: |
+          prev=$(echo 'cat .deploy/release 2>/dev/null || true' | "$RUNNER_TEMP/remote")
+          if ! [[ "$prev" =~ ^[0-9a-f]{40}$ ]] || [ "$prev" = "$SHA" ]; then
+            echo "::error::No earlier release to roll back to (.deploy/release: '$prev')"
+            exit 1
+          fi
+          echo "Rolling back to $prev"
+          "$RUNNER_TEMP/remote" <<EOF
+          # Only the failed release's Makefile knows what its deploy changed in the
+          # database; releases older than the automatic rollback have no such target.
+          if grep -q '^deploy-rollback-db:' Makefile; then make deploy-rollback-db; fi
+          git checkout --quiet --detach $prev
+          make deploy IMAGE_TAG=$prev BACKEND_IMAGE=$BACKEND_IMAGE FRONTEND_IMAGE=$FRONTEND_IMAGE
+          EOF
+          echo "prev=$prev" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test after rollback
+        if: failure() && steps.rollback.outcome == 'success'
+        env:
+          PREV: ${{ steps.rollback.outputs.prev }}
+        run: |
+          "$RUNNER_TEMP/smoke-test"
+          echo "::error::Deploy of $SHA failed, production was rolled back to $PREV"
+          echo "Deploy of \`$SHA\` failed; production was rolled back to \`$PREV\`." >> "$GITHUB_STEP_SUMMARY"
