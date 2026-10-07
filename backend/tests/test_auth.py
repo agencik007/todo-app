@@ -8,10 +8,13 @@ These tests verify that our authentication system works correctly:
 - POST /auth/forgot-password - request password reset
 - POST /auth/reset-password - reset password
 - GET /auth/me - get current user info
+- GET /auth/health - health check including the database
 """
 
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
+from config.database import get_db
 from models.user import User
 from services.auth_service import (
     create_access_token,
@@ -26,6 +29,28 @@ REFRESH_COOKIE_NAME = "refresh_token"
 
 class TestAuthAPI:
     """Test the Authentication REST API endpoints."""
+
+    def test_health_check(self, client: TestClient, test_user: User):
+        """Test GET /auth/health queries the database and reports healthy."""
+        response = client.get("/auth/health")
+
+        assert response.status_code == 200
+        assert response.json() == {"status": "healthy"}
+
+    def test_health_check_database_down(self, client: TestClient):
+        """Test GET /auth/health returns 503 when the database query fails."""
+        from main import app
+
+        class BrokenSession:
+            def query(self, *args):
+                raise OperationalError("SELECT 1", {}, Exception("connection refused"))
+
+        app.dependency_overrides[get_db] = lambda: BrokenSession()
+
+        response = client.get("/auth/health")
+
+        assert response.status_code == 503
+        assert response.json()["detail"]["messageCode"] == "HEALTH_DATABASE_UNAVAILABLE"
 
     def test_register_user(self, client: TestClient):
         """Test POST /auth/register creates a new user."""

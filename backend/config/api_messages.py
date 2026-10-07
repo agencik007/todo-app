@@ -53,6 +53,9 @@ class ApiMessages(str, Enum):
     USER_AVATAR_DELETED = "USER_AVATAR_DELETED"
     USER_LANGUAGE_UPDATED = "USER_LANGUAGE_UPDATED"
 
+    # Health messages
+    HEALTH_DATABASE_UNAVAILABLE = "HEALTH_DATABASE_UNAVAILABLE"
+
 
 def api_error(code: ApiMessages) -> dict:
     """
