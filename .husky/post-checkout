@@ -1,0 +1,38 @@
+# Keeps the running dev stack in sync after a branch switch (git checkout,
+# git switch, Sourcetree, ...). Source code needs nothing: it is bind-mounted
+# and hot-reloaded. This only handles what hot-reload can't: rebuilding the
+# images when dependencies or Docker files changed, and running migrations.
+# Does nothing when the dev stack isn't running. Skip it with HUSKY=0.
+
+# Args: previous HEAD, new HEAD, 1 for a branch checkout (0 for a file checkout).
+[ "$3" = "1" ] || exit 0
+[ "$1" = "$2" ] && exit 0
+
+DC="docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml --env-file docker/docker.env"
+
+[ -f docker/docker.env ] || exit 0
+$DC ps --status running --services 2>/dev/null | grep -qx backend || exit 0
+
+changed=$(git diff --name-only "$1" "$2" 2>/dev/null) || exit 0
+[ -n "$changed" ] || exit 0
+
+if echo "$changed" | grep -qE '^(docker/|backend/requirements\.txt|frontend/package(-lock)?\.json)'; then
+  echo "[post-checkout] Dependencies or Docker files changed, rebuilding the dev stack..."
+  # --renew-anon-volumes: otherwise the containers keep the old node_modules/venv volumes.
+  $DC up -d --build --renew-anon-volumes || exit 0
+fi
+
+# A migration that exists on the previous branch but not on this one may already
+# be applied, so the database is ahead of this code. Alembic can't fix that from here.
+removed=$(git diff --name-only --diff-filter=D "$1" "$2" -- backend/migrations/versions/)
+if [ -n "$removed" ]; then
+  echo "[post-checkout] WARNING: this branch lacks migrations the previous one had:"
+  echo "$removed" | sed 's/^/  /'
+  echo "  If they were applied, the database is ahead of this code. Switch back and run"
+  echo "  'alembic downgrade <revision>' there, or reset the database (make clean-volumes && make dev)."
+elif echo "$changed" | grep -q '^backend/migrations/versions/'; then
+  echo "[post-checkout] Migrations changed, running alembic upgrade head..."
+  $DC exec -T backend alembic upgrade head
+fi
+
+exit 0
