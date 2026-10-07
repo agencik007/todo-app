@@ -169,15 +169,18 @@ jobs:
               'IFS= read -r GHCR_TOKEN && export GHCR_TOKEN && script=$(cat) && exec bash -c "$script" </dev/null'
           EOF
 
+          # `smoke-test` checks the site from outside: the login page (frontend) and
+          # /auth/health (backend + database, routed by the reverse proxy like the API).
           cat > "$RUNNER_TEMP/smoke-test" <<'EOF'
           #!/bin/bash
           for i in $(seq 1 10); do
-            if curl -fsSL -o /dev/null "$PUBLIC_URL/login"; then
+            if curl -fsSL -o /dev/null "$PUBLIC_URL/login" \
+              && curl -fsS -o /dev/null "$PUBLIC_URL/auth/health"; then
               echo "$PUBLIC_URL is up"; exit 0
             fi
             sleep 6
           done
-          echo "::error::$PUBLIC_URL/login did not respond with 2xx"
+          echo "::error::$PUBLIC_URL/login or $PUBLIC_URL/auth/health did not respond with 2xx"
           exit 1
           EOF
           chmod +x "$RUNNER_TEMP/remote" "$RUNNER_TEMP/smoke-test"
