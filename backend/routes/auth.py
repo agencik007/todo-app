@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from config.auth import get_current_active_user
@@ -286,6 +287,30 @@ def refresh_access_token(
 
     _set_refresh_cookie(response, new_raw_token)
     return Token(access_token=_create_access_token(user))
+
+
+@router.get("/health")
+def health_check(db: Session = Depends(get_db)):
+    """
+    Health check that also exercises the database.
+
+    Lives under /auth because the reverse proxy routes that prefix to the
+    backend, so the deploy smoke test can call it on the public URL. Loading
+    a user row fails when the database is unreachable or the users table no
+    longer matches the model.
+
+    Returns:
+        dict: {"status": "healthy"}, or 503 when the database query fails.
+    """
+    try:
+        db.query(User).limit(1).all()
+    except SQLAlchemyError:
+        logger.exception("Health check: database query failed")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=api_error(ApiMessages.HEALTH_DATABASE_UNAVAILABLE),
+        )
+    return {"status": "healthy"}
 
 
 @router.get("/me", response_model=UserResponse)

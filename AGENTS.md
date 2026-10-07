@@ -161,7 +161,7 @@ Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`.
 
 ### Testing
 
-- The full suite is 90 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
+- The full suite is 92 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
 - Tests never use the application database: `conftest.py` derives `<db>_test` from `DATABASE_URL` (created automatically if the DB user has permission), or uses `TEST_DATABASE_URL` if set.
 - An autouse fixture `db_cleanup` in `conftest.py` clears all data between tests.
 - **Rate limiting in tests:** rate limiting is enabled by default on sensitive endpoints (registration, login, verify email). Tests must run with `TESTING=1`, which `backend/tests/conftest.py` sets automatically via `os.environ["TESTING"] = "1"`.

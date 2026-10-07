@@ -283,14 +283,14 @@ After running the backend with `DEBUG=True`, API documentation is available at:
 
 ### Available endpoints
 
-| Prefix    | Description                                                            |
-| --------- | ---------------------------------------------------------------------- |
-| `/`       | Application status                                                     |
-| `/health` | Health check                                                           |
-| `/auth`   | Registration, login, token refresh, email verification, password reset |
-| `/users`  | Current user's avatar and language preference                          |
-| `/todos`  | Tasks CRUD and reordering                                              |
-| `/groups` | Task groups CRUD                                                       |
+| Prefix    | Description                                                                                                     |
+| --------- | --------------------------------------------------------------------------------------------------------------- |
+| `/`       | Application status                                                                                              |
+| `/health` | Health check (process only)                                                                                     |
+| `/auth`   | Registration, login, token refresh, email verification, password reset; `/auth/health` also checks the database |
+| `/users`  | Current user's avatar and language preference                                                                   |
+| `/todos`  | Tasks CRUD and reordering                                                                                       |
+| `/groups` | Task groups CRUD                                                                                                |
 
 All `/todos`, `/groups` and `/users` endpoints require an authenticated user with a verified email. The full, up-to-date list is in Swagger UI.
 
@@ -575,8 +575,9 @@ docker-compose up --build db
 #### Problem: Frontend not connecting to backend
 
 ```bash
-# Check if backend works
+# Check if backend works (/auth/health also checks the database)
 curl http://localhost:8000/health
+curl http://localhost:8000/auth/health
 
 # Check Docker network
 docker-compose exec frontend curl http://backend:8000/health

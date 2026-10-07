@@ -171,8 +171,61 @@ export class AuthService extends BaseService {
     }
 
     /**
+     * Health Check
+     * Health check that also exercises the database.  Lives under /auth because the reverse proxy routes that prefix to the backend, so the deploy smoke test can call it on the public URL. Loading a user row fails when the database is unreachable or the users table no longer matches the model.  Returns:     dict: {\&quot;status\&quot;: \&quot;healthy\&quot;}, or 503 when the database query fails.
+     * @endpoint get /auth/health
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public healthCheckAuthHealthGet(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
+    public healthCheckAuthHealthGet(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
+    public healthCheckAuthHealthGet(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public healthCheckAuthHealthGet(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/auth/health`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<any>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Login
-     * Login endpoint - accepts both form data and JSON.  Supports two formats: - **Form data**: &#x60;username&#x60; (email) and &#x60;password&#x60; fields (OAuth2 standard) - **JSON body**: &#x60;{\&quot;email\&quot;: \&quot;...\&quot;, \&quot;password\&quot;: \&quot;...\&quot;}&#x60; (frontend-friendly)  Args:     request: FastAPI request object.     db: Database session.  Returns:     Token: Access and refresh tokens.  Raises:     HTTPException: If credentials are invalid or user is inactive.
+     * Login endpoint - accepts both form data and JSON.  Supports two formats: - **Form data**: &#x60;username&#x60; (email) and &#x60;password&#x60; fields (OAuth2 standard) - **JSON body**: &#x60;{\&quot;email\&quot;: \&quot;...\&quot;, \&quot;password\&quot;: \&quot;...\&quot;}&#x60; (frontend-friendly)  The refresh token is returned as an HttpOnly cookie; the access token is returned in the response body.  Args:     request: FastAPI request object.     response: FastAPI response object (used to set the refresh cookie).     db: Database session.  Returns:     Token: Access token (refresh token is in Set-Cookie header).  Raises:     HTTPException: If credentials are invalid or user is inactive.
      * @endpoint post /auth/login
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

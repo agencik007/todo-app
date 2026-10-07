@@ -92,6 +92,26 @@
         }
       }
     },
+    "/auth/health": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Health Check",
+        "description": "Health check that also exercises the database.\n\nLives under /auth because the reverse proxy routes that prefix to the\nbackend, so the deploy smoke test can call it on the public URL. Loading\na user row fails when the database is unreachable or the users table no\nlonger matches the model.\n\nReturns:\n    dict: {\"status\": \"healthy\"}, or 503 when the database query fails.",
+        "operationId": "health_check_auth_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/me": {
       "get": {
         "tags": [

@@ -332,7 +332,8 @@
     "USER_AVATAR_DELETED": "Avatar deleted successfully",
     "USER_LANGUAGE_UPDATED": "Language updated successfully",
     "TODO_REORDER_SUCCESS": "Todo order updated successfully",
-    "TODO_INVALID_INDEX": "Invalid todo index"
+    "TODO_INVALID_INDEX": "Invalid todo index",
+    "HEALTH_DATABASE_UNAVAILABLE": "The database is unavailable. Please try again later."
   },
   "GROUPS": {
     "SIDEBAR": {
