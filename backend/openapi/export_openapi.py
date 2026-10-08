@@ -24,9 +24,34 @@ except ImportError as e:
     sys.exit(1)
 
 
+def restore_binary_format(node):
+    """
+    Turn file fields back into `format: binary`.
+
+    FastAPI emits OpenAPI 3.1 and describes UploadFile fields as
+    `contentMediaType: application/octet-stream`. The typescript-angular
+    generator types those as plain strings and drops the multipart FormData
+    handling, which breaks file uploads (e.g. the avatar). It still
+    understands the 3.0-style `format: binary`, so rewrite them in place.
+    """
+    if isinstance(node, dict):
+        if (
+            node.get("type") == "string"
+            and node.get("contentMediaType") == "application/octet-stream"
+        ):
+            del node["contentMediaType"]
+            node["format"] = "binary"
+        for value in node.values():
+            restore_binary_format(value)
+    elif isinstance(node, list):
+        for value in node:
+            restore_binary_format(value)
+
+
 def export_openapi():
     # Use the app's openapi method to get the schema
     openapi_schema = app.openapi()
+    restore_binary_format(openapi_schema)
 
     # Define the output path (in the same folder as this script)
     output_path = os.path.join(SCRIPT_DIR, "openapi.json")
