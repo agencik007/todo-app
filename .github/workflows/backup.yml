@@ -1,0 +1,111 @@
+name: Backup
+
+# Nightly off-server copy of the production database.
+#
+# Over SSH (same key and variables as deploy.yml) the server runs
+# `make backup-db STACK=prod`, which also keeps the dump in backups/ there. The
+# dump is streamed back, encrypted with age to BACKUP_AGE_RECIPIENT (a public
+# key; only its private half can decrypt) and stored as a workflow artifact for
+# 90 days. The repo is public and any signed-in GitHub user can download its
+# artifacts, so the plaintext never leaves the runner's pipe.
+#
+# Restore: README "Off-server backups".
+on:
+  schedule:
+    - cron: "23 2 * * *" # daily, 02:23 UTC
+  workflow_dispatch:
+
+# Own group: sharing deploy-production would let a queued backup cancel a
+# pending deploy.
+concurrency:
+  group: backup-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    name: Dump, encrypt and store
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SSH_TARGET: ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}
+      SSH_PORT: ${{ vars.SSH_PORT || '22' }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+      AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+
+    steps:
+      - name: Check configuration
+        env:
+          SSH_HOST: ${{ vars.SSH_HOST }}
+          SSH_USER: ${{ vars.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          missing=0
+          for name in DEPLOY_PATH SSH_HOST SSH_USER SSH_PRIVATE_KEY SSH_KNOWN_HOSTS AGE_RECIPIENT; do
+            if [ -z "${!name}" ]; then echo "::error::$name is not configured (README: Off-server backups)"; missing=1; fi
+          done
+          [[ -z "$AGE_RECIPIENT" || "$AGE_RECIPIENT" =~ ^age1[a-z0-9]+$ ]] \
+            || { echo "::error::BACKUP_AGE_RECIPIENT must be an age public key (age1...), never the private key"; missing=1; }
+          exit $missing
+
+      - name: Set up SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_deploy ~/.ssh/known_hosts
+
+      - name: Install age
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq age
+
+      - name: Dump the production database on the server
+        id: dump
+        run: |
+          set -o pipefail
+          remote() { ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o BatchMode=yes "$SSH_TARGET" "$@" </dev/null; }
+          dir=$(printf '%q' "$DEPLOY_PATH")
+          out=$(remote "cd $dir && make --no-print-directory backup-db STACK=prod" 2>&1) || { echo "$out"; exit 1; }
+          echo "$out"
+          file=$(printf '%s\n' "$out" | sed -n 's/^Database backup: //p' | tail -n 1)
+          [ -n "$file" ] || { echo "::error::make backup-db did not report a dump file"; exit 1; }
+          # pg_dump custom-format archives start with "PGDMP".
+          remote "cd $dir && test \"\$(head -c 5 $(printf '%q' "$file"))\" = PGDMP" \
+            || { echo "::error::$file is not a pg_dump archive"; exit 1; }
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$file").age" >> "$GITHUB_OUTPUT"
+          echo "label=db-backup-$(basename "$file" .dump)" >> "$GITHUB_OUTPUT"
+
+      - name: Download and encrypt
+        env:
+          FILE: ${{ steps.dump.outputs.file }}
+          NAME: ${{ steps.dump.outputs.name }}
+          LABEL: ${{ steps.dump.outputs.label }}
+        run: |
+          set -o pipefail
+          mkdir -p out
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o BatchMode=yes "$SSH_TARGET" \
+            "cd $(printf '%q' "$DEPLOY_PATH") && cat -- $(printf '%q' "$FILE")" </dev/null \
+            | age --encrypt --recipient "$AGE_RECIPIENT" --output "out/$NAME"
+          size=$(stat -c %s "out/$NAME")
+          [ "$size" -gt 200 ] || { echo "::error::encrypted backup is only $size bytes"; exit 1; }
+          {
+            echo "### Database backup"
+            echo "- Artifact: \`$LABEL\` → \`$NAME\` ($size bytes, age-encrypted)"
+            echo "- Also kept on the server as \`$FILE\` (newest 10)."
+            echo "- Restore: README → *Off-server backups*."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.dump.outputs.label }}
+          path: out/${{ steps.dump.outputs.name }}
+          if-no-files-found: error
+          retention-days: 90
+          # Encrypted data does not compress.
+          compression-level: 0
