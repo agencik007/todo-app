@@ -150,8 +150,8 @@ venv\Scripts\activate
 # Linux/Mac:
 # source venv/bin/activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies (runtime + pytest/ruff; production installs requirements.txt only)
+pip install -r requirements-dev.txt
 ```
 
 ### 3. Frontend - Angular
@@ -515,6 +515,7 @@ PgAdmin is a web tool for managing PostgreSQL:
 #### Dockerfile.backend
 
 - **Base**: Python 3.12 slim
+- **Stages**: `runtime` (final image, used by production, `make deploy` and the e2e stack) installs `requirements.txt` only; `dev` adds `requirements-dev.txt` (pytest, ruff, httpx) and is what `docker-compose.override.yml` builds (`target: dev`), so `make test-backend` keeps working in the dev container
 - **Server**: Uvicorn with 2 workers (production); `docker-compose.override.yml` switches it to `--reload` for development
 - **Security**: Non-root user
 - **Health checks**: Socket connection test
@@ -588,7 +589,7 @@ docker-compose exec frontend curl http://backend:8000/health
 
 1. **Run**: `make dev` once; afterwards the stopped containers can also be started from Docker Desktop (▶), which doesn't rebuild anything
 2. **Code**: Edit files locally — `backend/` and `frontend/` are bind-mounted, so uvicorn `--reload` restarts the API and `ng serve` rebuilds and refreshes the browser
-3. **Rebuild**: `make dev` again after changing dependencies (`requirements.txt`, `package.json`), `docker/*` or `docker/docker.env`
+3. **Rebuild**: `make dev` again after changing dependencies (`requirements.txt`, `requirements-dev.txt`, `package.json`), `docker/*` or `docker/docker.env`
 4. **Test**: Open http://localhost:4200 in the browser
 5. **Debug**: `make logs` for real-time logs
 
@@ -726,7 +727,8 @@ todo-app/
 │   ├── migrations/          # Alembic migrations
 │   ├── tests/               # Pytest suite
 │   ├── main.py              # Application entrypoint
-│   ├── requirements.txt     # Python dependencies
+│   ├── requirements.txt     # Python runtime dependencies (production image)
+│   ├── requirements-dev.txt # + pytest, ruff, httpx (CI, dev container)
 │   └── .env                 # Environment variables (non-Docker setup)
 ├── frontend/                # Angular frontend
 │   ├── src/

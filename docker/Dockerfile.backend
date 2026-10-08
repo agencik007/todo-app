@@ -1,5 +1,12 @@
 # Backend Dockerfile - FastAPI application
-FROM python:3.12-slim
+#
+# Stages:
+#   base    - system packages + runtime Python dependencies (requirements.txt).
+#   dev     - base + test/lint tools (requirements-dev.txt). docker-compose.override.yml
+#             targets it, so `make test-backend` can run pytest in the dev container.
+#   runtime - final image: base + application code, no test/lint tools.
+
+FROM python:3.12-slim AS base
 
 # Set working directory
 WORKDIR /app
@@ -14,12 +21,9 @@ RUN apt-get update && apt-get install -y \
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY backend/ .
-
-# Create non-root user for security
-RUN useradd --create-home --shell /bin/bash app && chown -R app:app /app
-USER app
+# Create non-root user for security. It owns /app because the app creates
+# uploadedFiles/ there at startup.
+RUN useradd --create-home --shell /bin/bash app && chown app:app /app
 
 # Expose port
 EXPOSE 8000
@@ -31,3 +35,18 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 # Run the application (production: no --reload, multiple workers).
 # Local dev overrides this command in docker-compose.override.yml to add --reload.
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+
+
+FROM base AS dev
+
+COPY backend/requirements-dev.txt .
+RUN pip install --no-cache-dir -r requirements-dev.txt
+
+COPY --chown=app:app backend/ .
+USER app
+
+
+FROM base AS runtime
+
+COPY --chown=app:app backend/ .
+USER app
