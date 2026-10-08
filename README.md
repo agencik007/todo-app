@@ -521,11 +521,12 @@ PgAdmin is a web tool for managing PostgreSQL:
 
 #### Dockerfile.frontend
 
-- **Base**: Node.js 22 Alpine
-- **Install**: `npm ci` (reproducible install from `package-lock.json`)
-- **Build**: Angular CLI production build with SSR. The `API_URL` build arg (from `API_URL` in the env file, default `http://localhost:8000`) sets the URL the browser calls the API at; rebuild the image after changing it
+Multi-stage build:
+
+- **`deps`**: Node.js 22 Alpine, `npm ci` (reproducible install from `package-lock.json`) and the source. `docker-compose.override.yml` builds only up to this stage (`target: deps`) and runs `ng serve` with hot-reload on top of it
+- **`build`**: Angular CLI production build with SSR and prerendering. The `API_URL` build arg (from `API_URL` in the env file, default `http://localhost:8000`) sets the URL the browser calls the API at; rebuild the image after changing it
+- **`runtime`** (final image, used by production, `make deploy` and the e2e stack): a fresh Node.js 22 Alpine with only the built `dist/` folder, running as the unprivileged `node` user. The SSR server bundle is self-contained, so no `node_modules` are shipped (about 250 MB instead of 1 GB)
 - **Server**: Angular SSR Node server (`dist/frontend/server/server.mjs`), which also sets the security headers and Content Security Policy (`frontend/src/server.ts`)
-- **Development**: `docker-compose.override.yml` runs `ng serve` with hot-reload instead
 
 #### docker-compose.yml
 
