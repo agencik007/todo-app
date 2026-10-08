@@ -678,7 +678,38 @@ make restore-db STACK=prod BACKUP=backups/prod-20260101T120000Z.dump
 # ...then start the app again: `make dev`, or redeploy the matching release in production
 ```
 
-`backups/` is ignored by git and by the Docker build context. The dumps stay on the same machine as the database, so they protect against a bad migration or deploy, not against losing the server — copy them elsewhere for that.
+`backups/` is ignored by git and by the Docker build context. These dumps stay on the same machine as the database, so they protect against a bad migration or deploy, not against losing the server — [Off-server backups](#off-server-backups) covers that.
+
+### Off-server backups
+
+`.github/workflows/backup.yml` runs every night (02:23 UTC) and on demand (Actions → Backup → _Run workflow_). Over SSH, with the same key and variables as the deploy, it runs `make backup-db STACK=prod` on the server (so the server also gets a daily dump in `backups/`), streams the dump back, encrypts it with [age](https://age-encryption.org) and stores it as a workflow artifact `db-backup-prod-<timestamp>` for 90 days (GitHub's maximum). The repository is public and any signed-in GitHub user can download its artifacts, so only the encrypted file is ever stored; it can be decrypted only with your private key.
+
+**One-time setup**
+
+1. Install age on your own machine (`winget install FiloSottile.age`, `brew install age` or `apt install age`) and generate a key pair:
+
+   ```bash
+   age-keygen -o todo-backup-key.txt   # prints "Public key: age1..."
+   ```
+
+   `todo-backup-key.txt` is the **private** key. Keep it out of the repository and off the server — e.g. in a password manager plus an offline copy. Without it the backups cannot be decrypted.
+
+2. In GitHub → Settings → Secrets and variables → Actions → **Variables**, add `BACKUP_AGE_RECIPIENT` = the public key (`age1...`). The workflow also reads `SSH_HOST`, `SSH_USER`, `SSH_PORT`, `DEPLOY_PATH` (variables) and `SSH_PRIVATE_KEY`, `SSH_KNOWN_HOSTS` (secrets) from [Continuous deployment](#continuous-deployment-github-actions); it has no environment, so those must be repository-level, not only in the `production` environment.
+3. Run it once by hand (Actions → Backup → _Run workflow_) and check the run summary lists the artifact.
+
+**Restoring from an off-server backup**
+
+```bash
+# 1. Download the artifact from the Backup run (Actions → Backup → run → Artifacts) and unzip it, then decrypt:
+age --decrypt --identity todo-backup-key.txt --output prod-20260101T022300Z.dump prod-20260101T022300Z.dump.age
+
+# 2. Copy the dump to the server and restore it there (see "Database Backup and Restore" above)
+scp prod-20260101T022300Z.dump <user>@<server>:<DEPLOY_PATH>/backups/
+ssh <user>@<server> 'cd <DEPLOY_PATH> && make restore-db STACK=prod BACKUP=backups/prod-20260101T022300Z.dump'
+# 3. Redeploy the matching release: Actions → Deploy → Run workflow
+```
+
+GitHub emails you when a scheduled run fails. It also pauses scheduled workflows in public repositories after 60 days without any repository activity; re-enable it in the Actions tab if that happens.
 
 ## 🗄️ Database Management (Alembic)
 
@@ -749,7 +780,7 @@ todo-app/
 │   └── ...
 ├── docker/                  # Dockerfiles, docker-compose files (incl. the e2e stack), docker.env.example
 ├── e2e/                     # Playwright end-to-end tests (fixtures/, pages/, tests/)
-├── .github/workflows/       # CI and CD (GitHub Actions)
+├── .github/workflows/       # CI, CD and nightly off-server DB backups (GitHub Actions)
 ├── .husky/                  # Git hooks: pre-commit (lint-staged), post-checkout (syncs the dev stack)
 ├── .dockerignore            # Keeps host node_modules out of image builds
 ├── Makefile                 # Entry point for all dev tasks
