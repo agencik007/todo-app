@@ -162,7 +162,7 @@ Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`.
 
 ### Testing
 
-- The full suite is 92 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
+- The full suite is 94 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
 - Tests never use the application database: `conftest.py` derives `<db>_test` from `DATABASE_URL` (created automatically if the DB user has permission), or uses `TEST_DATABASE_URL` if set.
 - An autouse fixture `db_cleanup` in `conftest.py` clears all data between tests.
 - **Rate limiting in tests:** rate limiting is enabled by default on sensitive endpoints (registration, login, verify email). Tests must run with `TESTING=1`, which `backend/tests/conftest.py` sets automatically via `os.environ["TESTING"] = "1"`.
@@ -186,6 +186,8 @@ npm run generate-api
 ```
 
 This produces TypeScript interfaces and enums in `frontend/src/libs/generated-api/`.
+
+`backend/openapi/export_openapi.py` rewrites file upload fields from FastAPI's OpenAPI 3.1 `contentMediaType` to `format: binary` before writing `openapi.json`; without it the generator types uploads as `string` and drops the multipart `FormData`. Commit the regenerated files as they come out, including deletions of models that are no longer generated.
 
 > **Exception to Docker-first:** this script can't run inside the containers — the frontend image (`node:22-alpine`) has no Python, no Java and no `backend/` directory. Run it on the host; it needs Python with `backend/requirements.txt` installed, a `backend/.env` (the app is imported to export the schema), and Java for `openapi-generator-cli`.
 

@@ -165,7 +165,7 @@ export class UsersService extends BaseService {
 
     /**
      * Upload Avatar
-     * Upload user avatar image.  Args:     file: Image file to upload.     current_user: Current authenticated user.     db: Database session.  Returns:     dict: URL of the uploaded avatar.  Raises:     HTTPException: If file is not an image or upload fails.
+     * Upload user avatar image.  Streams the upload to a temporary file in chunks, enforcing the size limit as it goes instead of buffering the whole file in memory first, then identifies the real image format from its magic bytes - the client-supplied Content-Type and filename are only used for the cheap early rejection, not for the final saved extension.  Args:     file: Image file to upload.     current_user: Current authenticated user.     db: Database session.  Returns:     dict: URL of the uploaded avatar.  Raises:     HTTPException: If the file isn\&#39;t a recognized image, is too large,         or the upload fails.
      * @endpoint post /users/me/avatar
      * @param file 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
