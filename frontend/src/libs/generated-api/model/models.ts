@@ -6,7 +6,6 @@ export * from './hTTPValidationError';
 export * from './locationInner';
 export * from './passwordReset';
 export * from './passwordResetRequest';
-export * from './refreshTokenRequest';
 export * from './todo';
 export * from './todoCreate';
 export * from './todoUpdate';
