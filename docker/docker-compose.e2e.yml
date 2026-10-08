@@ -65,6 +65,9 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.frontend
+    environment:
+      # Strict host check, as in production: SSR only for localhost, 400 otherwise.
+      NG_ALLOWED_HOSTS: localhost,127.0.0.1
     ports:
       - "4200:4200"
     depends_on:
