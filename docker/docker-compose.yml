@@ -97,6 +97,17 @@ services:
         API_URL: ${API_URL:-http://localhost:8000}
     container_name: todo-frontend
     restart: unless-stopped
+    environment:
+      # Hostnames the SSR server renders for (Angular rejects any other Host /
+      # X-Forwarded-Host with 400 once this is set). Empty = no check, but Angular
+      # then falls back to client-side rendering for every request and warns that
+      # this becomes a 400 in a future version. Production: the public domain plus
+      # localhost for the healthcheck, e.g. todo.example.com,localhost,127.0.0.1
+      - NG_ALLOWED_HOSTS=${NG_ALLOWED_HOSTS:-}
+      # X-Forwarded-* headers a reverse proxy may send. Any other X-Forwarded-*
+      # header (e.g. X-Forwarded-For from Caddy/nginx) makes SSR fall back to
+      # client-side rendering.
+      - NG_TRUST_PROXY_HEADERS=${NG_TRUST_PROXY_HEADERS:-x-forwarded-host,x-forwarded-proto,x-forwarded-for}
     ports:
       - "4200:4200"
     # Runs the image's default CMD (SSR server). docker-compose.override.yml
