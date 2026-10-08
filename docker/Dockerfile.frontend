@@ -1,24 +1,27 @@
-# Frontend Dockerfile - Angular application (Dev & Prod support)
+# Frontend Dockerfile - Angular SSR application
+#
+# Stages:
+#   deps    - node_modules + source. docker-compose.override.yml targets it for
+#             `ng serve` (dev), which bind-mounts the source over /app.
+#   build   - production build (SSR + prerender) with API_URL baked in.
+#   runtime - final image: only the built dist/ folder. The SSR server bundle is
+#             self-contained (no node_modules needed at runtime).
 
-FROM node:22-alpine
+FROM node:22-alpine AS deps
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY frontend/package*.json ./
-
 # Install exactly what package-lock.json pins - reproducible builds
+COPY frontend/package*.json ./
 RUN npm ci
 
-# Copy source code
 COPY frontend/ .
 
-# Expose port
 EXPOSE 4200
-
-# Set port environment variable
 ENV PORT=4200
+
+
+FROM deps AS build
 
 # URL the browser calls the API at, baked into the production bundle.
 # The default matches environment.prod.ts (local/e2e stack); set it to the public
@@ -27,7 +30,19 @@ ARG API_URL=http://localhost:8000
 RUN sed -i "s|apiUrl: '.*'|apiUrl: '${API_URL}'|" src/environments/environment.prod.ts \
   && grep -qF "apiUrl: '${API_URL}'" src/environments/environment.prod.ts
 
-# By default, run the build and start the SSR server
-# In development, this will be overridden by docker-compose
 RUN npm run build
+
+
+FROM node:22-alpine AS runtime
+
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=4200
+
+COPY --from=build --chown=node:node /app/dist ./dist
+
+# Run as the unprivileged user that ships with the node image.
+USER node
+
+EXPOSE 4200
 CMD ["node", "dist/frontend/server/server.mjs"]

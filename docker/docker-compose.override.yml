@@ -16,6 +16,10 @@ services:
       - /app/venv # Don't mount virtual environment
 
   frontend:
+    # Dev-only: stop at the stage that still has node_modules and the source
+    # (the final production stage ships only the built dist/ folder).
+    build:
+      target: deps
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
