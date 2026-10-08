@@ -1,6 +1,10 @@
 services:
   # Tutaj możesz dodać lokalne nadpisania konfiguracji, np. inne porty lub zmienne środowiskowe
   backend:
+    # Dev-only: the stage with pytest/ruff, so `make test-backend` works in this
+    # container (the production stage ships runtime dependencies only).
+    build:
+      target: dev
     environment:
       - DEBUG=True
       # Bind-mounted changes from a Windows/macOS host don't emit file events
