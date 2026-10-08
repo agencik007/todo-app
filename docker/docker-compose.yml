@@ -63,7 +63,9 @@ services:
       # Mark auth cookies Secure. Set to True when the app is served over HTTPS.
       - SECURE_COOKIES=${SECURE_COOKIES:-False}
     ports:
-      - "8000:8000"
+      # Loopback only, like db and pgAdmin: the reverse proxy on the host
+      # reaches it at 127.0.0.1:8000, nothing else should.
+      - "127.0.0.1:8000:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -109,7 +111,8 @@ services:
       # client-side rendering.
       - NG_TRUST_PROXY_HEADERS=${NG_TRUST_PROXY_HEADERS:-x-forwarded-host,x-forwarded-proto,x-forwarded-for}
     ports:
-      - "4200:4200"
+      # Loopback only: the reverse proxy on the host reaches it at 127.0.0.1:4200.
+      - "127.0.0.1:4200:4200"
     # Runs the image's default CMD (SSR server). docker-compose.override.yml
     # switches it to `ng serve` with a source bind-mount for development.
     depends_on:
@@ -131,8 +134,9 @@ services:
     container_name: todo-mailhog
     restart: unless-stopped
     ports:
-      - "1025:1025" # SMTP server
-      - "8025:8025" # Web UI
+      # Loopback only - the backend reaches MailHog over todo-network.
+      - "127.0.0.1:1025:1025" # SMTP server
+      - "127.0.0.1:8025:8025" # Web UI
     networks:
       - todo-network
     healthcheck:
