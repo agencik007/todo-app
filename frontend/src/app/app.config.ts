@@ -56,7 +56,9 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(TranslateModule.forRoot()),
     provideTranslateHttpLoader({
       prefix: './assets/i18n/',
-      suffix: '.json',
+      // The query string busts translations that browsers cached for a year
+      // before server.ts started sending `Cache-Control: no-cache` for them.
+      suffix: '.json?v=2',
     }),
     provideAppInitializer(initializeLanguage),
     provideAppInitializer(initializeApp),
