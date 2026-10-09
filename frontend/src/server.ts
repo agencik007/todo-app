@@ -21,7 +21,7 @@ app.disable('x-powered-by');
  * The CSP mirrors what the app actually needs:
  * - scripts only from our own origin (theme-init.js is external, no inline JS),
  * - styles need 'unsafe-inline' because Angular/PrimeNG inject <style> tags at
- *   runtime; Google Fonts serves the JetBrains Mono stylesheet,
+ *   runtime; fonts are self-hosted, so no third-party style/font origins,
  * - connect-src covers the backend API and the open-meteo weather API,
  * - avatars are rendered from blob: URLs created out of IndexedDB.
  *
@@ -39,8 +39,8 @@ const apiOrigin = ((): string => {
 const contentSecurityPolicy = [
   `default-src 'self'`,
   `script-src 'self'`,
-  `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
-  `font-src 'self' https://fonts.gstatic.com`,
+  `style-src 'self' 'unsafe-inline'`,
+  `font-src 'self'`,
   `img-src 'self' data: blob:`,
   `connect-src 'self' ${apiOrigin} https://api.open-meteo.com`.replace(
     /\s+/g,
