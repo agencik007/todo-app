@@ -606,7 +606,36 @@ The hook is installed by Husky: run `npm install` once in the project root (it s
 
 ### Production deployment
 
-When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200). `docker-compose.yml` publishes every port on `127.0.0.1` only (backend 8000, frontend 4200, MailHog 1025/8025, PostgreSQL 5433, pgAdmin 5050), so run the proxy on the host and point it at `127.0.0.1:8000` / `127.0.0.1:4200`; nothing is reachable from outside without it. In `docker/docker.prod.env` set `API_URL` to the site origin (e.g. `https://todo.example.com`), `SECURE_COOKIES=True`, `ALLOWED_HOSTS` and `CORS_ORIGINS`/`FRONTEND_URL` to the domain (for the native mobile apps also add `capacitor://localhost,https://localhost` to `CORS_ORIGINS`), and `FORWARDED_ALLOW_IPS` to the Docker network range so rate limiting sees real client IPs. Also set `NG_ALLOWED_HOSTS` to the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version. `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) lists the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
+When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200) — with one exception: `/todos` is also the Angular page, so a browser navigation to it (`Accept: text/html` — a refresh, a bookmark, a link) must go to the frontend, otherwise it gets the API's JSON (see the Caddyfile below). `docker-compose.yml` publishes every port on `127.0.0.1` only (backend 8000, frontend 4200, MailHog 1025/8025, PostgreSQL 5433, pgAdmin 5050), so run the proxy on the host and point it at `127.0.0.1:8000` / `127.0.0.1:4200`; nothing is reachable from outside without it. In `docker/docker.prod.env` set `API_URL` to the site origin (e.g. `https://todo.example.com`), `SECURE_COOKIES=True`, `ALLOWED_HOSTS` and `CORS_ORIGINS`/`FRONTEND_URL` to the domain (for the native mobile apps also add `capacitor://localhost,https://localhost` to `CORS_ORIGINS`), and `FORWARDED_ALLOW_IPS` to the Docker network range so rate limiting sees real client IPs. Also set `NG_ALLOWED_HOSTS` to the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version. `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) lists the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
+
+Caddy example (`/etc/caddy/Caddyfile`; Caddy obtains the TLS certificate itself):
+
+```caddy
+todo.example.com {
+	encode zstd gzip
+
+	# /todos is both an API route and the Angular page. Browser navigations
+	# (Accept: text/html) go to the frontend, API calls to the backend.
+	@todosPage {
+		path /todos
+		header Accept *text/html*
+	}
+	handle @todosPage {
+		reverse_proxy 127.0.0.1:4200
+	}
+
+	@api path /auth /auth/* /todos /todos/* /users /users/* /groups /groups/* /uploads /uploads/*
+	handle @api {
+		reverse_proxy 127.0.0.1:8000
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:4200
+	}
+}
+```
+
+The `handle` blocks are tried in this order and only the first match runs, so `@todosPage` must stay above `@api`. Angular's `HttpClient` sends `Accept: application/json, text/plain, */*`, so API calls never match it. After editing, check and apply the config with `caddy validate --config /etc/caddy/Caddyfile` and `sudo systemctl reload caddy`.
 
 ```bash
 # Production secrets live in docker/docker.prod.env (never committed)

@@ -69,17 +69,17 @@ Findings from the codebase that shape the plan:
 
 ## 3. Key decisions
 
-| #   | Decision                  | Recommendation                                                                                                                                             | Why                                                                                                                                                                                     |
-| --- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | Service worker technology | `@angular/service-worker` via `ng add @angular/pwa`                                                                                                        | First-party, aware of hashed build output, `SwUpdate` API, fail-safe via `ngsw.json` 404.                                                                                               |
-| D2  | Caching API responses     | **Never** in NGSW `dataGroups`; offline data in an app-owned IndexedDB store keyed by user id                                                              | NGSW caches by URL only — it ignores the `Authorization` header, so on a shared device user B could be served user A's `/todos` after logout. App-owned storage can be wiped on logout. |
-| D3  | Navigation fallback       | NGSW `index: "/index.csr.html"`; navigation URLs exclude backend-only paths                                                                                | Prerendered HTML is per-route; the CSR shell works for every route. Hydration is simply skipped when the SW serves the shell.                                                           |
-| D4  | Registration strategy     | `registerWhenStable:30000`                                                                                                                                 | Don't compete with first render; register at most 30 s after boot.                                                                                                                      |
-| D5  | Update UX                 | Prompt ("New version available — Reload"), never silent reload; force reload only on `unrecoverable`                                                       | Silent reloads lose unsaved form input.                                                                                                                                                 |
-| D6  | Fonts                     | Self-host JetBrains Mono (`@fontsource-variable/jetbrains-mono`)                                                                                           | Offline-capable, removes two CSP origins and a GDPR issue.                                                                                                                              |
-| D7  | `/todos` route conflict   | Short term: proxy routes navigations (`Sec-Fetch-Mode: navigate` / `Accept: text/html`) on `/todos` to the frontend. Long term: move the API under `/api`. | Short-term fix is a proxy-config change only; `/api` is a breaking API change for the Capacitor apps and deserves its own PR.                                                           |
-| D8  | Capacitor                 | SW disabled in native builds                                                                                                                               | Assets are bundled in the native app; `capacitor://` doesn't support service workers on iOS.                                                                                            |
-| D9  | Offline writes            | Out of scope until Phase 2 is used in practice                                                                                                             | Requires idempotent backend endpoints and a conflict policy (see Phase 3).                                                                                                              |
+| #   | Decision                  | Recommendation                                                                                                                | Why                                                                                                                                                                                     |
+| --- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Service worker technology | `@angular/service-worker` via `ng add @angular/pwa`                                                                           | First-party, aware of hashed build output, `SwUpdate` API, fail-safe via `ngsw.json` 404.                                                                                               |
+| D2  | Caching API responses     | **Never** in NGSW `dataGroups`; offline data in an app-owned IndexedDB store keyed by user id                                 | NGSW caches by URL only — it ignores the `Authorization` header, so on a shared device user B could be served user A's `/todos` after logout. App-owned storage can be wiped on logout. |
+| D3  | Navigation fallback       | NGSW `index: "/index.csr.html"`; navigation URLs exclude backend-only paths                                                   | Prerendered HTML is per-route; the CSR shell works for every route. Hydration is simply skipped when the SW serves the shell.                                                           |
+| D4  | Registration strategy     | `registerWhenStable:30000`                                                                                                    | Don't compete with first render; register at most 30 s after boot.                                                                                                                      |
+| D5  | Update UX                 | Prompt ("New version available — Reload"), never silent reload; force reload only on `unrecoverable`                          | Silent reloads lose unsaved form input.                                                                                                                                                 |
+| D6  | Fonts                     | Self-host JetBrains Mono (`@fontsource-variable/jetbrains-mono`)                                                              | Offline-capable, removes two CSP origins and a GDPR issue.                                                                                                                              |
+| D7  | `/todos` route conflict   | Short term: proxy routes navigations (`Accept: text/html`) on `/todos` to the frontend. Long term: move the API under `/api`. | Short-term fix is a proxy-config change only; `/api` is a breaking API change for the Capacitor apps and deserves its own PR.                                                           |
+| D8  | Capacitor                 | SW disabled in native builds                                                                                                  | Assets are bundled in the native app; `capacitor://` doesn't support service workers on iOS.                                                                                            |
+| D9  | Offline writes            | Out of scope until Phase 2 is used in practice                                                                                | Requires idempotent backend endpoints and a conflict policy (see Phase 3).                                                                                                              |
 
 ---
 
@@ -93,26 +93,9 @@ Service workers only run in a secure context (HTTPS, or `localhost`). Production
 
 ### 0.2 Fix hard navigations to `/todos`
 
-Today the proxy sends every `/todos*` request to FastAPI. Change the proxy rule so that **navigation** requests on `/todos` go to the frontend and only API calls go to the backend. Caddy example (document it in README "Production deployment"):
+**Done** — the routing rule and a Caddyfile example are in README "Production deployment"; the deploy smoke test checks that `GET <PUBLIC_URL>/todos` with `Accept: text/html` returns HTML.
 
-```caddy
-@todosPage {
-  path /todos
-  header Sec-Fetch-Mode navigate
-}
-handle @todosPage {
-  reverse_proxy 127.0.0.1:4200
-}
-@api path /auth /auth/* /todos /todos/* /users /users/* /groups /groups/* /uploads /uploads/*
-handle @api {
-  reverse_proxy 127.0.0.1:8000
-}
-handle {
-  reverse_proxy 127.0.0.1:4200
-}
-```
-
-Add a smoke check to `.github/workflows/deploy.yml` next to the existing `GET <PUBLIC_URL>/login`: `GET <PUBLIC_URL>/todos` with `Sec-Fetch-Mode: navigate` must return `text/html`.
+The proxy used to send every `/todos*` request to FastAPI. Now browser navigations to `/todos` (matched on `Accept: text/html`) go to the frontend and API calls go to the backend. `Accept` is used rather than `Sec-Fetch-Mode: navigate` because every browser sends it on navigations (Safari only sends `Sec-Fetch-*` since 16.4), while Angular's `HttpClient` sends `application/json, text/plain, */*`.
 
 Open a follow-up issue for the long-term fix (API under `/api`), see [Open questions](#15-open-questions).
 
