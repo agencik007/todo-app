@@ -534,7 +534,7 @@ Multi-stage build:
 - **Network**: Isolated todo-network
 - **Volumes**: Persistent PostgreSQL data
 - **Health checks**: Service dependencies
-- **Ports**: Port mapping host:container
+- **Ports**: Port mapping host:container, all bound to `127.0.0.1` (reachable from the machine itself, not from the network)
 - **Images**: backend and frontend are tagged `${BACKEND_IMAGE:-todo-backend}:${IMAGE_TAG:-local}` / `${FRONTEND_IMAGE:-todo-frontend}:${IMAGE_TAG:-local}`; local builds use the defaults, `make deploy` points them at the GHCR images
 
 ### Troubleshooting Docker
@@ -547,7 +547,7 @@ netstat -ano | findstr :4200
 
 # Change port in docker-compose.yml
 ports:
-  - "3000:4200"  # Use 3000 instead of 4200
+  - "127.0.0.1:3000:4200"  # Use 3000 instead of 4200
 ```
 
 #### Problem: Container keeps stopping
@@ -605,7 +605,7 @@ The hook is installed by Husky: run `npm install` once in the project root (it s
 
 ### Production deployment
 
-When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200). In `docker/docker.prod.env` set `API_URL` to the site origin (e.g. `https://todo.example.com`), `SECURE_COOKIES=True`, `ALLOWED_HOSTS` and `CORS_ORIGINS`/`FRONTEND_URL` to the domain, and `FORWARDED_ALLOW_IPS` to the Docker network range so rate limiting sees real client IPs. Also set `NG_ALLOWED_HOSTS` to the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version. `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) lists the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
+When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200). `docker-compose.yml` publishes every port on `127.0.0.1` only (backend 8000, frontend 4200, MailHog 1025/8025, PostgreSQL 5433, pgAdmin 5050), so run the proxy on the host and point it at `127.0.0.1:8000` / `127.0.0.1:4200`; nothing is reachable from outside without it. In `docker/docker.prod.env` set `API_URL` to the site origin (e.g. `https://todo.example.com`), `SECURE_COOKIES=True`, `ALLOWED_HOSTS` and `CORS_ORIGINS`/`FRONTEND_URL` to the domain, and `FORWARDED_ALLOW_IPS` to the Docker network range so rate limiting sees real client IPs. Also set `NG_ALLOWED_HOSTS` to the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version. `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) lists the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
 
 ```bash
 # Production secrets live in docker/docker.prod.env (never committed)
