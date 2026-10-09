@@ -613,6 +613,8 @@ Caddy example (`/etc/caddy/Caddyfile`; Caddy obtains the TLS certificate itself)
 ```caddy
 todo.example.com {
 	encode zstd gzip
+	# HSTS belongs here, at the TLS-terminating proxy (the SSR server doesn't set it).
+	header Strict-Transport-Security "max-age=31536000"
 
 	# /todos is both an API route and the Angular page. Browser navigations
 	# (Accept: text/html) go to the frontend, API calls to the backend.
@@ -624,7 +626,7 @@ todo.example.com {
 		reverse_proxy 127.0.0.1:4200
 	}
 
-	@api path /auth /auth/* /todos /todos/* /users /users/* /groups /groups/* /uploads /uploads/*
+	@api path /auth /auth/* /todos /todos/* /users /users/* /groups /groups/* /uploads/*
 	handle @api {
 		reverse_proxy 127.0.0.1:8000
 	}
