@@ -117,7 +117,7 @@ backend/
   tests/         # pytest; conftest.py sets TESTING=1
 frontend/src/app/
   core/          # guards, interceptors, services, tokens, stores (AuthStore)
-  features/      # auth/, groups/, todos/ (each with components/, store/)
+  features/      # auth/, groups/, todos/ (each with components/, store/), legal/ (privacy policy)
   shared/        # components, global-styling, pipes
   layout/
 docker/          # Dockerfiles and docker-compose configurations (docker-compose.e2e.yml = e2e stack)
@@ -162,7 +162,7 @@ Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`.
 
 ### Testing
 
-- The full suite is 94 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
+- The full suite is 98 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
 - Test and lint tools (pytest, pytest-asyncio, pytest-cov, httpx, ruff) live in `backend/requirements-dev.txt`, not `requirements.txt`: the production image installs runtime dependencies only, the dev container (`target: dev`) and CI install both.
 - Tests never use the application database: `conftest.py` derives `<db>_test` from `DATABASE_URL` (created automatically if the DB user has permission), or uses `TEST_DATABASE_URL` if set.
 - An autouse fixture `db_cleanup` in `conftest.py` clears all data between tests.

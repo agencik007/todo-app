@@ -122,6 +122,17 @@
                 </button>
               }
 
+              <button
+                class="action-card action-card--delete"
+                (click)="onOpenDeleteAccount()"
+              >
+                <span class="action-icon action-icon--red">
+                  <i class="pi pi-user-minus"></i>
+                </span>
+                <span class="action-label">{{ 'NAV.DELETE_ACCOUNT.MENU' | translate }}</span>
+                <i class="pi pi-chevron-right action-arrow"></i>
+              </button>
+
               <div class="actions-divider"></div>
 
               <button
@@ -190,6 +201,14 @@
               <span class="setting-label">{{ 'NAV.LANGUAGE' | translate }}</span>
               <app-language-selector></app-language-selector>
             </div>
+            <a
+              routerLink="/privacy"
+              class="setting-row setting-row--link"
+              (click)="isMenuOpen.set(false)"
+            >
+              <span class="setting-label">{{ 'NAV.PRIVACY' | translate }}</span>
+              <i class="pi pi-chevron-right"></i>
+            </a>
           </div>
         </div>
       </div>
@@ -221,6 +240,8 @@
       }
     </div>
   </p-dialog>
+
+  <app-delete-account-dialog [(visible)]="isDeleteAccountVisible" />
 
   <input
     type="file"

@@ -14,7 +14,16 @@
     "LANGUAGE": "Language",
     "GUEST": "Guest",
     "WELCOME": "Welcome!",
-    "SETTINGS": "Settings"
+    "SETTINGS": "Settings",
+    "DELETE_ACCOUNT": {
+      "MENU": "Delete account",
+      "TITLE": "Delete account",
+      "WARNING": "This permanently deletes your account, all your tasks, groups and your avatar. This cannot be undone.",
+      "PASSWORD_LABEL": "Confirm with your password",
+      "CANCEL": "Cancel",
+      "CONFIRM": "Delete permanently"
+    },
+    "PRIVACY": "Privacy policy"
   },
   "LANGUAGE": {
     "SELECT": "Language",
@@ -333,7 +342,9 @@
     "USER_LANGUAGE_UPDATED": "Language updated successfully",
     "TODO_REORDER_SUCCESS": "Todo order updated successfully",
     "TODO_INVALID_INDEX": "Invalid todo index",
-    "HEALTH_DATABASE_UNAVAILABLE": "The database is unavailable. Please try again later."
+    "HEALTH_DATABASE_UNAVAILABLE": "The database is unavailable. Please try again later.",
+    "USER_ACCOUNT_DELETED": "Your account has been deleted",
+    "USER_INVALID_PASSWORD": "Incorrect password"
   },
   "GROUPS": {
     "SIDEBAR": {
@@ -391,5 +402,36 @@
       "school": "School Theme",
       "modern": "Glassmorph"
     }
+  },
+  "PRIVACY": {
+    "TITLE": "Privacy policy",
+    "UPDATED": "Last updated: 2 October 2026",
+    "BACK": "Back",
+    "SECTIONS": [
+      {
+        "TITLE": "What we collect",
+        "BODY": "When you create an account we store your email address and a securely hashed password (never the password itself). We also store the content you create: tasks, groups, your interface language and, if you upload one, your avatar image."
+      },
+      {
+        "TITLE": "Why we use it",
+        "BODY": "Your data is used only to provide the app: signing you in, syncing your tasks between devices and sending account emails (address verification and password reset). We do not sell your data, show ads or use it for profiling."
+      },
+      {
+        "TITLE": "Cookies and local storage",
+        "BODY": "We use one essential, HttpOnly cookie to keep you signed in. Your device also stores interface preferences (theme, colours, background, language) and a cached copy of your avatar. No tracking or advertising cookies are used."
+      },
+      {
+        "TITLE": "Location and weather",
+        "BODY": "The weather widget asks for your location only with your permission. Coordinates are sent directly from your device to Open-Meteo (open-meteo.com) to fetch the forecast and are not stored by us."
+      },
+      {
+        "TITLE": "Retention and deletion",
+        "BODY": "We keep your data for as long as your account exists. You can delete your account at any time from the account menu (Delete account); this immediately and permanently removes your account, tasks, groups and avatar."
+      },
+      {
+        "TITLE": "Your rights",
+        "BODY": "You have the right to access, correct, export and delete your data, and to lodge a complaint with your data protection authority. To exercise these rights, contact the app operator using the contact details given in the app store listing."
+      }
+    ]
   }
 }

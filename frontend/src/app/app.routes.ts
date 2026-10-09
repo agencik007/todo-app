@@ -52,6 +52,11 @@ export const routes: Routes = [
       import('./features/auth/components/verify-email/verify-email').then((m) => m.VerifyEmailComponent),
   },
   {
+    path: 'privacy',
+    loadComponent: () =>
+      import('./features/legal/components/privacy-policy/privacy-policy').then((m) => m.PrivacyPolicyComponent),
+  },
+  {
     path: 'todos',
     loadComponent: () => import('./features/todos/components/todo-list/todo-list').then((m) => m.TodoListComponent),
     canActivate: [authGuard],

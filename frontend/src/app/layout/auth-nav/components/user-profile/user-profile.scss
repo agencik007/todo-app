@@ -499,6 +499,12 @@
   }
 }
 
+.setting-row--link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
 .setting-label {
   font-size: var(--app-text-sm);
   font-weight: var(--app-font-medium);

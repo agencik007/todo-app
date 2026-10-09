@@ -11,6 +11,7 @@ export * from './todoCreate';
 export * from './todoUpdate';
 export * from './token';
 export * from './userCreate';
+export * from './userDeleteConfirm';
 export * from './userLanguageUpdate';
 export * from './userResponse';
 export * from './validationError';

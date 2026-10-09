@@ -12,7 +12,7 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Angular 21 Frontend** - Signals, Control Flow, Standalone Components, SSR
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
-- ✅ **Backend Tests** - 94 unit and integration tests with coverage (min. 80% enforced)
+- ✅ **Backend Tests** - 98 unit and integration tests with coverage (min. 80% enforced)
 - ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, tasks)
 - ✅ **CI** - GitHub Actions runs lint, tests, builds and E2E tests on every push and pull request
 - ✅ **Simple Local Setup** - Single database for development and local testing
@@ -83,7 +83,8 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 
 - ✅ Create, edit, complete and delete tasks; drag & drop reordering
 - ✅ Groups for organizing tasks
-- ✅ User accounts: registration, email verification, password reset, avatar
+- ✅ User accounts: registration, email verification, password reset, avatar, self-service account deletion
+- ✅ Public privacy policy page (`/privacy`, English and Polish)
 - ✅ Security: password strength validation, refresh token rotation with reuse detection, rate limiting, CSP and security headers
 - ✅ Polish / English UI (ngx-translate), light / dark mode and color themes
 - ✅ Responsive design
@@ -288,7 +289,7 @@ After running the backend with `DEBUG=True`, API documentation is available at:
 | `/`       | Application status                                                                                              |
 | `/health` | Health check (process only)                                                                                     |
 | `/auth`   | Registration, login, token refresh, email verification, password reset; `/auth/health` also checks the database |
-| `/users`  | Current user's avatar and language preference                                                                   |
+| `/users`  | Current user's avatar, language preference and account deletion                                                 |
 | `/todos`  | Tasks CRUD and reordering                                                                                       |
 | `/groups` | Task groups CRUD                                                                                                |
 
@@ -300,7 +301,7 @@ All `/todos`, `/groups` and `/users` endpoints require an authenticated user wit
 
 ### Backend - Tests (Pytest)
 
-The application has a comprehensive suite of tests (currently **89**), including API tests for Todo, Auth, and Groups. `pytest.ini` always measures coverage and fails the run below **80%**.
+The application has a comprehensive suite of tests (currently **98**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
 
 ```bash
 # In Docker (dev stack running)
@@ -605,7 +606,7 @@ The hook is installed by Husky: run `npm install` once in the project root (it s
 
 ### Production deployment
 
-When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200). `docker-compose.yml` publishes every port on `127.0.0.1` only (backend 8000, frontend 4200, MailHog 1025/8025, PostgreSQL 5433, pgAdmin 5050), so run the proxy on the host and point it at `127.0.0.1:8000` / `127.0.0.1:4200`; nothing is reachable from outside without it. In `docker/docker.prod.env` set `API_URL` to the site origin (e.g. `https://todo.example.com`), `SECURE_COOKIES=True`, `ALLOWED_HOSTS` and `CORS_ORIGINS`/`FRONTEND_URL` to the domain, and `FORWARDED_ALLOW_IPS` to the Docker network range so rate limiting sees real client IPs. Also set `NG_ALLOWED_HOSTS` to the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version. `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) lists the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
+When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200). `docker-compose.yml` publishes every port on `127.0.0.1` only (backend 8000, frontend 4200, MailHog 1025/8025, PostgreSQL 5433, pgAdmin 5050), so run the proxy on the host and point it at `127.0.0.1:8000` / `127.0.0.1:4200`; nothing is reachable from outside without it. In `docker/docker.prod.env` set `API_URL` to the site origin (e.g. `https://todo.example.com`), `SECURE_COOKIES=True`, `ALLOWED_HOSTS` and `CORS_ORIGINS`/`FRONTEND_URL` to the domain (for the native mobile apps also add `capacitor://localhost,https://localhost` to `CORS_ORIGINS`), and `FORWARDED_ALLOW_IPS` to the Docker network range so rate limiting sees real client IPs. Also set `NG_ALLOWED_HOSTS` to the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version. `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) lists the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
 
 ```bash
 # Production secrets live in docker/docker.prod.env (never committed)
@@ -765,7 +766,7 @@ todo-app/
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── core/        # Guards, interceptors, services, stores (AuthStore)
-│   │   │   ├── features/    # auth/, groups/, todos/ (each with components/, store/)
+│   │   │   ├── features/    # auth/, groups/, todos/ (each with components/, store/), legal/ (privacy policy)
 │   │   │   ├── shared/
 │   │   │   │   ├── ui/              # Design system primitives (badge, empty-state, form-field, icon-button)
 │   │   │   │   ├── global-styling/  # SCSS partials, incl. _tokens.scss (design tokens)

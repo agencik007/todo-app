@@ -37,3 +37,19 @@ export class RegisterPage {
     await this.page.getByRole('button', { name: 'Register', exact: true }).click();
   }
 }
+
+export class UserMenu {
+  constructor(readonly page: Page) {}
+
+  async open(email: string): Promise<void> {
+    await this.page.getByRole('button', { name: email }).click();
+  }
+
+  async deleteAccount({ email, password }: TestUser): Promise<void> {
+    await this.open(email);
+    await this.page.getByRole('button', { name: 'Delete account' }).click();
+    const dialog = this.page.getByRole('dialog', { name: 'Delete account' });
+    await dialog.getByLabel('Confirm with your password').fill(password);
+    await dialog.getByRole('button', { name: 'Delete permanently' }).click();
+  }
+}
