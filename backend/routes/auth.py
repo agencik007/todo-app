@@ -49,7 +49,14 @@ limiter = Limiter(key_func=get_remote_address, enabled=not IS_TESTING)
 # Constants
 PASSWORD_RESET_EXPIRY_HOURS = 1
 REFRESH_COOKIE_NAME = "refresh_token"
-REFRESH_COOKIE_PATH = "/auth/refresh"
+# Scoped to /auth so the browser sends it to both /auth/refresh and
+# /auth/logout (logout must see it to revoke the token server-side), but not
+# to the rest of the API.
+REFRESH_COOKIE_PATH = "/auth"
+# Path the cookie used to be set on. Sessions started before the change still
+# hold a cookie there; it is cleared whenever the cookie is set or cleared.
+# Safe to drop once REFRESH_TOKEN_MAX_AGE has passed since the deploy.
+LEGACY_REFRESH_COOKIE_PATH = "/auth/refresh"
 REFRESH_TOKEN_MAX_AGE = 86400  # 24h in seconds
 # Set Secure=True in production (HTTPS). On dev HTTP localhost keep False.
 SECURE_COOKIES = os.getenv("SECURE_COOKIES", "False").lower() == "true"
@@ -72,6 +79,7 @@ def _issue_refresh_token(db: Session, user: User) -> str:
 
 def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
     """Set the HttpOnly refresh token cookie on the response."""
+    _delete_refresh_cookie(response, LEGACY_REFRESH_COOKIE_PATH)
     response.set_cookie(
         key=REFRESH_COOKIE_NAME,
         value=refresh_token,
@@ -83,15 +91,21 @@ def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
     )
 
 
-def _clear_refresh_cookie(response: Response) -> None:
-    """Clear the refresh token cookie (logout / invalid token)."""
+def _delete_refresh_cookie(response: Response, path: str) -> None:
+    """Expire the refresh token cookie set on the given path."""
     response.delete_cookie(
         key=REFRESH_COOKIE_NAME,
-        path=REFRESH_COOKIE_PATH,
+        path=path,
         httponly=True,
         secure=SECURE_COOKIES,
         samesite="strict",
     )
+
+
+def _clear_refresh_cookie(response: Response) -> None:
+    """Clear the refresh token cookie (logout / invalid token)."""
+    _delete_refresh_cookie(response, REFRESH_COOKIE_PATH)
+    _delete_refresh_cookie(response, LEGACY_REFRESH_COOKIE_PATH)
 
 
 @router.post(

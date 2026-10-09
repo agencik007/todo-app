@@ -163,7 +163,7 @@ Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`.
 
 ### Testing
 
-- The full suite is 98 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
+- The full suite is 100 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
 - Test and lint tools (pytest, pytest-asyncio, pytest-cov, httpx, ruff) live in `backend/requirements-dev.txt`, not `requirements.txt`: the production image installs runtime dependencies only, the dev container (`target: dev`) and CI install both.
 - Tests never use the application database: `conftest.py` derives `<db>_test` from `DATABASE_URL` (created automatically if the DB user has permission), or uses `TEST_DATABASE_URL` if set.
 - An autouse fixture `db_cleanup` in `conftest.py` clears all data between tests.

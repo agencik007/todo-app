@@ -223,7 +223,7 @@ class TestAuthAPI:
 
     def test_refresh_token_invalid(self, client: TestClient):
         """Test POST /auth/refresh with invalid token cookie."""
-        client.cookies.set(REFRESH_COOKIE_NAME, "invalid_token", path="/auth/refresh")
+        client.cookies.set(REFRESH_COOKIE_NAME, "invalid_token", path="/auth")
         response = client.post("/auth/refresh")
 
         assert response.status_code == 401
@@ -244,18 +244,18 @@ class TestAuthAPI:
         )
         old_token = login_response.cookies[REFRESH_COOKIE_NAME]
 
-        client.cookies.set(REFRESH_COOKIE_NAME, old_token, path="/auth/refresh")
+        client.cookies.set(REFRESH_COOKIE_NAME, old_token, path="/auth")
         rotate_response = client.post("/auth/refresh")
         assert rotate_response.status_code == 200
         new_token = rotate_response.cookies[REFRESH_COOKIE_NAME]
 
         # Replaying the old (already-rotated-away) token is rejected.
-        client.cookies.set(REFRESH_COOKIE_NAME, old_token, path="/auth/refresh")
+        client.cookies.set(REFRESH_COOKIE_NAME, old_token, path="/auth")
         reuse_response = client.post("/auth/refresh")
         assert reuse_response.status_code == 401
 
         # The legitimate, never-yet-used token is now revoked too.
-        client.cookies.set(REFRESH_COOKIE_NAME, new_token, path="/auth/refresh")
+        client.cookies.set(REFRESH_COOKIE_NAME, new_token, path="/auth")
         followup_response = client.post("/auth/refresh")
         assert followup_response.status_code == 401
 
@@ -270,8 +270,8 @@ class TestAuthAPI:
         refresh_token = login_response.cookies[REFRESH_COOKIE_NAME]
         access_token = login_response.json()["accessToken"]
 
-        # Cookie path is /auth/refresh, so the jar would not send it to /auth/logout.
-        client.cookies.set(REFRESH_COOKIE_NAME, refresh_token, path="/auth/logout")
+        # No manual cookie handling: the jar sends the login cookie to
+        # /auth/logout exactly like a browser would.
         logout_response = client.post(
             "/auth/logout",
             headers={"Authorization": f"Bearer {access_token}"},
@@ -280,9 +280,38 @@ class TestAuthAPI:
 
         # The refresh token is now revoked server-side - replaying the raw
         # cookie value (as a thief with a copy of it would) must fail.
-        client.cookies.set(REFRESH_COOKIE_NAME, refresh_token, path="/auth/refresh")
+        client.cookies.set(REFRESH_COOKIE_NAME, refresh_token, path="/auth")
         response = client.post("/auth/refresh")
         assert response.status_code == 401
+
+    def test_refresh_cookie_is_scoped_to_auth(self, client: TestClient, test_user):
+        """The refresh cookie covers /auth (refresh + logout), not the whole API."""
+        response = client.post(
+            "/auth/login",
+            data={"username": test_user.email, "password": "testpassword123"},
+        )
+
+        set_cookies = response.headers.get_list("set-cookie")
+        current = [c for c in set_cookies if "max-age=0" not in c.lower()]
+        assert len(current) == 1
+        assert "path=/auth;" in current[0].lower()
+
+    def test_refresh_migrates_legacy_cookie_path(self, client: TestClient, test_user):
+        """A cookie from before the path change still refreshes and is replaced."""
+        login_response = client.post(
+            "/auth/login",
+            data={"username": test_user.email, "password": "testpassword123"},
+        )
+        refresh_token = login_response.cookies[REFRESH_COOKIE_NAME]
+        client.cookies.clear()
+        client.cookies.set(REFRESH_COOKIE_NAME, refresh_token, path="/auth/refresh")
+
+        response = client.post("/auth/refresh")
+
+        assert response.status_code == 200
+        set_cookies = [c.lower() for c in response.headers.get_list("set-cookie")]
+        assert any("path=/auth/refresh" in c and "max-age=0" in c for c in set_cookies)
+        assert any("path=/auth;" in c and "max-age=0" not in c for c in set_cookies)
 
     def test_access_token_with_non_numeric_sub_is_rejected(self, client: TestClient):
         """A validly signed token whose 'sub' is not a user id gets 401, not a DB error."""
