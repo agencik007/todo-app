@@ -169,18 +169,22 @@ jobs:
               'IFS= read -r GHCR_TOKEN && export GHCR_TOKEN && script=$(cat) && exec bash -c "$script" </dev/null'
           EOF
 
-          # `smoke-test` checks the site from outside: the login page (frontend) and
-          # /auth/health (backend + database, routed by the reverse proxy like the API).
+          # `smoke-test` checks the site from outside: the login page (frontend),
+          # /auth/health (backend + database, routed by the reverse proxy like the API)
+          # and a browser navigation to /todos, which is both an API route and the
+          # Angular page - the reverse proxy must send it to the frontend (HTML).
           cat > "$RUNNER_TEMP/smoke-test" <<'EOF'
           #!/bin/bash
           for i in $(seq 1 10); do
             if curl -fsSL -o /dev/null "$PUBLIC_URL/login" \
-              && curl -fsS -o /dev/null "$PUBLIC_URL/auth/health"; then
+              && curl -fsS -o /dev/null "$PUBLIC_URL/auth/health" \
+              && curl -fsS -o /dev/null -w '%{content_type}' -H 'Accept: text/html' "$PUBLIC_URL/todos" \
+                | grep -q '^text/html'; then
               echo "$PUBLIC_URL is up"; exit 0
             fi
             sleep 6
           done
-          echo "::error::$PUBLIC_URL/login or $PUBLIC_URL/auth/health did not respond with 2xx"
+          echo "::error::$PUBLIC_URL/login or $PUBLIC_URL/auth/health did not respond with 2xx, or $PUBLIC_URL/todos did not return HTML"
           exit 1
           EOF
           chmod +x "$RUNNER_TEMP/remote" "$RUNNER_TEMP/smoke-test"
