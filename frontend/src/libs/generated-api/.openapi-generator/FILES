@@ -26,6 +26,7 @@ model/todoCreate.ts
 model/todoUpdate.ts
 model/token.ts
 model/userCreate.ts
+model/userDeleteConfirm.ts
 model/userLanguageUpdate.ts
 model/userResponse.ts
 model/validationError.ts

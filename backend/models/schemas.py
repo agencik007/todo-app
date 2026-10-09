@@ -148,6 +148,12 @@ class UserLanguageUpdate(CamelBaseModel):
     language: str = Field(..., pattern="^(en|pl)$")
 
 
+class UserDeleteConfirm(CamelBaseModel):
+    """Schema for confirming account deletion with the current password."""
+
+    password: str = Field(..., min_length=1)
+
+
 # =============================================================================
 # Authentication Schemas
 # =============================================================================

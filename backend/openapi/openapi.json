@@ -761,6 +761,51 @@
         ]
       }
     },
+    "/users/me": {
+      "delete": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Delete Account",
+        "description": "Permanently delete the current user's account.\n\nRequires the current password. Removes the user's todos, groups and\nrefresh tokens (via cascade), their uploaded files, and clears the\nrefresh cookie.\n\nArgs:\n    confirm: The user's current password.\n    response: FastAPI response object (used to clear the refresh cookie).\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    dict: Success message.\n\nRaises:\n    HTTPException: If the password is wrong.",
+        "operationId": "delete_account_users_me_delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDeleteConfirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/groups": {
       "get": {
         "tags": [
@@ -1458,6 +1503,21 @@
         ],
         "title": "UserCreate",
         "description": "Schema for user registration."
+      },
+      "UserDeleteConfirm": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "UserDeleteConfirm",
+        "description": "Schema for confirming account deletion with the current password."
       },
       "UserLanguageUpdate": {
         "properties": {
