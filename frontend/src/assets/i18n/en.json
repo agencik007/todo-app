@@ -14,7 +14,15 @@
     "LANGUAGE": "Language",
     "GUEST": "Guest",
     "WELCOME": "Welcome!",
-    "SETTINGS": "Settings"
+    "SETTINGS": "Settings",
+    "DELETE_ACCOUNT": {
+      "MENU": "Delete account",
+      "TITLE": "Delete account",
+      "WARNING": "This permanently deletes your account, all your tasks, groups and your avatar. This cannot be undone.",
+      "PASSWORD_LABEL": "Confirm with your password",
+      "CANCEL": "Cancel",
+      "CONFIRM": "Delete permanently"
+    }
   },
   "LANGUAGE": {
     "SELECT": "Language",
@@ -333,7 +341,9 @@
     "USER_LANGUAGE_UPDATED": "Language updated successfully",
     "TODO_REORDER_SUCCESS": "Todo order updated successfully",
     "TODO_INVALID_INDEX": "Invalid todo index",
-    "HEALTH_DATABASE_UNAVAILABLE": "The database is unavailable. Please try again later."
+    "HEALTH_DATABASE_UNAVAILABLE": "The database is unavailable. Please try again later.",
+    "USER_ACCOUNT_DELETED": "Your account has been deleted",
+    "USER_INVALID_PASSWORD": "Incorrect password"
   },
   "GROUPS": {
     "SIDEBAR": {

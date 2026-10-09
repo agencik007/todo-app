@@ -119,6 +119,16 @@ export class AuthService {
     );
   }
 
+  deleteAccount(password: string): Observable<{ message: string }> {
+    return this.apiUsersService.deleteAccountUsersMeDelete({ password }).pipe(
+      tap(() => {
+        this.clearTokens();
+        this.indexedDbService.deleteAvatar();
+      }),
+      catchError(this.handleError),
+    );
+  }
+
   logout(): Observable<unknown> {
     // withCredentials: true so the browser sends the refresh cookie and
     // the backend can clear it via Set-Cookie: Max-Age=0.

@@ -14,7 +14,15 @@
     "LANGUAGE": "Język",
     "GUEST": "Gość",
     "WELCOME": "Witaj!",
-    "SETTINGS": "Ustawienia"
+    "SETTINGS": "Ustawienia",
+    "DELETE_ACCOUNT": {
+      "MENU": "Usuń konto",
+      "TITLE": "Usuń konto",
+      "WARNING": "To trwale usunie Twoje konto, wszystkie zadania, grupy i avatar. Tej operacji nie można cofnąć.",
+      "PASSWORD_LABEL": "Potwierdź hasłem",
+      "CANCEL": "Anuluj",
+      "CONFIRM": "Usuń na zawsze"
+    }
   },
   "LANGUAGE": {
     "SELECT": "Język",
@@ -333,7 +341,9 @@
     "USER_LANGUAGE_UPDATED": "Preferencje językowe zostały zaktualizowane",
     "TODO_REORDER_SUCCESS": "Kolejność zadania zaktualizowana pomyślnie",
     "TODO_INVALID_INDEX": "Nieprawidłowy indeks zadania",
-    "HEALTH_DATABASE_UNAVAILABLE": "Baza danych jest niedostępna. Spróbuj ponownie później."
+    "HEALTH_DATABASE_UNAVAILABLE": "Baza danych jest niedostępna. Spróbuj ponownie później.",
+    "USER_ACCOUNT_DELETED": "Twoje konto zostało usunięte",
+    "USER_INVALID_PASSWORD": "Nieprawidłowe hasło"
   },
   "GROUPS": {
     "SIDEBAR": {

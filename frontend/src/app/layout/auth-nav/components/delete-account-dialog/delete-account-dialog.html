@@ -1,0 +1,59 @@
+<p-dialog
+  styleClass="premium-dialog"
+  appendTo="body"
+  [visible]="visible()"
+  [style]="{ width: '420px', maxWidth: '95vw' }"
+  [resizable]="false"
+  [modal]="true"
+  [header]="'NAV.DELETE_ACCOUNT.TITLE' | translate"
+  (visibleChange)="visible.set($event)"
+  (onHide)="onHide()"
+>
+  <form
+    novalidate
+    class="delete-account-form"
+    (submit)="onSubmit($event)"
+  >
+    <p class="delete-account-warning">
+      <i
+        class="pi pi-exclamation-triangle"
+        aria-hidden="true"
+      ></i>
+      <span>{{ 'NAV.DELETE_ACCOUNT.WARNING' | translate }}</span>
+    </p>
+
+    <app-form-field
+      inputId="delete-account-password"
+      icon="pi-lock"
+      [label]="'NAV.DELETE_ACCOUNT.PASSWORD_LABEL' | translate"
+    >
+      <p-password
+        inputStyleClass="w-full"
+        inputId="delete-account-password"
+        class="w-full"
+        autocomplete="current-password"
+        [toggleMask]="true"
+        [formField]="$any(deleteForm.password)"
+        [feedback]="false"
+      />
+    </app-form-field>
+
+    <div class="delete-account-actions">
+      <p-button
+        type="button"
+        severity="secondary"
+        [text]="true"
+        [label]="'NAV.DELETE_ACCOUNT.CANCEL' | translate"
+        (onClick)="visible.set(false)"
+      />
+      <p-button
+        type="submit"
+        severity="danger"
+        icon="pi pi-trash"
+        [loading]="isSubmitting()"
+        [label]="'NAV.DELETE_ACCOUNT.CONFIRM' | translate"
+        [disabled]="deleteForm().invalid() || isSubmitting()"
+      />
+    </div>
+  </form>
+</p-dialog>
