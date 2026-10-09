@@ -606,7 +606,38 @@ The hook is installed by Husky: run `npm install` once in the project root (it s
 
 ### Production deployment
 
-When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200). `docker-compose.yml` publishes every port on `127.0.0.1` only (backend 8000, frontend 4200, MailHog 1025/8025, PostgreSQL 5433, pgAdmin 5050), so run the proxy on the host and point it at `127.0.0.1:8000` / `127.0.0.1:4200`; nothing is reachable from outside without it. In `docker/docker.prod.env` set `API_URL` to the site origin (e.g. `https://todo.example.com`), `SECURE_COOKIES=True`, `ALLOWED_HOSTS` and `CORS_ORIGINS`/`FRONTEND_URL` to the domain (for the native mobile apps also add `capacitor://localhost,https://localhost` to `CORS_ORIGINS`), and `FORWARDED_ALLOW_IPS` to the Docker network range so rate limiting sees real client IPs. Also set `NG_ALLOWED_HOSTS` to the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version. `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) lists the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
+When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200) — with one exception: `/todos` is also the Angular page, so a browser navigation to it (`Accept: text/html` — a refresh, a bookmark, a link) must go to the frontend, otherwise it gets the API's JSON (see the Caddyfile below). `docker-compose.yml` publishes every port on `127.0.0.1` only (backend 8000, frontend 4200, MailHog 1025/8025, PostgreSQL 5433, pgAdmin 5050), so run the proxy on the host and point it at `127.0.0.1:8000` / `127.0.0.1:4200`; nothing is reachable from outside without it. In `docker/docker.prod.env` set `API_URL` to the site origin (e.g. `https://todo.example.com`), `SECURE_COOKIES=True`, `ALLOWED_HOSTS` and `CORS_ORIGINS`/`FRONTEND_URL` to the domain (for the native mobile apps also add `capacitor://localhost,https://localhost` to `CORS_ORIGINS`), and `FORWARDED_ALLOW_IPS` to the Docker network range so rate limiting sees real client IPs. Also set `NG_ALLOWED_HOSTS` to the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version. `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) lists the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
+
+Caddy example (`/etc/caddy/Caddyfile`; Caddy obtains the TLS certificate itself):
+
+```caddy
+todo.example.com {
+	encode zstd gzip
+	# HSTS belongs here, at the TLS-terminating proxy (the SSR server doesn't set it).
+	header Strict-Transport-Security "max-age=31536000"
+
+	# /todos is both an API route and the Angular page. Browser navigations
+	# (Accept: text/html) go to the frontend, API calls to the backend.
+	@todosPage {
+		path /todos
+		header Accept *text/html*
+	}
+	handle @todosPage {
+		reverse_proxy 127.0.0.1:4200
+	}
+
+	@api path /auth /auth/* /todos /todos/* /users /users/* /groups /groups/* /uploads/*
+	handle @api {
+		reverse_proxy 127.0.0.1:8000
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:4200
+	}
+}
+```
+
+The `handle` blocks are tried in this order and only the first match runs, so `@todosPage` must stay above `@api`. Angular's `HttpClient` sends `Accept: application/json, text/plain, */*`, so API calls never match it. After editing, check and apply the config with `caddy validate --config /etc/caddy/Caddyfile` and `sudo systemctl reload caddy`; the deploy smoke test (below) fails if `/todos` doesn't return HTML.
 
 ```bash
 # Production secrets live in docker/docker.prod.env (never committed)
@@ -625,7 +656,7 @@ docker stats
 
 1. **build** — on a native ARM runner (`ubuntu-24.04-arm`, because the production server is ARM64; switch it to `ubuntu-latest` for an x86_64 server) builds the production backend and frontend images and pushes them to GHCR as `ghcr.io/<owner>/<repo>-backend:<commit sha>` and `...-frontend:<commit sha>`. The frontend gets `API_URL` from the `PUBLIC_URL` variable, so `API_URL` in `docker.prod.env` only matters for `make prod`.
 2. **deploy** — connects to the server over SSH, checks out the same commit in the server's clone (`git checkout --detach <sha>`, so `docker-compose.yml` and the `Makefile` match the images) and runs `make deploy`, which pulls the images, dumps the database with `make backup-db STACK=prod` (see [Database Backup and Restore](#database-backup-and-restore)) and records that dump and the schema revision in `.deploy/` on the server, runs `alembic upgrade head` with the new backend image, recreates the containers (`up -d --no-build --wait`, needs Docker Compose v2) and keeps the 3 newest releases of each image. The job's short-lived `GITHUB_TOKEN` is used for `docker login ghcr.io` and logged out afterwards, so the server needs no registry credentials.
-3. **smoke test** — `GET <PUBLIC_URL>/login` (frontend) and `GET <PUBLIC_URL>/auth/health` (backend and database; under `/auth` so the reverse proxy already routes it) must both return 2xx. When it passes, the SHA is saved on the server as the last good release (`.deploy/release`).
+3. **smoke test** — `GET <PUBLIC_URL>/login` (frontend) and `GET <PUBLIC_URL>/auth/health` (backend and database; under `/auth` so the reverse proxy already routes it) must both return 2xx, and `GET <PUBLIC_URL>/todos` with `Accept: text/html` must return HTML (the reverse proxy sends page navigations to `/todos` to the frontend, see [Production deployment](#production-deployment)). When it passes, the SHA is saved on the server as the last good release (`.deploy/release`).
 4. **automatic rollback** — if the deploy step or the smoke test fails, the job puts back the last good release: `make deploy-rollback-db` restores the dump taken just before this deploy's migrations — only if they changed the schema revision, otherwise the data is left alone — then the server checks out the previous SHA, runs `make deploy` for it and the smoke test runs again. The job still fails, with the rolled-back SHA in its summary. Restoring the dump loses whatever was written between the migration and the rollback (a minute or two, while the site was failing anyway). The first deploy after this was introduced takes the commit checked out on the server as the last good release.
 
 Deploys never run in parallel. **Manual rollback:** Actions → Deploy → _Run workflow_ with `sha` set to the full commit SHA of an earlier release (its images are already in GHCR, nothing is rebuilt). This does not undo migrations: if the newer release changed the schema, restore a dump first (`make restore-db STACK=prod BACKUP=...`, below). With `sha` empty, _Run workflow_ builds and deploys the selected branch.
