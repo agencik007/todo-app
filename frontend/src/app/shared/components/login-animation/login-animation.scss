@@ -341,7 +341,7 @@ $ring-size: 172px;
   left: 50%;
   top: 0;
   white-space: nowrap;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--app-font-mono);
   font-size: 1.1rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.9);
