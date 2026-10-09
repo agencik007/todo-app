@@ -108,6 +108,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - **RxJS** - reactive programming
 - **OpenAPI Generator** - generates TypeScript types from backend
 - **PrimeNG** - UI component library (Aura theme)
+- **JetBrains Mono** - app font, self-hosted via `@fontsource-variable/jetbrains-mono` (no requests to Google Fonts)
 - **Design system** - design tokens + shared UI primitives on top of PrimeNG (see [Design System](#-design-system))
 
 ### DevOps

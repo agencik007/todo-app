@@ -1,6 +1,10 @@
 // PrimeNG Icons
 @use 'primeicons/primeicons.css';
 
+// JetBrains Mono, self-hosted (variable weight, upright + italic)
+@use '@fontsource-variable/jetbrains-mono/index.css';
+@use '@fontsource-variable/jetbrains-mono/wght-italic.css';
+
 @use 'app/shared/global-styling/tokens';
 @use 'app/shared/global-styling/layout';
 @use 'app/shared/global-styling/typography';

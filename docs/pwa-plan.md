@@ -101,10 +101,7 @@ Open a follow-up issue for the long-term fix (API under `/api`), see [Open quest
 
 ### 0.3 Self-host the font
 
-- `npm i @fontsource-variable/jetbrains-mono`, import it in `frontend/src/styles.scss`.
-- Remove the three Google Fonts `<link>`s from `frontend/src/index.html`.
-- Drop `https://fonts.googleapis.com` and `https://fonts.gstatic.com` from the CSP in `frontend/src/server.ts`.
-- The privacy policy page (`features/legal`) doesn't list Google Fonts today; after this change it doesn't need to.
+**Done** — JetBrains Mono comes from `@fontsource-variable/jetbrains-mono` (variable weight, upright and italic, imported in `frontend/src/styles.scss`). The Google Fonts links are gone from `index.html` and `https://fonts.googleapis.com` / `https://fonts.gstatic.com` from the CSP in `server.ts`. The browser downloads only the unicode subsets a page uses (latin, plus latin-ext for Polish). The privacy policy never listed Google Fonts; with no request to Google left, it is now accurate.
 
 ### 0.4 Icons and favicon
 
