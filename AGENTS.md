@@ -120,6 +120,7 @@ frontend/src/app/
   features/      # auth/, groups/, todos/ (each with components/, store/), legal/ (privacy policy)
   shared/        # components, global-styling, pipes
   layout/
+docs/            # design notes and implementation plans (pwa-plan.md = PWA roadmap)
 docker/          # Dockerfiles and docker-compose configurations (docker-compose.e2e.yml = e2e stack)
 e2e/             # Playwright tests: fixtures/ (API, MailHog), pages/ (page objects), tests/
 .github/workflows/ # CI, CD and backup.yml (nightly age-encrypted DB dump as an artifact); .github/dependabot.yml = dependency update PRs

@@ -779,6 +779,7 @@ todo-app/
 │   ├── angular.json
 │   ├── package.json
 │   └── ...
+├── docs/                    # Design notes and plans (e.g. pwa-plan.md)
 ├── docker/                  # Dockerfiles, docker-compose files (incl. the e2e stack), docker.env.example
 ├── e2e/                     # Playwright end-to-end tests (fixtures/, pages/, tests/)
 ├── .github/workflows/       # CI, CD and nightly off-server DB backups (GitHub Actions)
