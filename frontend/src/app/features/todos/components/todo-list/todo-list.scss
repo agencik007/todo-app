@@ -391,6 +391,7 @@
    ============================================================ */
 .scrollable-area {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 0.5rem;
   margin-right: -0.5rem;
