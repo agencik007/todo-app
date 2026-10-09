@@ -201,6 +201,14 @@
               <span class="setting-label">{{ 'NAV.LANGUAGE' | translate }}</span>
               <app-language-selector></app-language-selector>
             </div>
+            <a
+              routerLink="/privacy"
+              class="setting-row setting-row--link"
+              (click)="isMenuOpen.set(false)"
+            >
+              <span class="setting-label">{{ 'NAV.PRIVACY' | translate }}</span>
+              <i class="pi pi-chevron-right"></i>
+            </a>
           </div>
         </div>
       </div>

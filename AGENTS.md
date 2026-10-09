@@ -117,7 +117,7 @@ backend/
   tests/         # pytest; conftest.py sets TESTING=1
 frontend/src/app/
   core/          # guards, interceptors, services, tokens, stores (AuthStore)
-  features/      # auth/, groups/, todos/ (each with components/, store/)
+  features/      # auth/, groups/, todos/ (each with components/, store/), legal/ (privacy policy)
   shared/        # components, global-styling, pipes
   layout/
 docker/          # Dockerfiles and docker-compose configurations (docker-compose.e2e.yml = e2e stack)

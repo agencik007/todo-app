@@ -84,6 +84,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - ✅ Create, edit, complete and delete tasks; drag & drop reordering
 - ✅ Groups for organizing tasks
 - ✅ User accounts: registration, email verification, password reset, avatar, self-service account deletion
+- ✅ Public privacy policy page (`/privacy`, English and Polish)
 - ✅ Security: password strength validation, refresh token rotation with reuse detection, rate limiting, CSP and security headers
 - ✅ Polish / English UI (ngx-translate), light / dark mode and color themes
 - ✅ Responsive design
@@ -765,7 +766,7 @@ todo-app/
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── core/        # Guards, interceptors, services, stores (AuthStore)
-│   │   │   ├── features/    # auth/, groups/, todos/ (each with components/, store/)
+│   │   │   ├── features/    # auth/, groups/, todos/ (each with components/, store/), legal/ (privacy policy)
 │   │   │   ├── shared/
 │   │   │   │   ├── ui/              # Design system primitives (badge, empty-state, form-field, icon-button)
 │   │   │   │   ├── global-styling/  # SCSS partials, incl. _tokens.scss (design tokens)
