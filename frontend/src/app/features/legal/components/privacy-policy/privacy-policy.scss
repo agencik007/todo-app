@@ -1,3 +1,10 @@
+:host {
+  // .main-content clips its children, so the page has to scroll itself.
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .privacy-container {
   display: flex;
   justify-content: center;

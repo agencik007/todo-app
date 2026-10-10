@@ -77,13 +77,25 @@ app.use((req, res, next) => {
  */
 
 /**
- * Serve static files from /browser
+ * Serve static files from /browser.
+ * Only build outputs with a content hash in their name (main-XXXX.js,
+ * media/...) can be cached for a year. Unhashed files - translations in
+ * assets/i18n, theme-init.js, icons - must be revalidated, otherwise
+ * browsers keep serving copies from before the last deploy (e.g. a pl.json
+ * without newly added keys).
  */
+const HASHED_FILE = /-[A-Z0-9]{8,}\.(js|css)$|[\\/]media[\\/]/;
+
 app.use(
   express.static(browserDistFolder, {
     maxAge: '1y',
     index: false,
     redirect: false,
+    setHeaders: (res, filePath) => {
+      if (!HASHED_FILE.test(filePath)) {
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+    },
   }),
 );
 
