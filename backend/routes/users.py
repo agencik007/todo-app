@@ -8,6 +8,7 @@ import secrets
 import shutil
 from pathlib import Path
 
+import anyio
 from fastapi import (
     APIRouter,
     Depends,
@@ -117,7 +118,7 @@ async def upload_avatar(
     prefix = b""
     total_size = 0
     try:
-        with open(temp_path, "wb") as buffer:
+        async with await anyio.open_file(temp_path, "wb") as buffer:
             while chunk := await file.read(UPLOAD_CHUNK_SIZE):
                 total_size += len(chunk)
                 if total_size > MAX_FILE_SIZE:
@@ -127,7 +128,7 @@ async def upload_avatar(
                     )
                 if len(prefix) < _MAX_SIGNATURE_BYTES:
                     prefix += chunk
-                buffer.write(chunk)
+                await buffer.write(chunk)
     except HTTPException:
         temp_path.unlink(missing_ok=True)
         raise

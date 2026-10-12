@@ -200,7 +200,8 @@ async def login(
             body = await request.json()
             email = body.get("email", "")
             password = body.get("password", "")
-        except Exception:
+        except (ValueError, AttributeError):
+            # Malformed JSON (ValueError) or a JSON value that isn't an object
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=api_error(ApiMessages.AUTH_INVALID_JSON_BODY),
@@ -211,7 +212,7 @@ async def login(
             form = await request.form()
             email = form.get("username", "")  # OAuth2 uses 'username' field
             password = form.get("password", "")
-        except Exception:
+        except Exception:  # noqa: BLE001 - any parser failure is a bad request
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=api_error(ApiMessages.AUTH_INVALID_FORM_DATA),

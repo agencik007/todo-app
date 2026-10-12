@@ -33,7 +33,7 @@ def seed_data():
         else:
             print("User already exists.")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - dev script: report and roll back
         print(f"Error seeding data: {e}")
         db.rollback()
     finally:
