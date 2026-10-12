@@ -19,7 +19,7 @@ User provided: **$ARGUMENTS**
    - Open `backend/migrations/env.py`
    - For EACH model that changed or is new, ensure an import exists in the form:
      ```python
-     from models.<module> import <ClassName>  # noqa: E402, F401
+     from models.<module> import <ClassName>  # noqa: F401
      ```
    - If it's missing — add it BEFORE generating the migration. Without it, Alembic won't detect the changes.
 

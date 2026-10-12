@@ -2,9 +2,9 @@
 Todo model - SQLAlchemy model for todos table.
 """
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
-from sqlalchemy.sql import func
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from config.database import Base
 

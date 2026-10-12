@@ -2,29 +2,29 @@
 Users routes - User profile and avatar management endpoints.
 """
 
-import os
-import shutil
-import secrets
 import logging
+import os
+import secrets
+import shutil
 from pathlib import Path
-from typing import Optional
 
+import anyio
 from fastapi import (
     APIRouter,
     Depends,
-    UploadFile,
     File,
     HTTPException,
     Response,
+    UploadFile,
     status,
 )
 from sqlalchemy.orm import Session
 
+from config.api_messages import ApiMessages, api_error, api_success
 from config.auth import get_current_verified_user
 from config.database import get_db
-from config.api_messages import ApiMessages, api_error, api_success
-from models.user import User
 from models.schemas import UserDeleteConfirm, UserLanguageUpdate
+from models.user import User
 from routes.auth import _clear_refresh_cookie
 from services.auth_service import verify_password
 
@@ -48,7 +48,7 @@ _IMAGE_SIGNATURES: list[tuple[bytes, str]] = [
 _MAX_SIGNATURE_BYTES = 12  # WEBP's signature spans the first 12 bytes
 
 
-def _sniff_image_extension(prefix: bytes) -> Optional[str]:
+def _sniff_image_extension(prefix: bytes) -> str | None:
     """
     Identify an image's real format from its leading bytes.
 
@@ -118,7 +118,7 @@ async def upload_avatar(
     prefix = b""
     total_size = 0
     try:
-        with open(temp_path, "wb") as buffer:
+        async with await anyio.open_file(temp_path, "wb") as buffer:
             while chunk := await file.read(UPLOAD_CHUNK_SIZE):
                 total_size += len(chunk)
                 if total_size > MAX_FILE_SIZE:
@@ -128,7 +128,7 @@ async def upload_avatar(
                     )
                 if len(prefix) < _MAX_SIGNATURE_BYTES:
                     prefix += chunk
-                buffer.write(chunk)
+                await buffer.write(chunk)
     except HTTPException:
         temp_path.unlink(missing_ok=True)
         raise

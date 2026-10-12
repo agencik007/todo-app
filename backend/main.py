@@ -4,26 +4,27 @@ Todo API - Main application entry point.
 A simple Todo application API built with FastAPI.
 """
 
+import logging
 import os
 import re
-import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-from sqlalchemy import Connection, inspect as sa_inspect, text
+from sqlalchemy import Connection, text
+from sqlalchemy import inspect as sa_inspect
 
-from config.database import engine, Base
-from routes import auth_router, todo_router, users_router, groups_router
+from config.database import Base, engine
+from routes import auth_router, groups_router, todo_router, users_router
 
 logger = logging.getLogger(__name__)
 

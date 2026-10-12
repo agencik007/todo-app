@@ -8,10 +8,12 @@ These tests verify that our data validation schemas work correctly:
 - Data conversion works properly
 """
 
+from datetime import UTC, datetime
+
 import pytest
-from models.schemas import TodoCreate, TodoUpdate, Todo
 from pydantic import ValidationError
-from datetime import datetime
+
+from models.schemas import Todo, TodoCreate, TodoUpdate
 
 
 class TestTodoCreateSchema:
@@ -119,8 +121,8 @@ class TestTodoResponseSchema:
             "description": "Response description",
             "completed": False,
             "user_id": 1,
-            "created_at": datetime(2023, 1, 1, 12, 0, 0),
-            "updated_at": datetime(2023, 1, 1, 12, 0, 0),
+            "created_at": datetime(2023, 1, 1, 12, 0, 0, tzinfo=UTC),
+            "updated_at": datetime(2023, 1, 1, 12, 0, 0, tzinfo=UTC),
         }
 
         todo = Todo(**todo_data)

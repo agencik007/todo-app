@@ -1,10 +1,11 @@
-import sys
 import os
+import sys
 
 # Add the parent directory to sys.path to allow imports from backend modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy.orm import Session
+
 from config.database import SessionLocal
 from models.user import User
 from services.auth_service import hash_password
@@ -32,7 +33,7 @@ def seed_data():
         else:
             print("User already exists.")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - dev script: report and roll back
         print(f"Error seeding data: {e}")
         db.rollback()
     finally:

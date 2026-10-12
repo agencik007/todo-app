@@ -2,41 +2,41 @@
 Authentication routes - User registration, login, and password management.
 """
 
+import logging
 import os
 import secrets
-import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from config.api_messages import ApiMessages, api_error, api_success
 from config.auth import get_current_active_user
 from config.database import get_db
-from config.api_messages import ApiMessages, api_error, api_success
-from models.user import User
 from models.schemas import (
+    PasswordReset,
+    PasswordResetRequest,
+    Token,
     UserCreate,
     UserResponse,
-    Token,
-    PasswordResetRequest,
-    PasswordReset,
 )
+from models.user import User
 from services.auth_service import (
-    hash_password,
-    hash_one_time_token,
     authenticate_user,
     create_access_token,
+    hash_one_time_token,
+    hash_password,
     issue_refresh_token,
-    rotate_refresh_token,
-    revoke_refresh_token,
     revoke_all_refresh_tokens_for_user,
+    revoke_refresh_token,
+    rotate_refresh_token,
 )
 from services.email_service import (
-    send_verification_email,
     send_password_reset_email,
+    send_verification_email,
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -143,7 +143,7 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
         is_active=True,
         is_verified=False,
         email_verification_token=hash_one_time_token(verification_token),
-        email_verification_expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
+        email_verification_expires_at=datetime.now(UTC) + timedelta(hours=24),
     )
 
     db.add(new_user)
@@ -200,7 +200,8 @@ async def login(
             body = await request.json()
             email = body.get("email", "")
             password = body.get("password", "")
-        except Exception:
+        except (ValueError, AttributeError):
+            # Malformed JSON (ValueError) or a JSON value that isn't an object
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=api_error(ApiMessages.AUTH_INVALID_JSON_BODY),
@@ -211,7 +212,7 @@ async def login(
             form = await request.form()
             email = form.get("username", "")  # OAuth2 uses 'username' field
             password = form.get("password", "")
-        except Exception:
+        except Exception:  # noqa: BLE001 - any parser failure is a bad request
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=api_error(ApiMessages.AUTH_INVALID_FORM_DATA),
@@ -365,7 +366,7 @@ def forgot_password(
         # Generate reset token with expiration
         raw_reset_token = secrets.token_urlsafe(32)
         user.password_reset_token = hash_one_time_token(raw_reset_token)
-        user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(
+        user.password_reset_expires_at = datetime.now(UTC) + timedelta(
             hours=PASSWORD_RESET_EXPIRY_HOURS
         )
         db.commit()
@@ -407,7 +408,7 @@ def reset_password(
         db.query(User)
         .filter(
             User.password_reset_token == token_hash,
-            User.password_reset_expires_at > datetime.now(timezone.utc),
+            User.password_reset_expires_at > datetime.now(UTC),
         )
         .first()
     )
@@ -442,7 +443,7 @@ def verify_email(token: str, db: Session = Depends(get_db)):
         db.query(User)
         .filter(
             User.email_verification_token == token_hash,
-            User.email_verification_expires_at > datetime.now(timezone.utc),
+            User.email_verification_expires_at > datetime.now(UTC),
         )
         .first()
     )
@@ -484,9 +485,7 @@ def resend_verification(
 
     token = _create_verification_token()
     current_user.email_verification_token = hash_one_time_token(token)
-    current_user.email_verification_expires_at = datetime.now(timezone.utc) + timedelta(
-        hours=24
-    )
+    current_user.email_verification_expires_at = datetime.now(UTC) + timedelta(hours=24)
     db.commit()
 
     try:

@@ -2,18 +2,17 @@
 Authentication service - Password hashing and JWT token management.
 """
 
-import os
 import hashlib
+import os
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from models.user import User
 from models.refresh_token import RefreshToken
+from models.user import User
 
 # Password hashing configuration
 BCRYPT_ROUNDS = 12
@@ -64,7 +63,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
             hashed_password = hashed_password.encode("utf-8")
 
         return bcrypt.checkpw(plain_password, hashed_password)
-    except Exception:
+    except (TypeError, ValueError):
+        # Missing or malformed hash (e.g. "Invalid salt")
         return False
 
 
@@ -87,7 +87,7 @@ def hash_password(password: str) -> str:
     return hashed.decode("utf-8")
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """
     Create a JWT access token.
 
@@ -105,19 +105,15 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         to_encode["sub"] = str(to_encode["sub"])
 
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(
-            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
-        )
+        expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode.update({"exp": int(expire.timestamp()), "type": "access"})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def issue_refresh_token(
-    db: Session, user_id: int, family_id: Optional[str] = None
-) -> str:
+def issue_refresh_token(db: Session, user_id: int, family_id: str | None = None) -> str:
     """
     Issue a new server-side refresh token and return its raw value.
 
@@ -139,15 +135,14 @@ def issue_refresh_token(
         user_id=user_id,
         token_hash=hash_one_time_token(raw_token),
         family_id=family_id or secrets.token_urlsafe(16),
-        expires_at=datetime.now(timezone.utc)
-        + timedelta(hours=REFRESH_TOKEN_EXPIRE_HOURS),
+        expires_at=datetime.now(UTC) + timedelta(hours=REFRESH_TOKEN_EXPIRE_HOURS),
     )
     db.add(record)
     db.commit()
     return raw_token
 
 
-def rotate_refresh_token(db: Session, raw_token: str) -> Optional[tuple[str, User]]:
+def rotate_refresh_token(db: Session, raw_token: str) -> tuple[str, User] | None:
     """
     Validate a raw refresh token against the database and rotate it.
 
@@ -173,7 +168,7 @@ def rotate_refresh_token(db: Session, raw_token: str) -> Optional[tuple[str, Use
     if record is None:
         return None
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     if record.revoked_at is not None:
         # Reuse of an already-rotated-away token: likely theft. Kill the
@@ -211,7 +206,7 @@ def revoke_refresh_token(db: Session, raw_token: str) -> None:
         RefreshToken.token_hash == hash_one_time_token(raw_token),
         RefreshToken.revoked_at.is_(None),
     ).update(
-        {RefreshToken.revoked_at: datetime.now(timezone.utc)},
+        {RefreshToken.revoked_at: datetime.now(UTC)},
         synchronize_session=False,
     )
     db.commit()
@@ -229,7 +224,7 @@ def revoke_all_refresh_tokens_for_user(db: Session, user_id: int) -> None:
         RefreshToken.user_id == user_id,
         RefreshToken.revoked_at.is_(None),
     ).update(
-        {RefreshToken.revoked_at: datetime.now(timezone.utc)},
+        {RefreshToken.revoked_at: datetime.now(UTC)},
         synchronize_session=False,
     )
     db.commit()
@@ -248,7 +243,7 @@ def hash_one_time_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-def verify_token(token: str, token_type: str = "access") -> Optional[dict]:
+def verify_token(token: str, token_type: str = "access") -> dict | None:
     """
     Verify and decode a JWT token.
 
@@ -276,7 +271,7 @@ def verify_token(token: str, token_type: str = "access") -> Optional[dict]:
 _DUMMY_PASSWORD_HASH = hash_password(secrets.token_urlsafe(32))
 
 
-def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
+def authenticate_user(db: Session, email: str, password: str) -> User | None:
     """
     Authenticate a user by email and password.
 

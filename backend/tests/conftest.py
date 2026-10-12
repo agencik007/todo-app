@@ -6,13 +6,14 @@ from urllib.parse import urlparse, urlunparse
 os.environ["TESTING"] = "1"
 os.environ["ALLOWED_HOSTS"] = "localhost,127.0.0.1,testserver"
 
-import pytest  # noqa: E402
+import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+
 from config.database import Base, get_db
+from models.group import Group
 from models.todo import Todo
 from models.user import User
-from models.group import Group
 from services.auth_service import hash_password
 
 
@@ -99,7 +100,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_
 Base.metadata.create_all(bind=test_engine)
 
 # Mock database configuration for tests
-import config.database  # noqa: E402
+import config.database
 
 config.database.engine = test_engine
 config.database.SessionLocal = TestingSessionLocal
@@ -142,6 +143,7 @@ def client():
     without actually starting a server.
     """
     from fastapi.testclient import TestClient
+
     from main import app
 
     # Reset rate limiter storage to prevent rate limit issues between tests
@@ -206,12 +208,13 @@ def authenticated_client(test_user):
     This bypasses OAuth2PasswordBearer token extraction completely.
     """
     from fastapi.testclient import TestClient
-    from main import app
+
     from config.auth import (
-        get_current_user,
         get_current_active_user,
+        get_current_user,
         get_current_verified_user,
     )
+    from main import app
 
     # Override get_db to use test database
     def override_get_db():
@@ -324,12 +327,13 @@ def second_authenticated_client(second_user):
     Create an authenticated client for the second test user.
     """
     from fastapi.testclient import TestClient
-    from main import app
+
     from config.auth import (
-        get_current_user,
         get_current_active_user,
+        get_current_user,
         get_current_verified_user,
     )
+    from main import app
 
     # Override get_db to use test database
     def override_get_db():

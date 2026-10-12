@@ -116,6 +116,7 @@ backend/
   migrations/    # Alembic (remember to register models in env.py!)
   openapi/       # export_openapi.py + openapi.json (input of `npm run generate-api`)
   tests/         # pytest; conftest.py sets TESTING=1
+  ruff.toml      # Ruff lint/format configuration
 frontend/src/app/
   core/          # guards, interceptors, services, tokens, store/ (AuthStore)
   features/      # auth/, groups/, todos/ (components/; groups and todos also have store/), legal/ (privacy policy)
@@ -149,8 +150,9 @@ Makefile         # root entry point for all development tasks
   - Functions / variables: `snake_case`
   - Classes: `PascalCase`
   - Schemas: suffix with `Create`, `Update` where applicable (e.g. `TodoCreate`, `TodoUpdate`).
-- **Typing:** use Python type hints everywhere (`typing.List`, `Optional`, etc.).
+- **Typing:** use Python type hints everywhere, in the modern syntax (`list[str]`, `dict[str, int]`, `X | None`, `collections.abc.Sequence`) — not `typing.List` / `Optional` / `Union`; `ruff check` enforces it.
 - **Formatting:** follow PEP 8 (4-space indentation, enforced by `ruff format`). Double quotes for strings unless single quotes are required.
+- **Linting:** `ruff check` with Ruff's default rule set, configured in `backend/ruff.toml` (Python 3.12 target, FastAPI `Depends()`/`File()` defaults allowed). Fix findings instead of silencing them; a deliberate exception gets `# noqa: <CODE> - <reason>`.
 
 ### Error handling and API messages
 
@@ -337,10 +339,10 @@ All forms use the **Signal Forms API** (`@angular/forms/signals`, experimental i
 **Before generating a migration**, make sure every model is imported in `backend/migrations/env.py`:
 
 ```python
-from models.user import User  # noqa: E402, F401
-from models.todo import Todo  # noqa: E402, F401
-from models.group import Group  # noqa: E402, F401
-from models.refresh_token import RefreshToken  # noqa: E402, F401
+from models.group import Group  # noqa: F401
+from models.refresh_token import RefreshToken  # noqa: F401
+from models.todo import Todo  # noqa: F401
+from models.user import User  # noqa: F401
 ```
 
 Without these imports, Alembic will not detect new models.

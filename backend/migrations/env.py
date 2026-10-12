@@ -1,10 +1,10 @@
-from logging.config import fileConfig
 import os
 import sys
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from logging.config import fileConfig
+
 from alembic import context
 from dotenv import load_dotenv
+from sqlalchemy import engine_from_config, pool
 
 # Add the project root to the sys.path so we can import our modules
 sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), "..")))
@@ -23,13 +23,13 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from config.database import Base  # noqa: E402
+from config.database import Base
 
 # Import all models to ensure they are registered with Base.metadata
-from models.user import User  # noqa: E402, F401
-from models.todo import Todo  # noqa: E402, F401
-from models.group import Group  # noqa: E402, F401
-from models.refresh_token import RefreshToken  # noqa: E402, F401
+from models.group import Group  # noqa: F401
+from models.refresh_token import RefreshToken  # noqa: F401
+from models.todo import Todo  # noqa: F401
+from models.user import User  # noqa: F401
 
 target_metadata = Base.metadata
 

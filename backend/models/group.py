@@ -3,9 +3,10 @@ Group model - SQLAlchemy model for groups table.
 """
 
 import enum
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum
-from sqlalchemy.sql import func
+
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from config.database import Base
 

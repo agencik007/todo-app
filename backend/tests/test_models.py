@@ -8,8 +8,9 @@ These tests verify that our SQLAlchemy models work correctly:
 - Relationships work properly
 """
 
-from models.todo import Todo
 from datetime import datetime
+
+from models.todo import Todo
 
 
 class TestTodoModel:

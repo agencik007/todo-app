@@ -2,19 +2,17 @@
 Todo routes - CRUD operations for todo items.
 """
 
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
 
+from config.api_messages import ApiMessages, api_error, api_success
 from config.auth import get_current_verified_user
 from config.database import get_db
-from config.api_messages import ApiMessages, api_error, api_success
-from models.todo import Todo as TodoModel
-from models.user import User
 from models.group import Group as GroupModel
 from models.schemas import Todo, TodoCreate, TodoUpdate
+from models.todo import Todo as TodoModel
+from models.user import User
 
 router = APIRouter(prefix="/todos", tags=["todos"])
 
@@ -44,14 +42,14 @@ def validate_group_ownership(db: Session, group_id: int | None, user_id: int) ->
         )
 
 
-@router.get("", response_model=List[Todo])
+@router.get("", response_model=list[Todo])
 def get_todos(
     skip: int = 0,
     limit: int = 100,
     groupId: int | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
-) -> List[Todo]:
+) -> list[Todo]:
     """
     Get all todos for current user.
 

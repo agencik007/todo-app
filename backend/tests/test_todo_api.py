@@ -10,6 +10,7 @@ These tests verify that our REST API works correctly:
 """
 
 from fastapi.testclient import TestClient
+
 from models.group import Group
 from models.todo import Todo
 
