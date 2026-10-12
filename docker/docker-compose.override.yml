@@ -14,7 +14,8 @@ services:
     # default CMD (no --reload, multiple workers) via docker-compose.yml alone.
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     # Dev-only: bind-mount source for hot-reload. Production runs the built
-    # image as-is (no volumes for backend in docker-compose.yml).
+    # image as-is. Uploaded avatars stay in the backend_uploads volume from
+    # docker-compose.yml, which is mounted over /app/uploadedFiles here too.
     volumes:
       - ../backend:/app
       - /app/venv # Don't mount virtual environment

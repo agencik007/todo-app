@@ -66,6 +66,10 @@ services:
       # Loopback only, like db and pgAdmin: the reverse proxy on the host
       # reaches it at 127.0.0.1:8000, nothing else should.
       - "127.0.0.1:8000:8000"
+    volumes:
+      # User avatars. Without a volume they live in the container's writable
+      # layer and are lost whenever the container is recreated (every deploy).
+      - backend_uploads:/app/uploadedFiles
     depends_on:
       db:
         condition: service_healthy
@@ -175,6 +179,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  backend_uploads:
     driver: local
   pgadmin_data:
     driver: local
