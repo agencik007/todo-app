@@ -1,0 +1,28 @@
+# Ruff configuration for the backend (lint + format).
+# The lint rules are Ruff's default rule set; this file only adapts it to
+# this project. Keep target-version in sync with docker/Dockerfile.backend.
+target-version = "py312"
+
+[lint]
+# `__all__` lists in the package `__init__.py` files are grouped by topic
+# with comments; alphabetical sorting would break the groups up.
+ignore = ["RUF022"]
+
+[lint.per-file-ignores]
+# Test helpers deliberately swallow any error during cleanup.
+"tests/*" = ["BLE001"]
+
+[lint.flake8-bugbear]
+# FastAPI dependency injection declares parameters as `x = Depends(...)`;
+# these calls are evaluated once on purpose and are not a bug here.
+extend-immutable-calls = [
+    "fastapi.Body",
+    "fastapi.Cookie",
+    "fastapi.Depends",
+    "fastapi.File",
+    "fastapi.Form",
+    "fastapi.Header",
+    "fastapi.Path",
+    "fastapi.Query",
+    "fastapi.Security",
+]
