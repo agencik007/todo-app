@@ -14,15 +14,22 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Database** - PostgreSQL with persistent storage
 - ✅ **Backend Tests** - 100 unit and integration tests with coverage (min. 80% enforced)
 - ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, tasks)
-- ✅ **CI** - GitHub Actions runs lint, tests, builds and E2E tests on every push and pull request
-- ✅ **Simple Local Setup** - Single database for development and local testing
+- ✅ **CI/CD** - GitHub Actions runs lint, tests, builds and E2E tests on every pull request and push to `develop`, then deploys `develop` to production
+- ✅ **Simple Local Setup** - One `make dev` starts everything; tests run against their own `<db>_test` database
 
-### 🚀 How to Run (3 Simple Steps):
+## 🚀 Quick Start
+
+Needs only **Docker** (with Docker Compose) and **Git** — see [Prerequisites](#-prerequisites).
 
 ```bash
 git clone https://github.com/agencik007/todo-app.git
 cd todo-app
-cp docker/docker.env.example docker/docker.env   # then adjust the values (at least SECRET_KEY)
+
+# One-time: create the env file used by docker-compose, then set SECRET_KEY in it
+# (a random value of 32+ characters, e.g. openssl rand -hex 32)
+cp docker/docker.env.example docker/docker.env
+
+# Start all services (hot-reload)
 make dev
 ```
 
@@ -31,13 +38,22 @@ make dev
 >
 > Replace `SECRET_KEY` with a random value of at least 32 characters (`openssl rand -hex 32`) — the placeholder from the example file is rejected and the backend won't start. Docker does not need a `backend/.env`; `ALLOWED_HOSTS` and `CORS_ORIGINS` default to localhost values in `docker-compose.yml` and can be overridden in `docker/docker.env`.
 
-Open: http://localhost:4200
+Once started, open these in your browser:
 
-**Alternatively using Makefile:**
+- **📱 Frontend App**: http://localhost:4200
+- **🔧 Backend API**: http://localhost:8000
+- **📚 API Documentation**: http://localhost:8000/docs
+- **📧 MailHog**: http://localhost:8025
+- **🗄️ PgAdmin** (Database Manager): http://localhost:5050
+  - Login: `PGADMIN_EMAIL` / `PGADMIN_PASSWORD` from `docker/docker.env`
+
+Every port is published on `127.0.0.1` only, so these URLs work on the machine running Docker, not from other devices on the network.
+
+Everyday commands (`make help` lists all of them):
 
 ```bash
-make dev      # Development mode
-make prod     # Production mode
+make dev      # Development mode (hot-reload)
+make down     # Stop all services
 make status   # Check status
 make logs     # View logs (add STACK=prod for the production stack)
 ```
@@ -59,6 +75,7 @@ The application uses **MailHog** for testing email functionalities (email verifi
 
 ## 📋 Table of Contents
 
+- [🚀 Quick Start](#-quick-start)
 - [🎯 Project Description](#-project-description)
 - [🛠 Technologies](#-technologies)
 - [📋 Prerequisites](#-prerequisites)
@@ -67,13 +84,14 @@ The application uses **MailHog** for testing email functionalities (email verifi
 - [🏃‍♂️ Running the app](#️-running-the-app)
 - [📚 API Documentation](#-api-documentation)
 - [🧪 Testing](#-testing)
-- [🚀 Quick Start](#-quick-start)
 - [🐳 Docker - Detailed Documentation](#-docker---detailed-documentation)
 - [🗄️ Database Management (Alembic)](#️-database-management-alembic)
 - [📁 Project Structure](#-project-structure)
 - [✉️ API Message System](#️-api-message-system)
 - [🎨 Design System](#-design-system)
 - [🔧 Development](#-development)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
 
 ## 🎯 Project Description
 
@@ -116,25 +134,32 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - **Docker** - containerization
 - **Docker Compose** - container orchestration
 - **PostgreSQL** - database in container
-- **GitHub Actions** - CI (see [Continuous Integration](#continuous-integration-github-actions))
+- **GitHub Actions** - CI (see [Continuous Integration](#continuous-integration-github-actions)), CD to production and nightly database backups (see [Continuous deployment](#continuous-deployment-github-actions))
 - **Playwright** - end-to-end tests (see [End-to-End Tests](#end-to-end-tests-playwright))
 
 ## 📋 Prerequisites
 
-Before starting, ensure you have installed:
+**With Docker (recommended):**
+
+- **Docker** with Docker Compose v2 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine + the compose plugin. The Makefile calls `docker-compose`; the e2e targets call `docker compose`, and `make deploy` needs v2 as well (`up --wait`)
+- **Git** - [Download](https://git-scm.com/)
+- **make** - on Windows use Git Bash or WSL
+- **Node.js 22** - only for the Git hooks (`npm install` in the project root), the Playwright E2E tests and `npm run generate-api`
+
+**Without Docker** (see [Installation](#-installation)):
 
 - **Python 3.12+** - [Download](https://www.python.org/downloads/)
 - **Node.js 20.19+ or 22.12+** (required by Angular 21) - [Download](https://nodejs.org/)
 - **PostgreSQL** - [Download](https://www.postgresql.org/download/)
-- **Docker Desktop** - [Download](https://www.docker.com/products/docker-desktop/)
-- **Git** - [Download](https://git-scm.com/)
 
 ## 🚀 Installation
+
+These steps are for running **without Docker**. With Docker, [Quick Start](#-quick-start) is all you need.
 
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/agencik007/todo-app.git
 cd todo-app
 ```
 
@@ -214,7 +239,7 @@ FRONTEND_URL=http://localhost:4200
 
 ### Docker (Alternative Setup)
 
-If you prefer using Docker, the entire application can be run in containers — see [Option 2](#option-2-running-with-docker) below.
+If you prefer using Docker, the entire application can be run in containers — see [Quick Start](#-quick-start).
 
 ## 🏃‍♂️ Running the app
 
@@ -264,14 +289,7 @@ The frontend will be available at: http://localhost:4200
 
 ### Option 2: Running with Docker
 
-```bash
-# One-time: create the env file used by docker-compose,
-# then set SECRET_KEY in it (openssl rand -hex 32)
-cp docker/docker.env.example docker/docker.env
-
-# Start all services (hot-reload)
-make dev
-```
+Follow [Quick Start](#-quick-start): create `docker/docker.env`, set `SECRET_KEY` and run `make dev`. Details are in [Docker - Detailed Documentation](#-docker---detailed-documentation).
 
 ## 📚 API Documentation
 
@@ -338,7 +356,7 @@ make lint-frontend        # in Docker
 
 ### End-to-End Tests (Playwright)
 
-`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, and creating, editing, completing, filtering and deleting tasks.
+`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, creating, editing, completing, filtering and deleting tasks, and a smoke test that fails on any Content-Security-Policy violation.
 
 They run against a separate, throwaway stack defined in `docker/docker-compose.e2e.yml`: production images (SSR frontend), a PostgreSQL database on tmpfs, MailHog, and rate limiting disabled (`TESTING=1`). Each test registers its own user, so tests are independent and run in parallel.
 
@@ -373,43 +391,6 @@ To reproduce the backend job locally, format and lint with `ruff format` / `ruff
 
 When CI passes on a push to `develop`, `.github/workflows/deploy.yml` deploys that commit to production — see [Continuous deployment](#continuous-deployment-github-actions).
 
-## 🚀 Quick Start
-
-### Prerequisites
-
-- **Docker Desktop** installed and running
-
-### Step 1: Clone the repository
-
-```bash
-git clone <repository-url>
-cd todo-app
-```
-
-### Step 2: Start the application (Docker)
-
-```bash
-# One-time: create the env file and adjust the values
-# (at least SECRET_KEY: a random value of 32+ characters, e.g. openssl rand -hex 32)
-cp docker/docker.env.example docker/docker.env
-
-# Start all services
-make dev
-```
-
-### Step 3: Access the app
-
-Once started, open these in your browser:
-
-- **📱 Frontend App**: http://localhost:4200
-- **🔧 Backend API**: http://localhost:8000
-- **📚 API Documentation**: http://localhost:8000/docs
-- **📧 MailHog**: http://localhost:8025
-- **🗄️ PgAdmin** (Database Manager): http://localhost:5050
-  - Login: `PGADMIN_EMAIL` / `PGADMIN_PASSWORD` from `docker/docker.env`
-
----
-
 ## 🐳 Docker - Detailed Documentation
 
 ### Application Architecture in Docker
@@ -417,21 +398,20 @@ Once started, open these in your browser:
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │────│    Backend      │────│   PostgreSQL    │
-│   (Angular)     │    │   (FastAPI)     │    │   (Alpine)      │
+│   (Angular SSR) │    │   (FastAPI)     │    │   (15, Alpine)  │
 │   Port: 4200    │    │   Port: 8000    │    │   Port: 5433    │
-│   Single Page   │    │   REST API      │    │   Persistent    │
-│   Application   │    │   + Swagger     │    │   Volume        │
+│   Node server   │    │   REST API      │    │   Persistent    │
+│   + prerender   │    │   + Swagger     │    │   Volume        │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌────────────┴────────────┐
-                    │    PgAdmin (optional)   │
-                    │    Database Management  │
-                    │    Port: 5050          │
-                    │    Web UI for PostgreSQL│
-                    └─────────────────────────┘
+                                │                       │
+                    ┌───────────┴───────────┐ ┌─────────┴─────────────┐
+                    │  MailHog              │ │  PgAdmin (optional)   │
+                    │  Catches sent emails  │ │  Database management  │
+                    │  SMTP: 1025, UI: 8025 │ │  Port: 5050           │
+                    └───────────────────────┘ └───────────────────────┘
 ```
+
+All ports are published on `127.0.0.1` only. The browser talks to the frontend and, directly, to the backend API (`API_URL`); in production a reverse proxy on the host puts both behind one domain (see [Production deployment](#production-deployment)).
 
 ### Launch Modes
 
@@ -488,9 +468,9 @@ make restart
 # Stop all services
 make down
 
-# Clean up (remove containers and volumes)
-make clean          # Removes containers and images
-make clean-volumes  # WARNING: Deletes database data!
+# Clean up - WARNING: both delete the database volume (take a `make backup-db` first)
+make clean-volumes  # Removes containers and volumes
+make clean          # Removes containers, volumes and images
 ```
 
 ### Using PgAdmin
@@ -529,7 +509,7 @@ Multi-stage build:
 - **`deps`**: Node.js 22 Alpine, `npm ci` (reproducible install from `package-lock.json`) and the source. `docker-compose.override.yml` builds only up to this stage (`target: deps`) and runs `ng serve` with hot-reload on top of it
 - **`build`**: Angular CLI production build with SSR and prerendering. The `API_URL` build arg (from `API_URL` in the env file, default `http://localhost:8000`) sets the URL the browser calls the API at; rebuild the image after changing it
 - **`runtime`** (final image, used by production, `make deploy` and the e2e stack): a fresh Node.js 22 Alpine with only the built `dist/` folder, running as the unprivileged `node` user. The SSR server bundle is self-contained, so no `node_modules` are shipped (about 250 MB instead of 1 GB)
-- **Server**: Angular SSR Node server (`dist/frontend/server/server.mjs`), which also sets the security headers and Content Security Policy (`frontend/src/server.ts`)
+- **Server**: Angular SSR Node server (`dist/frontend/server/server.mjs`), which also sets the security headers and Content Security Policy (`frontend/src/server.ts`). Content-hashed build files are cached for a year; everything else (e.g. `assets/i18n/*.json`) is sent with `Cache-Control: no-cache`
 
 #### docker-compose.yml
 
@@ -537,7 +517,16 @@ Multi-stage build:
 - **Volumes**: `postgres_data` (PostgreSQL data), `backend_uploads` (user avatars, mounted at `/app/uploadedFiles` in the backend and served under `/uploads`) and `pgadmin_data`; they survive `make down` and deploys, and are deleted by `make clean` / `make clean-volumes`
 - **Health checks**: Service dependencies
 - **Ports**: Port mapping host:container, all bound to `127.0.0.1` (reachable from the machine itself, not from the network)
+- **Services**: `db` (PostgreSQL 15), `backend`, `frontend`, `mailhog`, `pgadmin`
 - **Images**: backend and frontend are tagged `${BACKEND_IMAGE:-todo-backend}:${IMAGE_TAG:-local}` / `${FRONTEND_IMAGE:-todo-frontend}:${IMAGE_TAG:-local}`; local builds use the defaults, `make deploy` points them at the GHCR images
+
+#### Other files in `docker/`
+
+- **`docker-compose.override.yml`**: development overrides added by `make dev` (hot-reload, source bind-mounts, `DEBUG=True`)
+- **`docker-compose.e2e.yml`**: throwaway stack for the Playwright tests (see [End-to-End Tests](#end-to-end-tests-playwright))
+- **`docker.env.example`**: template for `docker/docker.env`
+- **`init-db.sh`**: PostgreSQL init hook (currently a no-op placeholder)
+- **`nginx.conf`**, **`Dockerfile.frontend.dev`**: leftovers that no compose file or workflow uses — the frontend is served by the Angular SSR server and development builds the `deps` stage of `Dockerfile.frontend`
 
 ### Troubleshooting Docker
 
@@ -545,7 +534,9 @@ Multi-stage build:
 
 ```bash
 # Check what process uses the port
-netstat -ano | findstr :4200
+ss -ltnp | grep :4200          # Linux
+lsof -i :4200                  # macOS
+netstat -ano | findstr :4200   # Windows
 
 # Change port in docker-compose.yml
 ports:
@@ -568,8 +559,8 @@ docker-compose build --no-cache frontend
 #### Problem: Database isn't working
 
 ```bash
-# Check connection
-docker-compose exec db pg_isready -U todo_user -d todo_db
+# Check connection (POSTGRES_USER / POSTGRES_DB from docker/docker.env)
+docker-compose exec db sh -c 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
 
 # Reset database
 docker-compose down -v  # WARNING: Deletes all data!
@@ -583,8 +574,8 @@ docker-compose up --build db
 curl http://localhost:8000/health
 curl http://localhost:8000/auth/health
 
-# Check Docker network
-docker-compose exec frontend curl http://backend:8000/health
+# Check Docker network (the frontend image has wget, not curl)
+docker-compose exec frontend wget -qO- http://backend:8000/health
 ```
 
 ### Development workflow
@@ -607,7 +598,19 @@ The hook is installed by Husky: run `npm install` once in the project root (it s
 
 ### Production deployment
 
-When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200) — with one exception: `/todos` is also the Angular page, so a browser navigation to it (`Accept: text/html` — a refresh, a bookmark, a link) must go to the frontend, otherwise it gets the API's JSON (see the Caddyfile below). `docker-compose.yml` publishes every port on `127.0.0.1` only (backend 8000, frontend 4200, MailHog 1025/8025, PostgreSQL 5433, pgAdmin 5050), so run the proxy on the host and point it at `127.0.0.1:8000` / `127.0.0.1:4200`; nothing is reachable from outside without it. In `docker/docker.prod.env` set `API_URL` to the site origin (e.g. `https://todo.example.com`), `SECURE_COOKIES=True`, `ALLOWED_HOSTS` and `CORS_ORIGINS`/`FRONTEND_URL` to the domain (for the native mobile apps also add `capacitor://localhost,https://localhost` to `CORS_ORIGINS`), and `FORWARDED_ALLOW_IPS` to the Docker network range so rate limiting sees real client IPs. Also set `NG_ALLOWED_HOSTS` to the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version. `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) lists the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
+When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200) — with one exception: `/todos` is also the Angular page, so a browser navigation to it (`Accept: text/html` — a refresh, a bookmark, a link) must go to the frontend, otherwise it gets the API's JSON (see the Caddyfile below).
+
+`docker-compose.yml` publishes every port on `127.0.0.1` only (backend 8000, frontend 4200, MailHog 1025/8025, PostgreSQL 5433, pgAdmin 5050), so run the proxy on the host and point it at `127.0.0.1:8000` / `127.0.0.1:4200`; nothing is reachable from outside without it. To open pgAdmin or MailHog on the server, use an SSH tunnel (e.g. `ssh -L 5050:127.0.0.1:5050 <user>@<server>`).
+
+Set these in `docker/docker.prod.env` (same variables as `docker/docker.env.example`, plus the ones below):
+
+- `API_URL` — the site origin (e.g. `https://todo.example.com`); baked into the frontend image at build time.
+- `SECURE_COOKIES=True`.
+- `ALLOWED_HOSTS`, `CORS_ORIGINS` and `FRONTEND_URL` — the domain. For the native mobile apps also add `capacitor://localhost,https://localhost` to `CORS_ORIGINS`.
+- `FORWARDED_ALLOW_IPS` — the Docker network range (e.g. `172.16.0.0/12`), so rate limiting sees real client IPs.
+- `NG_ALLOWED_HOSTS` — the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version.
+- `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) — the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
+- `USE_MAILHOG=false` and `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM` — a real SMTP server for verification and password-reset emails.
 
 Caddy example (`/etc/caddy/Caddyfile`; Caddy obtains the TLS certificate itself):
 
@@ -785,10 +788,13 @@ docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec ba
 todo-app/
 ├── backend/                 # Python FastAPI backend
 │   ├── config/              # database, auth, api_messages, password validation
+│   ├── i18n/                # en.json, pl.json - email texts
 │   ├── models/              # SQLAlchemy models (user, todo, group, refresh_token) + Pydantic schemas
 │   ├── routes/              # API routes (auth, users, todos, groups)
 │   ├── services/            # Business logic (auth, email)
 │   ├── migrations/          # Alembic migrations
+│   ├── openapi/             # export_openapi.py + the exported openapi.json (input of `npm run generate-api`)
+│   ├── scripts/             # seed.py - sample data for development
 │   ├── tests/               # Pytest suite
 │   ├── main.py              # Application entrypoint
 │   ├── requirements.txt     # Python runtime dependencies (production image)
@@ -797,13 +803,14 @@ todo-app/
 ├── frontend/                # Angular frontend
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── core/        # Guards, interceptors, services, stores (AuthStore)
-│   │   │   ├── features/    # auth/, groups/, todos/ (each with components/, store/), legal/ (privacy policy)
+│   │   │   ├── core/        # Guards, interceptors, services, store/ (AuthStore), config, models, tokens, utils
+│   │   │   ├── features/    # auth/, groups/, todos/ (components/ plus store/ or services/), legal/ (privacy policy)
 │   │   │   ├── shared/
 │   │   │   │   ├── ui/              # Design system primitives (badge, empty-state, form-field, icon-button)
 │   │   │   │   ├── global-styling/  # SCSS partials, incl. _tokens.scss (design tokens)
 │   │   │   │   ├── components/      # Shared components
-│   │   │   │   └── pipes/
+│   │   │   │   ├── pipes/
+│   │   │   │   └── utils/
 │   │   │   └── layout/      # Layout components
 │   │   ├── libs/generated-api/  # Generated OpenAPI client (@api)
 │   │   ├── assets/i18n/     # en.json, pl.json
@@ -819,6 +826,7 @@ todo-app/
 ├── .dockerignore            # Keeps host node_modules out of image builds
 ├── Makefile                 # Entry point for all dev tasks
 ├── AGENTS.md                # Guidelines for contributors and AI agents
+├── LICENSE                  # MIT
 ├── README.md                # This file
 └── .gitignore
 ```
@@ -868,7 +876,7 @@ Before adding a new ad-hoc button, badge or empty state, check whether one of th
 
 - **Backend**: Use Pydantic for validation, SQLAlchemy for queries
 - **Frontend**: Rely on OnPush change detection, always provide `track` in `@for` loops
-- **Git**: Commit often with descriptive messages
+- **Git**: Small commits in the [Conventional Commits](https://www.conventionalcommits.org/) format (see [Contributing](#-contributing))
 - **Tests**: Cover key business logic with tests
 
 ### Useful Commands
@@ -891,19 +899,18 @@ docker-compose exec backend bash      # Shell into container
 
 ## 🤝 Contributing
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+The full rules are in [AGENTS.md](AGENTS.md) (_Git — commits, branches, PRs_). In short:
+
+1. Create a branch from `develop` named `<type>/<short-kebab-description>` (e.g. `fix/refresh-cookie-path`); never commit directly to `develop`
+2. Commit using Conventional Commits: `type(scope): subject` (e.g. `fix(auth): expire the old refresh cookie`), one logical change per commit
+3. Run the checks CI runs (see [Continuous Integration](#continuous-integration-github-actions)) and update this README when your change makes it wrong
+4. Open a Pull Request against `develop` with a `## Summary` and a `## Test plan`
+
+Merging to `develop` deploys to production (see [Continuous deployment](#continuous-deployment-github-actions)).
 
 ## 📄 License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
-
-## 📞 Contact
-
-Got questions? Feel free to reach out!
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
