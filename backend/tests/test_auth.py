@@ -11,17 +11,19 @@ These tests verify that our authentication system works correctly:
 - GET /auth/health - health check including the database
 """
 
+from datetime import UTC, datetime, timedelta
+
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
+
 from config.database import get_db
 from models.user import User
 from services.auth_service import (
     create_access_token,
-    hash_password,
     hash_one_time_token,
+    hash_password,
 )
-from datetime import datetime, timedelta, timezone
 
 # Cookie name must match the constant in routes/auth.py
 REFRESH_COOKIE_NAME = "refresh_token"
@@ -346,7 +348,7 @@ class TestAuthAPI:
 
         # Create reset token directly on user
         reset_token = "test_reset_token_123"
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+        expires_at = datetime.now(UTC) + timedelta(hours=1)
 
         user = test_db.query(User).filter(User.id == test_user.id).first()
         user.password_reset_token = hash_one_time_token(reset_token)
@@ -385,7 +387,7 @@ class TestAuthAPI:
         """Test POST /auth/reset-password with expired token."""
         # Create expired reset token
         reset_token = "expired_token_123"
-        expires_at = datetime.now(timezone.utc) - timedelta(hours=1)  # Expired
+        expires_at = datetime.now(UTC) - timedelta(hours=1)  # Expired
 
         user = test_db.query(User).filter(User.id == test_user.id).first()
         user.password_reset_token = hash_one_time_token(reset_token)
@@ -433,8 +435,7 @@ class TestAuthAPI:
             hashed_password=hash_password("password123"),
             is_verified=False,
             email_verification_token=hash_one_time_token("test_token_123"),
-            email_verification_expires_at=datetime.now(timezone.utc)
-            + timedelta(hours=1),
+            email_verification_expires_at=datetime.now(UTC) + timedelta(hours=1),
         )
         test_db.add(user)
         test_db.commit()
@@ -455,8 +456,7 @@ class TestAuthAPI:
             hashed_password=hash_password("password123"),
             is_verified=False,
             email_verification_token=hash_one_time_token("expired_token"),
-            email_verification_expires_at=datetime.now(timezone.utc)
-            - timedelta(hours=1),
+            email_verification_expires_at=datetime.now(UTC) - timedelta(hours=1),
         )
         test_db.add(user)
         test_db.commit()

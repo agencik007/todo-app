@@ -6,15 +6,15 @@ Email service - Email sending functionality with dual-mode support:
 Controlled by the USE_MAILHOG environment variable (default: true).
 """
 
-import os
 import json
 import logging
+import os
 import smtplib
 import ssl
-from pathlib import Path
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from typing import Optional, Dict, Any
+from email.mime.text import MIMEText
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 I18N_DIR = BASE_DIR / "i18n"
 
 
-def load_translations() -> Dict[str, Any]:
+def load_translations() -> dict[str, Any]:
     """Load translation files from i18n directory."""
     translations = {}
     for lang in ["en", "pl"]:
@@ -135,7 +135,7 @@ def _mask_email(email: str) -> str:
 
 
 def send_email(
-    to_email: str, subject: str, html_content: str, text_content: Optional[str] = None
+    to_email: str, subject: str, html_content: str, text_content: str | None = None
 ) -> bool:
     """
     Send an email.

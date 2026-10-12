@@ -2,9 +2,9 @@
 RefreshToken model - SQLAlchemy model for server-side refresh token tracking.
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.sql import func
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from config.database import Base
 

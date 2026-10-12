@@ -8,10 +8,12 @@ These tests verify that our data validation schemas work correctly:
 - Data conversion works properly
 """
 
-import pytest
-from models.schemas import TodoCreate, TodoUpdate, Todo
-from pydantic import ValidationError
 from datetime import datetime
+
+import pytest
+from pydantic import ValidationError
+
+from models.schemas import Todo, TodoCreate, TodoUpdate
 
 
 class TestTodoCreateSchema:

@@ -2,18 +2,16 @@
 Group routes - CRUD operations for todo groups.
 """
 
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from config.api_messages import ApiMessages, api_error, api_success
 from config.auth import get_current_verified_user
 from config.database import get_db
-from config.api_messages import ApiMessages, api_error, api_success
 from models.group import Group as GroupModel
-from models.user import User
 from models.schemas import Group, GroupCreate, GroupUpdate
+from models.user import User
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 
@@ -21,11 +19,11 @@ router = APIRouter(prefix="/groups", tags=["groups"])
 MAX_GROUPS_PER_USER = 50
 
 
-@router.get("", response_model=List[Group])
+@router.get("", response_model=list[Group])
 def get_groups(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
-) -> List[Group]:
+) -> list[Group]:
     """
     Get all groups for the current user.
 

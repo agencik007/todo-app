@@ -3,8 +3,9 @@ Tests for Group API endpoints.
 """
 
 from fastapi.testclient import TestClient
-from models.todo import Todo
+
 from models.group import Group
+from models.todo import Todo
 
 
 class TestGroupAPI:

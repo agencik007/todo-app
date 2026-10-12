@@ -3,9 +3,8 @@ Pydantic schemas - Request/Response models for API validation.
 """
 
 from datetime import datetime
-from typing import Optional
 
-from pydantic import BaseModel, Field, EmailStr, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from pydantic.alias_generators import to_camel
 
 from models.group import GroupColor
@@ -36,14 +35,12 @@ class GroupBase(CamelBaseModel):
 class GroupCreate(GroupBase):
     """Schema for creating a new group."""
 
-    pass
-
 
 class GroupUpdate(CamelBaseModel):
     """Schema for updating a group."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=50)
-    color: Optional[GroupColor] = None
+    name: str | None = Field(None, min_length=1, max_length=50)
+    color: GroupColor | None = None
 
 
 class Group(GroupBase):
@@ -66,26 +63,24 @@ class TodoBase(CamelBaseModel):
     """Base schema for todo items."""
 
     title: str = Field(..., min_length=1, description="Title must not be empty")
-    description: Optional[str] = None
+    description: str | None = None
     completed: bool = False
     index: int = 0
-    group_id: Optional[int] = None
+    group_id: int | None = None
 
 
 class TodoCreate(TodoBase):
     """Schema for creating a new todo."""
 
-    pass
-
 
 class TodoUpdate(CamelBaseModel):
     """Schema for updating an existing todo (all fields optional)."""
 
-    title: Optional[str] = None
-    description: Optional[str] = None
-    completed: Optional[bool] = None
-    index: Optional[int] = None
-    group_id: Optional[int] = None
+    title: str | None = None
+    description: str | None = None
+    completed: bool | None = None
+    index: int | None = None
+    group_id: int | None = None
 
 
 class Todo(TodoBase):
@@ -95,10 +90,10 @@ class Todo(TodoBase):
 
     id: int
     user_id: int
-    owner_email: Optional[str] = None
+    owner_email: str | None = None
     created_at: datetime
     updated_at: datetime
-    group: Optional[Group] = None
+    group: Group | None = None
 
 
 # =============================================================================
@@ -135,9 +130,9 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     is_verified: bool
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
     language: str
-    message: Optional[str] = None
+    message: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -164,14 +159,14 @@ class Token(CamelBaseModel):
 
     access_token: str
     token_type: str = "bearer"
-    message: Optional[str] = None
+    message: str | None = None
 
 
 class TokenData(CamelBaseModel):
     """Schema for decoded token data."""
 
-    user_id: Optional[int] = None
-    email: Optional[str] = None
+    user_id: int | None = None
+    email: str | None = None
 
 
 class LoginRequest(CamelBaseModel):

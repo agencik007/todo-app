@@ -2,29 +2,28 @@
 Users routes - User profile and avatar management endpoints.
 """
 
-import os
-import shutil
-import secrets
 import logging
+import os
+import secrets
+import shutil
 from pathlib import Path
-from typing import Optional
 
 from fastapi import (
     APIRouter,
     Depends,
-    UploadFile,
     File,
     HTTPException,
     Response,
+    UploadFile,
     status,
 )
 from sqlalchemy.orm import Session
 
+from config.api_messages import ApiMessages, api_error, api_success
 from config.auth import get_current_verified_user
 from config.database import get_db
-from config.api_messages import ApiMessages, api_error, api_success
-from models.user import User
 from models.schemas import UserDeleteConfirm, UserLanguageUpdate
+from models.user import User
 from routes.auth import _clear_refresh_cookie
 from services.auth_service import verify_password
 
@@ -48,7 +47,7 @@ _IMAGE_SIGNATURES: list[tuple[bytes, str]] = [
 _MAX_SIGNATURE_BYTES = 12  # WEBP's signature spans the first 12 bytes
 
 
-def _sniff_image_extension(prefix: bytes) -> Optional[str]:
+def _sniff_image_extension(prefix: bytes) -> str | None:
     """
     Identify an image's real format from its leading bytes.
 
