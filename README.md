@@ -519,7 +519,7 @@ PgAdmin is a web tool for managing PostgreSQL:
 - **Base**: Python 3.12 slim
 - **Stages**: `runtime` (final image, used by production, `make deploy` and the e2e stack) installs `requirements.txt` only; `dev` adds `requirements-dev.txt` (pytest, ruff, httpx) and is what `docker-compose.override.yml` builds (`target: dev`), so `make test-backend` keeps working in the dev container
 - **Server**: Uvicorn with 2 workers (production); `docker-compose.override.yml` switches it to `--reload` for development
-- **Security**: Non-root user
+- **Security**: Non-root user (`app`), which also owns `/app/uploadedFiles` so the `backend_uploads` volume is writable
 - **Health checks**: Socket connection test
 
 #### Dockerfile.frontend
@@ -534,7 +534,7 @@ Multi-stage build:
 #### docker-compose.yml
 
 - **Network**: Isolated todo-network
-- **Volumes**: Persistent PostgreSQL data
+- **Volumes**: `postgres_data` (PostgreSQL data), `backend_uploads` (user avatars, mounted at `/app/uploadedFiles` in the backend and served under `/uploads`) and `pgadmin_data`; they survive `make down` and deploys, and are deleted by `make clean` / `make clean-volumes`
 - **Health checks**: Service dependencies
 - **Ports**: Port mapping host:container, all bound to `127.0.0.1` (reachable from the machine itself, not from the network)
 - **Images**: backend and frontend are tagged `${BACKEND_IMAGE:-todo-backend}:${IMAGE_TAG:-local}` / `${FRONTEND_IMAGE:-todo-frontend}:${IMAGE_TAG:-local}`; local builds use the defaults, `make deploy` points them at the GHCR images
@@ -711,7 +711,7 @@ make restore-db STACK=prod BACKUP=backups/prod-20260101T120000Z.dump
 # ...then start the app again: `make dev`, or redeploy the matching release in production
 ```
 
-`backups/` is ignored by git and by the Docker build context. These dumps stay on the same machine as the database, so they protect against a bad migration or deploy, not against losing the server — [Off-server backups](#off-server-backups) covers that.
+`backups/` is ignored by git and by the Docker build context. The dumps contain the database only: avatars live in the `backend_uploads` Docker volume and are not backed up. These dumps stay on the same machine as the database, so they protect against a bad migration or deploy, not against losing the server — [Off-server backups](#off-server-backups) covers that.
 
 ### Off-server backups
 

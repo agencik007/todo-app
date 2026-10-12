@@ -21,9 +21,11 @@ RUN apt-get update && apt-get install -y \
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create non-root user for security. It owns /app because the app creates
-# uploadedFiles/ there at startup.
-RUN useradd --create-home --shell /bin/bash app && chown app:app /app
+# Create non-root user for security. uploadedFiles/ (user avatars) must exist
+# in the image and belong to that user: docker-compose.yml mounts a named
+# volume there, and a new volume takes its ownership from the image directory.
+RUN useradd --create-home --shell /bin/bash app \
+  && mkdir /app/uploadedFiles && chown -R app:app /app
 
 # Expose port
 EXPOSE 8000
