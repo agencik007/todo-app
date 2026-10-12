@@ -101,7 +101,7 @@ Smooth out login avatar final fade phase      # no type
 
 **Branches:** `<type>/<short-kebab-description>` (e.g. `fix/refresh-cookie-path`, `docs/commit-conventions`), always created from `develop`. Never commit directly to `develop`.
 
-**Pull requests:** base `develop`; title in the same `type(scope): subject` format; description with a `## Summary` (what and why, as bullets) and a `## Test plan` (the checks you ran). Create them with `gh pr create --base develop`.
+**Pull requests:** base `develop`; title in the same `type(scope): subject` format; description with a `## Summary` (what and why, as bullets) and a `## Test plan` (the checks you ran). Create them with `gh pr create --base develop`; where `gh` isn't installed, push the branch and open `https://github.com/agencik007/todo-app/compare/develop...<branch>?expand=1`.
 
 ---
 
@@ -109,22 +109,23 @@ Smooth out login avatar final fade phase      # no type
 
 ```
 backend/
-  config/        # api_messages.py, settings
-  models/        # SQLAlchemy models (user, todo, group)
+  config/        # api_messages.py, database, auth, password validation
+  models/        # SQLAlchemy models (user, todo, group, refresh_token) + schemas.py (Pydantic)
   routes/        # FastAPI endpoints
   services/      # business logic
   migrations/    # Alembic (remember to register models in env.py!)
+  openapi/       # export_openapi.py + openapi.json (input of `npm run generate-api`)
   tests/         # pytest; conftest.py sets TESTING=1
 frontend/src/app/
-  core/          # guards, interceptors, services, tokens, stores (AuthStore)
-  features/      # auth/, groups/, todos/ (each with components/, store/), legal/ (privacy policy)
-  shared/        # components, global-styling, pipes
+  core/          # guards, interceptors, services, tokens, store/ (AuthStore)
+  features/      # auth/, groups/, todos/ (components/; groups and todos also have store/), legal/ (privacy policy)
+  shared/        # ui/ (design system primitives), components, global-styling, pipes, utils
   layout/
 docs/            # design notes and implementation plans (pwa-plan.md = PWA roadmap)
 docker/          # Dockerfiles and docker-compose configurations (docker-compose.e2e.yml = e2e stack)
 e2e/             # Playwright tests: fixtures/ (API, MailHog), pages/ (page objects), tests/
 .github/workflows/ # CI, CD and backup.yml (nightly age-encrypted DB dump as an artifact); .github/dependabot.yml = dependency update PRs
-.husky/          # Git hooks (Husky, installed by `npm install` in the root): pre-commit = lint-staged; post-checkout = rebuild/migrate the running dev stack after a branch switch
+.husky/          # Git hooks (Husky, installed by `npm install` in the root): pre-commit = lint-staged (Prettier + ESLint on staged frontend files, `ruff` on staged Python — these run on the host); post-checkout = rebuild/migrate the running dev stack after a branch switch
 Makefile         # root entry point for all development tasks
 ```
 
@@ -167,7 +168,7 @@ Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`.
 - Test and lint tools (pytest, pytest-asyncio, pytest-cov, httpx, ruff) live in `backend/requirements-dev.txt`, not `requirements.txt`: the production image installs runtime dependencies only, the dev container (`target: dev`) and CI install both.
 - Tests never use the application database: `conftest.py` derives `<db>_test` from `DATABASE_URL` (created automatically if the DB user has permission), or uses `TEST_DATABASE_URL` if set.
 - An autouse fixture `db_cleanup` in `conftest.py` clears all data between tests.
-- **Rate limiting in tests:** rate limiting is enabled by default on sensitive endpoints (registration, login, verify email). Tests must run with `TESTING=1`, which `backend/tests/conftest.py` sets automatically via `os.environ["TESTING"] = "1"`.
+- **Rate limiting in tests:** rate limiting is enabled by default on sensitive endpoints (registration, login, forgot/reset password, resend verification). Tests must run with `TESTING=1`, which `backend/tests/conftest.py` sets automatically via `os.environ["TESTING"] = "1"`.
 - **When adding new rate-limited endpoints**, always check `enabled=not IS_TESTING` or `os.getenv("TESTING") != "1"` so the test suite continues to bypass limiting.
 
 ### E2E tests
@@ -320,7 +321,7 @@ Use `catchError` and `handleError`. Toasts are handled by `notificationIntercept
 
 ### Forms
 
-The project is migrating to the **Signal Forms API (Angular 21 experimental)** — see Claude memory files `project_angular_forms_style.md` and `project_forms.md` for the target style. The slash command `/edit-forms` covers the global form rewrite.
+All forms use the **Signal Forms API** (`@angular/forms/signals`, experimental in Angular 21) — do not add `ReactiveFormsModule` or template-driven forms. Follow the existing forms (e.g. `features/auth/components/login/`) and the rules in `.claude/commands/edit-forms.md`; the slash command `/edit-forms` re-applies that style across all forms.
 
 ---
 
@@ -328,8 +329,7 @@ The project is migrating to the **Signal Forms API (Angular 21 experimental)** �
 
 ### Configuration
 
-- Local development: database configured via `DATABASE_URL`.
-- Production: PostgreSQL (via `DATABASE_URL`).
+- PostgreSQL 15 everywhere (dev, tests, CI, production), configured via `DATABASE_URL`. There is no SQLite fallback.
 - Migration tool: Alembic.
 
 ### Creating a migration
@@ -340,6 +340,7 @@ The project is migrating to the **Signal Forms API (Angular 21 experimental)** �
 from models.user import User  # noqa: E402, F401
 from models.todo import Todo  # noqa: E402, F401
 from models.group import Group  # noqa: E402, F401
+from models.refresh_token import RefreshToken  # noqa: E402, F401
 ```
 
 Without these imports, Alembic will not detect new models.
@@ -352,39 +353,26 @@ docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec ba
 
 **Always review the generated migration** before running `make migrate`.
 
-### SQLite vs PostgreSQL
+### PostgreSQL enums in migrations
 
-When a migration touches database-specific features (e.g. PostgreSQL enums), branch on the dialect:
+Alembic autogenerate does not drop PostgreSQL enum types in `downgrade()` (and does not detect changed enum values). Create the type explicitly and drop it yourself:
 
 ```python
 from sqlalchemy.dialects import postgresql
 
 def upgrade() -> None:
-    conn = op.get_bind()
-    is_postgres = conn.dialect.name == 'postgresql'
-
-    if is_postgres:
-        my_enum = postgresql.ENUM('value1', 'value2', name='myenum')
-        my_enum.create(conn, checkfirst=True)
-        column_type = my_enum
-    else:
-        # SQLite: fall back to String + application-level validation
-        column_type = sa.String()
+    my_enum = postgresql.ENUM('value1', 'value2', name='myenum')
+    my_enum.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
         'my_table',
-        sa.Column('my_column', column_type, nullable=False),
+        sa.Column('my_column', my_enum, nullable=False),
         ...
     )
 
 def downgrade() -> None:
-    conn = op.get_bind()
-    is_postgres = conn.dialect.name == 'postgresql'
-
     op.drop_table('my_table')
-
-    if is_postgres:
-        postgresql.ENUM(name='myenum').drop(conn, checkfirst=True)
+    postgresql.ENUM(name='myenum').drop(op.get_bind(), checkfirst=True)
 ```
 
 ### Enums in SQLAlchemy
@@ -417,12 +405,12 @@ When you need a fixed set of values (e.g. colors, statuses):
        my_field: MyEnum = MyEnum.VALUE1
    ```
 
-Benefits: type safety in Python, validation at DB level (PostgreSQL) or app level (SQLite), automatic OpenAPI export, consistency between frontend and backend.
+Benefits: type safety in Python, validation at DB level, automatic OpenAPI export, consistency between frontend and backend.
 
 ### Migration troubleshooting
 
 - **"Can't locate revision"** → inspect the `alembic_version` table and fix it manually if needed.
-- **Enum not working in SQLite** → use the conditional pattern above.
+- **Enum type already exists / not dropped** → use the explicit pattern above.
 - **Model not detected by Alembic** → make sure it's imported in `migrations/env.py`.
 
 ---
@@ -433,7 +421,7 @@ Benefits: type safety in Python, validation at DB level (PostgreSQL) or app leve
 
 Stored in `.claude/commands/`:
 
-- `/edit-forms` — global rewrite of the six forms following Signal Forms + the Angular Style Guide (`.claude/commands/edit-forms.md`).
+- `/edit-forms` — brings every form in line with Signal Forms + the Angular Style Guide (`.claude/commands/edit-forms.md`).
 - `/generate-migration` — workflow for creating an Alembic migration with `env.py` import validation.
 
 ### Language policy for AI configuration files
@@ -442,7 +430,7 @@ Stored in `.claude/commands/`:
 
 ### Persistent memory (Claude Code)
 
-Location: `C:\Users\<user>\.claude\projects\D--Code-todo-app-agencik007\memory\`. Contains, among other things, Signal Forms rules; Claude reads them automatically when relevant.
+Location: `~/.claude/projects/<project-path-slug>/memory/` on each machine (not in the repository, not shared between machines). Claude reads it automatically when relevant; anything every contributor needs belongs in this file instead.
 
 ### Keeping README.md up to date
 

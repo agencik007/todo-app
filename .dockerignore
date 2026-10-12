@@ -25,6 +25,9 @@
 docker/docker.env
 docker/docker.prod.env
 
+# Avatars uploaded while running the backend from the host
+**/uploadedFiles
+
 **/postgres_data
 **/pgadmin_data
 **/*.log
