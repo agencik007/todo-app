@@ -247,7 +247,7 @@ If you prefer using Docker, the entire application can be run in containers — 
 
 #### 1. Backend
 
-On the **first run, against an empty database** (created in [4. PostgreSQL Database](#4-postgresql-database)), you do **not** need to (and should not) run `alembic upgrade head` manually — just start the backend:
+On the **first run, against an empty database** (created in [4. PostgreSQL Database](#4-postgresql-database)), just start the backend — it creates the schema itself:
 
 ```bash
 cd backend
@@ -262,9 +262,9 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 > [!NOTE]
-> On startup the app creates all tables itself from the SQLAlchemy models (`Base.metadata.create_all`) and marks the database as being on the latest Alembic revision (`_ensure_alembic_stamped()` in `backend/main.py`). The first migration in the repo (`658f4b511d04_initial_schema_camel_case`) is intentionally empty — Docker works the same way (`Dockerfile.backend` also just runs `uvicorn`, with no `alembic upgrade head` before it starts).
+> On startup the app creates any missing tables from the SQLAlchemy models (`Base.metadata.create_all`) and, on a database without Alembic version tracking, marks it as being on the latest revision (`_ensure_alembic_stamped()` in `backend/main.py`). Docker works the same way (`Dockerfile.backend` just runs `uvicorn`).
 >
-> Only run `alembic upgrade head` once the database already exists and has run at least once (e.g. after a `git pull` that added new migration files) — it then applies just the incremental changes.
+> `alembic upgrade head` works too, on an empty database as well as an existing one: the migrations build the full schema from scratch, which is what `make deploy` relies on for the first deploy to a new server. After a `git pull` that adds migration files, run it to apply just the new ones.
 
 The backend will be available at: http://localhost:8000
 
@@ -383,7 +383,7 @@ make e2e-down                   # stop it and drop its data
 
 | Job        | What it checks                                                                                                 |
 | ---------- | -------------------------------------------------------------------------------------------------------------- |
-| `backend`  | `ruff check`, `ruff format --check` and the full `pytest` suite (with the coverage gate) against PostgreSQL 15 |
+| `backend`  | `ruff check`, `ruff format --check`, `alembic upgrade head` + `alembic check` on an empty database (the migrations must build the schema the models describe) and the full `pytest` suite (with the coverage gate) against PostgreSQL 15 |
 | `frontend` | `npm ci`, `npm run lint`, `npm run format:check` (Prettier) and `npm run build` (SSR + prerender)              |
 | `e2e`      | Builds the production Docker images, starts `docker/docker-compose.e2e.yml` and runs the Playwright tests      |
 
