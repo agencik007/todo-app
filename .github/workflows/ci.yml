@@ -66,6 +66,13 @@ jobs:
       - name: Ruff format
         run: ruff format --check .
 
+      # todo_ci is empty (the tests use todo_ci_test), so this builds the
+      # whole schema from the migrations and checks that it matches the models.
+      - name: Alembic migrations
+        run: |
+          alembic upgrade head
+          alembic check
+
       - name: Pytest
         run: python -m pytest
 

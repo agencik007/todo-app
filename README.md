@@ -383,7 +383,7 @@ make e2e-down                   # stop it and drop its data
 
 | Job        | What it checks                                                                                                 |
 | ---------- | -------------------------------------------------------------------------------------------------------------- |
-| `backend`  | `ruff check`, `ruff format --check` and the full `pytest` suite (with the coverage gate) against PostgreSQL 15 |
+| `backend`  | `ruff check`, `ruff format --check`, `alembic upgrade head` + `alembic check` on an empty database (the migrations must build the schema the models describe) and the full `pytest` suite (with the coverage gate) against PostgreSQL 15 |
 | `frontend` | `npm ci`, `npm run lint`, `npm run format:check` (Prettier) and `npm run build` (SSR + prerender)              |
 | `e2e`      | Builds the production Docker images, starts `docker/docker-compose.e2e.yml` and runs the Playwright tests      |
 
