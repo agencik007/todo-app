@@ -1,7 +1,7 @@
 import { newUser, registerUser, VERIFY_EMAIL_PATH } from '../fixtures/api';
 import { waitForEmailLink } from '../fixtures/mailhog';
 import { expect, test } from '../fixtures/test';
-import { LoginPage, RegisterPage, UserMenu } from '../pages/auth.pages';
+import { GuestNav, LoginPage, RegisterPage, UserMenu } from '../pages/auth.pages';
 import { TodosPage } from '../pages/todos.page';
 
 test('a new user registers, verifies the email, logs in and logs out', async ({
@@ -79,4 +79,33 @@ test('the privacy policy is public and linked from the login page', async ({ pag
 
   await expect(page).toHaveURL(/\/privacy/);
   await expect(page.getByRole('heading', { name: 'Privacy policy' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your rights' })).toBeAttached();
+});
+
+test('guests only get the language switch and the login/register buttons', async ({ page }) => {
+  const nav = new GuestNav(page);
+
+  await page.goto('/privacy');
+  await expect(nav.login).toBeVisible();
+  await expect(nav.register).toBeVisible();
+  await expect(nav.language).toBeVisible();
+  await expect(nav.search).toHaveCount(0);
+
+  // Each auth page only links to the other one.
+  await nav.register.click();
+  await expect(page).toHaveURL(/\/register/);
+  await expect(nav.login).toBeVisible();
+
+  await nav.login.click();
+  await expect(page).toHaveURL(/\/login/);
+  await expect(nav.register).toBeVisible();
+  await expect(nav.search).toHaveCount(0);
+});
+
+test('a logged-in user gets the search and the account menu', async ({ page, loggedIn }) => {
+  await new TodosPage(page).goto();
+
+  await expect(new GuestNav(page).search).toBeVisible();
+  await expect(page.getByRole('button', { name: loggedIn.email })).toBeVisible();
+  await expect(new GuestNav(page).register).toHaveCount(0);
 });

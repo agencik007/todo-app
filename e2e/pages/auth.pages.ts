@@ -38,6 +38,21 @@ export class RegisterPage {
   }
 }
 
+/** Guest part of the top bar: the language switch and the login/register buttons. */
+export class GuestNav {
+  readonly login: Locator;
+  readonly register: Locator;
+  readonly language: Locator;
+  readonly search: Locator;
+
+  constructor(readonly page: Page) {
+    this.login = page.getByRole('button', { name: 'Login', exact: true });
+    this.register = page.getByRole('button', { name: 'Register', exact: true });
+    this.language = page.getByRole('combobox', { name: 'English' });
+    this.search = page.getByRole('button', { name: 'Search' });
+  }
+}
+
 export class UserMenu {
   constructor(readonly page: Page) {}
 
