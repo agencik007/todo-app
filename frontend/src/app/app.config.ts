@@ -22,6 +22,7 @@ import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
+import { patchPrimeNgAutofocus } from './core/config/primeng-autofocus.patch';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { notificationInterceptor } from './core/interceptors/notification.interceptor';
 import { LanguageService } from './core/services/language.service';
@@ -37,6 +38,8 @@ function initializeApp(): Promise<void> {
   const authStore = inject(AuthStore);
   return authStore.initializeAuth();
 }
+
+patchPrimeNgAutofocus();
 
 export const appConfig: ApplicationConfig = {
   providers: [
