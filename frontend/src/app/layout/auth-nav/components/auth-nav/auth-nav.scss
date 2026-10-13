@@ -93,6 +93,12 @@
     }
   }
 
+  .guest-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--app-space-2);
+  }
+
   .search-trigger-btn-mobile {
     background: var(--p-surface-100);
     border: 1px solid var(--p-surface-border);

@@ -279,7 +279,10 @@ export class CommandPaletteService {
   }
 
   open(): void {
-    this.isOpen.set(true);
+    // The palette only has commands for signed-in users.
+    if (this.#authStore.isAuthenticated()) {
+      this.isOpen.set(true);
+    }
   }
 
   close(): void {
@@ -287,7 +290,11 @@ export class CommandPaletteService {
   }
 
   toggle(): void {
-    this.isOpen.set(!this.isOpen());
+    if (this.isOpen()) {
+      this.close();
+    } else {
+      this.open();
+    }
   }
 
   // ==================== Command Actions ====================

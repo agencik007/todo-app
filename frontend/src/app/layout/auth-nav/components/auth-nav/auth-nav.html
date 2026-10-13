@@ -12,9 +12,8 @@
         </button>
       }
 
-      <!-- Left: Title removed -->
       <!-- Center: Command Palette (Desktop) -->
-      @if (isInitialized() && !isCompact() && (isAuthenticated() || !isAuthPage())) {
+      @if (isInitialized() && !isCompact() && isAuthenticated()) {
         <div class="search-container-desktop">
           <button
             type="button"
@@ -38,10 +37,11 @@
   <ng-template #end>
     <div class="flex align-items-center gap-3">
       <!-- Mobile Search Icon -->
-      @if (isInitialized() && isCompact() && (isAuthenticated() || !isAuthPage())) {
+      @if (isInitialized() && isCompact() && isAuthenticated()) {
         <button
           type="button"
           class="search-trigger-btn-mobile mr-2"
+          [attr.aria-label]="'COMMAND_PALETTE.SEARCH' | translate"
           (click)="onOpenCommandPalette()"
         >
           <i class="pi pi-search"></i>
@@ -53,34 +53,30 @@
           strokeWidth="4"
           [style]="{ width: '24px', height: '24px' }"
         />
-      } @else {
+      } @else if (isAuthenticated()) {
         <div class="flex align-items-center gap-2">
-          <!-- Weather Widget -->
-          @if (isAuthenticated()) {
-            <app-weather-widget />
+          <app-weather-widget />
+          <app-user-profile></app-user-profile>
+        </div>
+      } @else {
+        <!-- Guests: language switch plus the auth page they are not on -->
+        <div class="guest-actions">
+          <app-language-selector />
+          @if (!isLoginPage()) {
+            <p-button
+              size="small"
+              severity="secondary"
+              routerLink="/login"
+              [outlined]="true"
+              [label]="'NAV.LOGIN' | translate"
+            />
           }
-
-          <!-- User/Settings Menu (hidden on auth pages) -->
-          @if (!isAuthPage()) {
-            <app-user-profile></app-user-profile>
-          }
-
-          <!-- Primary Actions for Guests (Desktop) -->
-          @if (!isAuthenticated() && !isCompact() && !isAuthPage()) {
-            <div class="flex gap-2 ml-1">
-              <p-button
-                size="small"
-                severity="secondary"
-                routerLink="/login"
-                [outlined]="true"
-                [label]="'NAV.LOGIN' | translate"
-              />
-              <p-button
-                size="small"
-                routerLink="/register"
-                [label]="'NAV.REGISTER' | translate"
-              />
-            </div>
+          @if (!isRegisterPage()) {
+            <p-button
+              size="small"
+              routerLink="/register"
+              [label]="'NAV.REGISTER' | translate"
+            />
           }
         </div>
       }

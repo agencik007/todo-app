@@ -12,15 +12,10 @@
         shape="circle"
         id="nav-profile-avatar"
         class="profile-avatar"
-        [label]="
-          isAuthenticated() && !userAvatar()
-            ? currentUser()?.email?.charAt(0)?.toUpperCase() || 'U'
-            : undefined
-        "
+        [label]="!userAvatar() ? currentUser()?.email?.charAt(0)?.toUpperCase() || 'U' : undefined"
         [image]="sanitizedAvatarUrl()"
-        [icon]="!isAuthenticated() ? 'pi pi-user' : undefined"
       />
-      @if (isAuthenticated() && userAvatar() && !isCompact()) {
+      @if (userAvatar() && !isCompact()) {
         <button
           type="button"
           class="avatar-zoom-btn"
@@ -38,10 +33,10 @@
 
     <div class="trigger-user-info">
       <span class="trigger-email">
-        {{ isAuthenticated() ? currentUser()?.email : ('NAV.GUEST' | translate) }}
+        {{ currentUser()?.email }}
       </span>
       <span class="trigger-role">
-        {{ isAuthenticated() ? ('NAV.ACCOUNT' | translate) : ('NAV.WELCOME' | translate) }}
+        {{ 'NAV.ACCOUNT' | translate }}
       </span>
     </div>
 
@@ -67,19 +62,16 @@
               shape="circle"
               class="user-card-avatar"
               [label]="
-                isAuthenticated() && !userAvatar()
-                  ? currentUser()?.email?.charAt(0)?.toUpperCase() || 'U'
-                  : undefined
+                !userAvatar() ? currentUser()?.email?.charAt(0)?.toUpperCase() || 'U' : undefined
               "
               [image]="sanitizedAvatarUrl()"
-              [icon]="!isAuthenticated() ? 'pi pi-user' : undefined"
             />
             <div class="user-card-info">
               <span class="user-card-email">
-                {{ isAuthenticated() ? currentUser()?.email : ('NAV.GUEST' | translate) }}
+                {{ currentUser()?.email }}
               </span>
               <span class="user-card-role">
-                {{ isAuthenticated() ? ('NAV.ACCOUNT' | translate) : ('NAV.WELCOME' | translate) }}
+                {{ 'NAV.ACCOUNT' | translate }}
               </span>
             </div>
             <button
@@ -97,75 +89,50 @@
 
           <!-- Action Cards -->
           <div class="actions-list">
-            @if (isAuthenticated()) {
-              <button
-                class="action-card action-card--upload"
-                (click)="onTriggerFileUpload()"
-              >
-                <span class="action-icon action-icon--blue">
-                  <i class="pi pi-upload"></i>
-                </span>
-                <span class="action-label">{{ 'NAV.CHANGE_AVATAR' | translate }}</span>
-                <i class="pi pi-chevron-right action-arrow"></i>
-              </button>
+            <button
+              class="action-card action-card--upload"
+              (click)="onTriggerFileUpload()"
+            >
+              <span class="action-icon action-icon--blue">
+                <i class="pi pi-upload"></i>
+              </span>
+              <span class="action-label">{{ 'NAV.CHANGE_AVATAR' | translate }}</span>
+              <i class="pi pi-chevron-right action-arrow"></i>
+            </button>
 
-              @if (userAvatar()) {
-                <button
-                  class="action-card action-card--delete"
-                  (click)="onDeleteAvatar()"
-                >
-                  <span class="action-icon action-icon--red">
-                    <i class="pi pi-trash"></i>
-                  </span>
-                  <span class="action-label">{{ 'NAV.DELETE_AVATAR' | translate }}</span>
-                  <i class="pi pi-chevron-right action-arrow"></i>
-                </button>
-              }
-
+            @if (userAvatar()) {
               <button
                 class="action-card action-card--delete"
-                (click)="onOpenDeleteAccount()"
+                (click)="onDeleteAvatar()"
               >
                 <span class="action-icon action-icon--red">
-                  <i class="pi pi-user-minus"></i>
+                  <i class="pi pi-trash"></i>
                 </span>
-                <span class="action-label">{{ 'NAV.DELETE_ACCOUNT.MENU' | translate }}</span>
+                <span class="action-label">{{ 'NAV.DELETE_AVATAR' | translate }}</span>
                 <i class="pi pi-chevron-right action-arrow"></i>
               </button>
-
-              <div class="actions-divider"></div>
-
-              <button
-                class="logout-btn"
-                (click)="onLogout()"
-              >
-                <i class="pi pi-sign-out"></i>
-                <span>{{ 'NAV.LOGOUT' | translate }}</span>
-              </button>
-            } @else if (!isAuthPage()) {
-              <a
-                routerLink="/login"
-                class="action-card action-card--upload"
-                (click)="isMenuOpen.set(false)"
-              >
-                <span class="action-icon action-icon--blue">
-                  <i class="pi pi-sign-in"></i>
-                </span>
-                <span class="action-label">{{ 'NAV.LOGIN' | translate }}</span>
-                <i class="pi pi-chevron-right action-arrow"></i>
-              </a>
-              <a
-                routerLink="/register"
-                class="action-card action-card--upload"
-                (click)="isMenuOpen.set(false)"
-              >
-                <span class="action-icon action-icon--blue">
-                  <i class="pi pi-user-plus"></i>
-                </span>
-                <span class="action-label">{{ 'NAV.REGISTER' | translate }}</span>
-                <i class="pi pi-chevron-right action-arrow"></i>
-              </a>
             }
+
+            <button
+              class="action-card action-card--delete"
+              (click)="onOpenDeleteAccount()"
+            >
+              <span class="action-icon action-icon--red">
+                <i class="pi pi-user-minus"></i>
+              </span>
+              <span class="action-label">{{ 'NAV.DELETE_ACCOUNT.MENU' | translate }}</span>
+              <i class="pi pi-chevron-right action-arrow"></i>
+            </button>
+
+            <div class="actions-divider"></div>
+
+            <button
+              class="logout-btn"
+              (click)="onLogout()"
+            >
+              <i class="pi pi-sign-out"></i>
+              <span>{{ 'NAV.LOGOUT' | translate }}</span>
+            </button>
           </div>
         </div>
 

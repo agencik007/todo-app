@@ -6,7 +6,7 @@
   .p-select.language-selector {
     width: 42px;
     height: 32px;
-    background: rgba(var(--p-surface-0-rgb), 0.5);
+    background: var(--p-surface-0);
     border: 1px solid var(--p-surface-200);
     transition: all 0.2s ease;
     box-shadow: none;
@@ -44,7 +44,7 @@
   }
 }
 
-:host-context(.dark-mode) {
+:host-context(.dark) {
   ::ng-deep {
     .p-select.language-selector {
       background: rgba(0, 0, 0, 0.3);

@@ -6,16 +6,14 @@ import {
   SecurityContext,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DomSanitizer } from '@angular/platform-browser';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { Tooltip } from 'primeng/tooltip';
-import { filter, startWith } from 'rxjs';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { AuthService } from '../../../../features/auth/services/auth.service';
@@ -55,7 +53,6 @@ export class UserProfileComponent {
 
   // 6. Signals (always readonly)
   readonly currentUser = this.#authStore.currentUser;
-  readonly isAuthenticated = this.#authStore.isAuthenticated;
   readonly isLoading = this.#authStore.isLoading;
   readonly userAvatar = this.#authStore.userAvatar;
   readonly isPreviewVisible = signal(false);
@@ -63,25 +60,6 @@ export class UserProfileComponent {
   readonly isDeleteAccountVisible = signal(false);
   readonly activePanel = signal<'profile' | 'settings'>('profile');
   readonly isCompact = computed(() => this.#screenSize.isCompact());
-
-  readonly #currentUrl = signal(this.#router.url);
-
-  constructor() {
-    this.#router.events
-      .pipe(
-        filter((event) => event instanceof NavigationEnd),
-        startWith(null),
-        takeUntilDestroyed(),
-      )
-      .subscribe(() => {
-        this.#currentUrl.set(this.#router.url);
-      });
-  }
-
-  readonly isAuthPage = computed(() => {
-    const url = this.#currentUrl();
-    return url.includes('/login') || url.includes('/register');
-  });
 
   readonly sanitizedAvatarUrl = computed(() => {
     const url = this.userAvatar();
