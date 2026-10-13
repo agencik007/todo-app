@@ -27,6 +27,16 @@ body {
   flex-direction: column;
 }
 
+// Routed pages fill .main-content and scroll themselves by default, so tall
+// forms and long text stay reachable on short screens. :where() keeps this at
+// zero specificity: pages that manage their own scrolling (the todo list)
+// override it in their :host styles.
+:where(.main-content) > :where(:not(router-outlet)) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .container {
   width: 100%;
   margin-right: auto;
@@ -52,10 +62,12 @@ body {
 }
 
 .auth-container {
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100%;
   display: flex;
   align-items: center;
+  // 'safe' keeps the top of a card that is taller than the screen reachable
+  // instead of pushing it above the scroll area.
+  align-items: safe center;
   justify-content: center;
   padding: 1rem;
 }
