@@ -22,7 +22,8 @@ body {
   margin: 0;
 }
 
-.text-color-secondary {
+.text-color-secondary,
+.text-secondary {
   color: var(--p-text-muted-color);
 }
 .text-sm {
@@ -33,4 +34,25 @@ body {
 }
 .font-semibold {
   font-weight: var(--app-font-semibold);
+}
+.text-primary {
+  color: var(--p-primary-color);
+}
+.text-center {
+  text-align: center;
+}
+.text-xs {
+  font-size: var(--app-text-xs);
+}
+.text-lg {
+  font-size: var(--app-text-lg);
+}
+.text-xl {
+  font-size: var(--app-text-xl);
+}
+.text-2xl {
+  font-size: var(--app-text-2xl);
+}
+.font-medium {
+  font-weight: var(--app-font-medium);
 }
