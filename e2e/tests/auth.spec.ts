@@ -82,6 +82,46 @@ test('the privacy policy is public and linked from the login page', async ({ pag
   await expect(page.getByRole('heading', { name: 'Your rights' })).toBeAttached();
 });
 
+test('the privacy policy opens at the top, not scrolled to its Back button', async ({ page }) => {
+  await page.goto('/privacy');
+  const back = page.getByRole('button', { name: 'Back' });
+
+  // PrimeNG rendered `autofocus` on every p-button; whether the browser acts on
+  // it depends on timing, so check the attribute itself, not just the focus.
+  await expect(back).not.toHaveAttribute('autofocus');
+  await expect(back).not.toBeFocused();
+  await expect(page.getByRole('heading', { name: 'Privacy policy' })).toBeInViewport();
+});
+
+test('the privacy policy survives cookie-banner blockers', async ({ page }) => {
+  await page.goto('/privacy');
+  // A generic rule from the "I don't care about cookies" extension, which used
+  // to hide the page's whole container.
+  await page.addStyleTag({
+    content: `.privacy-container:not(body):not(html):not(.content-container),
+      .privacy-card, .privacy-header, .privacy-section { display: none !important; }`,
+  });
+
+  await expect(page.getByRole('heading', { name: 'Privacy policy' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your rights' })).toBeVisible();
+});
+
+test('login and register center their footer links the same way', async ({ page }) => {
+  for (const path of ['/login', '/register']) {
+    await page.goto(path);
+    // The title spans the whole card, so its middle is the card's middle.
+    const card = await page.getByRole('heading', { level: 1 }).boundingBox();
+    const privacy = await page.getByRole('link', { name: 'Privacy policy' }).boundingBox();
+
+    // A stretched, left-aligned link would be as wide as the card.
+    expect(privacy!.width, path).toBeLessThan(card!.width / 2);
+    expect(
+      Math.abs(privacy!.x + privacy!.width / 2 - (card!.x + card!.width / 2)),
+      path,
+    ).toBeLessThan(2);
+  }
+});
+
 test('guests only get the language switch and the login/register buttons', async ({ page }) => {
   const nav = new GuestNav(page);
 

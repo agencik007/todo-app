@@ -1,14 +1,14 @@
-<main class="privacy-container">
-  <p-card styleClass="privacy-card">
+<main class="legal-page">
+  <p-card styleClass="legal-card">
     <ng-template pTemplate="header">
-      <div class="privacy-header">
+      <div class="legal-header">
         <h1>{{ 'PRIVACY.TITLE' | translate }}</h1>
         <p>{{ 'PRIVACY.UPDATED' | translate }}</p>
       </div>
     </ng-template>
 
     @for (section of asSections('PRIVACY.SECTIONS' | translate); track section.TITLE) {
-      <section class="privacy-section">
+      <section class="legal-section">
         <h2>{{ section.TITLE }}</h2>
         <p>{{ section.BODY }}</p>
       </section>
