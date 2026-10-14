@@ -14,6 +14,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { Tooltip } from 'primeng/tooltip';
+import { PwaInstallService } from '../../../../core/services/pwa-install.service';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { AuthService } from '../../../../features/auth/services/auth.service';
@@ -50,6 +51,7 @@ export class UserProfileComponent {
   readonly #sanitizer = inject(DomSanitizer);
   readonly #translate = inject(TranslateService);
   readonly #screenSize = inject(ScreenSizeService);
+  readonly #pwaInstall = inject(PwaInstallService);
 
   // 6. Signals (always readonly)
   readonly currentUser = this.#authStore.currentUser;
@@ -60,6 +62,7 @@ export class UserProfileComponent {
   readonly isDeleteAccountVisible = signal(false);
   readonly activePanel = signal<'profile' | 'settings'>('profile');
   readonly isCompact = computed(() => this.#screenSize.isCompact());
+  readonly canInstall = this.#pwaInstall.canInstall;
 
   readonly sanitizedAvatarUrl = computed(() => {
     const url = this.userAvatar();
@@ -107,6 +110,11 @@ export class UserProfileComponent {
     this.#authStore.logout();
     this.#router.navigate(['/login']);
     this.isMenuOpen.set(false);
+  }
+
+  onInstallApp(): void {
+    this.isMenuOpen.set(false);
+    void this.#pwaInstall.install();
   }
 
   onOpenDeleteAccount(): void {

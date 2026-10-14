@@ -60,7 +60,11 @@ export class GuestNav {
 }
 
 export class UserMenu {
-  constructor(readonly page: Page) {}
+  readonly installApp: Locator;
+
+  constructor(readonly page: Page) {
+    this.installApp = page.getByRole('button', { name: 'Install app' });
+  }
 
   async open(email: string): Promise<void> {
     await this.page.getByRole('button', { name: email }).click();

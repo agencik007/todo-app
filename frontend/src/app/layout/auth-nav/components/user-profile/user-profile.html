@@ -89,6 +89,19 @@
 
           <!-- Action Cards -->
           <div class="actions-list">
+            @if (canInstall()) {
+              <button
+                class="action-card action-card--upload"
+                (click)="onInstallApp()"
+              >
+                <span class="action-icon action-icon--blue">
+                  <i class="pi pi-download"></i>
+                </span>
+                <span class="action-label">{{ 'NAV.INSTALL_APP' | translate }}</span>
+                <i class="pi pi-chevron-right action-arrow"></i>
+              </button>
+            }
+
             <button
               class="action-card action-card--upload"
               (click)="onTriggerFileUpload()"

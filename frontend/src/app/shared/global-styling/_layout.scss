@@ -17,6 +17,11 @@ body {
   // pushed the bottom of every page (e.g. the add-task button) off screen.
   height: 100dvh;
   width: 100%;
+  // Keep content out of the notch and the home indicator in the installed app
+  // (viewport-fit=cover); zero everywhere else.
+  box-sizing: border-box;
+  padding: var(--app-safe-top) var(--app-safe-right) var(--app-safe-bottom)
+    var(--app-safe-left);
 }
 
 .main-content {

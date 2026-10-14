@@ -67,7 +67,7 @@
   @media (max-width: 767px) {
     width: 280px;
     position: fixed; // Fixed instead of absolute to anchor to viewport
-    top: 50px; // Height of auth-nav
+    top: calc(50px + var(--app-safe-top)); // Height of auth-nav
     left: 0;
     bottom: 0;
     z-index: 1100;
@@ -101,7 +101,7 @@
 .sidebar-overlay {
   @media (max-width: 767px) {
     position: fixed;
-    inset: 50px 0 0 0; // Start below auth-nav (50px)
+    inset: calc(50px + var(--app-safe-top)) 0 0 0; // Start below auth-nav (50px)
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
     z-index: 1050;

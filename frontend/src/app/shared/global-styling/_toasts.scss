@@ -30,7 +30,7 @@
     @media (max-width: 768px) {
       left: var(--app-space-4) !important;
       right: var(--app-space-4) !important;
-      bottom: var(--app-space-4) !important;
+      bottom: calc(var(--app-space-4) + var(--app-safe-bottom)) !important;
     }
   }
 
