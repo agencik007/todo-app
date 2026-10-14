@@ -1,6 +1,6 @@
 # generate-migration
 
-Create an Alembic migration for changes in SQLAlchemy models. Enforces the checklist from `AGENTS.md` section "Working with Alembic Migrations".
+Create an Alembic migration for changes in SQLAlchemy models. Enforces the checklist from `backend/AGENTS.md` section "Database & Migrations".
 
 ---
 
@@ -36,7 +36,7 @@ User provided: **$ARGUMENTS**
 5. **Review the generated file** in `backend/migrations/versions/`:
    - Verify that `upgrade()` does what you intend (create_table / add_column / alter_column / drop).
    - Verify that `downgrade()` is symmetric (the migration can be rolled back).
-   - **If the migration uses PostgreSQL-specific features (enums, JSONB, arrays)** — rewrite it conditionally, following the pattern from `AGENTS.md`:
+   - **If the migration uses PostgreSQL-specific features (enums, JSONB, arrays)** — rewrite it conditionally, following the pattern from `backend/AGENTS.md`:
      ```python
      conn = op.get_bind()
      is_postgres = conn.dialect.name == 'postgresql'
@@ -61,7 +61,7 @@ User provided: **$ARGUMENTS**
    cd frontend && npm run generate-api
    ```
 
-   Runs on the host, not in a container — see the OpenAPI section in `AGENTS.md` for requirements.
+   Runs on the host, not in a container — see the OpenAPI section in the root `AGENTS.md` for requirements.
 
 8. **Report back to the user** — summarize:
    - Migration filename (`<hash>_<description>.py`)

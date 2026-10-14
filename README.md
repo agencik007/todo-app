@@ -787,6 +787,7 @@ docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec ba
 ```
 todo-app/
 ├── backend/                 # Python FastAPI backend
+│   ├── AGENTS.md            # Backend rules for contributors and AI agents
 │   ├── config/              # database, auth, api_messages, password validation
 │   ├── i18n/                # en.json, pl.json - email texts
 │   ├── models/              # SQLAlchemy models (user, todo, group, refresh_token) + Pydantic schemas
@@ -802,6 +803,7 @@ todo-app/
 │   ├── ruff.toml            # Ruff lint/format configuration
 │   └── .env                 # Environment variables (non-Docker setup)
 ├── frontend/                # Angular frontend
+│   ├── AGENTS.md            # Frontend rules for contributors and AI agents
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── core/        # Guards, interceptors, services, store/ (AuthStore), config, models, tokens, utils
@@ -821,12 +823,12 @@ todo-app/
 │   └── ...
 ├── docs/                    # Design notes and plans (e.g. pwa-plan.md)
 ├── docker/                  # Dockerfiles, docker-compose files (incl. the e2e stack), docker.env.example
-├── e2e/                     # Playwright end-to-end tests (fixtures/, pages/, tests/)
+├── e2e/                     # Playwright end-to-end tests (fixtures/, pages/, tests/, AGENTS.md)
 ├── .github/workflows/       # CI, CD and nightly off-server DB backups (GitHub Actions)
 ├── .husky/                  # Git hooks: pre-commit (lint-staged), post-checkout (syncs the dev stack)
 ├── .dockerignore            # Keeps host node_modules out of image builds
 ├── Makefile                 # Entry point for all dev tasks
-├── AGENTS.md                # Guidelines for contributors and AI agents
+├── AGENTS.md                # Repo-wide guidelines for contributors and AI agents (area rules in backend/, frontend/, e2e/)
 ├── LICENSE                  # MIT
 ├── README.md                # This file
 └── .gitignore
