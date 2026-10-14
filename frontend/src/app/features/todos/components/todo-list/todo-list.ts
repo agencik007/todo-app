@@ -7,12 +7,14 @@ import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
   computed,
+  effect,
   ElementRef,
   HostListener,
   inject,
   OnInit,
   PLATFORM_ID,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -95,6 +97,8 @@ export class TodoListComponent implements OnInit {
   readonly completedTodos = this.store.completedTodos;
   readonly pendingTodos = this.store.pendingTodos;
   readonly totalTodos = this.store.totalCount;
+  /** False offline: changes need the server. */
+  readonly canWrite = this.authStore.canWrite;
 
   readonly selectedGroups = this.groupStore.selectedGroups;
   readonly hasGroupSelection = this.groupStore.hasSelection;
@@ -157,11 +161,23 @@ export class TodoListComponent implements OnInit {
     return this.authStore.currentUser();
   }
 
+  constructor() {
+    // Load groups for a session, and again when an offline session turns
+    // into a real one (from the offline snapshot first, then the server).
+    effect(() => {
+      const isAuthenticated = this.authStore.isAuthenticated();
+      const isOfflineSession = this.authStore.isOfflineSession();
+      if (
+        isPlatformBrowser(this.platformId) &&
+        (isAuthenticated || isOfflineSession)
+      ) {
+        untracked(() => this.groupStore.loadGroups());
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.isBrowser.set(isPlatformBrowser(this.platformId));
-    if (this.isBrowser()) {
-      this.groupStore.loadGroups();
-    }
   }
 
   setStatusFilter(filter: StatusFilter): void {
@@ -281,6 +297,7 @@ export class TodoListComponent implements OnInit {
   }
 
   showCreateForm(): void {
+    if (!this.canWrite()) return;
     this.store.showCreateForm();
   }
 
@@ -358,7 +375,7 @@ export class TodoListComponent implements OnInit {
 
   canEditTodo(todo: Todo): boolean {
     const user = this.currentUser;
-    return !!user && user.id === todo.userId;
+    return this.canWrite() && !!user && user.id === todo.userId;
   }
 
   onDrop(event: CdkDragDrop<Todo[]>): void {
