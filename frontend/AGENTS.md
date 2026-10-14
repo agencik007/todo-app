@@ -140,6 +140,15 @@ Use `ngx-translate`. Add translations to `src/assets/i18n/en.json` and `pl.json`
 
 ---
 
+## PWA (service worker)
+
+- The Angular service worker is registered only in the production build (`environment.serviceWorker`); `ng serve` runs without it. Check PWA behaviour (offline shell, update toast) on `make prod` or the e2e stack.
+- `ngsw-config.json` caches the app shell only. Never add `dataGroups` for API URLs: the cache is keyed by URL, not by user, so it would serve one user's data to the next one on a shared device (see `docs/pwa-plan.md`, decision D2).
+- A new backend-only path that users can open by navigation (a link, a bookmark) must be excluded in `navigationUrls`, or the service worker answers it with the app shell.
+- `AppUpdateService` (`core/services/app-update.service.ts`) shows the reload toast when a new version is ready; its texts live under `PWA` in the i18n files.
+
+---
+
 ## SSR
 
 Remember to register parameterized routes in `app.routes.server.ts`.

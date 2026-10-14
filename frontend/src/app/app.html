@@ -5,6 +5,33 @@
   <!-- Toast notifications container -->
   <p-toast position="bottom-left"></p-toast>
 
+  <!-- New app version / broken cache: needs a Reload action, so its own toast -->
+  <p-toast
+    position="bottom-center"
+    [key]="appUpdateToastKey"
+  >
+    <ng-template
+      let-message
+      #message
+    >
+      <div class="app-update-toast">
+        <i
+          class="pi pi-refresh"
+          aria-hidden="true"
+        ></i>
+        <div class="app-update-toast__text">
+          <div class="p-toast-summary">{{ message.summary }}</div>
+          <div class="p-toast-detail">{{ message.detail }}</div>
+        </div>
+        <p-button
+          size="small"
+          [label]="'PWA.RELOAD' | translate"
+          (onClick)="onReload()"
+        />
+      </div>
+    </ng-template>
+  </p-toast>
+
   <!-- Navigation bar -->
   <app-auth-nav></app-auth-nav>
 

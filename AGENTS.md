@@ -20,6 +20,7 @@ Agents that load nested `AGENTS.md` files automatically pick them up when workin
 - **Backend:** FastAPI + SQLAlchemy + Alembic + PostgreSQL, `backend/`
 - **Frontend:** Angular 21 + PrimeNG + signal-based stores (`@ngrx/signals`), `frontend/`
 - **Dev infra:** Docker Compose, everything runs through the root `Makefile`
+- **PWA:** the production frontend registers the Angular service worker, so after a deploy some users keep running the previous frontend until they reload — keep API changes backward compatible for one release (add fields first, remove them a release after the frontend stops using them).
 - **OpenAPI:** backend generates the schema → frontend consumes generated types from `@api` in `frontend/src/libs/generated-api/`
 
 ### Dev URLs
@@ -131,7 +132,8 @@ backend/
   ruff.toml      # Ruff lint/format configuration
 frontend/
   AGENTS.md      # frontend rules (Angular, design system, forms)
-  public/        # served as-is: favicon.ico, icons/ (generated app icons; icons/icon.svg is a master)
+  public/        # served as-is: favicon.ico, icons/ (generated app icons; icons/icon.svg is a master), manifest.webmanifest
+  ngsw-config.json # service worker config (PWA): app shell caching and navigation fallback
   scripts/       # generate-icons.mjs (`npm run generate-icons`) + icons/icon-maskable.svg master
 frontend/src/app/
   core/          # guards, interceptors, services, tokens, store/ (AuthStore)

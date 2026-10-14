@@ -51,6 +51,12 @@ export class GuestNav {
     this.language = page.getByRole('combobox', { name: 'English' });
     this.search = page.getByRole('button', { name: 'Search' });
   }
+
+  /** Picks a language by its name in the switch, e.g. `Polski`. */
+  async switchLanguage(name: string): Promise<void> {
+    await this.language.click();
+    await this.page.getByRole('option', { name }).click();
+  }
 }
 
 export class UserMenu {

@@ -23,7 +23,8 @@ app.disable('x-powered-by');
  * - styles need 'unsafe-inline' because Angular/PrimeNG inject <style> tags at
  *   runtime; fonts are self-hosted, so no third-party style/font origins,
  * - connect-src covers the backend API and the open-meteo weather API,
- * - avatars are rendered from blob: URLs created out of IndexedDB.
+ * - avatars are rendered from blob: URLs created out of IndexedDB,
+ * - the service worker (ngsw-worker.js) and the web app manifest are our own.
  *
  * Strict-Transport-Security is intentionally not set here: it must be added by
  * the TLS-terminating proxy once the app is served over HTTPS.
@@ -46,6 +47,8 @@ const contentSecurityPolicy = [
     /\s+/g,
     ' ',
   ),
+  `worker-src 'self'`,
+  `manifest-src 'self'`,
   `object-src 'none'`,
   `base-uri 'self'`,
   `form-action 'self'`,

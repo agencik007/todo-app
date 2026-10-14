@@ -431,5 +431,12 @@
         "BODY": "You have the right to access, correct, export and delete your data, and to lodge a complaint with your data protection authority. To exercise these rights, contact the app operator using the contact details given in the app store listing."
       }
     ]
+  },
+  "PWA": {
+    "UPDATE_READY_SUMMARY": "Update available",
+    "UPDATE_READY_DETAIL": "A new version of the app is ready.",
+    "UNRECOVERABLE_SUMMARY": "The app needs to reload",
+    "UNRECOVERABLE_DETAIL": "Its cached files are out of date.",
+    "RELOAD": "Reload"
   }
 }

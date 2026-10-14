@@ -1,2 +1,18 @@
 // Minimal app-level styles
 // PrimeNG handles most styling through its theme
+
+.app-update-toast {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--app-space-3);
+
+  .pi {
+    font-size: var(--app-text-xl);
+    color: var(--p-primary-color);
+  }
+
+  &__text {
+    flex: 1;
+  }
+}

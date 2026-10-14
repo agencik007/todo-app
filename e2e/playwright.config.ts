@@ -21,5 +21,19 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      testIgnore: /pwa\.spec\.ts/,
+      // The service worker would serve the app shell and pass requests through
+      // itself, out of reach of page.route() mocks; keep these tests on plain
+      // network loads.
+      use: { ...devices['Desktop Chrome'], serviceWorkers: 'block' },
+    },
+    {
+      name: 'pwa',
+      testMatch: /pwa\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], serviceWorkers: 'allow' },
+    },
+  ],
 });
