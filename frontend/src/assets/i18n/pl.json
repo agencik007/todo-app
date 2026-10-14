@@ -431,5 +431,12 @@
         "BODY": "Masz prawo dostępu do danych, ich poprawiania, przeniesienia i usunięcia oraz prawo wniesienia skargi do organu nadzorczego (w Polsce: Prezes UODO). Aby skorzystać z tych praw, skontaktuj się z operatorem aplikacji przez dane kontaktowe podane w sklepie z aplikacjami."
       }
     ]
+  },
+  "PWA": {
+    "UPDATE_READY_SUMMARY": "Dostępna aktualizacja",
+    "UPDATE_READY_DETAIL": "Nowa wersja aplikacji jest gotowa.",
+    "UNRECOVERABLE_SUMMARY": "Aplikacja wymaga odświeżenia",
+    "UNRECOVERABLE_DETAIL": "Jej pliki w pamięci podręcznej są nieaktualne.",
+    "RELOAD": "Odśwież"
   }
 }
