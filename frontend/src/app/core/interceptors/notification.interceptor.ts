@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import {
+  HttpContextToken,
   HttpErrorResponse,
   HttpInterceptorFn,
   HttpResponse,
@@ -12,6 +13,12 @@ import { NetworkStatusService } from '../services/network-status.service';
 import { API_URL } from '../tokens/api-url.token';
 import { extractApiMessageCode } from '../utils/api-error.util';
 import { isServerUnreachable } from '../utils/network-error.util';
+
+/**
+ * Set on requests whose caller reports the outcome itself (e.g. sending the
+ * changes made offline), so they don't raise a toast each.
+ */
+export const SILENT_NOTIFICATIONS = new HttpContextToken<boolean>(() => false);
 
 function extractSuccessMessageCode(body: unknown): string | null {
   if (typeof body !== 'object' || body === null) return null;
@@ -31,6 +38,7 @@ export const notificationInterceptor: HttpInterceptorFn = (req, next) => {
 
   const networkStatus = inject(NetworkStatusService);
   const isApiRequest = req.url.startsWith(inject(API_URL));
+  const silent = req.context.get(SILENT_NOTIFICATIONS);
 
   return next(req).pipe(
     tap((event) => {
@@ -38,6 +46,9 @@ export const notificationInterceptor: HttpInterceptorFn = (req, next) => {
       if (event instanceof HttpResponse) {
         if (isApiRequest) {
           networkStatus.reportReachable();
+        }
+        if (silent) {
+          return;
         }
         const messageCode = extractSuccessMessageCode(event.body);
         // Only show toasts for specific message types to avoid spamming
@@ -72,7 +83,11 @@ export const notificationInterceptor: HttpInterceptorFn = (req, next) => {
 
       // Nie pokazujemy globalnego błędu dla wygaśnięcia sesji,
       // ponieważ auth.interceptor obsługuje to osobnym tostem ostrzegawczym.
-      if (messageCode && messageCode !== 'AUTH_INVALID_REFRESH_TOKEN') {
+      if (
+        !silent &&
+        messageCode &&
+        messageCode !== 'AUTH_INVALID_REFRESH_TOKEN'
+      ) {
         messageService.add({
           severity: 'error',
           summary: translateService.instant('MESSAGES.ERROR'),

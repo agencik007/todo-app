@@ -26,3 +26,10 @@
 .offline-banner__title {
   font-weight: var(--app-font-semibold);
 }
+
+.offline-banner__pending {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-1);
+  font-weight: var(--app-font-semibold);
+}

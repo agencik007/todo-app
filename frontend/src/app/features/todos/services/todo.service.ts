@@ -1,4 +1,4 @@
-import { httpResource } from '@angular/common/http';
+import { HttpContext, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Todo, TodoCreate, TodosService, TodoUpdate } from '@api';
 import { Observable } from 'rxjs';
@@ -23,16 +23,32 @@ export class TodoService {
 
   // Mutations — keep as Observables (httpResource is only for reads)
 
-  createTodo(todo: TodoCreate): Observable<Todo> {
-    return this.#todosService.createTodoTodosPost(todo);
+  createTodo(todo: TodoCreate, context?: HttpContext): Observable<Todo> {
+    return this.#todosService.createTodoTodosPost(todo, 'body', false, {
+      context,
+    });
   }
 
-  updateTodo(id: number, todo: TodoUpdate): Observable<Todo> {
-    return this.#todosService.updateTodoTodosTodoIdPut(id, todo);
+  updateTodo(
+    id: number,
+    todo: TodoUpdate,
+    context?: HttpContext,
+  ): Observable<Todo> {
+    return this.#todosService.updateTodoTodosTodoIdPut(
+      id,
+      todo,
+      'body',
+      false,
+      {
+        context,
+      },
+    );
   }
 
-  deleteTodo(id: number): Observable<unknown> {
-    return this.#todosService.deleteTodoTodosTodoIdDelete(id);
+  deleteTodo(id: number, context?: HttpContext): Observable<unknown> {
+    return this.#todosService.deleteTodoTodosTodoIdDelete(id, 'body', false, {
+      context,
+    });
   }
 
   reorderTodo(id: number, index: number): Observable<Todo> {

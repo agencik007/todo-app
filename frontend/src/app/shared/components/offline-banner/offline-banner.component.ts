@@ -11,8 +11,8 @@ import { AuthStore } from '../../../core/store/auth.store';
 import { formatDateTime } from '../../utils/date.util';
 
 /**
- * Shown while the API can't be reached: says the data is the last synced copy
- * and that changes wait for the connection.
+ * Shown while the API can't be reached: says the data is the last synced copy,
+ * that todo changes wait for the connection, and how many are waiting.
  */
 @Component({
   selector: 'app-offline-banner',
@@ -30,6 +30,9 @@ export class OfflineBannerComponent {
     () => !this.#networkStatus.online() || this.#authStore.isOfflineSession(),
   );
   readonly hasSession = this.#authStore.hasSession;
+  readonly pendingCount = computed(
+    () => this.#offlineData.pendingChanges().length,
+  );
   readonly lastSynced = computed(() =>
     formatDateTime(this.#offlineData.lastSyncedAt()),
   );

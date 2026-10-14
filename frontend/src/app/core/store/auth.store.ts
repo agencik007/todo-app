@@ -27,8 +27,8 @@ import { isServerUnreachable } from '../utils/network-error.util';
  * - Loading and error states
  * - Language synchronization
  * - Offline sessions: when the app starts without a connection, the last
- *   synced data of the previous user is shown read-only (OfflineDataService)
- *   until the server can be reached again
+ *   synced data of the previous user is shown (OfflineDataService) until the
+ *   server can be reached again; only todo changes can be made meanwhile
  */
 @Injectable({
   providedIn: 'root',
@@ -127,7 +127,8 @@ export class AuthStore {
         this._isAuthenticated.set(false);
         return;
       }
-      this.clearUser();
+      // Changes made offline wait for the same user's next sign-in.
+      this.clearUser({ keepPendingChanges: true });
     }
   }
 
@@ -168,7 +169,7 @@ export class AuthStore {
             return; // still unreachable; NetworkStatusService retries
           }
           // The session ended while offline (expired or revoked).
-          this.clearUser();
+          this.clearUser({ keepPendingChanges: true });
           void this.#router.navigate(['/login']);
         },
       });
@@ -194,17 +195,18 @@ export class AuthStore {
 
   /**
    * Clear all user-related state signals and the in-memory access token, and
-   * delete everything stored on the device for offline use (logout, expired
-   * session, deleted account).
+   * delete everything stored on the device for offline use (logout, deleted
+   * account). An expired session passes keepPendingChanges: the todo changes
+   * made offline and not sent yet stay until the same user signs in again.
    */
-  clearUser(): void {
+  clearUser({ keepPendingChanges = false } = {}): void {
     this.authService.clearTokens();
     this._currentUser.set(null);
     this._isAuthenticated.set(false);
     this.#isOfflineSession.set(false);
     this._error.set(null);
     this._userAvatar.set(null);
-    void this.#offlineData.clear();
+    void this.#offlineData.clear({ keepPendingChanges });
     void this.indexedDbService.deleteAvatar();
   }
 

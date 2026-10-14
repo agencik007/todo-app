@@ -217,7 +217,8 @@
       "TOOLTIP_DELETE": "Usuń zadanie",
       "EMPTY_TITLE": "Brak zadań",
       "EMPTY_MESSAGE": "Nie masz jeszcze żadnych zadań. Dodaj pierwsze zadanie, aby zacząć!",
-      "ADD_FIRST": "Dodaj pierwsze zadanie"
+      "ADD_FIRST": "Dodaj pierwsze zadanie",
+      "PENDING_SYNC": "Czeka na synchronizację"
     },
     "FORM": {
       "TITLE_EDIT": "Edytuj zadanie",
@@ -417,7 +418,7 @@
       },
       {
         "TITLE": "Ciasteczka i pamięć lokalna",
-        "BODY": "Używamy jednego niezbędnego ciasteczka HttpOnly, które utrzymuje zalogowanie. Na urządzeniu zapisywane są też ustawienia interfejsu (motyw, kolory, tło, język), kopia avatara oraz — żeby aplikacja mogła je pokazać bez połączenia — kopia Twoich zadań, grup i profilu. Pliki aplikacji też są zapisywane, dzięki czemu uruchamia się offline. Kopia Twoich danych jest usuwana z urządzenia po wylogowaniu lub usunięciu konta. Nie używamy ciasteczek śledzących ani reklamowych."
+        "BODY": "Używamy jednego niezbędnego ciasteczka HttpOnly, które utrzymuje zalogowanie. Na urządzeniu zapisywane są też ustawienia interfejsu (motyw, kolory, tło, język), kopia avatara oraz — żeby aplikacja mogła je pokazać bez połączenia — kopia Twoich zadań, grup i profilu, a także zmiany w zadaniach wprowadzone offline, dopóki nie zostaną wysłane. Pliki aplikacji też są zapisywane, dzięki czemu uruchamia się offline. Kopia Twoich danych jest usuwana z urządzenia po wylogowaniu lub usunięciu konta; gdy sesja wygaśnie, niewysłane zmiany w zadaniach zostają do ponownego zalogowania, a są usuwane, jeśli na urządzeniu zaloguje się inne konto. Nie używamy ciasteczek śledzących ani reklamowych."
       },
       {
         "TITLE": "Lokalizacja i pogoda",
@@ -442,7 +443,12 @@
   },
   "OFFLINE": {
     "TITLE": "Jesteś offline.",
-    "DETAIL": "Zmiany są wyłączone do czasu połączenia.",
-    "DETAIL_SYNCED": "Widzisz dane z {{time}}. Zmiany są wyłączone do czasu połączenia."
+    "DETAIL": "Część funkcji jest niedostępna do czasu połączenia.",
+    "DETAIL_SYNCED": "Widzisz dane z {{time}}. Zmiany w zadaniach zostaną wysłane po odzyskaniu połączenia.",
+    "PENDING": "Czeka na synchronizację: {{count}}",
+    "SYNCED": "Połączenie przywrócone",
+    "SYNCED_DETAIL": "Zmiany wprowadzone offline zostały zapisane ({{count}}).",
+    "SYNC_DROPPED": "Część zmian nie została zapisana",
+    "SYNC_DROPPED_DETAIL": "Nie udało się zastosować zmian wprowadzonych offline ({{count}}), np. bo zadanie usunięto na innym urządzeniu."
   }
 }
