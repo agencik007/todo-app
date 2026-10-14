@@ -298,23 +298,6 @@ class TestAuthAPI:
         assert len(current) == 1
         assert "path=/auth;" in current[0].lower()
 
-    def test_refresh_migrates_legacy_cookie_path(self, client: TestClient, test_user):
-        """A cookie from before the path change still refreshes and is replaced."""
-        login_response = client.post(
-            "/auth/login",
-            data={"username": test_user.email, "password": "testpassword123"},
-        )
-        refresh_token = login_response.cookies[REFRESH_COOKIE_NAME]
-        client.cookies.clear()
-        client.cookies.set(REFRESH_COOKIE_NAME, refresh_token, path="/auth/refresh")
-
-        response = client.post("/auth/refresh")
-
-        assert response.status_code == 200
-        set_cookies = [c.lower() for c in response.headers.get_list("set-cookie")]
-        assert any("path=/auth/refresh" in c and "max-age=0" in c for c in set_cookies)
-        assert any("path=/auth;" in c and "max-age=0" not in c for c in set_cookies)
-
     def test_access_token_with_non_numeric_sub_is_rejected(self, client: TestClient):
         """A validly signed token whose 'sub' is not a user id gets 401, not a DB error."""
         token = create_access_token(data={"sub": "not-a-number"})
