@@ -63,6 +63,8 @@ export class UserProfileComponent {
   readonly activePanel = signal<'profile' | 'settings'>('profile');
   readonly isCompact = computed(() => this.#screenSize.isCompact());
   readonly canInstall = this.#pwaInstall.canInstall;
+  /** False offline: account changes and logout need the server. */
+  readonly canWrite = this.#authStore.canWrite;
 
   readonly sanitizedAvatarUrl = computed(() => {
     const url = this.userAvatar();

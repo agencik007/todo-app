@@ -1,6 +1,9 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Group, GroupCreate, GroupsService, GroupUpdate } from '@api';
+import { OfflineDataService } from '../../../core/services/offline-data.service';
+import { AuthStore } from '../../../core/store/auth.store';
 import { extractApiMessageCode } from '../../../core/utils/api-error.util';
+import { isServerUnreachable } from '../../../core/utils/network-error.util';
 
 /**
  * GroupStore - Centralized state management for groups using Angular Signals.
@@ -10,12 +13,16 @@ import { extractApiMessageCode } from '../../../core/utils/api-error.util';
  * - Public readonly signals for consumers
  * - Computed signals for derived state
  * - Methods for state mutations
+ * - Offline: groups come from OfflineDataService when the server can't be
+ *   reached, and every list the server confirms is saved there
  */
 @Injectable({
   providedIn: 'root',
 })
 export class GroupStore {
   readonly #groupsService = inject(GroupsService);
+  readonly #authStore = inject(AuthStore);
+  readonly #offlineData = inject(OfflineDataService);
 
   // Private writable state signals
   readonly #groups = signal<Group[]>([]);
@@ -60,16 +67,32 @@ export class GroupStore {
 
   // ==================== Actions ====================
 
+  #setSyncedGroups(groups: Group[]): void {
+    this.#groups.set(groups);
+    this.#offlineData.saveGroups(groups);
+  }
+
   loadGroups(): void {
-    this.#loading.set(true);
     this.#error.set(null);
 
+    if (this.#authStore.isOfflineSession()) {
+      this.#groups.set(this.#offlineData.latestGroups());
+      return;
+    }
+
+    this.#loading.set(true);
     this.#groupsService.getGroupsGroupsGet().subscribe({
       next: (groups) => {
-        this.#groups.set(groups);
+        this.#setSyncedGroups(groups);
         this.#loading.set(false);
       },
       error: (err: unknown) => {
+        if (isServerUnreachable(err)) {
+          // Offline: show the last synced groups instead of an error.
+          this.#groups.set(this.#offlineData.latestGroups());
+          this.#loading.set(false);
+          return;
+        }
         this.#error.set(
           extractApiMessageCode(err) ??
             (err instanceof Error ? err.message : null) ??
@@ -83,7 +106,7 @@ export class GroupStore {
   createGroup(groupData: GroupCreate): void {
     this.#groupsService.createGroupGroupsPost(groupData).subscribe({
       next: (newGroup) => {
-        this.#groups.update((groups) => [...groups, newGroup]);
+        this.#setSyncedGroups([...this.#groups(), newGroup]);
         this.closeDialog();
       },
       error: (err: Error) => {
@@ -95,8 +118,8 @@ export class GroupStore {
   updateGroup(id: number, update: GroupUpdate): void {
     this.#groupsService.updateGroupGroupsGroupIdPut(id, update).subscribe({
       next: (updatedGroup) => {
-        this.#groups.update((groups) =>
-          groups.map((g) => (g.id === id ? updatedGroup : g)),
+        this.#setSyncedGroups(
+          this.#groups().map((g) => (g.id === id ? updatedGroup : g)),
         );
         this.closeDialog();
       },
@@ -109,7 +132,7 @@ export class GroupStore {
   deleteGroup(id: number): void {
     this.#groupsService.deleteGroupGroupsGroupIdDelete(id).subscribe({
       next: () => {
-        this.#groups.update((groups) => groups.filter((g) => g.id !== id));
+        this.#setSyncedGroups(this.#groups().filter((g) => g.id !== id));
         // Clear from selection if deleted
         this.#selectedGroupIds.update((set) => {
           const newSet = new Set(set);

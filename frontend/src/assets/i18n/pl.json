@@ -404,7 +404,7 @@
   },
   "PRIVACY": {
     "TITLE": "Polityka prywatności",
-    "UPDATED": "Ostatnia aktualizacja: 2 października 2026",
+    "UPDATED": "Ostatnia aktualizacja: 14 października 2026",
     "BACK": "Wróć",
     "SECTIONS": [
       {
@@ -417,7 +417,7 @@
       },
       {
         "TITLE": "Ciasteczka i pamięć lokalna",
-        "BODY": "Używamy jednego niezbędnego ciasteczka HttpOnly, które utrzymuje zalogowanie. Na urządzeniu zapisywane są też ustawienia interfejsu (motyw, kolory, tło, język) oraz kopia avatara. Nie używamy ciasteczek śledzących ani reklamowych."
+        "BODY": "Używamy jednego niezbędnego ciasteczka HttpOnly, które utrzymuje zalogowanie. Na urządzeniu zapisywane są też ustawienia interfejsu (motyw, kolory, tło, język), kopia avatara oraz — żeby aplikacja mogła je pokazać bez połączenia — kopia Twoich zadań, grup i profilu. Pliki aplikacji też są zapisywane, dzięki czemu uruchamia się offline. Kopia Twoich danych jest usuwana z urządzenia po wylogowaniu lub usunięciu konta. Nie używamy ciasteczek śledzących ani reklamowych."
       },
       {
         "TITLE": "Lokalizacja i pogoda",
@@ -439,5 +439,10 @@
     "UNRECOVERABLE_SUMMARY": "Aplikacja wymaga odświeżenia",
     "UNRECOVERABLE_DETAIL": "Jej pliki w pamięci podręcznej są nieaktualne.",
     "RELOAD": "Odśwież"
+  },
+  "OFFLINE": {
+    "TITLE": "Jesteś offline.",
+    "DETAIL": "Zmiany są wyłączone do czasu połączenia.",
+    "DETAIL_SYNCED": "Widzisz dane z {{time}}. Zmiany są wyłączone do czasu połączenia."
   }
 }

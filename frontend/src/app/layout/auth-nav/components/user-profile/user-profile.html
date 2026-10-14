@@ -104,6 +104,7 @@
 
             <button
               class="action-card action-card--upload"
+              [disabled]="!canWrite()"
               (click)="onTriggerFileUpload()"
             >
               <span class="action-icon action-icon--blue">
@@ -116,6 +117,7 @@
             @if (userAvatar()) {
               <button
                 class="action-card action-card--delete"
+                [disabled]="!canWrite()"
                 (click)="onDeleteAvatar()"
               >
                 <span class="action-icon action-icon--red">
@@ -128,6 +130,7 @@
 
             <button
               class="action-card action-card--delete"
+              [disabled]="!canWrite()"
               (click)="onOpenDeleteAccount()"
             >
               <span class="action-icon action-icon--red">
@@ -141,6 +144,7 @@
 
             <button
               class="logout-btn"
+              [disabled]="!canWrite()"
               (click)="onLogout()"
             >
               <i class="pi pi-sign-out"></i>

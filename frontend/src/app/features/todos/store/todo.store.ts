@@ -1,11 +1,16 @@
 import {
   computed,
+  effect,
   inject,
   Injectable,
   linkedSignal,
   signal,
+  untracked,
 } from '@angular/core';
 import { Todo, TodoCreate, TodoUpdate } from '@api';
+import { NetworkStatusService } from '../../../core/services/network-status.service';
+import { OfflineDataService } from '../../../core/services/offline-data.service';
+import { AuthStore } from '../../../core/store/auth.store';
 import { extractApiMessageCode } from '../../../core/utils/api-error.util';
 import { GroupStore } from '../../groups/store/group.store';
 import { TodoService } from '../services/todo.service';
@@ -18,6 +23,9 @@ import { TodoService } from '../services/todo.service';
  * - linkedSignal for local mutations (optimistic updates) synchronized with resource
  * - Computed signals for derived state
  * - Methods for state mutations
+ * - Offline: without server data (offline session, or a reload that failed
+ *   offline) the last synced todos from OfflineDataService are shown, and
+ *   every list the server confirms is saved there
  */
 @Injectable({
   providedIn: 'root',
@@ -25,11 +33,20 @@ import { TodoService } from '../services/todo.service';
 export class TodoStore {
   readonly #todoService = inject(TodoService);
   readonly #groupStore = inject(GroupStore);
+  readonly #authStore = inject(AuthStore);
+  readonly #offlineData = inject(OfflineDataService);
+  readonly #networkStatus = inject(NetworkStatusService);
 
   // Local state synchronized with httpResource, allowing local mutations
-  private readonly _todos = linkedSignal<Todo[]>(
-    () => this.#todoService.todosResource.value() ?? [],
-  );
+  private readonly _todos = linkedSignal<Todo[]>(() => {
+    const resource = this.#todoService.todosResource;
+    if (resource.hasValue()) {
+      return resource.value();
+    }
+    // Tracks restore/login/logout of the snapshot, not every save.
+    this.#offlineData.snapshot();
+    return untracked(() => this.#offlineData.latestTodos());
+  });
   private readonly _editingTodoId = signal<number | null>(null);
   private readonly _formVisible = signal(false);
 
@@ -38,7 +55,9 @@ export class TodoStore {
   readonly loading = this.#todoService.todosResource.isLoading;
   readonly error = computed(() => {
     const err = this.#todoService.todosResource.error();
-    if (err) {
+    // Offline isn't an error here: the offline banner explains it and the
+    // last synced todos are shown instead.
+    if (err && this.#networkStatus.online()) {
       return extractApiMessageCode(err) ?? err.message ?? 'An error occurred';
     }
     return null;
@@ -71,6 +90,19 @@ export class TodoStore {
   readonly editingTodo = computed(
     () => this._todos().find((t) => t.id === this._editingTodoId()) ?? null,
   );
+
+  constructor() {
+    // Keep the offline copy in step with what the server has confirmed.
+    effect(() => {
+      const todos = this._todos();
+      if (
+        this.#todoService.todosResource.hasValue() &&
+        this.#authStore.canWrite()
+      ) {
+        untracked(() => this.#offlineData.saveTodos(todos));
+      }
+    });
+  }
 
   // ==================== Actions ====================
 

@@ -145,7 +145,7 @@
   right: 0;
   width: 340px;
   overflow: hidden;
-  z-index: 2001;
+  z-index: 2002; // above the offline banner (2001)
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--p-surface-200);
   background: var(--p-surface-0);
@@ -656,4 +656,12 @@
       background: rgba(0, 0, 0, 0.3);
     }
   }
+}
+
+// Offline: account changes and logout need the server
+.action-card:disabled,
+.logout-btn:disabled {
+  opacity: var(--p-disabled-opacity);
+  cursor: not-allowed;
+  pointer-events: none;
 }

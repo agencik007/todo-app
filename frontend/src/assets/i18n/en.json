@@ -404,7 +404,7 @@
   },
   "PRIVACY": {
     "TITLE": "Privacy policy",
-    "UPDATED": "Last updated: 2 October 2026",
+    "UPDATED": "Last updated: 14 October 2026",
     "BACK": "Back",
     "SECTIONS": [
       {
@@ -417,7 +417,7 @@
       },
       {
         "TITLE": "Cookies and local storage",
-        "BODY": "We use one essential, HttpOnly cookie to keep you signed in. Your device also stores interface preferences (theme, colours, background, language) and a cached copy of your avatar. No tracking or advertising cookies are used."
+        "BODY": "We use one essential, HttpOnly cookie to keep you signed in. Your device also stores interface preferences (theme, colours, background, language), a cached copy of your avatar and, so the app can show them without a connection, a copy of your tasks, groups and profile. The app's files are cached as well, so it starts offline. The copy of your data is deleted from the device when you log out or delete your account. No tracking or advertising cookies are used."
       },
       {
         "TITLE": "Location and weather",
@@ -439,5 +439,10 @@
     "UNRECOVERABLE_SUMMARY": "The app needs to reload",
     "UNRECOVERABLE_DETAIL": "Its cached files are out of date.",
     "RELOAD": "Reload"
+  },
+  "OFFLINE": {
+    "TITLE": "You are offline.",
+    "DETAIL": "Changes are disabled until you reconnect.",
+    "DETAIL_SYNCED": "Showing your data from {{time}}. Changes are disabled until you reconnect."
   }
 }

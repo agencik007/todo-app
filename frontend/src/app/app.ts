@@ -9,6 +9,7 @@ import { AuthNavComponent } from './layout/auth-nav/components/auth-nav/auth-nav
 import { CommandPaletteComponent } from './shared/components/command-palette/command-palette';
 import { DynamicBackgroundComponent } from './shared/components/dynamic-background/dynamic-background.component';
 import { LoginAnimationComponent } from './shared/components/login-animation/login-animation';
+import { OfflineBannerComponent } from './shared/components/offline-banner/offline-banner.component';
 @Component({
   selector: 'app-root',
   imports: [
@@ -19,6 +20,7 @@ import { LoginAnimationComponent } from './shared/components/login-animation/log
     TranslatePipe,
     CommandPaletteComponent,
     DynamicBackgroundComponent,
+    OfflineBannerComponent,
     LoginAnimationComponent,
   ],
   templateUrl: './app.html',

@@ -12,7 +12,8 @@ export const authGuard: CanActivateFn = () => {
     return true;
   }
 
-  if (!authStore.isAuthenticated()) {
+  // An offline session (started without a connection) may see its data.
+  if (!authStore.hasSession()) {
     return router.parseUrl('/login');
   }
 

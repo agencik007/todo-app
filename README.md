@@ -11,6 +11,7 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **FastAPI Backend** - REST API with full CRUD, PostgreSQL, Pydantic
 - ✅ **Angular 21 Frontend** - Signals, Control Flow, Standalone Components, SSR
 - ✅ **Installable PWA** - web app manifest + Angular service worker: an "Install app" item in the user menu (Chromium browsers), the app shell loads offline and users get a prompt to reload after each release
+- ✅ **Offline read mode** - without a connection a signed-in user still sees their last synced tasks and groups (read-only, with an offline banner); the copy lives in IndexedDB, holds one user's data at a time and is deleted on logout
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
 - ✅ **Backend Tests** - 99 unit and integration tests with coverage (min. 80% enforced)
@@ -358,7 +359,7 @@ make lint-frontend        # in Docker
 
 ### End-to-End Tests (Playwright)
 
-`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, creating, editing, completing, filtering and deleting tasks, and a smoke test that fails on any Content-Security-Policy violation. A separate Playwright project, `pwa`, runs `tests/pwa.spec.ts` with service workers allowed: the manifest and its icons, `no-cache` on the service worker files, and the app shell loading offline (in both languages); every other test blocks service workers so it always hits the network.
+`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, creating, editing, completing, filtering and deleting tasks, and a smoke test that fails on any Content-Security-Policy violation. A separate Playwright project, `pwa`, runs `tests/pwa.spec.ts` with service workers allowed: the manifest and its icons, `no-cache` on the service worker files, the app shell loading offline (in both languages), the Install app item, a signed-in user reading their tasks offline read-only and getting them back online, and logout deleting the offline copy; every other test blocks service workers so it always hits the network.
 
 They run against a separate, throwaway stack defined in `docker/docker-compose.e2e.yml`: production images (SSR frontend), a PostgreSQL database on tmpfs, MailHog, and rate limiting disabled (`TESTING=1`). Each test registers its own user, so tests are independent and run in parallel.
 

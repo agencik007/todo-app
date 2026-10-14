@@ -19,6 +19,11 @@ export class TodosPage {
     return this.page.getByRole('listitem').filter({ hasText: title });
   }
 
+  /** The floating "Add task" button. */
+  addButton(): Locator {
+    return this.page.getByRole('button', { name: 'Add task' }).last();
+  }
+
   filter(name: 'All' | 'To do' | 'Completed'): Locator {
     return this.page.getByRole('tab', { name });
   }

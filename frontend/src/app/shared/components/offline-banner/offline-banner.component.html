@@ -1,0 +1,19 @@
+@if (visible()) {
+  <div
+    role="status"
+    class="offline-banner"
+  >
+    <i
+      class="pi pi-wifi"
+      aria-hidden="true"
+    ></i>
+    <span class="offline-banner__title">{{ 'OFFLINE.TITLE' | translate }}</span>
+    <span class="offline-banner__detail">
+      @if (hasSession() && lastSynced()) {
+        {{ 'OFFLINE.DETAIL_SYNCED' | translate: { time: lastSynced() } }}
+      } @else {
+        {{ 'OFFLINE.DETAIL' | translate }}
+      }
+    </span>
+  </div>
+}

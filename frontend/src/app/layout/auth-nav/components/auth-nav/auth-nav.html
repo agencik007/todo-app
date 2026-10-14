@@ -2,7 +2,7 @@
   <ng-template #start>
     <div class="flex align-items-center w-full menubar-inner">
       <!-- Mobile Hamburger -->
-      @if (isInitialized() && isMobile() && isAuthenticated()) {
+      @if (isInitialized() && isMobile() && hasSession()) {
         <button
           type="button"
           class="hamburger-btn mr-3"
@@ -53,9 +53,11 @@
           strokeWidth="4"
           [style]="{ width: '24px', height: '24px' }"
         />
-      } @else if (isAuthenticated()) {
+      } @else if (hasSession()) {
         <div class="flex align-items-center gap-2">
-          <app-weather-widget />
+          @if (canWrite()) {
+            <app-weather-widget />
+          }
           <app-user-profile></app-user-profile>
         </div>
       } @else {
