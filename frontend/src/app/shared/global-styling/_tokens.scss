@@ -29,6 +29,13 @@
   --app-space-7: 2.5rem;
   --app-space-8: 3rem;
 
+  // Bezpieczne obszary ekranu (notch, wskaźnik home) — działają dzięki
+  // viewport-fit=cover w index.html; poza takimi urządzeniami wynoszą 0.
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
+
   // Promienie
   --app-radius-xs: 4px;
   --app-radius-sm: 6px;
