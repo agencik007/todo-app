@@ -131,6 +131,8 @@ backend/
   ruff.toml      # Ruff lint/format configuration
 frontend/
   AGENTS.md      # frontend rules (Angular, design system, forms)
+  public/        # served as-is: favicon.ico, icons/ (generated app icons; icons/icon.svg is a master)
+  scripts/       # generate-icons.mjs (`npm run generate-icons`) + icons/icon-maskable.svg master
 frontend/src/app/
   core/          # guards, interceptors, services, tokens, store/ (AuthStore)
   features/      # auth/, groups/, todos/ (components/; groups and todos also have store/), legal/ (privacy policy)

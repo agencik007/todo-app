@@ -112,6 +112,7 @@ Use SCSS partials in `src/app/shared/global-styling`.
 
 - Use design tokens from `_tokens.scss` (`--app-space-*`, `--app-radius-*`, `--app-text-*`, `--app-shadow-*`, `--app-transition-*`) instead of hardcoded values. Colors come from the PrimeUIX theme (`--p-*` variables) — never hardcode hex colors.
 - Reuse the primitives in `src/app/shared/ui/` (`button[appIconButton]`, `app-badge`, `app-empty-state`, `app-form-field`) before creating ad-hoc equivalents. Add a new primitive only when a pattern repeats in at least two features.
+- App icons are the one place with literal colors (images can't read CSS variables). Edit the masters `public/icons/icon.svg` and `scripts/icons/icon-maskable.svg` (keep the mark inside the central 80 % of the maskable one), then run `npm run generate-icons` and commit the regenerated `favicon.ico` and PNGs.
 
 ---
 
