@@ -10,6 +10,7 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 
 - ✅ **FastAPI Backend** - REST API with full CRUD, PostgreSQL, Pydantic
 - ✅ **Angular 21 Frontend** - Signals, Control Flow, Standalone Components, SSR
+- ✅ **Installable PWA** - web app manifest + Angular service worker: the app shell loads offline and users get a prompt to reload after each release
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
 - ✅ **Backend Tests** - 99 unit and integration tests with coverage (min. 80% enforced)
@@ -126,6 +127,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - **RxJS** - reactive programming
 - **OpenAPI Generator** - generates TypeScript types from backend
 - **PrimeNG** - UI component library (Aura theme)
+- **@angular/service-worker** - PWA: caches the app shell (never API responses), drives the update prompt
 - **JetBrains Mono** - app font, self-hosted via `@fontsource-variable/jetbrains-mono` (no requests to Google Fonts)
 - **Design system** - design tokens + shared UI primitives on top of PrimeNG (see [Design System](#-design-system))
 
@@ -356,7 +358,7 @@ make lint-frontend        # in Docker
 
 ### End-to-End Tests (Playwright)
 
-`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, creating, editing, completing, filtering and deleting tasks, and a smoke test that fails on any Content-Security-Policy violation.
+`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, creating, editing, completing, filtering and deleting tasks, and a smoke test that fails on any Content-Security-Policy violation. A separate Playwright project, `pwa`, runs `tests/pwa.spec.ts` with service workers allowed: the manifest and its icons, `no-cache` on the service worker files, and the app shell loading offline (in both languages); every other test blocks service workers so it always hits the network.
 
 They run against a separate, throwaway stack defined in `docker/docker-compose.e2e.yml`: production images (SSR frontend), a PostgreSQL database on tmpfs, MailHog, and rate limiting disabled (`TESTING=1`). Each test registers its own user, so tests are independent and run in parallel.
 
@@ -643,6 +645,8 @@ todo.example.com {
 
 The `handle` blocks are tried in this order and only the first match runs, so `@todosPage` must stay above `@api`. Angular's `HttpClient` sends `Accept: application/json, text/plain, */*`, so API calls never match it. After editing, check and apply the config with `caddy validate --config /etc/caddy/Caddyfile` and `sudo systemctl reload caddy`; the deploy smoke test (below) fails if `/todos` doesn't return HTML.
 
+**Service worker (PWA).** The production build ships the Angular service worker (`ngsw-worker.js`, configured in `frontend/ngsw-config.json`). After each deploy, open tabs download the new version in the background and show an "Update available — Reload" toast, so for a while some users run the previous frontend against the new backend: keep API changes backward compatible for one release. The SSR server already sends `Cache-Control: no-cache` for `ngsw-worker.js`, `ngsw.json` and `manifest.webmanifest`; a proxy in front must not cache them either. **Kill switch:** if a release ships a broken service worker, make `/ngsw.json` return 404: add `handle /ngsw.json { respond 404 }` to the Caddyfile **above** the other `handle` blocks (a bare `respond /ngsw.json 404` doesn't work — `handle` blocks run first) and reload Caddy. Every client's service worker then deletes its caches and unregisters itself on its next check. Remove the rule once a fixed release is deployed.
+
 ```bash
 # Production secrets live in docker/docker.prod.env (never committed)
 make prod
@@ -818,8 +822,9 @@ todo-app/
 │   │   ├── libs/generated-api/  # Generated OpenAPI client (@api)
 │   │   ├── assets/i18n/     # en.json, pl.json
 │   │   └── server.ts        # SSR server (security headers, CSP)
-│   ├── public/              # Served as-is: favicon.ico, icons/ (app icons, icon.svg = master), theme-init.js
+│   ├── public/              # Served as-is: favicon.ico, icons/ (app icons, icon.svg = master), manifest.webmanifest, theme-init.js
 │   ├── scripts/             # generate-icons.mjs + icons/icon-maskable.svg (master of the full-bleed icons)
+│   ├── ngsw-config.json     # Service worker: what it caches (app shell only) and which navigations it serves
 │   ├── angular.json
 │   ├── package.json
 │   └── ...

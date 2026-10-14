@@ -124,7 +124,15 @@ Until §1.7 lands, `server.ts` serves every file in `public/` with a one-year `m
 
 ## 5. Phase 1 — installable app shell
 
-One PR: `feat(frontend): make the app an installable PWA`.
+**Status:** 1.1–1.7 done in `feat(frontend): make the app an installable PWA`. Still open: 1.8 (Install app menu item) and the `viewport-fit=cover` + safe-area padding from 1.4, as a follow-up PR. Differences from the plan below, found while implementing:
+
+- **No `ng add @angular/pwa`:** `@angular/service-worker` was added directly; the schematic's icons and manifest would only have been replaced anyway.
+- **`cacheQueryOptions: { ignoreSearch: true }` on the `app` group:** translations are requested as `en.json?v=2` (cache busting from before §1.7), while the precache stores them without the query. Without it, a language never loaded online fails offline.
+- **No `display_override: window-controls-overlay`:** it needs title-bar styling (Phase 4); plain `standalone` until then.
+- **`theme-color` dark = `#18181b`** (the dark nav bar, Aura zinc 900), light = `#ffffff`. `ThemeService` overrides both metas when the user picks a theme.
+- **Update toast:** its own `<p-toast key="app-update">` (bottom center) with a Reload button; `unrecoverable` shows the same toast instead of reloading on its own.
+- **§1.7** was mostly done by #59 (`no-cache` for every unhashed file); this phase only added `worker-src` / `manifest-src` to the CSP.
+- **Testing offline in Playwright:** `context.setOffline()` doesn't stop the service worker's own fetches in Chromium; `tests/pwa.spec.ts` also aborts requests with `context.route()`.
 
 ### 1.1 Scaffold
 
