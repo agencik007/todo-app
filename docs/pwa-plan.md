@@ -350,7 +350,15 @@ Browsers already show their own install affordance. Phase 1 only adds an **Insta
 
 ## 6. Phase 2 — offline read mode
 
-One PR: `feat(frontend): show the last synced todos when offline`.
+**Status:** done in `feat(frontend): show the last synced todos when offline`. Differences from the plan below, found while implementing:
+
+- **Offline = API unreachable, not just status 0.** With the service worker active, a failed fetch comes back as a synthetic **504** from the worker, so `isServerUnreachable()` treats 0, 502, 503 and 504 alike (the gateway codes also cover a reverse proxy whose backend is down). An API response of any other status marks the app online again; while the browser says it is online but the API is unreachable, `NetworkStatusService` retries `/auth/health` every 15 s.
+- **One snapshot, not one per user.** IndexedDB holds a single snapshot (key `snapshot` in the new `offline` store, DB version 2) with its `userId`; starting a session for another user deletes it first. Same guarantee, less to clean up.
+- **Logout and account deletion are disabled offline**, like every other change. Logging out needs the server to revoke the HttpOnly refresh cookie; a local-only "logout" would silently log the user back in once online.
+- **Profile snapshot** stores the whole `UserResponse` (no secrets in it) so the menu and greeting work offline.
+- The avatar cache is now also deleted in `clearUser()`.
+- **IndexedDB upgrade:** an old tab holding version 1 open would block the upgrade; the service now closes its connection on `versionchange` and carries on without IndexedDB while blocked, instead of hanging the app.
+- **Privacy policy** updated (en/pl): the device stores a copy of the user's tasks, groups and profile until logout.
 
 ### 2.1 Connectivity signal — `core/services/network-status.service.ts`
 
