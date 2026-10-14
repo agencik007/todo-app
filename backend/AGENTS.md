@@ -78,19 +78,17 @@ Alembic autogenerate does not drop PostgreSQL enum types in `downgrade()` (and d
 ```python
 from sqlalchemy.dialects import postgresql
 
+
 def upgrade() -> None:
-    my_enum = postgresql.ENUM('value1', 'value2', name='myenum')
+    my_enum = postgresql.ENUM("value1", "value2", name="myenum")
     my_enum.create(op.get_bind(), checkfirst=True)
 
-    op.create_table(
-        'my_table',
-        sa.Column('my_column', my_enum, nullable=False),
-        ...
-    )
+    op.create_table("my_table", sa.Column("my_column", my_enum, nullable=False), ...)
+
 
 def downgrade() -> None:
-    op.drop_table('my_table')
-    postgresql.ENUM(name='myenum').drop(op.get_bind(), checkfirst=True)
+    op.drop_table("my_table")
+    postgresql.ENUM(name="myenum").drop(op.get_bind(), checkfirst=True)
 ```
 
 ### Enums in SQLAlchemy
@@ -102,6 +100,7 @@ When you need a fixed set of values (e.g. colors, statuses):
    ```python
    import enum
    from sqlalchemy import Enum
+
 
    class MyEnum(str, enum.Enum):
        VALUE1 = "value1"
@@ -118,6 +117,7 @@ When you need a fixed set of values (e.g. colors, statuses):
 
    ```python
    from models.my_model import MyEnum
+
 
    class MySchema(BaseModel):
        my_field: MyEnum = MyEnum.VALUE1
