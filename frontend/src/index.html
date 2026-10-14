@@ -22,6 +22,23 @@
       rel="apple-touch-icon"
       href="icons/apple-touch-icon.png"
     />
+    <link
+      rel="manifest"
+      href="manifest.webmanifest"
+    />
+    <!-- Browser UI color (title bar of the installed app). Literal colors:
+         meta tags can't read CSS variables. ThemeService overrides both when
+         the user picks light or dark instead of following the system. -->
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#ffffff"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#18181b"
+    />
     <!-- External so the CSP can stay at script-src 'self' (no inline scripts). -->
     <script src="theme-init.js"></script>
   </head>
