@@ -70,6 +70,11 @@ export class UserMenu {
     await this.page.getByRole('button', { name: email }).click();
   }
 
+  async logout(email: string): Promise<void> {
+    await this.open(email);
+    await this.page.getByRole('button', { name: 'Logout' }).click();
+  }
+
   async deleteAccount({ email, password }: TestUser): Promise<void> {
     await this.open(email);
     await this.page.getByRole('button', { name: 'Delete account' }).click();

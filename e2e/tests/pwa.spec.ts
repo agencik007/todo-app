@@ -1,7 +1,8 @@
-import { BrowserContext } from '@playwright/test';
+import { BrowserContext, Page } from '@playwright/test';
 
 import { expect, test } from '../fixtures/test';
 import { GuestNav, LoginPage, UserMenu } from '../pages/auth.pages';
+import { TodosPage } from '../pages/todos.page';
 
 // Runs in the `pwa` project, the only one with service workers allowed.
 
@@ -13,6 +14,42 @@ import { GuestNav, LoginPage, UserMenu } from '../pages/auth.pages';
 async function goOffline(context: BrowserContext): Promise<void> {
   await context.setOffline(true);
   await context.route('**/*', (route) => route.abort('internetdisconnected'));
+}
+
+async function goOnline(context: BrowserContext): Promise<void> {
+  await context.unrouteAll();
+  await context.setOffline(false);
+}
+
+/** Todo titles in the offline snapshot (IndexedDB), or null when there is none. */
+function offlineTodoTitles(page: Page): Promise<string[] | null> {
+  return page.evaluate(
+    () =>
+      new Promise<string[] | null>((resolve) => {
+        const open = indexedDB.open('TodoAppDB');
+        open.onsuccess = (): void => {
+          const db = open.result;
+          if (!db.objectStoreNames.contains('offline')) {
+            db.close();
+            resolve(null);
+            return;
+          }
+          const get = db.transaction('offline').objectStore('offline').get('snapshot');
+          get.onsuccess = (): void => {
+            const snapshot = get.result as { todos: { title: string }[] } | undefined;
+            db.close();
+            resolve(snapshot ? snapshot.todos.map((todo) => todo.title) : null);
+          };
+        };
+      }),
+  );
+}
+
+/** Waits until the service worker controls the page (app shell cached). */
+async function installServiceWorker(page: Page): Promise<void> {
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
 }
 
 test('the web app manifest is linked and its icons load', async ({ page, request }) => {
@@ -56,9 +93,7 @@ test('the app shell loads offline once the service worker is installed', async (
   await expect(login.heading).toBeVisible();
 
   // Registration waits until the app is stable (registerWhenStable:30000).
-  await page.evaluate(() => navigator.serviceWorker.ready);
-  await page.reload();
-  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+  await installServiceWorker(page);
 
   await goOffline(context);
   await page.reload();
@@ -108,3 +143,50 @@ test('the user menu offers to install the app when the browser allows it', async
   await menu.open(loggedIn.email);
   await expect(menu.installApp).toBeHidden();
 });
+
+test('a signed-in user reads the last synced tasks offline, read-only', async ({
+  page,
+  context,
+  loggedIn,
+}) => {
+  void loggedIn;
+  const todos = new TodosPage(page);
+  await todos.goto();
+  await todos.add('Pack for the trip');
+  await expect.poll(() => offlineTodoTitles(page)).toEqual(['Pack for the trip']);
+  await installServiceWorker(page);
+
+  await goOffline(context);
+  await page.reload();
+
+  // Still signed in, with the synced task, but nothing can be changed.
+  await expect(page.getByRole('status').filter({ hasText: 'You are offline.' })).toBeVisible();
+  await expect(todos.row('Pack for the trip')).toBeVisible();
+  await expect(todos.row('Pack for the trip').getByRole('checkbox')).toBeDisabled();
+  await expect(todos.addButton()).toBeDisabled();
+
+  // Back online: the real session returns and changes work again.
+  await goOnline(context);
+  await expect(page.getByRole('status').filter({ hasText: 'You are offline.' })).toBeHidden();
+  await expect(todos.addButton()).toBeEnabled();
+  await todos.toggle('Pack for the trip');
+});
+
+test('logging out deletes the offline copy of the tasks', async ({ page, context, loggedIn }) => {
+  const todos = new TodosPage(page);
+  await todos.goto();
+  await todos.add('Private task');
+  await expect.poll(() => offlineTodoTitles(page)).toEqual(['Private task']);
+  await installServiceWorker(page);
+
+  await new UserMenu(page).logout(loggedIn.email);
+  await expect(page).toHaveURL(/\/login$/);
+  await expect.poll(() => offlineTodoTitles(page)).toBeNull();
+
+  // Offline after logout: no session to restore, so no tasks to show.
+  await goOffline(context);
+  await page.goto('/todos');
+  await expect(new LoginPage(page).heading).toBeVisible();
+  await expect(page.getByText('Private task')).toBeHidden();
+});
+
