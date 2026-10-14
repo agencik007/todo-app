@@ -818,6 +818,8 @@ todo-app/
 │   │   ├── libs/generated-api/  # Generated OpenAPI client (@api)
 │   │   ├── assets/i18n/     # en.json, pl.json
 │   │   └── server.ts        # SSR server (security headers, CSP)
+│   ├── public/              # Served as-is: favicon.ico, icons/ (app icons, icon.svg = master), theme-init.js
+│   ├── scripts/             # generate-icons.mjs + icons/icon-maskable.svg (master of the full-bleed icons)
 │   ├── angular.json
 │   ├── package.json
 │   └── ...
@@ -894,6 +896,7 @@ ng generate component component-name  # Skeleton for a new component
 ng generate service service-name      # Skeleton for a new service
 npm run generate-api                  # Regenerate API types (@api) after backend changes
                                       # runs on the host: needs Python + backend deps, backend/.env and Java
+npm run generate-icons                # Regenerate favicon.ico + app icons after editing the master SVGs
 
 # Docker
 docker-compose logs -f service_name   # View container logs
