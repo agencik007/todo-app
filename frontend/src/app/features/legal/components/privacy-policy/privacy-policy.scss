@@ -1,15 +1,18 @@
-.privacy-container {
+// No "privacy-*" class names: cookie-banner blockers (e.g. the "I don't care
+// about cookies" extension) hide `.privacy-container` on every site, which
+// blanked this whole page.
+.legal-page {
   display: flex;
   justify-content: center;
   padding: var(--app-space-6) var(--app-space-4);
 }
 
-:host ::ng-deep .privacy-card {
+:host ::ng-deep .legal-card {
   width: 100%;
   max-width: 720px;
 }
 
-.privacy-header {
+.legal-header {
   padding: var(--app-space-5) var(--app-space-5) 0;
 
   h1 {
@@ -24,7 +27,7 @@
   }
 }
 
-.privacy-section {
+.legal-section {
   margin-bottom: var(--app-space-5);
 
   h2 {

@@ -93,6 +93,19 @@ test('the privacy policy opens at the top, not scrolled to its Back button', asy
   await expect(page.getByRole('heading', { name: 'Privacy policy' })).toBeInViewport();
 });
 
+test('the privacy policy survives cookie-banner blockers', async ({ page }) => {
+  await page.goto('/privacy');
+  // A generic rule from the "I don't care about cookies" extension, which used
+  // to hide the page's whole container.
+  await page.addStyleTag({
+    content: `.privacy-container:not(body):not(html):not(.content-container),
+      .privacy-card, .privacy-header, .privacy-section { display: none !important; }`,
+  });
+
+  await expect(page.getByRole('heading', { name: 'Privacy policy' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your rights' })).toBeVisible();
+});
+
 test('login and register center their footer links the same way', async ({ page }) => {
   for (const path of ['/login', '/register']) {
     await page.goto(path);
