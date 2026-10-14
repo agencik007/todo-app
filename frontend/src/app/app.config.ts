@@ -28,6 +28,7 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { notificationInterceptor } from './core/interceptors/notification.interceptor';
 import { AppUpdateService } from './core/services/app-update.service';
 import { LanguageService } from './core/services/language.service';
+import { PwaInstallService } from './core/services/pwa-install.service';
 import { AuthStore } from './core/store/auth.store';
 import { API_URL } from './core/tokens/api-url.token';
 
@@ -43,6 +44,10 @@ function initializeApp(): Promise<void> {
 
 function initializeAppUpdates(): void {
   inject(AppUpdateService).init();
+}
+
+function initializePwaInstall(): void {
+  inject(PwaInstallService).init();
 }
 
 patchPrimeNgAutofocus();
@@ -78,6 +83,7 @@ export const appConfig: ApplicationConfig = {
       registrationStrategy: 'registerWhenStable:30000',
     }),
     provideAppInitializer(initializeAppUpdates),
+    provideAppInitializer(initializePwaInstall),
     MessageService,
     providePrimeNG({
       theme: {
