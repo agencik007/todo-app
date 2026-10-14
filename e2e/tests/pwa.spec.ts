@@ -1,7 +1,7 @@
 import { BrowserContext } from '@playwright/test';
 
 import { expect, test } from '../fixtures/test';
-import { GuestNav, LoginPage } from '../pages/auth.pages';
+import { GuestNav, LoginPage, UserMenu } from '../pages/auth.pages';
 
 // Runs in the `pwa` project, the only one with service workers allowed.
 
@@ -71,4 +71,40 @@ test('the app shell loads offline once the service worker is installed', async (
   // app requests it with a cache-busting query (pl.json?v=2).
   await new GuestNav(page).switchLanguage('Polski');
   await expect(page.getByRole('heading', { name: 'Zaloguj się' })).toBeVisible();
+});
+
+test('the user menu offers to install the app when the browser allows it', async ({
+  page,
+  loggedIn,
+}) => {
+  await page.goto('/todos');
+  await expect(page.getByRole('heading', { name: /^Hello/ })).toBeVisible();
+  const menu = new UserMenu(page);
+
+  // No install prompt from the browser yet: nothing to offer.
+  await menu.open(loggedIn.email);
+  await expect(menu.installApp).toBeHidden();
+  await menu.open(loggedIn.email); // the trigger toggles: closes the menu
+
+  // Headless Chromium never fires beforeinstallprompt by itself, so fire one
+  // whose prompt() records the call.
+  await page.evaluate(() => {
+    const event = Object.assign(new Event('beforeinstallprompt', { cancelable: true }), {
+      prompt: async () => {
+        (window as unknown as { installPrompted: boolean }).installPrompted = true;
+      },
+      userChoice: Promise.resolve({ outcome: 'accepted' }),
+    });
+    window.dispatchEvent(event);
+  });
+
+  await menu.open(loggedIn.email);
+  await menu.installApp.click();
+  const installPrompted = (): Promise<boolean | undefined> =>
+    page.evaluate(() => (window as unknown as { installPrompted?: boolean }).installPrompted);
+  await expect.poll(installPrompted).toBe(true);
+
+  // The browser's prompt can be shown only once.
+  await menu.open(loggedIn.email);
+  await expect(menu.installApp).toBeHidden();
 });
