@@ -402,7 +402,17 @@ The access token is still never persisted. The profile snapshot contains no secr
 
 ## 7. Phase 3 (optional) — offline writes
 
-Only if Phase 2 shows real demand. Requires backend work, so it gets its own design review before implementation. Sketch:
+**Status:** done in `feat(todos): make todo creation idempotent per client_id` (backend) and `feat(frontend): queue todo changes made offline` (frontend). Differences from the sketch below, found while implementing:
+
+- **Todos only.** Creating, editing, toggling and deleting a todo work offline. Groups, reordering, the avatar, account settings and logout still need the server (the controls stay disabled offline); reordering is also disabled while changes are queued, because its index is the server's.
+- **Compacted queue, not a log.** The outbox (`pendingChanges` in the `offline` store, with its owner's `userId`) keeps one change per todo where it can: edits of a todo created offline go into its create, repeated edits merge, a delete replaces the edits, and deleting a todo that never reached the server drops it altogether. The change being sent is never rewritten; a newer change to that todo is queued behind it.
+- **Order.** While anything is queued, new changes queue too, so they reach the server in the order they were made. A direct request that fails because the API can't be reached is queued as well (a create with the same `clientId`).
+- **Conflicts: last sync wins**, no `updated_at` comparison — an update sends only the fields the user changed. A delete wins over edits. An update or create rejected by the server (e.g. the todo was deleted on another device) is dropped with one warning toast; a todo whose group was deleted elsewhere is kept without the group.
+- **Pausing.** Unreachable API, `401` and `403` stop the queue until the connection or session returns; `429` and `5xx` retry after 30 s. Requests sent from the queue raise no per-request toast (`SILENT_NOTIFICATIONS`); one summary toast reports the result, then the list is reloaded.
+- **Session expiry keeps the queue** for the same user's next sign-in (`clearUser({ keepPendingChanges: true })`); logout, account deletion and another user signing in delete it. The privacy policy (en/pl) says so.
+- **Idempotency:** `POST /todos` returns the existing todo with **200** for a repeated `clientId` (**201** for a new one); a unique constraint on `(user_id, client_id)` settles two retries racing each other.
+
+Original sketch:
 
 - **Outbox** in IndexedDB: ordered queue of mutations (`create`, `update`, `toggle`, `delete`, `reorder`) per user, replayed in order when online. Not Background Sync API — it is Chromium-only; replay on `online`/app start instead.
 - **Idempotency:** `POST /todos` accepts a client-generated `client_id` (UUID, unique per user) so a replayed create after a lost response doesn't duplicate. Requires a model change + Alembic migration + OpenAPI regeneration.
@@ -530,6 +540,6 @@ Phase 2:
 
 1. **API prefix:** move the backend under `/api` (clean separation of navigations and API calls, simpler proxy and NGSW config)? It is a breaking change for the Capacitor apps' `API_URL` and needs a coordinated release.
 2. **Refresh token lifetime:** 24 h means an installed PWA asks for a password almost daily. Is a longer sliding lifetime with rotation acceptable from a security point of view?
-3. **Offline writes (Phase 3):** is there demand once offline read mode ships?
+3. ~~**Offline writes (Phase 3):** is there demand once offline read mode ships?~~ Decided: built for todos (section 7).
 4. **Brand assets:** is there an existing logo for the icons, or should one be designed?
 5. **Manifest colours:** follow the default (light) PrimeUIX surface, or the user's selected colour palette (`ColorService`)? The manifest is static, so only one can be the install-time colour.
