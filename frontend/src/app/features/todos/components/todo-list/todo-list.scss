@@ -723,3 +723,10 @@
 .text-6xl {
   font-size: 3.75rem;
 }
+
+// Offline: adding needs the server
+.fab:disabled {
+  opacity: var(--p-disabled-opacity);
+  cursor: not-allowed;
+  pointer-events: none;
+}

@@ -191,6 +191,7 @@
             tooltipPosition="right"
             class="section-toggle"
             [pTooltip]="'GROUPS.SIDEBAR.ADD_GROUP' | translate"
+            [disabled]="!canWrite()"
             [attr.aria-label]="'GROUPS.SIDEBAR.ADD_GROUP' | translate"
             (click)="showAddDialog($event)"
           >
@@ -259,6 +260,7 @@
                 size="sm"
                 appIconButton
                 [pTooltip]="'GROUPS.SIDEBAR.ADD_GROUP' | translate"
+                [disabled]="!canWrite()"
                 [attr.aria-label]="'GROUPS.SIDEBAR.ADD_GROUP' | translate"
                 (click)="showAddDialog($event)"
               >
@@ -320,6 +322,7 @@
                     reveal
                     appIconButton
                     [pTooltip]="'GROUPS.SIDEBAR.EDIT_GROUP' | translate"
+                    [disabled]="!canWrite()"
                     [attr.aria-label]="'GROUPS.SIDEBAR.EDIT_GROUP' | translate"
                     (click)="showEditDialog($event, group)"
                   >
@@ -338,6 +341,7 @@
                     reveal
                     appIconButton
                     [pTooltip]="'GROUPS.SIDEBAR.DELETE_GROUP' | translate"
+                    [disabled]="!canWrite()"
                     [attr.aria-label]="'GROUPS.SIDEBAR.DELETE_GROUP' | translate"
                     (click)="confirmDeleteGroup($event, group)"
                   >

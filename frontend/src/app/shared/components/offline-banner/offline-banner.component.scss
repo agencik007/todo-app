@@ -1,0 +1,28 @@
+.offline-banner {
+  // Above the desktop sidebar (fixed, z-index 2000), which would otherwise
+  // cover the start of the text; still in the flow, so it pushes the page
+  // down instead of covering it.
+  position: relative;
+  z-index: 2001;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--app-space-1) var(--app-space-2);
+  padding: var(--app-space-2) var(--app-space-4);
+  font-size: var(--app-text-sm);
+  text-align: center;
+  color: var(--p-amber-900);
+  background: var(--p-amber-100);
+  border-bottom: 1px solid var(--p-amber-300);
+
+  :host-context(.dark) & {
+    color: var(--p-amber-100);
+    background: color-mix(in srgb, var(--p-amber-500), transparent 80%);
+    border-bottom-color: var(--p-amber-700);
+  }
+}
+
+.offline-banner__title {
+  font-weight: var(--app-font-semibold);
+}

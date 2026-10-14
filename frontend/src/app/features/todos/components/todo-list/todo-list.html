@@ -399,6 +399,7 @@
               <p-button
                 icon="pi pi-plus"
                 [label]="'TODOS.LIST.ADD_FIRST' | translate"
+                [disabled]="!canWrite()"
                 (onClick)="showCreateForm()"
               />
             </app-empty-state>
@@ -432,6 +433,7 @@
           class="fab"
           #addButton
           [pTooltip]="'TODOS.FAB.TOOLTIP' | translate"
+          [disabled]="!canWrite()"
           [attr.aria-label]="'TODOS.ADD_BUTTON' | translate"
           (click)="showCreateForm()"
         >

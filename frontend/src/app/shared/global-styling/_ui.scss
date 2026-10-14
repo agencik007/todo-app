@@ -111,3 +111,13 @@
     opacity: 1;
   }
 }
+
+// Wyłączony (np. offline): przygaszony i nieklikalny
+.app-icon-btn:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+
+  &:not(.app-icon-btn--reveal) {
+    opacity: var(--p-disabled-opacity);
+  }
+}

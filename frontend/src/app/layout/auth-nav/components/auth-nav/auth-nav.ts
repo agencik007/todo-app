@@ -40,6 +40,8 @@ export class AuthNavComponent {
 
   // 6. Signals (always readonly)
   readonly isAuthenticated = this.#authStore.isAuthenticated;
+  readonly hasSession = this.#authStore.hasSession;
+  readonly canWrite = this.#authStore.canWrite;
   readonly isLoading = this.#authStore.isLoading;
   readonly isInitialized = this.#authStore.isInitialized;
 

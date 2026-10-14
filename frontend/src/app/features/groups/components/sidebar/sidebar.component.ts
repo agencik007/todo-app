@@ -11,6 +11,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { SidebarService } from '../../../../core/services/sidebar.service';
+import { AuthStore } from '../../../../core/store/auth.store';
 import { GroupColorHexPipe } from '../../../../shared/pipes/group-color-hex.pipe';
 import { IconButtonDirective } from '../../../../shared/ui/icon-button/icon-button.directive';
 import { GroupStore } from '../../store/group.store';
@@ -46,6 +47,8 @@ export class SidebarComponent {
   readonly selectedGroupIds = this.#groupStore.selectedGroupIds;
   readonly hasSelection = this.#groupStore.hasSelection;
   readonly loading = this.#groupStore.loading;
+  /** False offline: changes need the server. */
+  readonly canWrite = inject(AuthStore).canWrite;
 
   isDialogVisible = this.#groupStore.dialogVisible;
   isCollapsed = signal(false);
