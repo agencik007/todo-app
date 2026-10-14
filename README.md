@@ -10,7 +10,7 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 
 - ✅ **FastAPI Backend** - REST API with full CRUD, PostgreSQL, Pydantic
 - ✅ **Angular 21 Frontend** - Signals, Control Flow, Standalone Components, SSR
-- ✅ **Installable PWA** - web app manifest + Angular service worker: the app shell loads offline and users get a prompt to reload after each release
+- ✅ **Installable PWA** - web app manifest + Angular service worker: an "Install app" item in the user menu (Chromium browsers), the app shell loads offline and users get a prompt to reload after each release
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
 - ✅ **Backend Tests** - 99 unit and integration tests with coverage (min. 80% enforced)
@@ -860,7 +860,7 @@ The frontend has a small design system layered on top of the PrimeNG (PrimeUIX A
 **Design tokens** — `frontend/src/app/shared/global-styling/_tokens.scss`
 
 - Colors always come from the theme: semantic `--p-primary-*`, `--p-surface-*`, `--p-text-color`, `--p-text-muted-color`, `--p-content-border-color` and palettes `--p-{red,blue,amber,...}-{50..950}`.
-- `--app-*` tokens hold only what the theme doesn't define: font sizes and weights (`--app-text-*`, `--app-font-*`), spacing (`--app-space-1..8`), radii (`--app-radius-*`), shadows (`--app-shadow-*`, dark variants under `.dark`), focus ring, transitions and glass panels.
+- `--app-*` tokens hold only what the theme doesn't define: font sizes and weights (`--app-text-*`, `--app-font-*`), spacing (`--app-space-1..8`), safe-area insets for notched screens (`--app-safe-top/right/bottom/left`), radii (`--app-radius-*`), shadows (`--app-shadow-*`, dark variants under `.dark`), focus ring, transitions and glass panels.
 - Use tokens in component styles instead of hardcoded values.
 
 **Shared UI primitives** — `frontend/src/app/shared/ui/`

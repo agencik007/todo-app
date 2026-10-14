@@ -124,7 +124,7 @@ Until §1.7 lands, `server.ts` serves every file in `public/` with a one-year `m
 
 ## 5. Phase 1 — installable app shell
 
-**Status:** 1.1–1.7 done in `feat(frontend): make the app an installable PWA`. Still open: 1.8 (Install app menu item) and the `viewport-fit=cover` + safe-area padding from 1.4, as a follow-up PR. Differences from the plan below, found while implementing:
+**Status:** done. 1.1–1.7 in `feat(frontend): make the app an installable PWA`; 1.8 (Install app menu item) and the `viewport-fit=cover` + safe-area padding from 1.4 in a follow-up (`--app-safe-*` tokens, also added to the fixed-position sidebar, user menu and mobile toasts). Differences from the plan below, found while implementing:
 
 - **No `ng add @angular/pwa`:** `@angular/service-worker` was added directly; the schematic's icons and manifest would only have been replaced anyway.
 - **`cacheQueryOptions: { ignoreSearch: true }` on the `app` group:** translations are requested as `en.json?v=2` (cache busting from before §1.7), while the precache stores them without the query. Without it, a language never loaded online fails offline.
@@ -361,12 +361,12 @@ One PR: `feat(frontend): show the last synced todos when offline`.
 
 Today: refresh fails → logged out. New behaviour:
 
-| Refresh result                                       | Behaviour                                                                                                                                                                                                 |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | -------------------- |
-| Success                                              | Unchanged. Save a minimal profile snapshot (`id`, `email`, `name`, `language`, `avatarUrl`) to IndexedDB.                                                                                                 |
-| `401` / `AUTH_INVALID_REFRESH_TOKEN`                 | Unchanged (logged out) **and** wipe all offline data (2.4).                                                                                                                                               |
-| Network error (`status === 0`) and a snapshot exists | New `isOfflineSession` state: `currentUser` from the snapshot, `isAuthenticated` stays `false` for API purposes, the UI reads from the offline store. `authGuard` allows `/todos` when `isAuthenticated() |     | isOfflineSession()`. |
-| Network error and no snapshot                        | Logged out (show login page with the offline banner).                                                                                                                                                     |
+| Refresh result                                       | Behaviour                                                                                                                                                                                                                                   |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Success                                              | Unchanged. Save a minimal profile snapshot (`id`, `email`, `name`, `language`, `avatarUrl`) to IndexedDB.                                                                                                                                   |
+| `401` / `AUTH_INVALID_REFRESH_TOKEN`                 | Unchanged (logged out) **and** wipe all offline data (2.4).                                                                                                                                                                                 |
+| Network error (`status === 0`) and a snapshot exists | New `isOfflineSession` state: `currentUser` from the snapshot, `isAuthenticated` stays `false` for API purposes, the UI reads from the offline store. `authGuard` allows `/todos` when `isAuthenticated()` or `isOfflineSession()` is true. |
+| Network error and no snapshot                        | Logged out (show login page with the offline banner).                                                                                                                                                                                       |
 
 When the connection returns, `AuthStore` retries `initializeAuth()` once; on success it leaves offline mode and the stores reload from the API, on `401` it logs out as usual.
 
