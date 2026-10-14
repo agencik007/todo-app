@@ -290,7 +290,7 @@ provideServiceWorker('ngsw-worker.js', {
 
 ### 1.6 Update handling — `core/services/app-update.service.ts`
 
-New root service, instantiated through `provideAppInitializer` (browser only, guarded with `isPlatformBrowser`). Follows the class layout from `AGENTS.md`:
+New root service, instantiated through `provideAppInitializer` (browser only, guarded with `isPlatformBrowser`). Follows the class layout from `frontend/AGENTS.md`:
 
 - `readonly #swUpdate = inject(SwUpdate)`; return early when `!this.#swUpdate.isEnabled`.
 - `versionUpdates` filtered to `VERSION_READY` → PrimeNG toast (key `app-update`, `sticky: true`) with a **Reload** action → `document.location.reload()`. Uses the existing `MessageService`; no new UI primitive.
@@ -423,7 +423,7 @@ There is no frontend unit test runner, so the checks are lint, build and Playwri
   3. `context.setOffline(true)` + reload `/todos` → app shell renders (not Chromium's offline page).
   4. Phase 2: logged-in user with todos → offline reload → todos visible, "You are offline" banner shown, create button disabled; logout → offline reload → no todos visible (wipe test).
   5. Response headers: `ngsw-worker.js` and `ngsw.json` have `Cache-Control: no-cache`.
-- Locate everything by role/name in page objects under `e2e/pages/` (`AGENTS.md` rules). Run `npm run typecheck` in `e2e/`.
+- Locate everything by role/name in page objects under `e2e/pages/` (`e2e/AGENTS.md` rules). Run `npm run typecheck` in `e2e/`.
 - CI already runs e2e against production images, so no workflow change is needed beyond the new project being picked up.
 
 ### Manual device matrix (once per phase)

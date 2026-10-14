@@ -1,6 +1,17 @@
 # Agent Guidelines — Todo App (FastAPI + Angular)
 
-> Single source of truth for AI coding agents (Claude Code, Cursor, Codex, Copilot Agents, etc.) and human contributors working on this repository. Covers stack, commands, workflow, code conventions, migrations, and AI-specific configuration.
+> Guidelines for AI coding agents (Claude Code, Cursor, Codex, Copilot Agents, etc.) and human contributors working on this repository. This root file holds what applies everywhere: stack, commands, workflow, Git, the backend ↔ frontend contract and AI-specific configuration. Area-specific rules live next to the code.
+
+## Where the rules live
+
+| File                                       | Read it when you work on                                         |
+| ------------------------------------------ | ---------------------------------------------------------------- |
+| `AGENTS.md` (this file)                    | Anything — always applies                                        |
+| [`backend/AGENTS.md`](backend/AGENTS.md)   | FastAPI code, API messages, pytest, database models, Alembic     |
+| [`frontend/AGENTS.md`](frontend/AGENTS.md) | Angular components, stores, forms, styling and the design system |
+| [`e2e/AGENTS.md`](e2e/AGENTS.md)           | Playwright tests, fixtures and page objects                      |
+
+Agents that load nested `AGENTS.md` files automatically pick them up when working in that directory; otherwise open the matching file before changing code there. A change that spans areas (e.g. a new endpoint plus its UI) needs every matching file. Each rule lives in exactly one file — don't copy rules between them.
 
 ---
 
@@ -42,7 +53,7 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 | Single backend test                                          | `DC exec backend python -m pytest tests/test_filename.py::test_function_name` |
 | Frontend lint                                                | `make lint-frontend`                                                          |
 | Frontend tests                                               | None yet — `angular.json` has no `test` target                                |
-| E2E tests (Playwright, full stack; stop the dev stack first) | `make test-e2e` — see [E2E tests](#e2e-tests)                                 |
+| E2E tests (Playwright, full stack; stop the dev stack first) | `make test-e2e` — see [`e2e/AGENTS.md`](e2e/AGENTS.md)                        |
 | Migrate to head                                              | `make migrate`                                                                |
 | Database dump to `backups/` (`STACK=prod` for production)    | `make backup-db`                                                              |
 | Restore a dump (replaces the schema; `STACK=prod` for prod)  | `make restore-db BACKUP=backups/<file>.dump`                                  |
@@ -61,7 +72,7 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 4. **Tests:** if you touched backend logic → run `make test-backend`. The frontend has no unit test runner yet, so lint + `ng build` are the checks there. If you changed a user-facing flow (auth, todos, anything the e2e tests click through) → run `make test-e2e` and update the tests.
 5. **i18n:** new API messages must have keys in both `frontend/src/assets/i18n/en.json` and `pl.json` under `API_MESSAGES`.
 6. **CI:** `.github/workflows/ci.yml` runs `ruff check`, `ruff format --check`, `alembic upgrade head` + `alembic check` on an empty database, `pytest`, frontend lint + Prettier check (`npm run format:check`) + build, and the Playwright e2e tests against the production Docker images on every PR. Run the same checks locally before pushing, and update the workflow when you change the Python/Node versions in `docker/Dockerfile.*`. Every push to `develop` that passes CI is deployed to production by `.github/workflows/deploy.yml` (images to GHCR, then `make deploy` over SSH, which dumps the database and runs the migrations; if the deploy or the smoke test fails, the job restores that dump when the schema changed and redeploys the last good release) — a merge to `develop` is a release.
-7. **Docs:** if your change is one of the triggers listed in [Keeping README.md up to date](#keeping-readmemd-up-to-date) → update `README.md` (and this file, if it affects agent workflow) **in the same change**.
+7. **Docs:** if your change is one of the triggers listed in [Keeping README.md up to date](#keeping-readmemd-up-to-date) → update `README.md` (and the matching `AGENTS.md`, if it affects agent workflow) **in the same change**.
 8. **Git:** commit, branch and open the PR following [Git — commits, branches, PRs](#git--commits-branches-prs).
 
 ---
@@ -109,6 +120,7 @@ Smooth out login avatar final fade phase      # no type
 
 ```
 backend/
+  AGENTS.md      # backend rules (FastAPI, tests, migrations)
   config/        # api_messages.py, database, auth, password validation
   models/        # SQLAlchemy models (user, todo, group, refresh_token) + schemas.py (Pydantic)
   routes/        # FastAPI endpoints
@@ -117,6 +129,8 @@ backend/
   openapi/       # export_openapi.py + openapi.json (input of `npm run generate-api`)
   tests/         # pytest; conftest.py sets TESTING=1
   ruff.toml      # Ruff lint/format configuration
+frontend/
+  AGENTS.md      # frontend rules (Angular, design system, forms)
 frontend/src/app/
   core/          # guards, interceptors, services, tokens, store/ (AuthStore)
   features/      # auth/, groups/, todos/ (components/; groups and todos also have store/), legal/ (privacy policy)
@@ -124,7 +138,7 @@ frontend/src/app/
   layout/
 docs/            # design notes and implementation plans (pwa-plan.md = PWA roadmap)
 docker/          # Dockerfiles and docker-compose configurations (docker-compose.e2e.yml = e2e stack)
-e2e/             # Playwright tests: fixtures/ (API, MailHog), pages/ (page objects), tests/
+e2e/             # Playwright tests: fixtures/ (API, MailHog), pages/ (page objects), tests/; AGENTS.md = e2e rules
 .github/workflows/ # CI, CD and backup.yml (nightly age-encrypted DB dump as an artifact); .github/dependabot.yml = dependency update PRs
 .husky/          # Git hooks (Husky, installed by `npm install` in the root): pre-commit = lint-staged (Prettier + ESLint on staged frontend files, `ruff` on staged Python — these run on the host); post-checkout = rebuild/migrate the running dev stack after a branch switch
 Makefile         # root entry point for all development tasks
@@ -140,48 +154,7 @@ Makefile         # root entry point for all development tasks
 
 ---
 
-## Backend — Python / FastAPI
-
-### Framework and conventions
-
-- FastAPI with SQLAlchemy (models) and Pydantic (schemas).
-- **Imports:** group as 1) standard library, 2) third-party, 3) local modules.
-- **Naming:**
-  - Functions / variables: `snake_case`
-  - Classes: `PascalCase`
-  - Schemas: suffix with `Create`, `Update` where applicable (e.g. `TodoCreate`, `TodoUpdate`).
-- **Typing:** use Python type hints everywhere, in the modern syntax (`list[str]`, `dict[str, int]`, `X | None`, `collections.abc.Sequence`) — not `typing.List` / `Optional` / `Union`; `ruff check` enforces it.
-- **Formatting:** follow PEP 8 (4-space indentation, enforced by `ruff format`). Double quotes for strings unless single quotes are required.
-- **Linting:** `ruff check` with Ruff's default rule set, configured in `backend/ruff.toml` (Python 3.12 target, FastAPI `Depends()`/`File()` defaults allowed). Fix findings instead of silencing them; a deliberate exception gets `# noqa: <CODE> - <reason>`.
-
-### Error handling and API messages
-
-Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`. Use the project's stylized API message system:
-
-- Add new message codes to the `ApiMessages` enum in `backend/config/api_messages.py`.
-- Use `api_error(ApiMessages.CODE)` for error details.
-- Use `api_success(ApiMessages.CODE)` or include `message: ApiMessages.CODE.value` in success responses.
-- Ensure success schemas (like `Token` or `UserResponse`) include an optional `message` field.
-- Always use appropriate HTTP status codes (201 for created, 400 for bad request, 401 unauthorized, 403 forbidden, 404 not found, etc.).
-
-### Testing
-
-- The full suite is 100 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
-- Test and lint tools (pytest, pytest-asyncio, pytest-cov, httpx, ruff) live in `backend/requirements-dev.txt`, not `requirements.txt`: the production image installs runtime dependencies only, the dev container (`target: dev`) and CI install both.
-- Tests never use the application database: `conftest.py` derives `<db>_test` from `DATABASE_URL` (created automatically if the DB user has permission), or uses `TEST_DATABASE_URL` if set.
-- An autouse fixture `db_cleanup` in `conftest.py` clears all data between tests.
-- **Rate limiting in tests:** rate limiting is enabled by default on sensitive endpoints (registration, login, forgot/reset password, resend verification). Tests must run with `TESTING=1`, which `backend/tests/conftest.py` sets automatically via `os.environ["TESTING"] = "1"`.
-- **When adding new rate-limited endpoints**, always check `enabled=not IS_TESTING` or `os.getenv("TESTING") != "1"` so the test suite continues to bypass limiting.
-
-### E2E tests
-
-- Playwright lives in `e2e/` and tests the running stack from `docker/docker-compose.e2e.yml` (production images, throwaway DB, MailHog, `TESTING=1`). `make test-e2e` starts it, runs everything and tears it down; `make e2e-up` / `make e2e-down` keep it running while you iterate with `cd e2e && npx playwright test`.
-- **Exception to Docker-first:** Playwright runs on the host (Node 22) because the frontend calls the API at `http://localhost:8000` — the browser must reach both on `localhost`.
-- Every test gets its own user from the `user` / `loggedIn` fixtures in `e2e/fixtures/test.ts` (registered and verified through the API + MailHog). Never share accounts between tests.
-- Locate elements by role and accessible name (`getByRole`, `getByLabel`), in English (`locale: 'en-US'`). Keep selectors in page objects under `e2e/pages/`. Add `data-testid` to a template only when there is no accessible way to reach an element.
-- Run `npm run typecheck` in `e2e/` after changing tests; CI runs it too.
-
-### OpenAPI
+## OpenAPI
 
 After changes to models, schemas, or routes, regenerate the OpenAPI models:
 
@@ -195,225 +168,6 @@ This produces TypeScript interfaces and enums in `frontend/src/libs/generated-ap
 `backend/openapi/export_openapi.py` rewrites file upload fields from FastAPI's OpenAPI 3.1 `contentMediaType` to `format: binary` before writing `openapi.json`; without it the generator types uploads as `string` and drops the multipart `FormData`. Commit the regenerated files as they come out, including deletions of models that are no longer generated.
 
 > **Exception to Docker-first:** this script can't run inside the containers — the frontend image (`node:22-alpine`) has no Python, no Java and no `backend/` directory. Run it on the host; it needs Python with `backend/requirements.txt` installed, a `backend/.env` (the app is imported to export the schema), and Java for `openapi-generator-cli`.
-
----
-
-## Frontend — TypeScript / Angular
-
-### Framework
-
-Angular 21 with PrimeNG UI and signal-based stores (`@ngrx/signals`, `AuthStore`, `TodoStore`).
-
-### Components
-
-- All components are **standalone by default**. Do **NOT** add `standalone: true` to `@Component` decorators — Angular handles it.
-- Do **NOT** import `CommonModule`. Use the built-in control flow: `@if`, `@for`, `@switch`.
-
-### Imports
-
-Preferred order: 1) Angular core/common, 2) third-party libraries, 3) shared/core services, 4) local models/components.
-
-### Class structure and order
-
-```typescript
-@Component({...})
-export class ExampleComponent {
-  // 1. Injects (readonly #private)
-  readonly #http = inject(HttpClient);
-  readonly #store = inject(Store);
-
-  // 2. Static constants
-  static readonly CONSTANT = 'value';
-
-  // 3. input() decorators
-  data = input.required<Data>();
-  config = input<Config | null>();
-
-  // 4. output() decorators
-  save = output<TodoCreate>();
-
-  // 5. viewChild / viewChildren
-  searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
-
-  // 6. Signals (always readonly)
-  readonly items = signal<string[]>([]);
-  readonly status = signal<'active' | 'inactive'>('active');
-
-  // 7. Readonly variables
-  readonly componentName = 'ExampleComponent';
-
-  // 8. Private variables (use # prefix)
-  #internalCounter: number;
-
-  // 9. Public variables
-  publicData: any;
-
-  // 10. Constructor
-  constructor() { }
-
-  // 11. Lifecycle methods
-  ngOnInit(): void { }
-  ngOnDestroy(): void { }
-
-  // 12. Private methods (use # prefix)
-  #privateMethod(): void { }
-
-  // 13. Public methods
-  publicMethod(): void { }
-
-  // 14. Event handlers (use 'on' prefix)
-  onSubmit(): void { }
-
-  // 15. Getters and setters
-  get value(): string { return this.#internalValue; }
-}
-```
-
-### Rules and best practices
-
-- **Private fields:** use the `#` prefix for private fields and methods (native private syntax). Never use the `private` keyword.
-- **Signals:** signals must always be `readonly`.
-- **Injects:** place `inject()` calls at the very top of the class as `readonly #private` fields.
-- **Event handlers:** use the `on` prefix (`onSubmit()`, `onDelete()`, not `handleSubmit()`).
-- **Access modifiers:** within each section, keep order `public` → `protected` → `private`.
-- **Grouping & readability:** group functionally related elements together; add empty lines between sections.
-
-### Naming
-
-- Components / services / classes: `PascalCase`.
-- Variables / methods: `camelCase`.
-- Interfaces / models files: suffix with `.model.ts`.
-
-### Data models
-
-Use auto-generated OpenAPI models from `@api`. Do **NOT** manually define interfaces for API resources.
-
-### Styling
-
-Use SCSS partials in `src/app/shared/global-styling`.
-
-**Design system** (details in the README's _Design System_ section):
-
-- Use design tokens from `_tokens.scss` (`--app-space-*`, `--app-radius-*`, `--app-text-*`, `--app-shadow-*`, `--app-transition-*`) instead of hardcoded values. Colors come from the PrimeUIX theme (`--p-*` variables) — never hardcode hex colors.
-- Reuse the primitives in `src/app/shared/ui/` (`button[appIconButton]`, `app-badge`, `app-empty-state`, `app-form-field`) before creating ad-hoc equivalents. Add a new primitive only when a pattern repeats in at least two features.
-
-### Formatting
-
-Single quotes, 2-space indentation (`frontend/.prettierrc`, also used for SCSS, HTML and JSON; `.editorconfig` matches), 100-character line limit for HTML templates. Everything outside Python uses 2 spaces. CI fails on unformatted files — run `npx prettier --write .` in `frontend/`.
-
-### Accessibility
-
-Use PrimeNG accessibility features. Remember about `tabindex` and keyboard navigation when creating clickable containers.
-
-### State management
-
-Signal-based stores (`AuthStore`, `TodoStore`).
-
-### Translations
-
-Use `ngx-translate`. Add translations to `src/assets/i18n/en.json` and `pl.json` under `API_MESSAGES`.
-
-### SSR
-
-Remember to register parameterized routes in `app.routes.server.ts`.
-
-### Error handling
-
-Use `catchError` and `handleError`. Toasts are handled by `notificationInterceptor`.
-
-### Forms
-
-All forms use the **Signal Forms API** (`@angular/forms/signals`, experimental in Angular 21) — do not add `ReactiveFormsModule` or template-driven forms. Follow the existing forms (e.g. `features/auth/components/login/`) and the rules in `.claude/commands/edit-forms.md`; the slash command `/edit-forms` re-applies that style across all forms.
-
----
-
-## Database & Migrations
-
-### Configuration
-
-- PostgreSQL 15 everywhere (dev, tests, CI, production), configured via `DATABASE_URL`. There is no SQLite fallback.
-- Migration tool: Alembic.
-
-### Creating a migration
-
-**Before generating a migration**, make sure every model is imported in `backend/migrations/env.py`:
-
-```python
-from models.group import Group  # noqa: F401
-from models.refresh_token import RefreshToken  # noqa: F401
-from models.todo import Todo  # noqa: F401
-from models.user import User  # noqa: F401
-```
-
-Without these imports, Alembic will not detect new models.
-
-Generate the migration:
-
-```bash
-docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec backend alembic revision --autogenerate -m "descriptive_message"
-```
-
-**Always review the generated migration** before running `make migrate`.
-
-### PostgreSQL enums in migrations
-
-Alembic autogenerate does not drop PostgreSQL enum types in `downgrade()` (and does not detect changed enum values). Create the type explicitly and drop it yourself:
-
-```python
-from sqlalchemy.dialects import postgresql
-
-def upgrade() -> None:
-    my_enum = postgresql.ENUM('value1', 'value2', name='myenum')
-    my_enum.create(op.get_bind(), checkfirst=True)
-
-    op.create_table(
-        'my_table',
-        sa.Column('my_column', my_enum, nullable=False),
-        ...
-    )
-
-def downgrade() -> None:
-    op.drop_table('my_table')
-    postgresql.ENUM(name='myenum').drop(op.get_bind(), checkfirst=True)
-```
-
-### Enums in SQLAlchemy
-
-When you need a fixed set of values (e.g. colors, statuses):
-
-1. Define a Python `Enum`:
-
-   ```python
-   import enum
-   from sqlalchemy import Enum
-
-   class MyEnum(str, enum.Enum):
-       VALUE1 = "value1"
-       VALUE2 = "value2"
-   ```
-
-2. Use it in the model:
-
-   ```python
-   my_field = Column(Enum(MyEnum), nullable=False, default=MyEnum.VALUE1)
-   ```
-
-3. Reuse it in the Pydantic schema:
-
-   ```python
-   from models.my_model import MyEnum
-
-   class MySchema(BaseModel):
-       my_field: MyEnum = MyEnum.VALUE1
-   ```
-
-Benefits: type safety in Python, validation at DB level, automatic OpenAPI export, consistency between frontend and backend.
-
-### Migration troubleshooting
-
-- **"Can't locate revision"** → inspect the `alembic_version` table and fix it manually if needed.
-- **Enum type already exists / not dropped** → use the explicit pattern above.
-- **Model not detected by Alembic** → make sure it's imported in `migrations/env.py`.
 
 ---
 
@@ -432,7 +186,7 @@ Stored in `.claude/commands/`:
 
 ### Persistent memory (Claude Code)
 
-Location: `~/.claude/projects/<project-path-slug>/memory/` on each machine (not in the repository, not shared between machines). Claude reads it automatically when relevant; anything every contributor needs belongs in this file instead.
+Location: `~/.claude/projects/<project-path-slug>/memory/` on each machine (not in the repository, not shared between machines). Claude reads it automatically when relevant; anything every contributor needs belongs in the `AGENTS.md` files instead.
 
 ### Keeping README.md up to date
 
@@ -450,12 +204,12 @@ Rules:
 
 - Verify every command and value you write against the code — never document from memory or from the previous README text.
 - Update all places that mention the changed thing (Quick Start, Installation, Docker section, Project Structure, ...), not just the first one found; `grep` the README for it.
-- If the change also affects how agents work (commands, workflow, conventions), update this `AGENTS.md` too.
+- If the change also affects how agents work (commands, workflow, conventions), update the matching `AGENTS.md` too: this file for repo-wide rules, `backend/`, `frontend/` or `e2e/AGENTS.md` for area rules.
 - Keep the README in English and keep the table of contents anchors valid when adding or renaming sections.
 - If you find the README already wrong about something unrelated to your change, fix it or flag it — don't leave it silently.
 
 ### Working with AI agents in this repo
 
-- Always use Docker-based commands (`make ...` or `docker-compose exec ...`). Do not rely on locally installed Python/Node — even the backend and `alembic` run through `docker-compose exec backend`. The only exceptions are `npm run generate-api` (see [OpenAPI](#openapi)) and the Playwright runner (see [E2E tests](#e2e-tests)).
+- Always use Docker-based commands (`make ...` or `docker-compose exec ...`). Do not rely on locally installed Python/Node — even the backend and `alembic` run through `docker-compose exec backend`. The only exceptions are `npm run generate-api` (see [OpenAPI](#openapi)) and the Playwright runner (see [`e2e/AGENTS.md`](e2e/AGENTS.md)).
 - Use absolute paths, not relative ones.
 - DRY & KISS: do not introduce abstractions speculatively.
