@@ -2,7 +2,15 @@
 Todo model - SQLAlchemy model for todos table.
 """
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -13,6 +21,11 @@ class Todo(Base):
     """Todo model for task management."""
 
     __tablename__ = "todos"
+    # A client_id identifies a todo the client created (e.g. offline), so a
+    # retried create returns the existing todo instead of a duplicate.
+    __table_args__ = (
+        UniqueConstraint("user_id", "client_id", name="uq_todos_user_client_id"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
@@ -25,6 +38,7 @@ class Todo(Base):
     group_id = Column(
         Integer, ForeignKey("groups.id", ondelete="SET NULL"), nullable=True, index=True
     )
+    client_id = Column(String(36), nullable=True)
 
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

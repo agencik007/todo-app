@@ -3,6 +3,7 @@ Pydantic schemas - Request/Response models for API validation.
 """
 
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from pydantic.alias_generators import to_camel
@@ -72,6 +73,15 @@ class TodoBase(CamelBaseModel):
 class TodoCreate(TodoBase):
     """Schema for creating a new todo."""
 
+    client_id: UUID | None = Field(
+        default=None,
+        description=(
+            "Client-generated id. Repeating a create with the same client_id "
+            "returns the existing todo instead of creating a duplicate "
+            "(offline changes are retried until they get through)."
+        ),
+    )
+
 
 class TodoUpdate(CamelBaseModel):
     """Schema for updating an existing todo (all fields optional)."""
@@ -90,6 +100,7 @@ class Todo(TodoBase):
 
     id: int
     user_id: int
+    client_id: UUID | None = None
     owner_email: str | None = None
     created_at: datetime
     updated_at: datetime
