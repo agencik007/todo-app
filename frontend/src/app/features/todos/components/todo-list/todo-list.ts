@@ -18,6 +18,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Group, Todo, TodoCreate, UserResponse } from '@api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService } from 'primeng/api';
@@ -81,6 +82,8 @@ export class TodoListComponent implements OnInit {
   private platformId = inject(PLATFORM_ID);
   private translate = inject(TranslateService);
   public screenSize = inject(ScreenSizeService);
+  readonly #route = inject(ActivatedRoute);
+  readonly #router = inject(Router);
 
   isBrowser = signal(false);
 
@@ -187,6 +190,27 @@ export class TodoListComponent implements OnInit {
 
   ngOnInit(): void {
     this.isBrowser.set(isPlatformBrowser(this.platformId));
+    if (this.isBrowser()) {
+      this.#openFormFromShortcut();
+    }
+  }
+
+  /**
+   * The "New task" shortcut of the installed app (manifest `shortcuts`)
+   * opens /todos?action=new. The parameter is dropped right away, so a
+   * reload or the back button doesn't open the form again.
+   */
+  #openFormFromShortcut(): void {
+    if (this.#route.snapshot.queryParamMap.get('action') !== 'new') {
+      return;
+    }
+    void this.#router.navigate([], {
+      relativeTo: this.#route,
+      queryParams: { action: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+    this.showCreateForm();
   }
 
   setStatusFilter(filter: StatusFilter): void {

@@ -37,5 +37,41 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "New task",
+      "short_name": "New task",
+      "description": "Add a new task",
+      "url": "/todos?action=new",
+      "icons": [
+        {
+          "src": "icons/shortcut-new-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        },
+        {
+          "src": "icons/shortcut-new-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/todos-wide.webp",
+      "sizes": "1920x1080",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Tasks and groups on a computer"
+    },
+    {
+      "src": "screenshots/todos-narrow.webp",
+      "sizes": "1080x1920",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Tasks on a phone"
+    }
   ]
 }
