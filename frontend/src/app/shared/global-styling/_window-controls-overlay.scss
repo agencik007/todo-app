@@ -1,0 +1,37 @@
+// Installed app on desktop with the title bar hidden (manifest
+// display_override "window-controls-overlay"): the nav bar takes its place.
+// The window buttons (right on Windows/Linux, left on macOS) cover part of
+// the top strip; env(titlebar-area-*) is the rest of it.
+@media (display-mode: window-controls-overlay) {
+  .auth-menubar {
+    min-height: env(titlebar-area-height, 0px);
+    // Keep the nav's content beside the window buttons, not under them.
+    padding-left: max(1rem, env(titlebar-area-x, 0px)) !important;
+    padding-right: max(
+      1rem,
+      calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw))
+    ) !important;
+    // Dragging the empty part of the nav moves the window, as a title bar does.
+    -webkit-app-region: drag; // Chromium knows only the prefixed name
+    app-region: drag;
+
+    :is(button, a, input, select, [role='button'], [role='combobox']),
+    app-user-profile,
+    app-weather-widget,
+    app-language-selector {
+      -webkit-app-region: no-drag;
+      app-region: no-drag;
+    }
+  }
+
+  // Later elements cut holes in the drag area, so dialogs, menus and toasts
+  // shown over the nav take clicks instead of moving the window.
+  .p-dialog-mask,
+  .p-overlay,
+  .p-popover,
+  .p-toast,
+  .cdk-overlay-container {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+  }
+}

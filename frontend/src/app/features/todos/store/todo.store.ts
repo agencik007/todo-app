@@ -13,6 +13,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
 import { SILENT_NOTIFICATIONS } from '../../../core/interceptors/notification.interceptor';
+import { AppBadgeService } from '../../../core/services/app-badge.service';
 import { NetworkStatusService } from '../../../core/services/network-status.service';
 import {
   OfflineDataService,
@@ -68,6 +69,7 @@ export class TodoStore {
   readonly #networkStatus = inject(NetworkStatusService);
   readonly #messageService = inject(MessageService);
   readonly #translate = inject(TranslateService);
+  readonly #appBadge = inject(AppBadgeService);
 
   static readonly RETRY_DELAY_MS = 30_000;
 
@@ -156,6 +158,15 @@ export class TodoStore {
       ) {
         untracked(() => this.#offlineData.saveTodos(todos));
       }
+    });
+
+    // Open tasks on the installed app's icon (if the user turned it on);
+    // all of them, whatever groups are selected. Cleared on logout.
+    effect(() => {
+      const open = this.#authStore.hasSession()
+        ? this._todos().filter((todo) => !todo.completed).length
+        : 0;
+      this.#appBadge.show(open);
     });
 
     // Send the queued changes once the server can be reached. Waits for a

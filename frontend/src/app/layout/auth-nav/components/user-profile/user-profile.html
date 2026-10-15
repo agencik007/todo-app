@@ -79,6 +79,7 @@
               tooltipPosition="left"
               class="settings-gear-btn"
               [pTooltip]="'NAV.SETTINGS' | translate"
+              [attr.aria-label]="'NAV.SETTINGS' | translate"
               (click)="activePanel.set('settings'); $event.stopPropagation()"
             >
               <i class="pi pi-cog"></i>
@@ -185,6 +186,21 @@
               <span class="setting-label">{{ 'NAV.LANGUAGE' | translate }}</span>
               <app-language-selector></app-language-selector>
             </div>
+            @if (appBadgeSupported) {
+              <div class="setting-row">
+                <span
+                  id="app-badge-label"
+                  class="setting-label"
+                >
+                  {{ 'NAV.APP_BADGE' | translate }}
+                </span>
+                <p-toggleswitch
+                  ariaLabelledBy="app-badge-label"
+                  [ngModel]="appBadgeEnabled()"
+                  (ngModelChange)="onAppBadgeChange($event)"
+                />
+              </div>
+            }
             <a
               routerLink="/privacy"
               class="setting-row setting-row--link"
