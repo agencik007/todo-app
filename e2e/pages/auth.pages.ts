@@ -61,13 +61,21 @@ export class GuestNav {
 
 export class UserMenu {
   readonly installApp: Locator;
+  /** In the settings panel; shown only where the App Badging API exists. */
+  readonly appBadge: Locator;
 
   constructor(readonly page: Page) {
     this.installApp = page.getByRole('button', { name: 'Install app' });
+    this.appBadge = page.getByRole('switch', { name: 'Open tasks on the app icon' });
   }
 
   async open(email: string): Promise<void> {
     await this.page.getByRole('button', { name: email }).click();
+  }
+
+  async openSettings(email: string): Promise<void> {
+    await this.open(email);
+    await this.page.getByRole('button', { name: 'Settings' }).click();
   }
 
   async logout(email: string): Promise<void> {

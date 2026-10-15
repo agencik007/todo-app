@@ -69,9 +69,82 @@ test('the web app manifest is linked and its icons load', async ({ page, request
   });
   const purposes = manifest.icons.map((icon: { purpose: string }) => icon.purpose);
   expect(purposes).toEqual(expect.arrayContaining(['any', 'maskable']));
-  for (const icon of manifest.icons) {
-    expect((await request.get(`/${icon.src}`)).ok(), icon.src).toBe(true);
+  expect(manifest.display_override).toEqual(['window-controls-overlay']);
+  expect(manifest.shortcuts).toEqual([
+    expect.objectContaining({ name: 'New task', url: '/todos?action=new' }),
+  ]);
+  const formFactors = manifest.screenshots.map((shot: { form_factor: string }) => shot.form_factor);
+  expect(formFactors).toEqual(expect.arrayContaining(['narrow', 'wide']));
+
+  const images: { src: string }[] = [
+    ...manifest.icons,
+    ...manifest.shortcuts.flatMap((shortcut: { icons: { src: string }[] }) => shortcut.icons),
+    ...manifest.screenshots,
+  ];
+  for (const image of images) {
+    expect((await request.get(`/${image.src}`)).ok(), image.src).toBe(true);
   }
+});
+
+test('iOS launch screens are linked and load', async ({ page, request }) => {
+  await page.goto('/login');
+  const hrefs = await page
+    .locator('link[rel="apple-touch-startup-image"]')
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
+  expect(hrefs.length).toBeGreaterThan(0);
+  for (const href of hrefs) {
+    expect((await request.get(`/${href}`)).ok(), href).toBe(true);
+  }
+});
+
+test('the "New task" shortcut opens the form once', async ({ page, loggedIn }) => {
+  void loggedIn;
+  const todos = new TodosPage(page);
+  await page.goto('/todos?action=new');
+  await expect(todos.dialog.getByRole('textbox', { name: /^Title/ })).toBeVisible();
+  // The parameter is dropped, so a reload doesn't open the form again.
+  await expect(page).toHaveURL(/\/todos$/);
+  await todos.dialog.getByRole('textbox', { name: /^Title/ }).fill('From the shortcut');
+  await todos.dialog.getByRole('button', { name: 'Add task' }).click();
+  await expect(todos.row('From the shortcut')).toBeVisible();
+
+  await page.reload();
+  await expect(todos.row('From the shortcut')).toBeVisible();
+  await expect(todos.dialog).toBeHidden();
+});
+
+test('the app icon shows the number of open tasks once turned on', async ({ page, loggedIn }) => {
+  // Headless Chromium has no installed app to badge: record the calls instead.
+  await page.addInitScript(() => {
+    const calls: (number | null)[] = [];
+    Object.assign(window, { badgeCalls: calls });
+    Object.assign(navigator, {
+      setAppBadge: async (count: number) => void calls.push(count),
+      clearAppBadge: async () => void calls.push(null),
+    });
+  });
+  const lastBadge = (): Promise<number | null | undefined> =>
+    page.evaluate(() => (window as unknown as { badgeCalls: (number | null)[] }).badgeCalls.at(-1));
+
+  const todos = new TodosPage(page);
+  await todos.goto();
+  await todos.add('First open task');
+  await todos.add('Second open task');
+  // Off by default.
+  await expect.poll(lastBadge).toBeNull();
+
+  const menu = new UserMenu(page);
+  await menu.openSettings(loggedIn.email);
+  await menu.appBadge.click();
+  await expect.poll(lastBadge).toBe(2);
+  await menu.open(loggedIn.email); // the trigger toggles: closes the menu
+
+  await todos.toggle('First open task');
+  await expect.poll(lastBadge).toBe(1);
+
+  // Logging out clears it.
+  await new UserMenu(page).logout(loggedIn.email);
+  await expect.poll(lastBadge).toBeNull();
 });
 
 test('service worker files are never cached by the browser', async ({ request }) => {
