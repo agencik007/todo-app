@@ -234,10 +234,8 @@
                 @if (canEditTodo(todo) && canReorder()) {
                   <button
                     type="button"
-                    tooltipPosition="right"
                     class="row-handle"
                     cdkDragHandle
-                    [pTooltip]="'TODOS.DRAG_HANDLE' | translate"
                     [attr.aria-label]="'TODOS.DRAG_HANDLE' | translate"
                   >
                     <i
