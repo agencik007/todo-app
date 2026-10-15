@@ -8,6 +8,7 @@
     "PROFILE": "Profile",
     "ACCOUNT": "Account",
     "INSTALL_APP": "Install app",
+    "APP_BADGE": "Open tasks on the app icon",
     "CHANGE_AVATAR": "Change Avatar",
     "DELETE_AVATAR": "Delete Avatar",
     "TOGGLE_BACKGROUND": "Toggle background",

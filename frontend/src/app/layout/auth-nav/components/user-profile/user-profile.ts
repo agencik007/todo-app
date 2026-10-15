@@ -6,6 +6,7 @@ import {
   SecurityContext,
   signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -13,7 +14,9 @@ import { MessageService } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Tooltip } from 'primeng/tooltip';
+import { AppBadgeService } from '../../../../core/services/app-badge.service';
 import { PwaInstallService } from '../../../../core/services/pwa-install.service';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { AuthStore } from '../../../../core/store/auth.store';
@@ -30,7 +33,9 @@ import { DeleteAccountDialogComponent } from '../delete-account-dialog/delete-ac
     AvatarModule,
     ButtonModule,
     DialogModule,
+    FormsModule,
     Tooltip,
+    ToggleSwitch,
     TranslatePipe,
     RouterLink,
     ThemeToggleComponent,
@@ -52,6 +57,7 @@ export class UserProfileComponent {
   readonly #translate = inject(TranslateService);
   readonly #screenSize = inject(ScreenSizeService);
   readonly #pwaInstall = inject(PwaInstallService);
+  readonly #appBadge = inject(AppBadgeService);
 
   // 6. Signals (always readonly)
   readonly currentUser = this.#authStore.currentUser;
@@ -63,6 +69,8 @@ export class UserProfileComponent {
   readonly activePanel = signal<'profile' | 'settings'>('profile');
   readonly isCompact = computed(() => this.#screenSize.isCompact());
   readonly canInstall = this.#pwaInstall.canInstall;
+  readonly appBadgeSupported = this.#appBadge.supported;
+  readonly appBadgeEnabled = this.#appBadge.enabled;
   /** False offline: account changes and logout need the server. */
   readonly canWrite = this.#authStore.canWrite;
 
@@ -73,6 +81,10 @@ export class UserProfileComponent {
       this.#sanitizer.sanitize(SecurityContext.URL, url as string) || undefined
     );
   });
+
+  onAppBadgeChange(enabled: boolean): void {
+    this.#appBadge.setEnabled(enabled);
+  }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
