@@ -10,7 +10,7 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 
 - ✅ **FastAPI Backend** - REST API with full CRUD, PostgreSQL, Pydantic
 - ✅ **Angular 21 Frontend** - Signals, Control Flow, Standalone Components, SSR
-- ✅ **Installable PWA** - web app manifest + Angular service worker: an "Install app" item in the user menu (Chromium browsers), the app shell loads offline and users get a prompt to reload after each release
+- ✅ **Installable PWA** - web app manifest + Angular service worker: an "Install app" item in the user menu (Chromium browsers), the app shell loads offline and users get a prompt to reload after each release. The installed app has a "New task" shortcut on its icon, an optional count of open tasks on the icon (setting in the user menu; App Badging API), a nav bar that replaces the title bar on desktop (Window Controls Overlay), screenshots in the install dialog and iOS launch screens
 - ✅ **Offline mode** - without a connection a signed-in user still sees their last synced tasks and groups (with an offline banner) and can create, edit, complete and delete tasks; the changes are queued in IndexedDB and sent once the API is back (a create carries a `clientId`, so a retry never duplicates it). Groups, reordering and account settings stay online-only. The copy holds one user's data at a time and is deleted on logout
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
@@ -359,7 +359,7 @@ make lint-frontend        # in Docker
 
 ### End-to-End Tests (Playwright)
 
-`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, creating, editing, completing, filtering and deleting tasks, and a smoke test that fails on any Content-Security-Policy violation. A separate Playwright project, `pwa`, runs `tests/pwa.spec.ts` with service workers allowed: the manifest and its icons, `no-cache` on the service worker files, the app shell loading offline (in both languages), the Install app item, a signed-in user changing tasks offline (kept across a reload) and the changes reaching the server once back online, a create whose response was lost being retried without a duplicate, and logout deleting the offline copy; every other test blocks service workers so it always hits the network.
+`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, creating, editing, completing, filtering and deleting tasks, and a smoke test that fails on any Content-Security-Policy violation. A separate Playwright project, `pwa`, runs `tests/pwa.spec.ts` with service workers allowed: the manifest with its icons, shortcut and screenshots, the iOS launch screens, the "New task" shortcut opening the form, the app icon badge, `no-cache` on the service worker files, the app shell loading offline (in both languages), the Install app item, a signed-in user changing tasks offline (kept across a reload) and the changes reaching the server once back online, a create whose response was lost being retried without a duplicate, and logout deleting the offline copy; every other test blocks service workers so it always hits the network.
 
 They run against a separate, throwaway stack defined in `docker/docker-compose.e2e.yml`: production images (SSR frontend), a PostgreSQL database on tmpfs, MailHog, and rate limiting disabled (`TESTING=1`). Each test registers its own user, so tests are independent and run in parallel.
 
@@ -823,8 +823,8 @@ todo-app/
 │   │   ├── libs/generated-api/  # Generated OpenAPI client (@api)
 │   │   ├── assets/i18n/     # en.json, pl.json
 │   │   └── server.ts        # SSR server (security headers, CSP)
-│   ├── public/              # Served as-is: favicon.ico, icons/ (app icons, icon.svg = master), manifest.webmanifest, theme-init.js
-│   ├── scripts/             # generate-icons.mjs + icons/icon-maskable.svg (master of the full-bleed icons)
+│   ├── public/              # Served as-is: favicon.ico, icons/ (app icons, icon.svg = master, splash/ = iOS launch screens), screenshots/ (install dialog), manifest.webmanifest, theme-init.js
+│   ├── scripts/             # generate-icons.mjs + icons/ (masters of the full-bleed icons and the "New task" shortcut icon)
 │   ├── ngsw-config.json     # Service worker: what it caches (app shell only) and which navigations it serves
 │   ├── angular.json
 │   ├── package.json
@@ -902,7 +902,7 @@ ng generate component component-name  # Skeleton for a new component
 ng generate service service-name      # Skeleton for a new service
 npm run generate-api                  # Regenerate API types (@api) after backend changes
                                       # runs on the host: needs Python + backend deps, backend/.env and Java
-npm run generate-icons                # Regenerate favicon.ico + app icons after editing the master SVGs
+npm run generate-icons                # Regenerate favicon.ico, app icons, shortcut icon and iOS launch screens (+ their <link> tags in src/index.html) after editing the master SVGs
 
 # Docker
 docker-compose logs -f service_name   # View container logs
