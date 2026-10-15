@@ -1,6 +1,8 @@
 import { Injectable, signal } from '@angular/core';
 
-export type BackgroundType = 'off' | 'school' | 'modern';
+export type BackgroundType = 'off' | 'aurora' | 'modern';
+
+const BACKGROUND_TYPES: readonly BackgroundType[] = ['off', 'aurora', 'modern'];
 
 @Injectable({
   providedIn: 'root',
@@ -19,37 +21,19 @@ export class BackgroundService {
   }
 
   toggle(): void {
-    const current = this._type();
-    let next: BackgroundType;
-
-    switch (current) {
-      case 'off':
-        next = 'school';
-        break;
-      case 'school':
-        next = 'modern';
-        break;
-      case 'modern':
-        next = 'off';
-        break;
-      default:
-        next = 'school';
-    }
-
-    this._type.set(next);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(this.BACKGROUND_KEY, next);
-    }
+    const current = BACKGROUND_TYPES.indexOf(this._type());
+    this.setType(BACKGROUND_TYPES[(current + 1) % BACKGROUND_TYPES.length]);
   }
 
   private getInitialState(): BackgroundType {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(this.BACKGROUND_KEY) as BackgroundType;
-      if (saved === 'off' || saved === 'school' || saved === 'modern') {
-        return saved;
+      const saved = localStorage.getItem(this.BACKGROUND_KEY);
+      if (BACKGROUND_TYPES.includes(saved as BackgroundType)) {
+        return saved as BackgroundType;
       }
-      // Default to 'school' for first-time users (legacy compatibility)
-      return 'school';
+      // First-time users, and those who had the retired 'school' theme,
+      // get the aurora.
+      return 'aurora';
     }
     return 'off';
   }

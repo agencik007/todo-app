@@ -1,26 +1,23 @@
 @switch (backgroundType()) {
-  @case ('school') {
-    <div class="dynamic-background-container school-theme">
-      <!-- Delicate mesh gradient for background depth -->
-      <div class="mesh-gradient"></div>
+  @case ('aurora') {
+    <div class="dynamic-background-container aurora-theme">
+      <!-- Flowing aurora ribbons tinted with the primary palette -->
+      <div class="aurora"></div>
 
-      <!-- School themed SVG items -->
-      @for (item of backgroundItems; track item.animationClass) {
-        <div class="school-item {{ item.animationClass }} {{ item.colorClass }}">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            [attr.viewBox]="item.viewBox"
-          >
-            <path
-              [attr.stroke]="item.stroke"
-              [attr.stroke-width]="item.stroke === 'currentColor' ? '1.5' : null"
-              [attr.stroke-linejoin]="item.stroke === 'currentColor' ? 'round' : null"
-              [attr.stroke-linecap]="item.stroke === 'currentColor' ? 'round' : null"
-              [attr.fill]="item.fill"
-              [attr.d]="item.path"
-            ></path>
-          </svg>
-        </div>
+      <!-- Faint dot grid fading out from the top -->
+      <div class="dot-grid"></div>
+
+      <!-- Twinkling sparkles -->
+      @for (star of stars; track $index) {
+        <span
+          class="star"
+          [style.width.px]="star.size"
+          [style.top.%]="star.top"
+          [style.left.%]="star.left"
+          [style.height.px]="star.size"
+          [style.animation-duration.s]="star.duration"
+          [style.animation-delay.s]="star.delay"
+        ></span>
       }
     </div>
   }
