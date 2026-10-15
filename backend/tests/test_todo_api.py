@@ -275,6 +275,90 @@ class TestTodoAPI:
         data = response.json()
         assert data["detail"]["messageCode"] == "GROUP_NOT_FOUND"
 
+    def test_create_todo_with_client_id(self, authenticated_client: TestClient):
+        """Test POST /todos stores and returns the client_id."""
+        client_id = "0b6c3a52-9c1e-4c2b-8a39-5d3f1f2a7e10"
+
+        response = authenticated_client.post(
+            "/todos", json={"title": "Offline todo", "clientId": client_id}
+        )
+
+        assert response.status_code == 201
+        assert response.json()["clientId"] == client_id
+
+    def test_create_todo_repeated_client_id_returns_existing(
+        self, authenticated_client: TestClient, test_db
+    ):
+        """Test a retried create with the same client_id doesn't duplicate."""
+        client_id = "0b6c3a52-9c1e-4c2b-8a39-5d3f1f2a7e10"
+        first = authenticated_client.post(
+            "/todos", json={"title": "Offline todo", "clientId": client_id}
+        )
+
+        retry = authenticated_client.post(
+            "/todos", json={"title": "Offline todo", "clientId": client_id}
+        )
+
+        assert retry.status_code == 200
+        assert retry.json()["id"] == first.json()["id"]
+        assert retry.json()["ownerEmail"] == first.json()["ownerEmail"]
+        assert test_db.query(Todo).count() == 1
+
+    def test_create_todo_concurrent_client_id_returns_existing(
+        self, authenticated_client: TestClient, test_db, test_user, monkeypatch
+    ):
+        """Test the unique constraint catches a create that raced past the lookup."""
+        import routes.todo
+
+        client_id = "0b6c3a52-9c1e-4c2b-8a39-5d3f1f2a7e10"
+        winner = Todo(title="Winner", user_id=test_user.id, client_id=client_id)
+        test_db.add(winner)
+        test_db.commit()
+        test_db.refresh(winner)
+
+        # The first lookup misses, as if the other request committed just after it.
+        real_lookup = routes.todo.find_todo_by_client_id
+        lookups = iter([lambda *args: None, real_lookup])
+        monkeypatch.setattr(
+            routes.todo,
+            "find_todo_by_client_id",
+            lambda *args: next(lookups)(*args),
+        )
+
+        response = authenticated_client.post(
+            "/todos", json={"title": "Loser", "clientId": client_id}
+        )
+
+        assert response.status_code == 200
+        assert response.json()["id"] == winner.id
+        assert test_db.query(Todo).count() == 1
+
+    def test_create_todo_client_id_is_scoped_per_user(
+        self, authenticated_client: TestClient, test_db, second_user
+    ):
+        """Test another user's todo with the same client_id is not returned."""
+        client_id = "0b6c3a52-9c1e-4c2b-8a39-5d3f1f2a7e10"
+        test_db.add(Todo(title="Foreign", user_id=second_user.id, client_id=client_id))
+        test_db.commit()
+
+        response = authenticated_client.post(
+            "/todos", json={"title": "Mine", "clientId": client_id}
+        )
+
+        assert response.status_code == 201
+        assert response.json()["title"] == "Mine"
+        assert test_db.query(Todo).count() == 2
+
+    def test_create_todo_rejects_invalid_client_id(
+        self, authenticated_client: TestClient
+    ):
+        """Test POST /todos rejects a client_id that is not a UUID."""
+        response = authenticated_client.post(
+            "/todos", json={"title": "Todo", "clientId": "not-a-uuid"}
+        )
+
+        assert response.status_code == 422
+
     def test_update_todo_group_id(self, authenticated_client: TestClient):
         """Test PUT /todos/{id} updates group assignment when group belongs to user."""
         first_group = authenticated_client.post(

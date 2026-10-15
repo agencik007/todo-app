@@ -67,7 +67,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         }),
         catchError((refreshError) => {
           const authStore = injector.get(AuthStore);
-          authStore.clearUser();
+          // Changes made offline wait for the same user's next sign-in.
+          authStore.clearUser({ keepPendingChanges: true });
           messageService.add({
             severity: 'warn',
             summary: translateService.instant(

@@ -24,6 +24,7 @@ export interface Todo {
     groupId?: number | null;
     id: number;
     userId: number;
+    clientId?: string | null;
     ownerEmail?: string | null;
     createdAt: string;
     updatedAt: string;

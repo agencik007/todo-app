@@ -144,7 +144,59 @@ test('the user menu offers to install the app when the browser allows it', async
   await expect(menu.installApp).toBeHidden();
 });
 
-test('a signed-in user reads the last synced tasks offline, read-only', async ({
+test('tasks changed offline are kept and sent once the connection is back', async ({
+  page,
+  context,
+  loggedIn,
+}) => {
+  void loggedIn;
+  const todos = new TodosPage(page);
+  const offlineBanner = page.getByRole('status').filter({ hasText: 'You are offline.' });
+  await todos.goto();
+  await todos.add('Rename me');
+  await todos.add('Finish me');
+  await todos.add('Remove me');
+  await expect
+    .poll(() => offlineTodoTitles(page))
+    .toEqual(['Rename me', 'Finish me', 'Remove me']);
+  await installServiceWorker(page);
+
+  await goOffline(context);
+  await page.reload();
+  await expect(offlineBanner).toBeVisible();
+
+  // Every kind of change works offline; each todo keeps one queued change.
+  await todos.add('Written offline');
+  await todos.rename('Written offline', 'Written and edited offline');
+  await todos.rename('Rename me', 'Renamed offline');
+  await todos.toggle('Finish me');
+  await todos.remove('Remove me');
+  await expect(todos.row('Remove me')).toBeHidden();
+  await expect(offlineBanner).toContainText('Waiting to sync: 4');
+  await expect(todos.row('Renamed offline').getByRole('img', { name: 'Waiting to sync' })).toBeVisible();
+  // Reordering needs the server.
+  await expect(todos.row('Finish me').getByRole('button', { name: 'Drag to reorder' })).toBeHidden();
+
+  // The queue survives a reload (it lives in IndexedDB).
+  await page.reload();
+  await expect(offlineBanner).toContainText('Waiting to sync: 4');
+  await expect(todos.row('Written and edited offline')).toBeVisible();
+
+  // Back online: the queue is sent and the server has every change.
+  await goOnline(context);
+  await expect(page.getByText('Changes made offline were saved (4).')).toBeVisible();
+  await expect(offlineBanner).toBeHidden();
+  await expect(page.getByRole('img', { name: 'Waiting to sync' })).toHaveCount(0);
+
+  await page.reload();
+  await expect(todos.row('Written and edited offline')).toBeVisible();
+  await expect(todos.row('Renamed offline')).toBeVisible();
+  await expect(todos.row('Finish me').getByRole('checkbox')).toBeChecked();
+  await expect(todos.row('Remove me')).toBeHidden();
+  await expect(todos.row('Rename me')).toBeHidden();
+});
+
+test('a create whose response was lost is retried without a duplicate', async ({
   page,
   context,
   loggedIn,
@@ -152,24 +204,26 @@ test('a signed-in user reads the last synced tasks offline, read-only', async ({
   void loggedIn;
   const todos = new TodosPage(page);
   await todos.goto();
-  await todos.add('Pack for the trip');
-  await expect.poll(() => offlineTodoTitles(page)).toEqual(['Pack for the trip']);
-  await installServiceWorker(page);
-
-  await goOffline(context);
-  await page.reload();
-
-  // Still signed in, with the synced task, but nothing can be changed.
-  await expect(page.getByRole('status').filter({ hasText: 'You are offline.' })).toBeVisible();
-  await expect(todos.row('Pack for the trip')).toBeVisible();
-  await expect(todos.row('Pack for the trip').getByRole('checkbox')).toBeDisabled();
-  await expect(todos.addButton()).toBeDisabled();
-
-  // Back online: the real session returns and changes work again.
-  await goOnline(context);
-  await expect(page.getByRole('status').filter({ hasText: 'You are offline.' })).toBeHidden();
   await expect(todos.addButton()).toBeEnabled();
-  await todos.toggle('Pack for the trip');
+
+  // The server creates the todo, but the connection drops before the answer.
+  await context.route(
+    '**/todos',
+    async (route) => {
+      await route.fetch();
+      await route.abort('internetdisconnected');
+    },
+    { times: 1 },
+  );
+  await todos.add('Sent twice');
+  await expect(page.getByRole('status').filter({ hasText: 'You are offline.' })).toBeVisible();
+  await expect(todos.row('Sent twice').getByRole('img', { name: 'Waiting to sync' })).toBeVisible();
+
+  // Online again: the retry carries the same clientId and gets the same todo.
+  await page.evaluate(() => window.dispatchEvent(new Event('online')));
+  await expect(todos.row('Sent twice').getByRole('img', { name: 'Waiting to sync' })).toBeHidden();
+  await page.reload();
+  await expect(todos.row('Sent twice')).toHaveCount(1);
 });
 
 test('logging out deletes the offline copy of the tasks', async ({ page, context, loggedIn }) => {

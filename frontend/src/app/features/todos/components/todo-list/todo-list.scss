@@ -568,6 +568,12 @@
   }
 }
 
+.row-pending {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+}
+
 .row-actions {
   display: inline-flex;
   align-items: center;

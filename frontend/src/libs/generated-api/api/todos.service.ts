@@ -43,7 +43,7 @@ export class TodosService extends BaseService {
 
     /**
      * Create Todo
-     * Create a new todo.  Args:     todo: Todo data to create.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The created todo item.
+     * Create a new todo.  Idempotent per client_id: the client retries a create it made offline until it gets an answer, so a repeated client_id returns the todo created the first time (200) instead of a duplicate (201).  Args:     todo: Todo data to create.     response: Used to answer a repeated create with 200.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The created (or previously created) todo item.
      * @endpoint post /todos
      * @param todoCreate 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

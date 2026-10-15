@@ -15,5 +15,14 @@
         {{ 'OFFLINE.DETAIL' | translate }}
       }
     </span>
+    @if (pendingCount() > 0) {
+      <span class="offline-banner__pending">
+        <i
+          class="pi pi-cloud-upload"
+          aria-hidden="true"
+        ></i>
+        {{ 'OFFLINE.PENDING' | translate: { count: pendingCount() } }}
+      </span>
+    }
   </div>
 }

@@ -18,7 +18,7 @@
 - Layout: `fixtures/` (API and MailHog helpers, test fixtures), `pages/` (page objects), `tests/` (specs).
 - Every test gets its own user from the `user` / `loggedIn` fixtures in `e2e/fixtures/test.ts` (registered and verified through the API + MailHog). Never share accounts between tests.
 - Service workers are blocked in the default `chromium` project, so `page.route()` mocks see every request. PWA tests go in `tests/pwa.spec.ts`, which runs in the `pwa` project with service workers allowed. To go offline there, also abort the requests with `context.route()`: `context.setOffline()` alone doesn't stop the service worker's own fetches in Chromium.
-- Offline-mode tests (`tests/pwa.spec.ts`) read the offline snapshot straight from IndexedDB (`offlineTodoTitles`) to wait until it is saved, and `goOnline()` lifts both the routes and the offline flag.
+- Offline-mode tests (`tests/pwa.spec.ts`) read the offline snapshot straight from IndexedDB (`offlineTodoTitles`) to wait until it is saved, and `goOnline()` lifts both the routes and the offline flag. To lose just one response (the request reaches the server, the answer never reaches the app), `route.fetch()` then `route.abort()` in a `context.route(..., { times: 1 })`; dispatching `online` on `window` then brings the app back without waiting for its health check.
 - Locate elements by role and accessible name (`getByRole`, `getByLabel`), in English (`locale: 'en-US'`). Keep selectors in page objects under `e2e/pages/`. Add `data-testid` to a template only when there is no accessible way to reach an element.
 
 ---

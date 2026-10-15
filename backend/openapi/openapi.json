@@ -397,7 +397,7 @@
           "todos"
         ],
         "summary": "Create Todo",
-        "description": "Create a new todo.\n\nArgs:\n    todo: Todo data to create.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The created todo item.",
+        "description": "Create a new todo.\n\nIdempotent per client_id: the client retries a create it made offline\nuntil it gets an answer, so a repeated client_id returns the todo created\nthe first time (200) instead of a duplicate (201).\n\nArgs:\n    todo: Todo data to create.\n    response: Used to answer a repeated create with 200.\n    db: Database session.\n    current_user: Current authenticated user.\n\nReturns:\n    Todo: The created (or previously created) todo item.",
         "operationId": "create_todo_todos_post",
         "security": [
           {
@@ -1299,6 +1299,18 @@
             "type": "integer",
             "title": "Userid"
           },
+          "clientId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clientid"
+          },
           "ownerEmail": {
             "anyOf": [
               {
@@ -1381,6 +1393,19 @@
               }
             ],
             "title": "Groupid"
+          },
+          "clientId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clientid",
+            "description": "Client-generated id. Repeating a create with the same client_id returns the existing todo instead of creating a duplicate (offline changes are retried until they get through)."
           }
         },
         "type": "object",

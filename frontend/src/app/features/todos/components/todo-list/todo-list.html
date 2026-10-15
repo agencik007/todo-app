@@ -269,6 +269,15 @@
                     >
                       {{ todo.title }}
                     </span>
+                    @if (pendingTodoIds().has(todo.id)) {
+                      <i
+                        tooltipPosition="top"
+                        role="img"
+                        class="pi pi-cloud-upload row-pending"
+                        [pTooltip]="'TODOS.LIST.PENDING_SYNC' | translate"
+                        [attr.aria-label]="'TODOS.LIST.PENDING_SYNC' | translate"
+                      ></i>
+                    }
                     @if (canEditTodo(todo)) {
                       <div class="row-actions">
                         <button
@@ -399,7 +408,7 @@
               <p-button
                 icon="pi pi-plus"
                 [label]="'TODOS.LIST.ADD_FIRST' | translate"
-                [disabled]="!canWrite()"
+                [disabled]="!hasSession()"
                 (onClick)="showCreateForm()"
               />
             </app-empty-state>
@@ -433,7 +442,7 @@
           class="fab"
           #addButton
           [pTooltip]="'TODOS.FAB.TOOLTIP' | translate"
-          [disabled]="!canWrite()"
+          [disabled]="!hasSession()"
           [attr.aria-label]="'TODOS.ADD_BUTTON' | translate"
           (click)="showCreateForm()"
         >

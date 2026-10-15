@@ -97,8 +97,11 @@ export class TodoListComponent implements OnInit {
   readonly completedTodos = this.store.completedTodos;
   readonly pendingTodos = this.store.pendingTodos;
   readonly totalTodos = this.store.totalCount;
-  /** False offline: changes need the server. */
+  /** False offline: reordering needs the server. */
   readonly canWrite = this.authStore.canWrite;
+  /** Todos can be changed offline too; the changes are queued. */
+  readonly hasSession = this.authStore.hasSession;
+  readonly pendingTodoIds = this.store.pendingTodoIds;
 
   readonly selectedGroups = this.groupStore.selectedGroups;
   readonly hasGroupSelection = this.groupStore.hasSelection;
@@ -145,8 +148,14 @@ export class TodoListComponent implements OnInit {
   // valid when the displayed list IS the full list (no status/search/group
   // filter). Otherwise a drop at "index 2" of a filtered view would splice
   // the wrong position in the unfiltered list.
+  // Reorder sends the new index right away, so it needs the server and
+  // nothing queued before it.
   readonly canReorder = computed(
-    () => !this.isFiltered() && !this.hasGroupSelection(),
+    () =>
+      !this.isFiltered() &&
+      !this.hasGroupSelection() &&
+      this.canWrite() &&
+      this.store.pendingCount() === 0,
   );
 
   addButton = viewChild<Button>('addButton');
@@ -297,7 +306,7 @@ export class TodoListComponent implements OnInit {
   }
 
   showCreateForm(): void {
-    if (!this.canWrite()) return;
+    if (!this.hasSession()) return;
     this.store.showCreateForm();
   }
 
@@ -375,7 +384,7 @@ export class TodoListComponent implements OnInit {
 
   canEditTodo(todo: Todo): boolean {
     const user = this.currentUser;
-    return this.canWrite() && !!user && user.id === todo.userId;
+    return this.hasSession() && !!user && user.id === todo.userId;
   }
 
   onDrop(event: CdkDragDrop<Todo[]>): void {

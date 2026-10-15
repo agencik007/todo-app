@@ -2,8 +2,11 @@
 Todo routes - CRUD operations for todo items.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from config.api_messages import ApiMessages, api_error, api_success
@@ -40,6 +43,17 @@ def validate_group_ownership(db: Session, group_id: int | None, user_id: int) ->
             status_code=status.HTTP_404_NOT_FOUND,
             detail=api_error(ApiMessages.GROUP_NOT_FOUND),
         )
+
+
+def find_todo_by_client_id(
+    db: Session, user_id: int, client_id: UUID
+) -> TodoModel | None:
+    """Return the user's todo created with the given client_id, if any."""
+    return (
+        db.query(TodoModel)
+        .filter(TodoModel.user_id == user_id, TodoModel.client_id == str(client_id))
+        .first()
+    )
 
 
 @router.get("", response_model=list[Todo])
@@ -130,22 +144,37 @@ def read_todo(
 @router.post("", response_model=Todo, status_code=status.HTTP_201_CREATED)
 def create_todo(
     todo: TodoCreate,
+    response: Response,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
 ) -> Todo:
     """
     Create a new todo.
 
+    Idempotent per client_id: the client retries a create it made offline
+    until it gets an answer, so a repeated client_id returns the todo created
+    the first time (200) instead of a duplicate (201).
+
     Args:
         todo: Todo data to create.
+        response: Used to answer a repeated create with 200.
         db: Database session.
         current_user: Current authenticated user.
 
     Returns:
-        Todo: The created todo item.
+        Todo: The created (or previously created) todo item.
     """
+    if todo.client_id is not None:
+        existing = find_todo_by_client_id(db, current_user.id, todo.client_id)
+        if existing is not None:
+            response.status_code = status.HTTP_200_OK
+            existing.owner_email = current_user.email
+            return existing
+
     todo_data = todo.model_dump()
     todo_data["user_id"] = current_user.id
+    if todo.client_id is not None:
+        todo_data["client_id"] = str(todo.client_id)
 
     # Validate group ownership if group_id provided
     validate_group_ownership(db, todo_data.get("group_id"), current_user.id)
@@ -160,7 +189,19 @@ def create_todo(
 
     db_todo = TodoModel(**todo_data)
     db.add(db_todo)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # The same client_id arrived twice at once and the other request won.
+        db.rollback()
+        if todo.client_id is None:
+            raise
+        existing = find_todo_by_client_id(db, current_user.id, todo.client_id)
+        if existing is None:
+            raise
+        response.status_code = status.HTTP_200_OK
+        existing.owner_email = current_user.email
+        return existing
     db.refresh(db_todo)
 
     db_todo.owner_email = current_user.email

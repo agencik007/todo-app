@@ -217,7 +217,8 @@
       "TOOLTIP_DELETE": "Delete Task",
       "EMPTY_TITLE": "No tasks",
       "EMPTY_MESSAGE": "You don't have any tasks yet. Add your first task to start!",
-      "ADD_FIRST": "Add first task"
+      "ADD_FIRST": "Add first task",
+      "PENDING_SYNC": "Waiting to sync"
     },
     "FORM": {
       "TITLE_EDIT": "Edit task",
@@ -417,7 +418,7 @@
       },
       {
         "TITLE": "Cookies and local storage",
-        "BODY": "We use one essential, HttpOnly cookie to keep you signed in. Your device also stores interface preferences (theme, colours, background, language), a cached copy of your avatar and, so the app can show them without a connection, a copy of your tasks, groups and profile. The app's files are cached as well, so it starts offline. The copy of your data is deleted from the device when you log out or delete your account. No tracking or advertising cookies are used."
+        "BODY": "We use one essential, HttpOnly cookie to keep you signed in. Your device also stores interface preferences (theme, colours, background, language), a cached copy of your avatar and, so the app can show them without a connection, a copy of your tasks, groups and profile, plus the task changes you make offline until they are sent. The app's files are cached as well, so it starts offline. The copy of your data is deleted from the device when you log out or delete your account; if your session expires, unsent task changes stay until you sign in again, and are deleted if another account signs in on the device. No tracking or advertising cookies are used."
       },
       {
         "TITLE": "Location and weather",
@@ -442,7 +443,12 @@
   },
   "OFFLINE": {
     "TITLE": "You are offline.",
-    "DETAIL": "Changes are disabled until you reconnect.",
-    "DETAIL_SYNCED": "Showing your data from {{time}}. Changes are disabled until you reconnect."
+    "DETAIL": "Some features are unavailable until you reconnect.",
+    "DETAIL_SYNCED": "Showing your data from {{time}}. Changes to tasks will be sent when you reconnect.",
+    "PENDING": "Waiting to sync: {{count}}",
+    "SYNCED": "Back online",
+    "SYNCED_DETAIL": "Changes made offline were saved ({{count}}).",
+    "SYNC_DROPPED": "Some changes were not saved",
+    "SYNC_DROPPED_DETAIL": "{{count}} change(s) made offline could not be applied, e.g. because the task was deleted on another device."
   }
 }
