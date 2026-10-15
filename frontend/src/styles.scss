@@ -14,6 +14,7 @@
 @use 'app/shared/global-styling/toasts';
 @use 'app/shared/global-styling/tooltips';
 @use 'app/shared/global-styling/group-colors';
+@use 'app/shared/global-styling/window-controls-overlay';
 
 // Force hide hamburger on non-mobile screens
 @media (min-width: 768px) {
