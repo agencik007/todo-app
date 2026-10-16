@@ -21,6 +21,7 @@ import { LoginAnimationService } from '../../../../core/services/login-animation
 import { AuthStore } from '../../../../core/store/auth.store';
 import { extractApiMessageCode } from '../../../../core/utils/api-error.util';
 import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
+import { withPrerenderedInputValues } from '../../../../shared/utils/prerendered-input.util';
 import { AuthService } from '../../services/auth.service';
 
 interface LoginData {
@@ -61,10 +62,12 @@ export class LoginComponent {
   private readonly translate = inject(TranslateService);
   private readonly loginAnimationService = inject(LoginAnimationService);
 
-  protected readonly loginData = signal<LoginData>({
-    email: '',
-    password: '',
-  });
+  protected readonly loginData = signal<LoginData>(
+    withPrerenderedInputValues({
+      email: '',
+      password: '',
+    }),
+  );
   protected readonly loginForm = form(this.loginData, loginSchema);
   protected readonly error = signal<string | null>(null);
   protected readonly isLoading = signal(false);

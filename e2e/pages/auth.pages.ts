@@ -2,6 +2,16 @@ import { Locator, Page } from '@playwright/test';
 
 import { TestUser } from '../fixtures/api';
 
+/**
+ * Waits until Angular has hydrated the server-rendered page; it removes the
+ * `ngh` attribute from each component as it takes it over. Text typed into the
+ * SSR markup before that is overwritten with the empty form model, and the app
+ * only bootstraps after its initializers (e.g. the `/auth/refresh` call) finish.
+ */
+async function waitForHydration(page: Page): Promise<void> {
+  await page.waitForFunction(() => !document.querySelector('[ngh]'));
+}
+
 export class LoginPage {
   readonly heading: Locator;
   readonly error: Locator;
@@ -17,6 +27,7 @@ export class LoginPage {
   }
 
   async login({ email, password }: TestUser): Promise<void> {
+    await waitForHydration(this.page);
     await this.page.getByLabel('E-mail').fill(email);
     await this.page.getByLabel('Password', { exact: true }).fill(password);
     await this.page.getByRole('button', { name: 'Login', exact: true }).click();
@@ -31,6 +42,7 @@ export class RegisterPage {
   }
 
   async register({ email, password }: TestUser): Promise<void> {
+    await waitForHydration(this.page);
     await this.page.getByLabel('E-mail').fill(email);
     await this.page.getByLabel('Password', { exact: true }).fill(password);
     await this.page.getByLabel('Confirm password').fill(password);
