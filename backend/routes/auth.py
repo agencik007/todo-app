@@ -131,6 +131,7 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
         hashed_password=hash_password(user_data.password),
         is_active=True,
         is_verified=False,
+        language=user_data.language,
         email_verification_token=hash_one_time_token(verification_token),
         email_verification_expires_at=datetime.now(UTC) + timedelta(hours=24),
     )

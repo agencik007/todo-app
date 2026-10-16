@@ -18,5 +18,9 @@ export interface UserCreate {
      * Password must be at least 8 characters
      */
     password: string;
+    /**
+     * Interface language at sign-up; used for the account\'s emails
+     */
+    language?: string;
 }
 

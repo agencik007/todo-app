@@ -124,6 +124,11 @@ class UserCreate(UserBase):
     password: str = Field(
         ..., min_length=8, description="Password must be at least 8 characters"
     )
+    language: str = Field(
+        "en",
+        pattern="^(en|pl)$",
+        description="Interface language at sign-up; used for the account's emails",
+    )
 
     @field_validator("password")
     @classmethod

@@ -16,6 +16,7 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
+import { LanguageService } from '../../../../core/services/language.service';
 import { extractApiMessageCode } from '../../../../core/utils/api-error.util';
 import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
 import { AuthService } from '../../services/auth.service';
@@ -55,6 +56,7 @@ export class RegisterComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
 
   protected readonly registerData = signal<RegisterData>({
     email: '',
@@ -81,7 +83,12 @@ export class RegisterComponent {
     this.error.set(null);
 
     const { email, password } = this.registerData();
-    const registerRequest: RegisterRequest = { email, password };
+    // The account keeps the sign-up language; its emails are sent in it.
+    const registerRequest: RegisterRequest = {
+      email,
+      password,
+      language: this.languageService.currentLang(),
+    };
 
     this.authService.register(registerRequest).subscribe({
       next: () => {
