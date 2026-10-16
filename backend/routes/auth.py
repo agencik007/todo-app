@@ -48,6 +48,7 @@ limiter = Limiter(key_func=get_remote_address, enabled=not IS_TESTING)
 
 # Constants
 PASSWORD_RESET_EXPIRY_HOURS = 1
+EMAIL_VERIFICATION_EXPIRY_HOURS = 24
 REFRESH_COOKIE_NAME = "refresh_token"
 # Scoped to /auth so the browser sends it to both /auth/refresh and
 # /auth/logout (logout must see it to revoke the token server-side), but not
@@ -133,7 +134,8 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
         is_verified=False,
         language=user_data.language,
         email_verification_token=hash_one_time_token(verification_token),
-        email_verification_expires_at=datetime.now(UTC) + timedelta(hours=24),
+        email_verification_expires_at=datetime.now(UTC)
+        + timedelta(hours=EMAIL_VERIFICATION_EXPIRY_HOURS),
     )
 
     db.add(new_user)
@@ -143,7 +145,10 @@ def register(request: Request, user_data: UserCreate, db: Session = Depends(get_
     # Send verification email (non-blocking)
     try:
         send_verification_email(
-            user_data.email, verification_token, language=new_user.language
+            user_data.email,
+            verification_token,
+            EMAIL_VERIFICATION_EXPIRY_HOURS,
+            language=new_user.language,
         )
     except Exception:
         import logging
@@ -364,7 +369,10 @@ def forgot_password(
         # Send reset email
         try:
             send_password_reset_email(
-                user.email, raw_reset_token, language=user.language
+                user.email,
+                raw_reset_token,
+                PASSWORD_RESET_EXPIRY_HOURS,
+                language=user.language,
             )
         except Exception:
             logger.exception("Error sending password reset email")
@@ -475,12 +483,17 @@ def resend_verification(
 
     token = _create_verification_token()
     current_user.email_verification_token = hash_one_time_token(token)
-    current_user.email_verification_expires_at = datetime.now(UTC) + timedelta(hours=24)
+    current_user.email_verification_expires_at = datetime.now(UTC) + timedelta(
+        hours=EMAIL_VERIFICATION_EXPIRY_HOURS
+    )
     db.commit()
 
     try:
         send_verification_email(
-            current_user.email, token, language=current_user.language
+            current_user.email,
+            token,
+            EMAIL_VERIFICATION_EXPIRY_HOURS,
+            language=current_user.language,
         )
     except Exception:
         import logging

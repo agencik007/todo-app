@@ -14,7 +14,7 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Offline mode** - without a connection a signed-in user still sees their last synced tasks and groups (with an offline banner) and can create, edit, complete and delete tasks; the changes are queued in IndexedDB and sent once the API is back (a create carries a `clientId`, so a retry never duplicates it). Groups, reordering and account settings stay online-only. The copy holds one user's data at a time and is deleted on logout
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
-- ✅ **Backend Tests** - 104 unit and integration tests with coverage (min. 80% enforced)
+- ✅ **Backend Tests** - 124 unit and integration tests with coverage (min. 80% enforced)
 - ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, tasks)
 - ✅ **CI/CD** - GitHub Actions runs lint, tests, builds and E2E tests on every pull request and push to `develop`, then deploys `develop` to production
 - ✅ **Simple Local Setup** - One `make dev` starts everything; tests run against their own `<db>_test` database
@@ -71,6 +71,8 @@ The application uses **MailHog** for testing email functionalities (email verifi
 3. All emails sent by the application will appear in the MailHog interface
 4. You can view content, headers, and test email features
 
+Emails are rendered from Jinja2 templates in `backend/templates/email/` (dark theme only, the app's cyan palette) with texts from `backend/i18n/{en,pl}.json`. They are sent in the account's language: the interface language at sign-up, changed later with the language selector. The logo is loaded from `FRONTEND_URL/icons/icon-192.png`, so it only shows in clients that can reach that address.
+
 **Note:** MailHog is part of `docker-compose.yml`, so it also starts with `make prod`. In production set `USE_MAILHOG=false` and the `SMTP_*` variables so emails go through a real SMTP server.
 
 ---
@@ -118,6 +120,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - **SQLAlchemy** - ORM for databases
 - **PostgreSQL** - database
 - **Pydantic** - data validation
+- **Jinja2** - email templates
 - **Uvicorn** - ASGI server
 
 ### Frontend
@@ -323,7 +326,7 @@ All `/todos`, `/groups` and `/users` endpoints require an authenticated user wit
 
 ### Backend - Tests (Pytest)
 
-The application has a comprehensive suite of tests (currently **104**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
+The application has a comprehensive suite of tests (currently **124**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
 
 ```bash
 # In Docker (dev stack running)
@@ -795,6 +798,7 @@ todo-app/
 │   ├── AGENTS.md            # Backend rules for contributors and AI agents
 │   ├── config/              # database, auth, api_messages, password validation
 │   ├── i18n/                # en.json, pl.json - email texts
+│   ├── templates/email/     # Jinja2 email templates (layout, shared blocks, one .html + .txt per email)
 │   ├── models/              # SQLAlchemy models (user, todo, group, refresh_token) + Pydantic schemas
 │   ├── routes/              # API routes (auth, users, todos, groups)
 │   ├── services/            # Business logic (auth, email)

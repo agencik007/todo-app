@@ -126,6 +126,7 @@ backend/
   models/        # SQLAlchemy models (user, todo, group, refresh_token) + schemas.py (Pydantic)
   routes/        # FastAPI endpoints
   services/      # business logic
+  templates/email/ # Jinja2 email templates (rules in backend/AGENTS.md)
   migrations/    # Alembic (remember to register models in env.py!)
   openapi/       # export_openapi.py + openapi.json (input of `npm run generate-api`)
   tests/         # pytest; conftest.py sets TESTING=1

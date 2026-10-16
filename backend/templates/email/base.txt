@@ -1,0 +1,10 @@
+{{ t.title }}
+{{ "=" * t.title|length }}
+
+{% block content %}{% endblock %}
+
+
+--
+{{ common.sent_to }}
+{{ common.footer_automated }}
+{{ common.footer_copyright }}
