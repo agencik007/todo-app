@@ -18,6 +18,7 @@ import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { extractApiMessageCode } from '../../../../core/utils/api-error.util';
 import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
+import { withPrerenderedInputValues } from '../../../../shared/utils/prerendered-input.util';
 import { AuthService } from '../../services/auth.service';
 
 interface RegisterData {
@@ -56,11 +57,13 @@ export class RegisterComponent {
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
 
-  protected readonly registerData = signal<RegisterData>({
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
+  protected readonly registerData = signal<RegisterData>(
+    withPrerenderedInputValues({
+      email: '',
+      password: '',
+      confirmPassword: '',
+    }),
+  );
   protected readonly registerForm = form(this.registerData, registerSchema);
   protected readonly error = signal<string | null>(null);
   protected readonly isLoading = signal(false);
