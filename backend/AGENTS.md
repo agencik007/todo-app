@@ -31,9 +31,24 @@ Use `fastapi.HTTPException` with appropriate status codes from `fastapi.status`.
 
 ---
 
+## Emails
+
+Every email the backend sends follows the same rules, so a new one looks and behaves like the others.
+
+- **One template per email:** `templates/email/<name>.html` extends `base.html` (logo, card, footer) and `<name>.txt` extends `base.txt` — always both, the plain-text part goes into every message. Build the body from the macros in `_components.html` (`paragraph`, `button`, `notice`, `link_fallback`, `divider`); add a macro there rather than one-off markup in a template.
+- **Texts in `i18n/en.json` and `pl.json`** under a category named like the template, with at least `subject`, `preheader` (inbox preview line) and `title`; `tests/test_email_service.py` fails when the two files have different keys. Values use `{placeholders}` filled from the render params; counts go through a plural helper such as `format_hours()` (Polish has `one`/`few`/`many` forms), never a "godzinę/godziny" text. Footer texts live in `common`.
+- **Language of the account:** pass `user.language` (set at sign-up from the interface language, updated by `PUT /users/me/language`). Never guess from request headers.
+- **Send through `send_templated_email(to, "<name>", language, **params)`**, wrapped in a thin `send_<name>_email()` with explicit parameters. Values like link lifetimes come from the route's constants as arguments, never repeated in the email code.
+- **Look:** dark only (`color-scheme: dark`), colors from `EMAIL_COLORS` (the app's Aura dark surfaces and cyan primary — not the user's palette), font `EMAIL_FONT`. Email clients need table layout and inline styles; no CSS variables, no SVG, no JavaScript, no external CSS except the web font.
+- **Links:** absolute, built from `FRONTEND_URL`; every button has the same link shown below it as text (`link_fallback`). The e2e tests read links from the message body, so keep the URL path in it.
+- **Security:** Jinja2 autoescapes `.html` templates — never mark user input `|safe`; tokens go only into URLs, never into logs.
+- **Tests:** add the template to `TEMPLATES` in `tests/test_email_service.py` (renders in every language, no leftover placeholders) and test the route that sends it with the `sent` fixture. Check the result in MailHog (`http://localhost:8025`) before finishing.
+
+---
+
 ## Testing
 
-- The full suite is 104 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
+- The full suite is 124 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
 - Single test: `docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec backend python -m pytest tests/test_filename.py::test_function_name`.
 - Test and lint tools (pytest, pytest-asyncio, pytest-cov, httpx, ruff) live in `backend/requirements-dev.txt`, not `requirements.txt`: the production image installs runtime dependencies only, the dev container (`target: dev`) and CI install both.
 - Tests never use the application database: `conftest.py` derives `<db>_test` from `DATABASE_URL` (created automatically if the DB user has permission), or uses `TEST_DATABASE_URL` if set.
