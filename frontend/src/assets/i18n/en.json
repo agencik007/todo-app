@@ -395,12 +395,12 @@
   "SETTINGS": {
     "BACKGROUND_TOOLTIP": {
       "off": "Background: Off",
-      "school": "Background: School Theme",
-      "modern": "Background: Modern Theme"
+      "aurora": "Background: Aurora",
+      "modern": "Background: Glassmorph"
     },
     "BACKGROUND_OPTIONS": {
       "off": "None",
-      "school": "School Theme",
+      "aurora": "Aurora",
       "modern": "Glassmorph"
     }
   },

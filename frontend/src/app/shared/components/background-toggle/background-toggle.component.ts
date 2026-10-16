@@ -27,9 +27,9 @@ export class BackgroundToggleComponent {
       icon: 'pi pi-ban',
     },
     {
-      label: this.#translate.instant('SETTINGS.BACKGROUND_OPTIONS.school'),
-      value: 'school' as BackgroundType,
-      icon: 'pi pi-image',
+      label: this.#translate.instant('SETTINGS.BACKGROUND_OPTIONS.aurora'),
+      value: 'aurora' as BackgroundType,
+      icon: 'pi pi-star',
     },
     {
       label: this.#translate.instant('SETTINGS.BACKGROUND_OPTIONS.modern'),

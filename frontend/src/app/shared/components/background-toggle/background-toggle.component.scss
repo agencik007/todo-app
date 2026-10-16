@@ -68,7 +68,7 @@
   }
 }
 
-:host-context(.dark-mode) {
+:host-context(.dark) {
   .background-selector {
     ::ng-deep {
       .p-select {
@@ -84,7 +84,7 @@
   }
 }
 
-::ng-deep .dark-mode .background-select-panel {
+::ng-deep .dark .background-select-panel {
   background: var(--p-surface-900);
   border-color: var(--p-surface-700) !important;
 

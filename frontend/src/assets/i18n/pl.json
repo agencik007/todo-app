@@ -395,12 +395,12 @@
   "SETTINGS": {
     "BACKGROUND_TOOLTIP": {
       "off": "Tło: Wyłączone",
-      "school": "Tło: Styl szkolny",
-      "modern": "Tło: Styl nowoczesny"
+      "aurora": "Tło: Zorza",
+      "modern": "Tło: Glassmorph"
     },
     "BACKGROUND_OPTIONS": {
       "off": "Brak tła",
-      "school": "Styl szkolny",
+      "aurora": "Zorza",
       "modern": "Glassmorph"
     }
   },
