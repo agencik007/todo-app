@@ -1519,6 +1519,13 @@
             "minLength": 8,
             "title": "Password",
             "description": "Password must be at least 8 characters"
+          },
+          "language": {
+            "type": "string",
+            "pattern": "^(en|pl)$",
+            "title": "Language",
+            "description": "Interface language at sign-up; used for the account's emails",
+            "default": "en"
           }
         },
         "type": "object",

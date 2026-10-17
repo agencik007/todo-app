@@ -11,10 +11,13 @@ import logging
 import os
 import smtplib
 import ssl
+from datetime import UTC, datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
 from typing import Any
+
+from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 
 logger = logging.getLogger(__name__)
 
@@ -82,48 +85,89 @@ def get_text(lang: str, category: str, key: str, **kwargs) -> str:
     return text
 
 
-def _get_html_template(lang: str, title: str, content: str) -> str:
-    """Wrap content in a nice HTML template."""
-    footer_text = get_text(lang, "common", "footer_automated")
-    copyright_text = get_text(lang, "common", "footer_copyright")
+def _plural_category(lang: str, count: int) -> str:
+    """CLDR plural category for an integer count ("one", "few", "many", "other")."""
+    if count == 1:
+        return "one"
+    if lang == "pl":
+        if count % 10 in (2, 3, 4) and count % 100 not in (12, 13, 14):
+            return "few"
+        return "many"
+    return "other"
 
-    return f"""
-    <!DOCTYPE html>
-    <html lang="{lang}">
-    <head>
-        <meta charset="UTF-8">
-        <style>
-            body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f9fafb; margin: 0; padding: 0; }}
-            .container {{ max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); overflow: hidden; }}
-            .header {{ background-color: #6366f1; padding: 24px; text-align: center; }}
-            .header h2 {{ color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; }}
-            .content {{ padding: 32px 24px; }}
-            .button-container {{ text-align: center; margin: 30px 0; }}
-            .button {{ display: inline-block; padding: 14px 28px; background-color: #6366f1; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; transition: background-color 0.2s; }}
-            .button:hover {{ background-color: #4f46e5; }}
-            .footer {{ background-color: #f3f4f6; padding: 24px; text-align: center; font-size: 13px; color: #6b7280; border-top: 1px solid #e5e7eb; }}
-            .link-text {{ word-break: break-all; color: #6366f1; }}
-            p {{ margin-bottom: 16px; }}
-            h3 {{ color: #111827; margin-top: 0; font-size: 20px; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h2>Todo App</h2>
-            </div>
-            <div class="content">
-                <h3>{title}</h3>
-                {content}
-            </div>
-            <div class="footer">
-                <p>{footer_text}</p>
-                <p>{copyright_text}</p>
-            </div>
-        </div>
-    </body>
-    </html>
+
+def format_hours(lang: str, count: int) -> str:
+    """Translated duration, e.g. "1 hour" / "24 godziny"."""
+    lang = lang if lang in TRANSLATIONS else "en"
+    forms = TRANSLATIONS[lang]["units"]["hours"]
+    return forms[_plural_category(lang, count)].format(count=count)
+
+
+# ── Templates ─────────────────────────────────────────────────────────────────
+# Jinja2 templates in templates/email/: <name>.html (extends base.html) and
+# <name>.txt (extends base.txt), texts in i18n/<lang>.json under "<name>".
+TEMPLATES = Environment(
+    loader=FileSystemLoader(BASE_DIR / "templates" / "email"),
+    autoescape=select_autoescape(["html"]),
+    undefined=StrictUndefined,
+    trim_blocks=True,
+    lstrip_blocks=True,
+)
+
+# The app's dark theme (PrimeNG Aura, "Ocean Depth" cyan palette). Emails are
+# dark only and always use this palette, whatever the user picked in the app.
+EMAIL_COLORS = {
+    "bg": "#09090b",  # surface-950
+    "card": "#18181b",  # surface-900
+    "border": "#27272a",  # surface-800
+    "text": "#fafafa",  # surface-0
+    "muted": "#a1a1aa",  # surface-400
+    "primary": "#22d3ee",  # cyan-400, dark primary
+    "primary_contrast": "#18181b",
+    "primary_from": "#06b6d4",  # cyan-500, app icon gradient
+    "primary_to": "#0e7490",  # cyan-700
+    "notice_bg": "#0b2329",
+    "glow": "#0c2a31",
+}
+EMAIL_FONT = (
+    "'JetBrains Mono', SFMono-Regular, Menlo, Consolas, 'Courier New', monospace"
+)
+
+
+def render_email(
+    template: str, language: str, to_email: str, **params: Any
+) -> tuple[str, str, str]:
     """
+    Render an email in the given language.
+
+    `params` fill the {placeholders} of the template's texts and are also
+    available in the template itself (e.g. `action_url`).
+
+    Returns:
+        (subject, html, text)
+    """
+    lang = language if language in TRANSLATIONS else "en"
+    texts = {
+        key: get_text(lang, template, key, **params)
+        for key in TRANSLATIONS["en"][template]
+    }
+    common = {
+        key: get_text(lang, "common", key, email=to_email, year=datetime.now(UTC).year)
+        for key in TRANSLATIONS["en"]["common"]
+    }
+    context = {
+        **params,
+        "lang": lang,
+        "t": texts,
+        "common": common,
+        "c": EMAIL_COLORS,
+        "font": EMAIL_FONT,
+        "frontend_url": FRONTEND_URL,
+        "logo_url": f"{FRONTEND_URL}/icons/icon-192.png",
+    }
+    html = TEMPLATES.get_template(f"{template}.html").render(context)
+    text = TEMPLATES.get_template(f"{template}.txt").render(context)
+    return texts["subject"], html, text
 
 
 def _mask_email(email: str) -> str:
@@ -183,99 +227,35 @@ def send_email(
         return False
 
 
-def send_verification_email(
-    to_email: str, verification_token: str, language: str = "en"
+def send_templated_email(
+    to_email: str, template: str, language: str = "en", **params: Any
 ) -> bool:
-    """
-    Send email verification email.
-    """
-    verification_url = f"{FRONTEND_URL}/verify-email/{verification_token}"
+    """Render the `template` email in `language` and send it."""
+    subject, html, text = render_email(template, language, to_email, **params)
+    return send_email(to_email, subject, html, text)
 
-    subject = get_text(language, "email_verification", "subject")
-    title = get_text(language, "email_verification", "title")
-    greeting = get_text(language, "email_verification", "greeting")
-    message = get_text(language, "email_verification", "message")
-    button_text = get_text(language, "email_verification", "button_text")
-    fallback_text = get_text(language, "email_verification", "fallback_text")
-    ignore_text = get_text(language, "email_verification", "ignore_text")
 
-    html_body = f"""
-        <p>{greeting}</p>
-        <p>{message}</p>
-        <div class="button-container">
-            <a href="{verification_url}" class="button">{button_text}</a>
-        </div>
-        <p>{fallback_text}</p>
-        <p><a href="{verification_url}" class="link-text">{verification_url}</a></p>
-        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 24px 0;">
-        <p style="color: #6b7280; font-size: 14px;">{ignore_text}</p>
-    """
-
-    html_content = _get_html_template(language, title, html_body)
-
-    text_content = f"""
-    {title}
-    
-    {greeting}
-    
-    {message}
-    
-    {verification_url}
-    
-    {ignore_text}
-    """
-
-    return send_email(to_email, subject, html_content, text_content)
+def send_verification_email(
+    to_email: str, verification_token: str, expires_in_hours: int, language: str = "en"
+) -> bool:
+    """Send the email address confirmation link."""
+    return send_templated_email(
+        to_email,
+        "email_verification",
+        language,
+        action_url=f"{FRONTEND_URL}/verify-email/{verification_token}",
+        duration=format_hours(language, expires_in_hours),
+    )
 
 
 def send_password_reset_email(
-    to_email: str, reset_token: str, language: str = "en"
+    to_email: str, reset_token: str, expires_in_hours: int, language: str = "en"
 ) -> bool:
-    """
-    Send password reset email.
-    """
-    # 1 hour expiry
-    hours = 1
-    reset_url = f"{FRONTEND_URL}/reset-password/{reset_token}"
-
-    subject = get_text(language, "password_reset", "subject")
-    title = get_text(language, "password_reset", "title")
-    greeting = get_text(language, "password_reset", "greeting")
-    message = get_text(language, "password_reset", "message")
-    action_text = get_text(language, "password_reset", "action_text")
-    button_text = get_text(language, "password_reset", "button_text")
-    fallback_text = get_text(language, "password_reset", "fallback_text")
-    expiry_text = get_text(language, "password_reset", "expiry_text", hours=hours)
-    ignore_text = get_text(language, "password_reset", "ignore_text")
-
-    html_body = f"""
-        <p>{greeting}</p>
-        <p>{message}</p>
-        <p>{action_text}</p>
-        <div class="button-container">
-            <a href="{reset_url}" class="button">{button_text}</a>
-        </div>
-        <p>{fallback_text}</p>
-        <p><a href="{reset_url}" class="link-text">{reset_url}</a></p>
-        <p><strong>{expiry_text}</strong></p>
-        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 24px 0;">
-        <p style="color: #6b7280; font-size: 14px;">{ignore_text}</p>
-    """
-
-    html_content = _get_html_template(language, title, html_body)
-
-    text_content = f"""
-    {title}
-    
-    {greeting}
-    
-    {message}
-    
-    {reset_url}
-    
-    {expiry_text}
-    
-    {ignore_text}
-    """
-
-    return send_email(to_email, subject, html_content, text_content)
+    """Send the password reset link."""
+    return send_templated_email(
+        to_email,
+        "password_reset",
+        language,
+        action_url=f"{FRONTEND_URL}/reset-password/{reset_token}",
+        duration=format_hours(language, expires_in_hours),
+    )

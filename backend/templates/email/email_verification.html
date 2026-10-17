@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% import "_components.html" as ui with context %}
+
+{% block content %}
+{{ ui.paragraph(t.greeting) }}
+{{ ui.paragraph(t.message) }}
+{{ ui.button(action_url, t.button_text) }}
+{{ ui.notice(t.expiry_text) }}
+{{ ui.link_fallback(action_url, t.fallback_text) }}
+{{ ui.divider() }}
+{{ ui.paragraph(t.ignore_text, muted=true) }}
+{% endblock %}

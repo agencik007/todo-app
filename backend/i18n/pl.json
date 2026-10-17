@@ -1,27 +1,37 @@
 {
   "email_verification": {
-    "subject": "Zweryfikuj swój adres email - Todo App",
-    "title": "Weryfikacja Email",
+    "subject": "Potwierdź adres e-mail – Todo App",
+    "preheader": "Jedno kliknięcie i Twoje konto w Todo App jest gotowe.",
+    "title": "Potwierdź adres e-mail",
     "greeting": "Cześć!",
-    "message": "Dziękujemy za rejestrację! Kliknij poniższy przycisk, aby zweryfikować swój adres email.",
-    "button_text": "Zweryfikuj Email",
-    "fallback_text": "Jeśli przycisk nie działa, skopiuj i wklej poniższy link do przeglądarki:",
-    "ignore_text": "Jeśli nie zakładałeś konta, zignoruj tę wiadomość."
+    "message": "Dziękujemy za rejestrację w Todo App. Potwierdź swój adres e-mail, aby dokończyć zakładanie konta.",
+    "button_text": "Potwierdź e-mail",
+    "expiry_text": "Link jest ważny przez {duration}.",
+    "fallback_text": "Przycisk nie działa? Skopiuj ten link do przeglądarki:",
+    "ignore_text": "Jeśli to nie Ty zakładasz konto w Todo App, zignoruj tę wiadomość."
   },
   "password_reset": {
-    "subject": "Resetowanie hasła - Todo App",
+    "subject": "Zresetuj hasło – Todo App",
+    "preheader": "Ustaw nowe hasło do konta w Todo App.",
     "title": "Zresetuj hasło",
     "greeting": "Cześć!",
-    "message": "Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta w aplikacji Todo App.",
-    "action_text": "Kliknij w poniższy przycisk, aby ustawić nowe hasło:",
-    "button_text": "Zresetuj hasło",
-    "fallback_text": "Jeśli przycisk nie działa, skopiuj i wklej poniższy link do przeglądarki:",
-    "expiry_text": "Ten link wygaśnie za {hours} godzinę/godziny.",
-    "ignore_text": "Jeśli to nie Ty prosiłeś o reset hasła, możesz zignorować tę wiadomość."
+    "message": "Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta w Todo App.",
+    "action_text": "Kliknij przycisk poniżej, aby ustawić nowe hasło.",
+    "button_text": "Ustaw nowe hasło",
+    "expiry_text": "Link jest ważny przez {duration} i działa tylko raz.",
+    "fallback_text": "Przycisk nie działa? Skopiuj ten link do przeglądarki:",
+    "ignore_text": "Jeśli prośba nie pochodzi od Ciebie, zignoruj tę wiadomość – Twoje hasło się nie zmieni."
   },
-
   "common": {
-    "footer_automated": "Ta wiadomość została wysłana automatycznie. Prosimy na nią nie odpowiadać.",
-    "footer_copyright": "© 2026 Todo App"
+    "sent_to": "Ta wiadomość została wysłana na adres {email}.",
+    "footer_automated": "Wysłaliśmy ją automatycznie, prosimy na nią nie odpowiadać.",
+    "footer_copyright": "© {year} Todo App"
+  },
+  "units": {
+    "hours": {
+      "one": "{count} godzinę",
+      "few": "{count} godziny",
+      "many": "{count} godzin"
+    }
   }
 }

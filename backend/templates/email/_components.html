@@ -1,0 +1,33 @@
+{#- Building blocks shared by the email templates. Inline styles only: many
+    clients drop <style> blocks and classes. #}
+
+{% macro paragraph(text, muted=false) -%}
+<p style="margin: 0 0 16px; {{ 'font-size: 13px; ' if muted else '' }}color: {{ c.muted if muted else c.text }};">{{ text }}</p>
+{%- endmacro %}
+
+{% macro button(url, label) -%}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 28px auto;">
+  <tr>
+    <td align="center" bgcolor="{{ c.primary }}" style="background-color: {{ c.primary }}; border-radius: 6px;">
+      <a href="{{ url }}" target="_blank" style="display: inline-block; padding: 12px 28px; font-family: {{ font }}; font-size: 15px; font-weight: 600; line-height: 1.2; color: {{ c.primary_contrast }}; text-decoration: none; border-radius: 6px;">{{ label }}</a>
+    </td>
+  </tr>
+</table>
+{%- endmacro %}
+
+{% macro link_fallback(url, label) -%}
+<p style="margin: 0 0 8px; font-size: 13px; color: {{ c.muted }};">{{ label }}</p>
+<p style="margin: 0 0 16px; padding: 10px 12px; font-size: 12px; line-height: 1.5; word-break: break-all; background-color: {{ c.bg }}; border: 1px solid {{ c.border }}; border-radius: 6px;">
+  <a href="{{ url }}" target="_blank" style="color: {{ c.primary }}; text-decoration: none;">{{ url }}</a>
+</p>
+{%- endmacro %}
+
+{% macro notice(text) -%}
+<p style="margin: 0 0 16px; padding: 10px 12px; font-size: 13px; color: {{ c.text }}; background-color: {{ c.notice_bg }}; border-left: 3px solid {{ c.primary }}; border-radius: 4px;">{{ text }}</p>
+{%- endmacro %}
+
+{% macro divider() -%}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0;">
+  <tr><td height="1" bgcolor="{{ c.border }}" style="height: 1px; font-size: 0; line-height: 0; background-color: {{ c.border }};">&nbsp;</td></tr>
+</table>
+{%- endmacro %}
