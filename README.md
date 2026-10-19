@@ -428,7 +428,7 @@ All ports are published on `127.0.0.1` only. The browser talks to the frontend a
 make dev
 
 # Or directly:
-docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml --env-file docker/docker.env up --build
+docker-compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml --env-file docker/docker.env up --build --renew-anon-volumes
 ```
 
 #### Production Mode
@@ -588,7 +588,7 @@ docker-compose exec frontend wget -qO- http://backend:8000/health
 
 1. **Run**: `make dev` once; afterwards the stopped containers can also be started from Docker Desktop (▶), which doesn't rebuild anything
 2. **Code**: Edit files locally — `backend/` and `frontend/` are bind-mounted, so uvicorn `--reload` restarts the API and `ng serve` rebuilds and refreshes the browser
-3. **Rebuild**: `make dev` again after changing dependencies (`requirements.txt`, `requirements-dev.txt`, `package.json`), `docker/*` or `docker/docker.env`
+3. **Rebuild**: `make dev` again after changing dependencies (`requirements.txt`, `requirements-dev.txt`, `package.json`), `docker/*` or `docker/docker.env` — it recreates the anonymous `node_modules` volume (`--renew-anon-volumes`), so new frontend packages reach the container
 4. **Test**: Open http://localhost:4200 in the browser
 5. **Debug**: `make logs` for real-time logs
 
