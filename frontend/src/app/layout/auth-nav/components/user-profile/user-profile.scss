@@ -505,11 +505,27 @@
   cursor: pointer;
 }
 
+.setting-row--switch {
+  cursor: pointer;
+}
+
 .setting-label {
   font-size: var(--app-text-sm);
   font-weight: var(--app-font-medium);
   color: var(--p-text-color);
   flex-shrink: 0;
+}
+
+.setting-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.setting-hint {
+  font-size: var(--app-text-xs);
+  color: var(--p-text-muted-color);
 }
 
 // ─── ng-deep overrides ────────────────────────────────────────────
@@ -531,6 +547,32 @@
     align-items: center;
     height: 32px;
     flex-shrink: 0;
+  }
+
+  // Same height, track and thumb as the theme toggle next to it.
+  .p-toggleswitch.setting-switch {
+    --p-toggleswitch-width: 52px;
+    --p-toggleswitch-height: 32px;
+    --p-toggleswitch-gap: 3px;
+    --p-toggleswitch-handle-size: 24px;
+    --p-toggleswitch-border-width: 1px;
+    --p-toggleswitch-border-color: var(--p-surface-300);
+    --p-toggleswitch-hover-border-color: var(--p-primary-color);
+    --p-toggleswitch-background: var(--p-surface-400);
+    --p-toggleswitch-hover-background: var(--p-surface-400);
+    --p-toggleswitch-checked-background: var(--p-primary-color);
+    --p-toggleswitch-checked-hover-background: var(--p-primary-color);
+    --p-toggleswitch-checked-border-color: var(--p-primary-color);
+    --p-toggleswitch-checked-hover-border-color: var(--p-primary-color);
+    --p-toggleswitch-handle-background: #ffffff;
+    --p-toggleswitch-handle-hover-background: #ffffff;
+    --p-toggleswitch-handle-checked-background: #ffffff;
+    --p-toggleswitch-handle-checked-hover-background: #ffffff;
+    flex-shrink: 0;
+
+    .p-toggleswitch-handle {
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
   }
 }
 
@@ -640,6 +682,16 @@
   .setting-label,
   .settings-title {
     color: rgba(255, 255, 255, 0.88);
+  }
+
+  .setting-hint {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  ::ng-deep .p-toggleswitch.setting-switch:not(.p-toggleswitch-checked) {
+    --p-toggleswitch-background: var(--p-surface-800);
+    --p-toggleswitch-hover-background: var(--p-surface-800);
+    --p-toggleswitch-border-color: var(--p-surface-700);
   }
 
   .user-card-email {

@@ -186,20 +186,28 @@
               <span class="setting-label">{{ 'NAV.LANGUAGE' | translate }}</span>
               <app-language-selector></app-language-selector>
             </div>
-            @if (appBadgeSupported) {
-              <div class="setting-row">
-                <span
-                  id="app-badge-label"
-                  class="setting-label"
-                >
-                  {{ 'NAV.APP_BADGE' | translate }}
+            @if (appBadgeAvailable) {
+              <label
+                for="app-badge-input"
+                class="setting-row setting-row--switch"
+              >
+                <span class="setting-text">
+                  <span
+                    id="app-badge-label"
+                    class="setting-label"
+                  >
+                    {{ 'NAV.APP_BADGE' | translate }}
+                  </span>
+                  <span class="setting-hint">{{ 'NAV.APP_BADGE_HINT' | translate }}</span>
                 </span>
                 <p-toggleswitch
+                  styleClass="setting-switch"
+                  inputId="app-badge-input"
                   ariaLabelledBy="app-badge-label"
                   [ngModel]="appBadgeEnabled()"
                   (ngModelChange)="onAppBadgeChange($event)"
                 />
-              </div>
+              </label>
             }
             <a
               routerLink="/privacy"

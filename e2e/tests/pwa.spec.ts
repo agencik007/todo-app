@@ -114,11 +114,13 @@ test('the "New task" shortcut opens the form once', async ({ page, loggedIn }) =
 });
 
 test('the app icon shows the number of open tasks once turned on', async ({ page, loggedIn }) => {
-  // Headless Chromium has no installed app to badge: record the calls instead.
+  // Headless Chromium has no installed app to badge: pretend to run as one
+  // (the setting is hidden in a browser tab) and record the calls instead.
   await page.addInitScript(() => {
     const calls: (number | null)[] = [];
     Object.assign(window, { badgeCalls: calls });
     Object.assign(navigator, {
+      standalone: true,
       setAppBadge: async (count: number) => void calls.push(count),
       clearAppBadge: async () => void calls.push(null),
     });
