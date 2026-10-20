@@ -35,8 +35,10 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
 
 # Development commands
+# --renew-anon-volumes: the dev frontend keeps node_modules in an anonymous
+# volume, which a recreated container would otherwise reuse with the old packages.
 dev: ## Start development environment with hot-reload
-	$(COMPOSE_DEV) up --build
+	$(COMPOSE_DEV) up --build --renew-anon-volumes
 
 prod: ## Start production environment
 	$(COMPOSE_PROD) up --build -d
@@ -190,4 +192,4 @@ quick-start: build up ## Build and start production environment
 
 quick-dev: ## Start development environment
 	@echo "🔥 Starting development environment with hot-reload..."
-	$(COMPOSE_DEV) up --build
+	$(COMPOSE_DEV) up --build --renew-anon-volumes
