@@ -468,12 +468,12 @@
             <p-button
               type="button"
               size="small"
-              [loading]="tf.isSubmitting()"
+              [loading]="saving()"
               [label]="
                 (editingTodo() ? 'TODOS.FORM.SUBMIT_SAVE' : 'TODOS.FORM.SUBMIT_ADD') | translate
               "
               [icon]="editingTodo() ? 'pi pi-save' : 'pi pi-plus'"
-              [disabled]="tf.isSubmitting() || !tf.todoModel().title.trim()"
+              [disabled]="saving() || !tf.todoModel().title.trim()"
               (onClick)="tf.onSubmit()"
             />
           </div>
@@ -483,9 +483,7 @@
           #tf
           [todo]="editingTodo()"
           (save)="saveTodo($event)"
-          (cancelTodo)="closeForm()"
-        >
-        </app-todo-form>
+        />
       </p-dialog>
 
       <!-- Confirm Delete Dialog -->

@@ -3,7 +3,7 @@ import {
   CdkDragMove,
   DragDropModule,
 } from '@angular/cdk/drag-drop';
-import { isPlatformBrowser } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   computed,
@@ -22,7 +22,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Group, Todo, TodoCreate, UserResponse } from '@api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService } from 'primeng/api';
-import { Button, ButtonModule } from 'primeng/button';
+import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -84,6 +84,7 @@ export class TodoListComponent implements OnInit {
   public screenSize = inject(ScreenSizeService);
   readonly #route = inject(ActivatedRoute);
   readonly #router = inject(Router);
+  readonly #document = inject(DOCUMENT);
 
   isBrowser = signal(false);
 
@@ -97,6 +98,7 @@ export class TodoListComponent implements OnInit {
   readonly error = this.store.error;
   readonly editingTodo = this.store.editingTodo;
   readonly formVisible = this.store.formVisible;
+  readonly saving = this.store.saving;
   readonly completedTodos = this.store.completedTodos;
   readonly pendingTodos = this.store.pendingTodos;
   readonly totalTodos = this.store.totalCount;
@@ -161,13 +163,15 @@ export class TodoListComponent implements OnInit {
       this.store.pendingCount() === 0,
   );
 
-  addButton = viewChild<Button>('addButton');
+  addButton = viewChild<ElementRef<HTMLButtonElement>>('addButton');
   scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
   searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
   todoForm = viewChild(TodoFormComponent);
 
   #scrollSpeed = 0;
   #scrollAnimationId: number | null = null;
+  /** What had focus when the form opened; it gets focus back on close. */
+  #returnFocusTo: HTMLElement | null = null;
 
   get currentUser(): UserResponse | null {
     return this.authStore.currentUser();
@@ -331,6 +335,7 @@ export class TodoListComponent implements OnInit {
 
   showCreateForm(): void {
     if (!this.hasSession()) return;
+    this.#rememberFocus();
     this.store.showCreateForm();
   }
 
@@ -341,6 +346,7 @@ export class TodoListComponent implements OnInit {
       );
       return;
     }
+    this.#rememberFocus();
     this.store.showEditForm(todo.id);
   }
 
@@ -351,23 +357,32 @@ export class TodoListComponent implements OnInit {
   }
 
   onDialogHide(): void {
+    this.todoForm()?.reset();
     this.restoreFocus();
   }
 
-  closeForm(): void {
-    this.store.hideForm();
+  /**
+   * The FAB is re-rendered when the dialog closes, so wait a tick. Falls
+   * back to the FAB when the opener is gone (it was the FAB itself, or
+   * its row was deleted).
+   */
+  restoreFocus(): void {
+    const opener = this.#returnFocusTo;
+    this.#returnFocusTo = null;
+    setTimeout(() => {
+      const target = opener?.isConnected
+        ? opener
+        : this.addButton()?.nativeElement;
+      target?.focus();
+    });
   }
 
-  restoreFocus(): void {
-    setTimeout(() => {
-      const buttonEl = this.addButton();
-      if (buttonEl?.el?.nativeElement) {
-        const nativeButton = buttonEl.el.nativeElement.querySelector('button');
-        if (nativeButton) {
-          nativeButton.focus();
-        }
-      }
-    }, 100);
+  #rememberFocus(): void {
+    const active = this.#document.activeElement;
+    this.#returnFocusTo =
+      active instanceof HTMLElement && active !== this.#document.body
+        ? active
+        : null;
   }
 
   saveTodo(todoData: TodoCreate): void {

@@ -19,13 +19,12 @@
       [class.ng-dirty]="todoForm.title().invalid() && todoForm.title().touched()"
     />
     @if (todoForm.title().touched() && todoForm.title().invalid()) {
-      @for (error of todoForm.title().errors(); track error) {
-        <small
-          role="alert"
-          class="p-error"
-          >{{ error.message }}</small
-        >
-      }
+      <small
+        role="alert"
+        class="p-error"
+      >
+        {{ 'TODOS.FORM.ERRORS.TITLE_REQUIRED' | translate }}
+      </small>
     }
   </app-form-field>
 
