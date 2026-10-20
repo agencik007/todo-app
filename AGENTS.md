@@ -185,6 +185,12 @@ Stored in `.claude/commands/`:
 - `/edit-forms` — brings every form in line with Signal Forms + the Angular Style Guide (`.claude/commands/edit-forms.md`).
 - `/generate-migration` — workflow for creating an Alembic migration with `env.py` import validation.
 
+### Agent skills
+
+Third-party skills installed with `npx skills add <owner/repo>`, pinned in `skills-lock.json`. Each skill is written to both `.claude/skills/` (Claude Code) and `.agents/skills/` (other agents) — keep the two copies identical and commit them together with the lockfile.
+
+- `web-design-guidelines` (`vercel-labs/agent-skills`) — reviews UI code against Vercel's Web Interface Guidelines (fetched fresh on each run) and reports findings as `file:line`.
+
 ### Language policy for AI configuration files
 
 **All AI configuration files must be written in English**: slash commands (`.claude/commands/*.md`), skills (`.claude/skills/*`), subagent definitions (`.claude/agents/*`) — prompts, headings, checklists, and comments. User-facing chat can continue in Polish, but config files for AI agents stay in English. Rationale: consistency with built-in skills, better model performance, easier review.
