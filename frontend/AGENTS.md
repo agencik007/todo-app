@@ -190,6 +190,8 @@ Use `catchError` and `handleError`. Toasts are handled by `notificationIntercept
 
 All forms use the **Signal Forms API** (`@angular/forms/signals`, experimental in Angular 21) — do not add `ReactiveFormsModule` or template-driven forms. Follow the existing forms (e.g. `features/auth/components/login/`) and the rules in `.claude/commands/edit-forms.md`; the slash command `/edit-forms` re-applies that style across all forms.
 
+Exception: PrimeNG form components (`p-select` and others built on its `BaseInput`) can't take `[formField]` yet — their string `pattern` input clashes with the `RegExp[]` Signal Forms binds, and the build fails. Bind them with `[ngModel]` + an `on…Change` method that updates the form model, as `features/todos/components/todo-form/` does.
+
 ---
 
 ## Before you finish a frontend change

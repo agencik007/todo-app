@@ -1,16 +1,8 @@
-import {
-  Component,
-  computed,
-  inject,
-  input,
-  linkedSignal,
-  output,
-} from '@angular/core';
+import { Component, inject, input, linkedSignal, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FormField, form, required } from '@angular/forms/signals';
 import { Todo, TodoCreate } from '@api';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
@@ -28,7 +20,6 @@ interface TodoFormModel {
     FormsModule,
     FormField,
     InputTextModule,
-    ButtonModule,
     Select,
     TranslatePipe,
     FormFieldComponent,
@@ -56,9 +47,6 @@ export class TodoFormComponent {
   });
 
   readonly groups = this.#groupStore.groups;
-  readonly loadingGroups = this.#groupStore.loading;
-
-  readonly isEditMode = computed(() => !!this.todo());
 
   onSubmit(): void {
     if (this.todoForm().invalid()) return;

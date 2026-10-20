@@ -19,7 +19,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Group, Todo, TodoCreate, UserResponse } from '@api';
+import { Group, Todo, TodoCreate } from '@api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -32,7 +32,6 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
@@ -75,50 +74,36 @@ type StatusFilter = 'all' | 'pending' | 'completed';
   styleUrl: './todo-list.scss',
 })
 export class TodoListComponent implements OnInit {
-  readonly store = inject(TodoStore);
-  private authStore = inject(AuthStore);
-  private groupStore = inject(GroupStore);
-  private confirmationService = inject(ConfirmationService);
-  private platformId = inject(PLATFORM_ID);
-  private translate = inject(TranslateService);
-  public screenSize = inject(ScreenSizeService);
+  readonly #store = inject(TodoStore);
+  readonly #authStore = inject(AuthStore);
+  readonly #groupStore = inject(GroupStore);
+  readonly #confirmationService = inject(ConfirmationService);
+  readonly #platformId = inject(PLATFORM_ID);
+  readonly #translate = inject(TranslateService);
   readonly #route = inject(ActivatedRoute);
   readonly #router = inject(Router);
   readonly #document = inject(DOCUMENT);
 
-  isBrowser = signal(false);
+  readonly addButton = viewChild<ElementRef<HTMLButtonElement>>('addButton');
+  readonly scrollContainer =
+    viewChild<ElementRef<HTMLElement>>('scrollContainer');
+  readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
+  readonly todoForm = viewChild(TodoFormComponent);
 
-  userName = computed(() => {
-    const user = this.currentUser;
-    if (!user || !user.email) return '';
-    return user.email.split('@')[0];
-  });
-
-  readonly loading = this.store.loading;
-  readonly error = this.store.error;
-  readonly editingTodo = this.store.editingTodo;
-  readonly formVisible = this.store.formVisible;
-  readonly saving = this.store.saving;
-  readonly completedTodos = this.store.completedTodos;
-  readonly pendingTodos = this.store.pendingTodos;
-  readonly totalTodos = this.store.totalCount;
-  /** False offline: reordering needs the server. */
-  readonly canWrite = this.authStore.canWrite;
-  /** Todos can be changed offline too; the changes are queued. */
-  readonly hasSession = this.authStore.hasSession;
-  readonly pendingTodoIds = this.store.pendingTodoIds;
-
-  readonly selectedGroups = this.groupStore.selectedGroups;
-  readonly hasGroupSelection = this.groupStore.hasSelection;
-
+  readonly isBrowser = signal(false);
   readonly statusFilter = signal<StatusFilter>('all');
   readonly searchQuery = signal('');
   readonly focusedIndex = signal(-1);
 
-  readonly displayedTodos = computed(() => {
+  readonly userName = computed(() => {
+    const email = this.#currentUser()?.email;
+    return email ? email.split('@')[0] : '';
+  });
+
+  readonly todos = computed(() => {
     const status = this.statusFilter();
     const query = this.searchQuery().trim().toLowerCase();
-    let list = this.store.filteredTodos();
+    let list = this.#store.filteredTodos();
 
     if (status === 'pending') {
       list = list.filter((t) => !t.completed);
@@ -137,10 +122,8 @@ export class TodoListComponent implements OnInit {
     return list;
   });
 
-  readonly todos = this.displayedTodos;
-
   readonly progressPercent = computed(() => {
-    const total = this.store.totalCount();
+    const total = this.totalTodos();
     if (total === 0) return 0;
     return Math.round((this.completedTodos().length / total) * 100);
   });
@@ -159,41 +142,54 @@ export class TodoListComponent implements OnInit {
     () =>
       !this.isFiltered() &&
       !this.hasGroupSelection() &&
-      this.canWrite() &&
-      this.store.pendingCount() === 0,
+      this.#canWrite() &&
+      this.#store.pendingCount() === 0,
   );
 
-  addButton = viewChild<ElementRef<HTMLButtonElement>>('addButton');
-  scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
-  searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
-  todoForm = viewChild(TodoFormComponent);
+  readonly #groupsById = computed(
+    () => new Map(this.#groupStore.groups().map((g) => [g.id, g])),
+  );
+
+  readonly loading = this.#store.loading;
+  readonly error = this.#store.error;
+  readonly editingTodo = this.#store.editingTodo;
+  readonly formVisible = this.#store.formVisible;
+  readonly saving = this.#store.saving;
+  readonly completedTodos = this.#store.completedTodos;
+  readonly pendingTodos = this.#store.pendingTodos;
+  readonly totalTodos = this.#store.totalCount;
+  readonly pendingTodoIds = this.#store.pendingTodoIds;
+  /** Todos can be changed offline too; the changes are queued. */
+  readonly hasSession = this.#authStore.hasSession;
+  readonly selectedGroups = this.#groupStore.selectedGroups;
+  readonly hasGroupSelection = this.#groupStore.hasSelection;
+
+  /** False offline: reordering needs the server. */
+  readonly #canWrite = this.#authStore.canWrite;
+  readonly #currentUser = this.#authStore.currentUser;
 
   #scrollSpeed = 0;
   #scrollAnimationId: number | null = null;
   /** What had focus when the form opened; it gets focus back on close. */
   #returnFocusTo: HTMLElement | null = null;
 
-  get currentUser(): UserResponse | null {
-    return this.authStore.currentUser();
-  }
-
   constructor() {
     // Load groups for a session, and again when an offline session turns
     // into a real one (from the offline snapshot first, then the server).
     effect(() => {
-      const isAuthenticated = this.authStore.isAuthenticated();
-      const isOfflineSession = this.authStore.isOfflineSession();
+      const isAuthenticated = this.#authStore.isAuthenticated();
+      const isOfflineSession = this.#authStore.isOfflineSession();
       if (
-        isPlatformBrowser(this.platformId) &&
+        isPlatformBrowser(this.#platformId) &&
         (isAuthenticated || isOfflineSession)
       ) {
-        untracked(() => this.groupStore.loadGroups());
+        untracked(() => this.#groupStore.loadGroups());
       }
     });
   }
 
   ngOnInit(): void {
-    this.isBrowser.set(isPlatformBrowser(this.platformId));
+    this.isBrowser.set(isPlatformBrowser(this.#platformId));
     if (this.isBrowser()) {
       this.#openFormFromShortcut();
     }
@@ -217,13 +213,100 @@ export class TodoListComponent implements OnInit {
     this.showCreateForm();
   }
 
-  setStatusFilter(filter: StatusFilter): void {
-    this.statusFilter.set(filter);
-    this.focusedIndex.set(-1);
+  #focusSearch(): void {
+    const el = this.searchInput()?.nativeElement;
+    if (el) {
+      el.focus();
+      el.select();
+    }
   }
 
-  onSearchInput(value: string): void {
-    this.searchQuery.set(value);
+  #moveFocus(delta: number): void {
+    const list = this.todos();
+    if (list.length === 0) return;
+    const current = this.focusedIndex();
+    let next = current + delta;
+    if (current === -1) {
+      next = delta > 0 ? 0 : list.length - 1;
+    }
+    next = Math.max(0, Math.min(list.length - 1, next));
+    this.focusedIndex.set(next);
+    this.#scrollFocusedIntoView();
+  }
+
+  #toggleFocusedTodo(): void {
+    const idx = this.focusedIndex();
+    const list = this.todos();
+    if (idx < 0 || idx >= list.length) return;
+    const todo = list[idx];
+    if (!this.canEditTodo(todo)) return;
+    this.toggleTodoCompletion(todo);
+  }
+
+  #scrollFocusedIntoView(): void {
+    if (!this.isBrowser()) return;
+    queueMicrotask(() => {
+      const container = this.scrollContainer()?.nativeElement;
+      if (!container) return;
+      const el = container.querySelector<HTMLElement>('.todo-row.is-focused');
+      if (el) {
+        // Real focus, so screen readers follow j/k too.
+        el.focus({ preventScroll: true });
+        el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    });
+  }
+
+  #rememberFocus(): void {
+    const active = this.#document.activeElement;
+    this.#returnFocusTo =
+      active instanceof HTMLElement && active !== this.#document.body
+        ? active
+        : null;
+  }
+
+  /**
+   * The FAB is re-rendered when the dialog closes, so wait a tick. Falls
+   * back to the FAB when the opener is gone (it was the FAB itself, or
+   * its row was deleted).
+   */
+  #restoreFocus(): void {
+    const opener = this.#returnFocusTo;
+    this.#returnFocusTo = null;
+    setTimeout(() => {
+      const target = opener?.isConnected
+        ? opener
+        : this.addButton()?.nativeElement;
+      target?.focus();
+    });
+  }
+
+  #startScrollLoop(): void {
+    if (this.#scrollAnimationId !== null) return;
+
+    const loop = (): void => {
+      const container = this.scrollContainer()?.nativeElement;
+      if (container && this.#scrollSpeed !== 0) {
+        container.scrollTop += this.#scrollSpeed;
+        this.#scrollAnimationId = requestAnimationFrame(loop);
+      } else {
+        this.#scrollAnimationId = null;
+      }
+    };
+
+    this.#scrollAnimationId = requestAnimationFrame(loop);
+  }
+
+  #stopScrollLoop(): void {
+    if (this.#scrollAnimationId !== null) {
+      cancelAnimationFrame(this.#scrollAnimationId);
+      this.#scrollAnimationId = null;
+    }
+    this.#scrollSpeed = 0;
+  }
+
+  setStatusFilter(filter: StatusFilter): void {
+    this.statusFilter.set(filter);
     this.focusedIndex.set(-1);
   }
 
@@ -238,16 +321,91 @@ export class TodoListComponent implements OnInit {
     this.focusedIndex.set(-1);
   }
 
-  focusSearch(): void {
-    const el = this.searchInput()?.nativeElement;
-    if (el) {
-      el.focus();
-      el.select();
+  setFocus(index: number): void {
+    this.focusedIndex.set(index);
+  }
+
+  showCreateForm(): void {
+    if (!this.hasSession()) return;
+    this.#rememberFocus();
+    this.#store.showCreateForm();
+  }
+
+  editTodo(todo: Todo): void {
+    if (!this.canEditTodo(todo)) {
+      this.#store.setError(
+        this.#translate.instant('TODOS.MESSAGES.ERROR_NO_PERM_EDIT'),
+      );
+      return;
+    }
+    this.#rememberFocus();
+    this.#store.showEditForm(todo.id);
+  }
+
+  saveTodo(todoData: TodoCreate): void {
+    const editing = this.#store.editingTodo();
+    if (editing) {
+      this.#store.updateTodo(editing.id, todoData);
+    } else {
+      this.#store.createTodo(todoData);
     }
   }
 
+  toggleTodoCompletion(todo: Todo): void {
+    this.#store.toggleTodo(todo);
+  }
+
+  deleteTodo(todo: Todo): void {
+    if (!this.canEditTodo(todo)) {
+      this.#store.setError(
+        this.#translate.instant('TODOS.MESSAGES.ERROR_NO_PERM_DELETE'),
+      );
+      return;
+    }
+
+    this.#confirmationService.confirm({
+      message: this.#translate.instant(
+        'TODOS.MESSAGES.DELETE_CONFIRM_MESSAGE',
+        {
+          title: todo.title,
+        },
+      ),
+      header: this.#translate.instant('TODOS.MESSAGES.DELETE_CONFIRM_TITLE'),
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: this.#translate.instant('TODOS.FORM.SUBMIT_DELETE'),
+      rejectLabel: this.#translate.instant('TODOS.FORM.CANCEL'),
+      accept: () => {
+        this.#store.deleteTodo(todo.id);
+      },
+    });
+  }
+
+  canEditTodo(todo: Todo): boolean {
+    const user = this.#currentUser();
+    return this.hasSession() && !!user && user.id === todo.userId;
+  }
+
+  clearError(): void {
+    this.#store.clearError();
+  }
+
+  getGroupById(groupId: number | null | undefined): Group | undefined {
+    if (!groupId) return undefined;
+    return this.#groupsById().get(groupId);
+  }
+
+  formatDate(dateString: string | undefined): string {
+    return formatDateTime(dateString);
+  }
+
+  getRelativeTime(dateString: string | undefined): string {
+    const lang =
+      this.#translate.currentLang || this.#translate.defaultLang || 'en';
+    return relativeTimeFrom(dateString, lang);
+  }
+
   @HostListener('window:keydown', ['$event'])
-  handleKeyboard(event: KeyboardEvent): void {
+  onKeydown(event: KeyboardEvent): void {
     if (this.formVisible()) return;
     if (event.ctrlKey || event.metaKey || event.altKey) return;
 
@@ -275,156 +433,40 @@ export class TodoListComponent implements OnInit {
         break;
       case '/':
         event.preventDefault();
-        this.focusSearch();
+        this.#focusSearch();
         break;
       case 'j':
       case 'J':
         event.preventDefault();
-        this.moveFocus(1);
+        this.#moveFocus(1);
         break;
       case 'k':
       case 'K':
         event.preventDefault();
-        this.moveFocus(-1);
+        this.#moveFocus(-1);
         break;
       case 'x':
       case 'X':
         event.preventDefault();
-        this.toggleFocusedTodo();
+        this.#toggleFocusedTodo();
         break;
     }
   }
 
-  moveFocus(delta: number): void {
-    const list = this.todos();
-    if (list.length === 0) return;
-    const current = this.focusedIndex();
-    let next = current + delta;
-    if (current === -1) {
-      next = delta > 0 ? 0 : list.length - 1;
-    }
-    next = Math.max(0, Math.min(list.length - 1, next));
-    this.focusedIndex.set(next);
-    this.scrollFocusedIntoView();
-  }
-
-  setFocus(index: number): void {
-    this.focusedIndex.set(index);
-  }
-
-  toggleFocusedTodo(): void {
-    const idx = this.focusedIndex();
-    const list = this.todos();
-    if (idx < 0 || idx >= list.length) return;
-    const todo = list[idx];
-    if (!this.canEditTodo(todo)) return;
-    this.toggleTodoCompletion(todo);
-  }
-
-  private scrollFocusedIntoView(): void {
-    if (!this.isBrowser()) return;
-    queueMicrotask(() => {
-      const container = this.scrollContainer()?.nativeElement;
-      if (!container) return;
-      const el = container.querySelector<HTMLElement>('.todo-row.is-focused');
-      if (el) {
-        // Real focus, so screen readers follow j/k too.
-        el.focus({ preventScroll: true });
-        el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      }
-    });
-  }
-
-  showCreateForm(): void {
-    if (!this.hasSession()) return;
-    this.#rememberFocus();
-    this.store.showCreateForm();
-  }
-
-  editTodo(todo: Todo): void {
-    if (!this.canEditTodo(todo)) {
-      this.store.setError(
-        this.translate.instant('TODOS.MESSAGES.ERROR_NO_PERM_EDIT'),
-      );
-      return;
-    }
-    this.#rememberFocus();
-    this.store.showEditForm(todo.id);
+  onSearchInput(value: string): void {
+    this.searchQuery.set(value);
+    this.focusedIndex.set(-1);
   }
 
   onVisibleChange(isVisible: boolean): void {
     if (!isVisible) {
-      this.store.hideForm();
+      this.#store.hideForm();
     }
   }
 
   onDialogHide(): void {
     this.todoForm()?.reset();
-    this.restoreFocus();
-  }
-
-  /**
-   * The FAB is re-rendered when the dialog closes, so wait a tick. Falls
-   * back to the FAB when the opener is gone (it was the FAB itself, or
-   * its row was deleted).
-   */
-  restoreFocus(): void {
-    const opener = this.#returnFocusTo;
-    this.#returnFocusTo = null;
-    setTimeout(() => {
-      const target = opener?.isConnected
-        ? opener
-        : this.addButton()?.nativeElement;
-      target?.focus();
-    });
-  }
-
-  #rememberFocus(): void {
-    const active = this.#document.activeElement;
-    this.#returnFocusTo =
-      active instanceof HTMLElement && active !== this.#document.body
-        ? active
-        : null;
-  }
-
-  saveTodo(todoData: TodoCreate): void {
-    const editing = this.store.editingTodo();
-    if (editing) {
-      this.store.updateTodo(editing.id, todoData);
-    } else {
-      this.store.createTodo(todoData);
-    }
-  }
-
-  toggleTodoCompletion(todo: Todo): void {
-    this.store.toggleTodo(todo);
-  }
-
-  deleteTodo(todo: Todo): void {
-    if (!this.canEditTodo(todo)) {
-      this.store.setError(
-        this.translate.instant('TODOS.MESSAGES.ERROR_NO_PERM_DELETE'),
-      );
-      return;
-    }
-
-    this.confirmationService.confirm({
-      message: this.translate.instant('TODOS.MESSAGES.DELETE_CONFIRM_MESSAGE', {
-        title: todo.title,
-      }),
-      header: this.translate.instant('TODOS.MESSAGES.DELETE_CONFIRM_TITLE'),
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: this.translate.instant('TODOS.FORM.SUBMIT_DELETE'),
-      rejectLabel: this.translate.instant('TODOS.FORM.CANCEL'),
-      accept: () => {
-        this.store.deleteTodo(todo.id);
-      },
-    });
-  }
-
-  canEditTodo(todo: Todo): boolean {
-    const user = this.currentUser;
-    return this.hasSession() && !!user && user.id === todo.userId;
+    this.#restoreFocus();
   }
 
   onDrop(event: CdkDragDrop<Todo[]>): void {
@@ -435,7 +477,7 @@ export class TodoListComponent implements OnInit {
         return;
       }
       const todoToMove = this.todos()[event.previousIndex];
-      this.store.reorderTodo(todoToMove.id, event.currentIndex);
+      this.#store.reorderTodo(todoToMove.id, event.currentIndex);
     }
   }
 
@@ -468,52 +510,5 @@ export class TodoListComponent implements OnInit {
 
   onDragEnded(): void {
     this.#stopScrollLoop();
-  }
-
-  #startScrollLoop(): void {
-    if (this.#scrollAnimationId !== null) return;
-
-    const loop = (): void => {
-      const container = this.scrollContainer()?.nativeElement;
-      if (container && this.#scrollSpeed !== 0) {
-        container.scrollTop += this.#scrollSpeed;
-        this.#scrollAnimationId = requestAnimationFrame(loop);
-      } else {
-        this.#scrollAnimationId = null;
-      }
-    };
-
-    this.#scrollAnimationId = requestAnimationFrame(loop);
-  }
-
-  #stopScrollLoop(): void {
-    if (this.#scrollAnimationId !== null) {
-      cancelAnimationFrame(this.#scrollAnimationId);
-      this.#scrollAnimationId = null;
-    }
-    this.#scrollSpeed = 0;
-  }
-
-  clearError(): void {
-    this.store.clearError();
-  }
-
-  getGroupById(groupId: number | null | undefined): Group | undefined {
-    if (!groupId) return undefined;
-    return this.#groupsById().get(groupId);
-  }
-
-  readonly #groupsById = computed(
-    () => new Map(this.groupStore.groups().map((g) => [g.id, g])),
-  );
-
-  formatDate(dateString: string | undefined): string {
-    return formatDateTime(dateString);
-  }
-
-  getRelativeTime(dateString: string | undefined): string {
-    const lang =
-      this.translate.currentLang || this.translate.defaultLang || 'en';
-    return relativeTimeFrom(dateString, lang);
   }
 }

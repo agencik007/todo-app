@@ -46,6 +46,8 @@
     inputId="group"
     [label]="'TODOS.FORM.FIELD_GROUP' | translate"
   >
+    <!-- ngModel, not [formField]: PrimeNG inputs have a string `pattern` input
+         that the Signal Forms binding fills with RegExp[] -->
     <p-select
       optionValue="id"
       optionLabel="name"
