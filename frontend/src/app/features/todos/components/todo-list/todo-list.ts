@@ -328,6 +328,8 @@ export class TodoListComponent implements OnInit {
       if (!container) return;
       const el = container.querySelector<HTMLElement>('.todo-row.is-focused');
       if (el) {
+        // Real focus, so screen readers follow j/k too.
+        el.focus({ preventScroll: true });
         el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
     });

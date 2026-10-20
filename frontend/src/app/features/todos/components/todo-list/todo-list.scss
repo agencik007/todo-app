@@ -449,7 +449,11 @@
       var(--p-primary-500, #3b82f6) 30%,
       var(--p-content-border-color)
     );
+  }
 
+  // Keyboard users reach the actions with Tab, so show them on focus too.
+  &:hover,
+  &:focus-within {
     .row-handle:not(.row-handle-spacer) {
       opacity: 0.65;
     }
@@ -459,6 +463,11 @@
       transform: translateX(0);
       pointer-events: auto;
     }
+  }
+
+  // .is-focused below draws the focus ring.
+  &:focus {
+    outline: none;
   }
 
   &.is-focused {
