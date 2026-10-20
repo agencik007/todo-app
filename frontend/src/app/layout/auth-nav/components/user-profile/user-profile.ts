@@ -69,7 +69,7 @@ export class UserProfileComponent {
   readonly activePanel = signal<'profile' | 'settings'>('profile');
   readonly isCompact = computed(() => this.#screenSize.isCompact());
   readonly canInstall = this.#pwaInstall.canInstall;
-  readonly appBadgeSupported = this.#appBadge.supported;
+  readonly appBadgeAvailable = this.#appBadge.available;
   readonly appBadgeEnabled = this.#appBadge.enabled;
   /** False offline: account changes and logout need the server. */
   readonly canWrite = this.#authStore.canWrite;
