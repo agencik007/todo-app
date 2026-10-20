@@ -397,8 +397,7 @@ export class TodoListComponent implements OnInit {
       }),
       header: this.translate.instant('TODOS.MESSAGES.DELETE_CONFIRM_TITLE'),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel:
-        this.translate.instant('TODOS.FORM.SUBMIT_DELETE') || 'Tak, usuń',
+      acceptLabel: this.translate.instant('TODOS.FORM.SUBMIT_DELETE'),
       rejectLabel: this.translate.instant('TODOS.FORM.CANCEL'),
       accept: () => {
         this.store.deleteTodo(todo.id);

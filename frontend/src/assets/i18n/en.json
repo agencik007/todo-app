@@ -131,7 +131,7 @@
       "TITLE": "Reset password",
       "SUCCESS_TITLE": "Password changed!",
       "SUCCESS_MESSAGE": "Your password has been successfully updated. You can now log in using the new password.",
-      "REDIRECTING": "Redirecting to login...",
+      "REDIRECTING": "Redirecting to login…",
       "LOGIN_NOW": "Login now",
       "NEW_PASSWORD_LABEL": "New password",
       "NEW_PASSWORD_PLACEHOLDER": "Minimum 8 characters",
@@ -155,8 +155,8 @@
     },
     "VERIFY_EMAIL": {
       "TITLE": "E-mail Verification",
-      "LOADING": "Verifying E-mail address...",
-      "SUCCESS_REDIRECT": "You will be redirected to the login page in a moment...",
+      "LOADING": "Verifying E-mail address…",
+      "SUCCESS_REDIRECT": "You will be redirected to the login page in a moment…",
       "LOGIN_NOW": "Go to login now",
       "GO_TO_LOGIN": "Go to login",
       "REGISTER_AGAIN": "Register again",
@@ -170,29 +170,26 @@
     }
   },
   "TODOS": {
-    "TITLE": "My Todo List",
-    "SUBTITLE": "Manage your tasks in a simple and effective way",
-    "GREETING": "Hello {{name}}, have a great day",
+    "GREETING": "Hello, {{name}}. Have a great day!",
     "ADD_BUTTON": "Add task",
     "STATS": {
       "ALL": "All",
       "PENDING": "To do",
-      "COMPLETED": "Completed",
-      "SUMMARY_TOOLTIP": "Total / Pending / Completed tasks"
+      "COMPLETED": "Completed"
     },
     "SEARCH": {
-      "PLACEHOLDER": "Search tasks...",
-      "CLEAR": "Clear search",
-      "HINT_KEY": "/"
+      "PLACEHOLDER": "Search tasks…",
+      "CLEAR": "Clear search"
     },
     "FILTERS": {
       "TOOLTIP_ALL": "Show all tasks",
-      "TOOLTIP_PENDING": "Show only pending",
+      "TOOLTIP_PENDING": "Show only tasks to do",
       "TOOLTIP_COMPLETED": "Show only completed",
       "PROGRESS_LABEL": "{{done}}/{{total}} done",
       "EMPTY_FILTERED_TITLE": "No matches",
       "EMPTY_FILTERED_MESSAGE": "No task matches the selected filter or phrase.",
-      "EMPTY_FILTERED_RESET": "Clear filters"
+      "EMPTY_FILTERED_RESET": "Clear filters",
+      "STATUS_LABEL": "Filter by status"
     },
     "FAB": {
       "TOOLTIP": "Add task · n"
@@ -200,22 +197,14 @@
     "SHORTCUTS": {
       "HINT": "n new · / search · j/k navigate · x toggle"
     },
-    "MENU": {
-      "COLLAPSE": "Collapse menu",
-      "EXPAND": "Expand menu"
-    },
     "LIST": {
-      "STATUS_COMPLETED": "Completed",
-      "STATUS_PENDING": "To do",
-      "PUBLIC": "Public",
       "FILTER_LABEL": "View:",
       "OWNER_INFO": "This task belongs to user {{email}}",
       "CREATED_AT": "Created",
       "UPDATED_AT": "Updated",
-      "TOOLTIP_STATUS": "Task Status",
-      "TOOLTIP_GROUP": "Task Group",
-      "TOOLTIP_EDIT": "Edit Task",
-      "TOOLTIP_DELETE": "Delete Task",
+      "TOOLTIP_GROUP": "Task group",
+      "TOOLTIP_EDIT": "Edit task",
+      "TOOLTIP_DELETE": "Delete task",
       "EMPTY_TITLE": "No tasks",
       "EMPTY_MESSAGE": "You don't have any tasks yet. Add your first task to start!",
       "ADD_FIRST": "Add first task",
@@ -224,12 +213,12 @@
     "FORM": {
       "TITLE_EDIT": "Edit task",
       "TITLE_ADD": "Add new task",
-      "FIELD_TITLE": "Title *",
-      "FIELD_TITLE_PLACEHOLDER": "Enter task title...",
+      "FIELD_TITLE": "Title",
+      "FIELD_TITLE_PLACEHOLDER": "Enter task title…",
       "FIELD_DESCRIPTION": "Description",
-      "FIELD_DESCRIPTION_PLACEHOLDER": "Add optional description...",
+      "FIELD_DESCRIPTION_PLACEHOLDER": "Add optional description…",
       "FIELD_GROUP": "Group",
-      "FIELD_GROUP_HINT": "Optional - organize your tasks by group",
+      "FIELD_GROUP_HINT": "Optional – organize your tasks by group",
       "CANCEL": "Cancel",
       "SUBMIT_ADD": "Add task",
       "SUBMIT_SAVE": "Save changes",
@@ -239,10 +228,9 @@
       }
     },
     "DRAG_HANDLE": "Drag to reorder",
-    "TRASH_DROP_CONFIRM": "Delete '{{title}}'?",
     "MESSAGES": {
       "DELETE_CONFIRM_TITLE": "Confirm deletion",
-      "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete the task \"{{title}}\"?",
+      "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete the task “{{title}}”?",
       "DELETE_SUCCESS": "Task deleted successfully",
       "CREATE_SUCCESS": "Task created successfully",
       "UPDATE_SUCCESS": "Task updated successfully",
@@ -364,7 +352,7 @@
       "TITLE_CREATE": "New Group",
       "TITLE_EDIT": "Edit Group",
       "NAME_LABEL": "Group Name",
-      "NAME_PLACEHOLDER": "Enter name...",
+      "NAME_PLACEHOLDER": "Enter name…",
       "COLOR_LABEL": "Color",
       "CREATE": "Create Group",
       "UPDATE": "Update Group",
@@ -385,12 +373,12 @@
     "WIND": "Wind"
   },
   "LOGIN_ANIMATION": {
-    "LOADING_TODOS": "Loading tasks...",
-    "LOADING_SETTINGS": "Loading user settings...",
-    "LOADING_GROUPS": "Loading groups...",
-    "LOADING_NOTIFICATIONS": "Loading notifications...",
-    "LOADING_STATISTICS": "Loading statistics...",
-    "FINALIZING": "Finalizing..."
+    "LOADING_TODOS": "Loading tasks…",
+    "LOADING_SETTINGS": "Loading user settings…",
+    "LOADING_GROUPS": "Loading groups…",
+    "LOADING_NOTIFICATIONS": "Loading notifications…",
+    "LOADING_STATISTICS": "Loading statistics…",
+    "FINALIZING": "Finalizing…"
   },
   "SETTINGS": {
     "BACKGROUND_TOOLTIP": {
