@@ -171,7 +171,7 @@
     }
   },
   "TODOS": {
-    "GREETING": "Hello, {{name}}. Have a great day!",
+    "GREETING": "Hello! Have a great day",
     "ADD_BUTTON": "Add task",
     "STATS": {
       "ALL": "All",

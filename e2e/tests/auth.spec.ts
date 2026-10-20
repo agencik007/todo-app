@@ -9,7 +9,6 @@ test('a new user registers, verifies the email, logs in and logs out', async ({
   request,
 }) => {
   const user = newUser();
-  const name = user.email.split('@')[0];
 
   await new RegisterPage(page).goto();
   await new RegisterPage(page).register(user);
@@ -21,7 +20,7 @@ test('a new user registers, verifies the email, logs in and logs out', async ({
 
   await new LoginPage(page).login(user);
   await expect(page).toHaveURL(/\/todos/);
-  await expect(new TodosPage(page).greeting(name)).toBeVisible();
+  await expect(new TodosPage(page).greeting()).toBeVisible();
 
   await page.getByRole('button', { name: user.email }).click();
   await page.getByRole('button', { name: 'Logout' }).click();
@@ -52,17 +51,18 @@ test('login is rejected until the email is verified', async ({ page, request }) 
 test('a logged-in session survives a page reload', async ({ page, loggedIn }) => {
   const todos = new TodosPage(page);
   await todos.goto();
-  await expect(todos.greeting(loggedIn.email.split('@')[0])).toBeVisible();
+  await expect(todos.greeting()).toBeVisible();
 
   await page.reload();
   await expect(page).toHaveURL(/\/todos/);
-  await expect(todos.greeting(loggedIn.email.split('@')[0])).toBeVisible();
+  await expect(todos.greeting()).toBeVisible();
+  await expect(page.getByRole('button', { name: loggedIn.email })).toBeVisible();
 });
 
 test('a user deletes their account and can no longer log in', async ({ page, loggedIn }) => {
   const todos = new TodosPage(page);
   await todos.goto();
-  await expect(todos.greeting(loggedIn.email.split('@')[0])).toBeVisible();
+  await expect(todos.greeting()).toBeVisible();
 
   await new UserMenu(page).deleteAccount(loggedIn);
   await expect(page).toHaveURL(/\/login/);
