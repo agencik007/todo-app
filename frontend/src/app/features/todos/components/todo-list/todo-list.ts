@@ -95,11 +95,6 @@ export class TodoListComponent implements OnInit {
   readonly searchQuery = signal('');
   readonly focusedIndex = signal(-1);
 
-  readonly userName = computed(() => {
-    const email = this.#currentUser()?.email;
-    return email ? email.split('@')[0] : '';
-  });
-
   readonly todos = computed(() => {
     const status = this.statusFilter();
     const query = this.searchQuery().trim().toLowerCase();

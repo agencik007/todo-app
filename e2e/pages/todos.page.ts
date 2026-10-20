@@ -11,8 +11,8 @@ export class TodosPage {
     await this.page.goto('/todos');
   }
 
-  greeting(name: string): Locator {
-    return this.page.getByRole('heading', { name: `Hello, ${name}` });
+  greeting(): Locator {
+    return this.page.getByRole('heading', { name: /^Hello/ });
   }
 
   row(title: string): Locator {

@@ -2,9 +2,10 @@ import { expect, test } from '../fixtures/test';
 import { TodosPage } from '../pages/todos.page';
 
 test.beforeEach(async ({ page, loggedIn }) => {
+  void loggedIn;
   const todos = new TodosPage(page);
   await todos.goto();
-  await expect(todos.greeting(loggedIn.email.split('@')[0])).toBeVisible();
+  await expect(todos.greeting()).toBeVisible();
 });
 
 test('a new user starts with an empty list', async ({ page }) => {
