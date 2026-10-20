@@ -387,11 +387,11 @@ make e2e-down                   # stop it and drop its data
 
 `.github/workflows/ci.yml` runs on every push to `develop` and on every pull request. Merge only when all jobs are green (a branch protection rule on `develop` can enforce this):
 
-| Job        | What it checks                                                                                                 |
-| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| Job        | What it checks                                                                                                                                                                                                                           |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `backend`  | `ruff check`, `ruff format --check`, `alembic upgrade head` + `alembic check` on an empty database (the migrations must build the schema the models describe) and the full `pytest` suite (with the coverage gate) against PostgreSQL 15 |
-| `frontend` | `npm ci`, `npm run lint`, `npm run format:check` (Prettier) and `npm run build` (SSR + prerender)              |
-| `e2e`      | Builds the production Docker images, starts `docker/docker-compose.e2e.yml` and runs the Playwright tests      |
+| `frontend` | `npm ci`, `npm run lint`, `npm run format:check` (Prettier) and `npm run build` (SSR + prerender)                                                                                                                                        |
+| `e2e`      | Builds the production Docker images, starts `docker/docker-compose.e2e.yml` and runs the Playwright tests                                                                                                                                |
 
 To reproduce the backend job locally, format and lint with `ruff format` / `ruff check` in `backend/` (configured in `backend/ruff.toml`; use the version pinned in `requirements-dev.txt`; the pre-commit hook already does this for staged files) and run `make test-backend`. For the frontend job, run `npm run lint` and `npm run format:check` in `frontend/` (`npx prettier --write .` fixes formatting). For the e2e job, run `make test-e2e`; when it fails in CI, the HTML report (with traces and screenshots) is attached to the run as the `playwright-report` artifact.
 
@@ -870,12 +870,12 @@ The frontend has a small design system layered on top of the PrimeNG (PrimeUIX A
 
 **Shared UI primitives** — `frontend/src/app/shared/ui/`
 
-| Primitive               | Usage                                                                                                                     |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `button[appIconButton]` | Square icon button; `variant` (`ghost` / `primary` / `danger`), `size` (`sm`–`xl`), `reveal` (visible on container hover) |
-| `app-badge`             | Small label / pill (e.g. group badge on a todo)                                                                           |
-| `app-empty-state`       | Empty list / info state with icon or emoji, heading and description                                                       |
-| `app-form-field`        | Label (with optional icon) + projected control and error messages; presentational only — validation stays in the form     |
+| Primitive               | Usage                                                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `button[appIconButton]` | Square icon button; `variant` (`ghost` / `primary` / `danger`), `size` (`sm`–`xl`), `reveal` (visible on container hover)                     |
+| `app-badge`             | Small label / pill (e.g. group badge on a todo)                                                                                               |
+| `app-empty-state`       | Empty list / info state with icon or emoji, heading and description                                                                           |
+| `app-form-field`        | Label (with optional icon and `required` asterisk) + projected control and error messages; presentational only — validation stays in the form |
 
 Before adding a new ad-hoc button, badge or empty state, check whether one of these fits.
 
