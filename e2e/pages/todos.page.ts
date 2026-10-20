@@ -12,7 +12,7 @@ export class TodosPage {
   }
 
   greeting(name: string): Locator {
-    return this.page.getByRole('heading', { name: `Hello ${name}` });
+    return this.page.getByRole('heading', { name: `Hello, ${name}` });
   }
 
   row(title: string): Locator {
