@@ -92,6 +92,7 @@ export class TodoStore {
   );
   private readonly _editingTodoId = signal<number | null>(null);
   private readonly _formVisible = signal(false);
+  private readonly _saving = signal(false);
 
   // Public readonly signals
   readonly todos = this._todos;
@@ -106,6 +107,8 @@ export class TodoStore {
     return null;
   });
   readonly formVisible = this._formVisible.asReadonly();
+  /** The form's create/update request is in flight; hideForm() ends it. */
+  readonly saving = this._saving.asReadonly();
 
   // Reactive filtering based on GroupStore selection
   readonly filteredTodos = computed(() => {
@@ -196,6 +199,7 @@ export class TodoStore {
       return;
     }
 
+    this._saving.set(true);
     this.#todoService
       .createTodo({ ...todoData, clientId: todo.clientId })
       .subscribe({
@@ -206,6 +210,7 @@ export class TodoStore {
         error: (err) => {
           if (!isServerUnreachable(err)) {
             console.error('Create todo failed:', err);
+            this._saving.set(false);
             return;
           }
           // The connection dropped: queue it. The same clientId makes the
@@ -217,6 +222,7 @@ export class TodoStore {
   }
 
   updateTodo(id: number, update: TodoUpdate): void {
+    this._saving.set(true);
     this.#update(id, update, () => this.hideForm());
   }
 
@@ -261,6 +267,7 @@ export class TodoStore {
       error: (err) => {
         if (!isServerUnreachable(err)) {
           console.error('Update todo failed:', err);
+          this._saving.set(false);
           return;
         }
         this.#queue({ kind: 'update', todoId: id, changes });
@@ -556,6 +563,7 @@ export class TodoStore {
   hideForm(): void {
     this._editingTodoId.set(null);
     this._formVisible.set(false);
+    this._saving.set(false);
   }
 
   setError(message: string): void {

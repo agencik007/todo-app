@@ -25,7 +25,8 @@ export class TodosPage {
   }
 
   filter(name: 'All' | 'To do' | 'Completed'): Locator {
-    return this.page.getByRole('tab', { name });
+    // Accessible name is the label plus the count, e.g. "To do 3".
+    return this.page.getByRole('button', { name: new RegExp(`^${name} \\d+$`) });
   }
 
   async add(title: string, description?: string): Promise<void> {

@@ -20,18 +20,17 @@
       <div class="command-bar">
         <!-- Status filter pills -->
         <div
-          role="tablist"
+          role="group"
           class="status-pills"
           [attr.aria-label]="'TODOS.FILTERS.STATUS_LABEL' | translate"
         >
           <button
             type="button"
             tooltipPosition="bottom"
-            role="tab"
             class="pill pill-all"
             [pTooltip]="'TODOS.FILTERS.TOOLTIP_ALL' | translate"
             [class.active]="statusFilter() === 'all'"
-            [attr.aria-selected]="statusFilter() === 'all'"
+            [attr.aria-pressed]="statusFilter() === 'all'"
             (click)="setStatusFilter('all')"
           >
             <span
@@ -45,11 +44,10 @@
           <button
             type="button"
             tooltipPosition="bottom"
-            role="tab"
             class="pill pill-pending"
             [pTooltip]="'TODOS.FILTERS.TOOLTIP_PENDING' | translate"
             [class.active]="statusFilter() === 'pending'"
-            [attr.aria-selected]="statusFilter() === 'pending'"
+            [attr.aria-pressed]="statusFilter() === 'pending'"
             (click)="setStatusFilter('pending')"
           >
             <span
@@ -63,11 +61,10 @@
           <button
             type="button"
             tooltipPosition="bottom"
-            role="tab"
             class="pill pill-completed"
             [pTooltip]="'TODOS.FILTERS.TOOLTIP_COMPLETED' | translate"
             [class.active]="statusFilter() === 'completed'"
-            [attr.aria-selected]="statusFilter() === 'completed'"
+            [attr.aria-pressed]="statusFilter() === 'completed'"
             (click)="setStatusFilter('completed')"
           >
             <span
@@ -226,6 +223,7 @@
                 [cdkDragDisabled]="!canEditTodo(todo)"
                 [cdkDragData]="todo"
                 (keydown.enter)="setFocus(idx)"
+                (focus)="setFocus(idx)"
                 (click)="setFocus(idx)"
                 (cdkDragMoved)="onDragMoved($event)"
                 (cdkDragEnded)="onDragEnded()"
@@ -468,12 +466,12 @@
             <p-button
               type="button"
               size="small"
-              [loading]="tf.isSubmitting()"
+              [loading]="saving()"
               [label]="
                 (editingTodo() ? 'TODOS.FORM.SUBMIT_SAVE' : 'TODOS.FORM.SUBMIT_ADD') | translate
               "
               [icon]="editingTodo() ? 'pi pi-save' : 'pi pi-plus'"
-              [disabled]="tf.isSubmitting() || !tf.todoModel().title.trim()"
+              [disabled]="saving() || !tf.todoModel().title.trim()"
               (onClick)="tf.onSubmit()"
             />
           </div>
@@ -483,9 +481,7 @@
           #tf
           [todo]="editingTodo()"
           (save)="saveTodo($event)"
-          (cancelTodo)="closeForm()"
-        >
-        </app-todo-form>
+        />
       </p-dialog>
 
       <!-- Confirm Delete Dialog -->

@@ -56,3 +56,17 @@ test('status filters show pending and completed tasks separately', async ({ page
   await expect(todos.row('Pending task')).toBeVisible();
   await expect(todos.row('Done task')).toBeVisible();
 });
+
+test('closing the form gives focus back to the button that opened it', async ({ page }) => {
+  const todos = new TodosPage(page);
+  await todos.add('Focus task');
+  await expect(todos.addButton()).toBeFocused();
+
+  const edit = todos.row('Focus task').getByRole('button', { name: 'Edit task' });
+  await edit.focus();
+  await page.keyboard.press('Enter');
+  await expect(todos.dialog).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(todos.dialog).toBeHidden();
+  await expect(edit).toBeFocused();
+});
