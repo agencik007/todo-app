@@ -34,7 +34,6 @@ interface TodoFormModel {
     FormFieldComponent,
   ],
   templateUrl: './todo-form.html',
-  styleUrl: './todo-form.scss',
 })
 export class TodoFormComponent {
   readonly #groupStore = inject(GroupStore);
