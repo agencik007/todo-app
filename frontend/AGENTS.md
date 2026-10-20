@@ -139,6 +139,24 @@ Signal-based stores (`AuthStore`, `TodoStore`).
 
 Use `ngx-translate`. Add translations to `src/assets/i18n/en.json` and `pl.json` under `API_MESSAGES`.
 
+### Copy & terminology
+
+Every user-facing text (templates, `aria-label`s, tooltips, toasts) comes from the i18n files — never hardcode it, not even as a fallback. Delete keys once nothing uses them.
+
+- **Voice:** address the user directly (EN "you", PL "ty"); never speak as "we" ("życzymy", "wysłaliśmy"). Friendly but plain, no slang ("usera" → "użytkownika").
+- **Terms** — one word per concept, in both languages:
+
+  | Concept                 | EN        | PL           |
+  | ----------------------- | --------- | ------------ |
+  | todo item               | task      | zadanie      |
+  | not completed (pending) | To do     | Do zrobienia |
+  | completed               | Completed | Ukończone    |
+  | group                   | group     | grupa        |
+
+- **Capitalization:** sentence case everywhere, including EN buttons, tooltips and dialog titles ("Edit task", not "Edit Task").
+- **Punctuation:** ellipsis `…` (not `...`), dash `–` with spaces (not `-`), quotes EN “…”, PL „…”. Commas PL grammar requires (vocative "Witaj, Jan", before "aby", "że", "który").
+- **Required fields:** mark them with `app-form-field`'s `required` input, never with `*` in the label text.
+
 ---
 
 ## PWA (service worker)

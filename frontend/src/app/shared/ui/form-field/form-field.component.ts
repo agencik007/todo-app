@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+  booleanAttribute,
+  ChangeDetectionStrategy,
+  Component,
+  input,
+} from '@angular/core';
 
 /**
  * Pole formularza: etykieta z opcjonalną ikoną + projekcja kontrolki
@@ -19,6 +24,9 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
         <i class="pi {{ icon() }}" aria-hidden="true"></i>
       }
       {{ label() }}
+      @if (required()) {
+        <span class="required-mark" aria-hidden="true">*</span>
+      }
     </label>
     <ng-content />
   `,
@@ -30,4 +38,6 @@ export class FormFieldComponent {
   readonly icon = input<string>();
   /** Id projektowanej kontrolki — trafia do atrybutu for etykiety. */
   readonly inputId = input<string>();
+  /** Gwiazdka przy etykiecie; walidacja nadal należy do formularza. */
+  readonly required = input(false, { transform: booleanAttribute });
 }

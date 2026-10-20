@@ -12,7 +12,7 @@ export class TodosPage {
   }
 
   greeting(name: string): Locator {
-    return this.page.getByRole('heading', { name: `Hello ${name}` });
+    return this.page.getByRole('heading', { name: `Hello, ${name}` });
   }
 
   row(title: string): Locator {
@@ -41,7 +41,7 @@ export class TodosPage {
   async rename(title: string, newTitle: string): Promise<void> {
     const row = this.row(title);
     await row.hover();
-    await row.getByRole('button', { name: 'Edit Task' }).click();
+    await row.getByRole('button', { name: 'Edit task' }).click();
     await this.dialog.getByRole('textbox', { name: /^Title/ }).fill(newTitle);
     await this.dialog.getByRole('button', { name: 'Save changes' }).click();
     await expect(this.dialog).toBeHidden();
@@ -57,7 +57,7 @@ export class TodosPage {
   async remove(title: string): Promise<void> {
     const row = this.row(title);
     await row.hover();
-    await row.getByRole('button', { name: 'Delete Task' }).click();
+    await row.getByRole('button', { name: 'Delete task' }).click();
     await this.page.getByRole('alertdialog').getByRole('button', { name: 'Yes, delete' }).click();
   }
 }
