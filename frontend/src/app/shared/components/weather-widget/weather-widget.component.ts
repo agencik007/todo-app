@@ -1,7 +1,9 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TooltipModule } from 'primeng/tooltip';
-import { switchMap } from 'rxjs';
+import { filter, fromEvent, timer } from 'rxjs';
 import { WeatherService } from '../../../core/services/weather.service';
 
 @Component({
@@ -15,7 +17,7 @@ import { WeatherService } from '../../../core/services/weather.service';
         [pTooltip]="tooltipText"
       >
         <div class="weather-icon-container">
-          @switch (weatherType) {
+          @switch (weatherService.weatherType()) {
             @case ('sunny') {
               <div class="weather-icon">
                 <div class="sunny-rays"></div>
@@ -100,47 +102,37 @@ import { WeatherService } from '../../../core/services/weather.service';
 export class WeatherWidgetComponent implements OnInit {
   readonly weatherService = inject(WeatherService);
   readonly #translateService = inject(TranslateService);
-
-  visible = signal(false);
+  readonly #destroyRef = inject(DestroyRef);
+  readonly #document = inject(DOCUMENT);
 
   ngOnInit(): void {
-    this.weatherService
-      .getGeolocation()
-      .pipe(
-        switchMap((position) => {
-          this.visible.set(true);
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
+    timer(0, WeatherService.REFRESH_INTERVAL_MS)
+      .pipe(takeUntilDestroyed(this.#destroyRef))
+      .subscribe(() => this.#loadWeather());
 
-          this.weatherService.fetchWeather(lat, lon);
-          return [];
-        }),
+    // Browsers throttle timers in background tabs: catch up when it is shown.
+    fromEvent(this.#document, 'visibilitychange')
+      .pipe(
+        filter(
+          () =>
+            this.#document.visibilityState === 'visible' &&
+            Date.now() - this.weatherService.lastFetchAt >=
+              WeatherService.REFRESH_INTERVAL_MS,
+        ),
+        takeUntilDestroyed(this.#destroyRef),
       )
-      .subscribe({
-        error: (err) => {
-          console.error('Weather widget error:', err);
-          this.visible.set(false);
-        },
-      });
+      .subscribe(() => this.#loadWeather());
   }
 
-  get weatherType(): string {
-    const code = this.weatherService.weather()?.weatherCode;
-    if (code === undefined) return 'unknown';
-
-    // WMO Weather interpretation codes (WW)
-    if (code === 0) return 'sunny';
-    if (code >= 1 && code <= 3) {
-      return code === 1 ? 'partly-cloudy' : 'cloudy';
-    }
-    if (code >= 45 && code <= 48) return 'foggy';
-    if (code >= 51 && code <= 67) return 'rainy';
-    if (code >= 71 && code <= 77) return 'snowy';
-    if (code >= 80 && code <= 82) return 'rainy';
-    if (code >= 85 && code <= 86) return 'snowy';
-    if (code >= 95) return 'stormy';
-
-    return 'partly-cloudy';
+  #loadWeather(): void {
+    this.weatherService.getGeolocation().subscribe({
+      next: (position) =>
+        this.weatherService.fetchWeather(
+          position.coords.latitude,
+          position.coords.longitude,
+        ),
+      error: (err) => console.error('Weather widget error:', err),
+    });
   }
 
   get tooltipText(): string {
