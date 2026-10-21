@@ -1,0 +1,147 @@
+@if (scene(); as s) {
+  <div
+    class="weather-scene"
+    aria-hidden="true"
+    [class]="'weather-scene--' + s.type"
+    [class.is-night]="!s.isDay"
+  >
+    <!-- Sky tint for the whole scene -->
+    <div class="sky"></div>
+
+    @if (hasClearSky(s.type)) {
+      @if (s.isDay) {
+        <div class="sun-glow"></div>
+        <div class="sun">
+          <div class="sun__beams"></div>
+          <div class="sun__halo"></div>
+          <div class="sun__core"></div>
+          <div class="sun__ghost sun__ghost--1"></div>
+          <div class="sun__ghost sun__ghost--2"></div>
+          <div class="sun__ghost sun__ghost--3"></div>
+        </div>
+        @if (s.type === 'partly-cloudy') {
+          <!-- Hides the sun at first, then drifts away -->
+          <span class="cloud cloud--cover"></span>
+        }
+        <div class="flare"></div>
+      } @else {
+        <div class="nebula"></div>
+        @for (star of s.stars; track $index) {
+          <span
+            class="star"
+            [style.--y]="star.y"
+            [style.--x]="star.x"
+            [style.--size]="star.size"
+            [style.--delay]="star.delay"
+            [class.star--bright]="star.size > 0.85"
+          ></span>
+        }
+        <div class="moon"></div>
+        <div class="shooting-star"></div>
+      }
+    }
+
+    @for (cloud of s.clouds; track $index) {
+      <span
+        class="cloud"
+        [style.--y]="cloud.y"
+        [style.--size]="cloud.size"
+        [style.--layer]="$index % 3"
+        [style.--duration]="cloud.duration"
+        [style.--delay]="cloud.delay"
+      ></span>
+    }
+
+    @switch (s.type) {
+      @case ('rainy') {
+        <ng-container *ngTemplateOutlet="rain; context: { $implicit: s }" />
+      }
+      @case ('stormy') {
+        <ng-container *ngTemplateOutlet="rain; context: { $implicit: s }" />
+        <div class="flash"></div>
+        <svg
+          viewBox="0 0 120 400"
+          class="bolt bolt--main"
+        >
+          <path
+            pathLength="1"
+            d="M70 0 L58 60 L74 96 L48 160 L63 190 L40 262 L56 292 L36 400"
+          />
+          <path
+            pathLength="1"
+            d="M63 190 L88 228 L80 258 L102 304"
+            class="bolt__branch"
+          />
+          <path
+            pathLength="1"
+            d="M58 60 L36 92 L42 122 L26 150"
+            class="bolt__branch"
+          />
+        </svg>
+        <svg
+          viewBox="0 0 120 400"
+          class="bolt bolt--second"
+        >
+          <path
+            pathLength="1"
+            d="M50 0 L64 70 L44 120 L66 176 L52 240 L70 300"
+          />
+          <path
+            pathLength="1"
+            d="M44 120 L22 160 L30 190"
+            class="bolt__branch"
+          />
+        </svg>
+      }
+      @case ('snowy') {
+        <div class="frost"></div>
+        @for (flake of s.particles; track $index) {
+          <span
+            class="flake"
+            [style.--x]="flake.x"
+            [style.--size]="flake.size"
+            [style.--duration]="flake.duration"
+            [style.--drift]="flake.drift"
+            [style.--delay]="flake.delay"
+          ></span>
+        }
+      }
+      @case ('foggy') {
+        @for (band of s.particles; track $index) {
+          <span
+            class="fog-band"
+            [style.--y]="band.y"
+            [style.--layer]="$index"
+            [style.--duration]="band.duration"
+            [style.--delay]="band.delay"
+          ></span>
+        }
+      }
+    }
+  </div>
+}
+
+<ng-template
+  let-s
+  #rain
+>
+  <div class="mist"></div>
+  @for (drop of s.particles; track $index) {
+    <span
+      class="drop"
+      [style.--x]="drop.x"
+      [style.--size]="drop.size"
+      [style.--duration]="drop.duration"
+      [style.--delay]="drop.delay"
+    ></span>
+    @if ($index < splashCount) {
+      <span
+        class="splash"
+        [style.--x]="drop.x"
+        [style.--size]="drop.size"
+        [style.--duration]="drop.duration"
+        [style.--delay]="drop.delay"
+      ></span>
+    }
+  }
+</ng-template>

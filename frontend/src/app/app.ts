@@ -10,6 +10,7 @@ import { CommandPaletteComponent } from './shared/components/command-palette/com
 import { DynamicBackgroundComponent } from './shared/components/dynamic-background/dynamic-background.component';
 import { LoginAnimationComponent } from './shared/components/login-animation/login-animation';
 import { OfflineBannerComponent } from './shared/components/offline-banner/offline-banner.component';
+import { WeatherEffectsComponent } from './shared/components/weather-effects/weather-effects.component';
 @Component({
   selector: 'app-root',
   imports: [
@@ -22,6 +23,7 @@ import { OfflineBannerComponent } from './shared/components/offline-banner/offli
     DynamicBackgroundComponent,
     OfflineBannerComponent,
     LoginAnimationComponent,
+    WeatherEffectsComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',

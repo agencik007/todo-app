@@ -19,6 +19,7 @@ import { Tooltip } from 'primeng/tooltip';
 import { AppBadgeService } from '../../../../core/services/app-badge.service';
 import { PwaInstallService } from '../../../../core/services/pwa-install.service';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
+import { WeatherService } from '../../../../core/services/weather.service';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { AuthService } from '../../../../features/auth/services/auth.service';
 import { BackgroundToggleComponent } from '../../../../shared/components/background-toggle/background-toggle.component';
@@ -58,6 +59,7 @@ export class UserProfileComponent {
   readonly #screenSize = inject(ScreenSizeService);
   readonly #pwaInstall = inject(PwaInstallService);
   readonly #appBadge = inject(AppBadgeService);
+  readonly #weather = inject(WeatherService);
 
   // 6. Signals (always readonly)
   readonly currentUser = this.#authStore.currentUser;
@@ -71,6 +73,7 @@ export class UserProfileComponent {
   readonly canInstall = this.#pwaInstall.canInstall;
   readonly appBadgeAvailable = this.#appBadge.available;
   readonly appBadgeEnabled = this.#appBadge.enabled;
+  readonly weatherEffectsEnabled = this.#weather.effectsEnabled;
   /** False offline: account changes and logout need the server. */
   readonly canWrite = this.#authStore.canWrite;
 
@@ -84,6 +87,10 @@ export class UserProfileComponent {
 
   onAppBadgeChange(enabled: boolean): void {
     this.#appBadge.setEnabled(enabled);
+  }
+
+  onWeatherEffectsChange(enabled: boolean): void {
+    this.#weather.setEffectsEnabled(enabled);
   }
 
   @HostListener('document:click', ['$event'])

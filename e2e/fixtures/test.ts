@@ -14,7 +14,7 @@ export const test = base.extend<Fixtures>({
     // The header weather widget calls a third-party API; keep tests hermetic.
     await page.route('https://api.open-meteo.com/**', (route) =>
       route.fulfill({
-        json: { current: { temperature_2m: 20, wind_speed_10m: 5, weather_code: 0 } },
+        json: { current: { temperature_2m: 20, wind_speed_10m: 5, weather_code: 0, is_day: 1 } },
       }),
     );
     await use(page);

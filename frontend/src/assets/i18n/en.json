@@ -10,6 +10,8 @@
     "INSTALL_APP": "Install app",
     "APP_BADGE": "App icon badge",
     "APP_BADGE_HINT": "Number of open tasks",
+    "WEATHER_EFFECTS": "Weather animations",
+    "WEATHER_EFFECTS_HINT": "A scene for the current weather every 30 minutes",
     "CHANGE_AVATAR": "Change Avatar",
     "DELETE_AVATAR": "Delete Avatar",
     "TOGGLE_BACKGROUND": "Toggle background",
@@ -371,7 +373,8 @@
   },
   "WEATHER": {
     "TEMP": "Temp",
-    "WIND": "Wind"
+    "WIND": "Wind",
+    "REPLAY": "Show the weather animation"
   },
   "LOGIN_ANIMATION": {
     "LOADING_TODOS": "Loading tasks…",

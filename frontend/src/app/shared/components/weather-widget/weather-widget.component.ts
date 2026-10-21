@@ -1,7 +1,15 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import {
+  ApplicationRef,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TooltipModule } from 'primeng/tooltip';
-import { switchMap } from 'rxjs';
+import { filter, first, fromEvent, interval, merge } from 'rxjs';
 import { WeatherService } from '../../../core/services/weather.service';
 
 @Component({
@@ -9,74 +17,81 @@ import { WeatherService } from '../../../core/services/weather.service';
   imports: [TooltipModule, TranslateModule],
   template: `
     @if (weatherService.weather()) {
-      <div
+      <button
+        type="button"
         tooltipPosition="bottom"
         class="flex align-items-center gap-2 cursor-pointer weather-widget"
         [pTooltip]="tooltipText"
+        [attr.aria-label]="tooltipText + '. ' + ('WEATHER.REPLAY' | translate)"
+        (click)="onReplay()"
       >
-        <div class="weather-icon-container">
-          @switch (weatherType) {
+        <span class="weather-icon-container">
+          @switch (weatherService.weatherType()) {
             @case ('sunny') {
-              <div class="weather-icon">
-                <div class="sunny-rays"></div>
-                <div class="sunny-body"></div>
-              </div>
+              <span class="weather-icon">
+                <span class="sunny-rays"></span>
+                <span class="sunny-body"></span>
+              </span>
             }
             @case ('cloudy') {
-              <div class="weather-icon">
-                <div class="cloud"></div>
-              </div>
+              <span class="weather-icon">
+                <span class="cloud"></span>
+              </span>
             }
             @case ('partly-cloudy') {
-              <div class="weather-icon">
-                <div class="cloud"></div>
-                <div class="partly-cloudy-sun"></div>
-              </div>
+              <span class="weather-icon">
+                <span class="cloud"></span>
+                <span class="partly-cloudy-sun"></span>
+              </span>
             }
             @case ('rainy') {
-              <div class="weather-icon">
-                <div class="rain-cloud"></div>
-                <div class="rain-drop"></div>
-                <div class="rain-drop"></div>
-                <div class="rain-drop"></div>
-              </div>
+              <span class="weather-icon">
+                <span class="rain-cloud"></span>
+                <span class="rain-drop"></span>
+                <span class="rain-drop"></span>
+                <span class="rain-drop"></span>
+              </span>
             }
             @case ('snowy') {
-              <div class="weather-icon">
-                <div class="storm-cloud"></div>
-                <div class="snow-flake">❄</div>
-                <div class="snow-flake">❄</div>
-                <div class="snow-flake">❄</div>
-              </div>
+              <span class="weather-icon">
+                <span class="storm-cloud"></span>
+                <span class="snow-flake">❄</span>
+                <span class="snow-flake">❄</span>
+                <span class="snow-flake">❄</span>
+              </span>
             }
             @case ('stormy') {
-              <div class="weather-icon">
-                <div class="storm-cloud"></div>
-                <div class="lightning"></div>
-              </div>
+              <span class="weather-icon">
+                <span class="storm-cloud"></span>
+                <span class="lightning"></span>
+              </span>
             }
             @case ('foggy') {
-              <div class="weather-icon">
-                <div class="fog-line"></div>
-                <div class="fog-line"></div>
-                <div class="fog-line"></div>
-              </div>
+              <span class="weather-icon">
+                <span class="fog-line"></span>
+                <span class="fog-line"></span>
+                <span class="fog-line"></span>
+              </span>
             }
             @default {
               <span class="text-2xl">❓</span>
             }
           }
-        </div>
+        </span>
         <span class="font-bold text-sm"
           >{{ weatherService.weather()?.temperature }}°C</span
         >
-      </div>
+      </button>
     }
   `,
   styleUrls: ['./weather-icons.scss'],
   styles: [
     `
       .weather-widget {
+        border: 0;
+        background: none;
+        color: inherit;
+        font: inherit;
         padding: 0.25rem 0.5rem;
         border-radius: 8px;
         transition: background-color 0.2s;
@@ -100,47 +115,49 @@ import { WeatherService } from '../../../core/services/weather.service';
 export class WeatherWidgetComponent implements OnInit {
   readonly weatherService = inject(WeatherService);
   readonly #translateService = inject(TranslateService);
-
-  visible = signal(false);
+  readonly #destroyRef = inject(DestroyRef);
+  readonly #document = inject(DOCUMENT);
+  readonly #appRef = inject(ApplicationRef);
 
   ngOnInit(): void {
-    this.weatherService
-      .getGeolocation()
-      .pipe(
-        switchMap((position) => {
-          this.visible.set(true);
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
+    this.#loadWeather();
 
-          this.weatherService.fetchWeather(lat, lon);
-          return [];
-        }),
-      )
-      .subscribe({
-        error: (err) => {
-          console.error('Weather widget error:', err);
-          this.visible.set(false);
-        },
-      });
+    // Start refreshing only once the app is stable: a pending interval keeps
+    // it unstable, which holds back the service worker registration
+    // (registerWhenStable) until its 30 s fallback.
+    this.#appRef.isStable
+      .pipe(first(Boolean), takeUntilDestroyed(this.#destroyRef))
+      .subscribe(() =>
+        merge(
+          interval(WeatherService.REFRESH_INTERVAL_MS),
+          // Browsers throttle timers in background tabs: catch up when shown.
+          fromEvent(this.#document, 'visibilitychange').pipe(
+            filter(
+              () =>
+                this.#document.visibilityState === 'visible' &&
+                Date.now() - this.weatherService.lastFetchAt >=
+                  WeatherService.REFRESH_INTERVAL_MS,
+            ),
+          ),
+        )
+          .pipe(takeUntilDestroyed(this.#destroyRef))
+          .subscribe(() => this.#loadWeather()),
+      );
   }
 
-  get weatherType(): string {
-    const code = this.weatherService.weather()?.weatherCode;
-    if (code === undefined) return 'unknown';
+  #loadWeather(): void {
+    this.weatherService.getGeolocation().subscribe({
+      next: (position) =>
+        this.weatherService.fetchWeather(
+          position.coords.latitude,
+          position.coords.longitude,
+        ),
+      error: (err) => console.error('Weather widget error:', err),
+    });
+  }
 
-    // WMO Weather interpretation codes (WW)
-    if (code === 0) return 'sunny';
-    if (code >= 1 && code <= 3) {
-      return code === 1 ? 'partly-cloudy' : 'cloudy';
-    }
-    if (code >= 45 && code <= 48) return 'foggy';
-    if (code >= 51 && code <= 67) return 'rainy';
-    if (code >= 71 && code <= 77) return 'snowy';
-    if (code >= 80 && code <= 82) return 'rainy';
-    if (code >= 85 && code <= 86) return 'snowy';
-    if (code >= 95) return 'stormy';
-
-    return 'partly-cloudy';
+  onReplay(): void {
+    this.weatherService.replayEffect();
   }
 
   get tooltipText(): string {
