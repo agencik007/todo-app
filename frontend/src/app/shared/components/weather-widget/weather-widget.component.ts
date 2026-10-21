@@ -1,9 +1,15 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import {
+  ApplicationRef,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TooltipModule } from 'primeng/tooltip';
-import { filter, fromEvent, timer } from 'rxjs';
+import { filter, first, fromEvent, interval, merge } from 'rxjs';
 import { WeatherService } from '../../../core/services/weather.service';
 
 @Component({
@@ -111,24 +117,32 @@ export class WeatherWidgetComponent implements OnInit {
   readonly #translateService = inject(TranslateService);
   readonly #destroyRef = inject(DestroyRef);
   readonly #document = inject(DOCUMENT);
+  readonly #appRef = inject(ApplicationRef);
 
   ngOnInit(): void {
-    timer(0, WeatherService.REFRESH_INTERVAL_MS)
-      .pipe(takeUntilDestroyed(this.#destroyRef))
-      .subscribe(() => this.#loadWeather());
+    this.#loadWeather();
 
-    // Browsers throttle timers in background tabs: catch up when it is shown.
-    fromEvent(this.#document, 'visibilitychange')
-      .pipe(
-        filter(
-          () =>
-            this.#document.visibilityState === 'visible' &&
-            Date.now() - this.weatherService.lastFetchAt >=
-              WeatherService.REFRESH_INTERVAL_MS,
-        ),
-        takeUntilDestroyed(this.#destroyRef),
-      )
-      .subscribe(() => this.#loadWeather());
+    // Start refreshing only once the app is stable: a pending interval keeps
+    // it unstable, which holds back the service worker registration
+    // (registerWhenStable) until its 30 s fallback.
+    this.#appRef.isStable
+      .pipe(first(Boolean), takeUntilDestroyed(this.#destroyRef))
+      .subscribe(() =>
+        merge(
+          interval(WeatherService.REFRESH_INTERVAL_MS),
+          // Browsers throttle timers in background tabs: catch up when shown.
+          fromEvent(this.#document, 'visibilitychange').pipe(
+            filter(
+              () =>
+                this.#document.visibilityState === 'visible' &&
+                Date.now() - this.weatherService.lastFetchAt >=
+                  WeatherService.REFRESH_INTERVAL_MS,
+            ),
+          ),
+        )
+          .pipe(takeUntilDestroyed(this.#destroyRef))
+          .subscribe(() => this.#loadWeather()),
+      );
   }
 
   #loadWeather(): void {
