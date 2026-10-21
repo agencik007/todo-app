@@ -10,6 +10,8 @@
     "INSTALL_APP": "Zainstaluj aplikację",
     "APP_BADGE": "Licznik na ikonie",
     "APP_BADGE_HINT": "Liczba otwartych zadań",
+    "WEATHER_EFFECTS": "Animacje pogody",
+    "WEATHER_EFFECTS_HINT": "Scena z aktualną pogodą co 30 minut",
     "CHANGE_AVATAR": "Zmień awatar",
     "DELETE_AVATAR": "Usuń awatar",
     "TOGGLE_BACKGROUND": "Przełącz tło",
@@ -371,7 +373,8 @@
   },
   "WEATHER": {
     "TEMP": "Temp",
-    "WIND": "Wiatr"
+    "WIND": "Wiatr",
+    "REPLAY": "Pokaż animację pogody"
   },
   "LOGIN_ANIMATION": {
     "LOADING_TODOS": "Ładowanie zadań…",

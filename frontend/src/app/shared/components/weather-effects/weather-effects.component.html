@@ -1,0 +1,107 @@
+@if (scene(); as s) {
+  <div
+    class="weather-scene"
+    aria-hidden="true"
+    [class]="'weather-scene--' + s.type"
+    [class.is-night]="!s.isDay"
+  >
+    <!-- Sky tint for the whole scene -->
+    <div class="sky"></div>
+
+    @if (hasClearSky(s.type)) {
+      @if (s.isDay) {
+        <div class="sun-glow"></div>
+        <div class="sun">
+          <div class="sun__rays"></div>
+          <div class="sun__core"></div>
+        </div>
+        <div class="flare"></div>
+      } @else {
+        @for (star of s.stars; track $index) {
+          <span
+            class="star"
+            [style.--y]="star.y"
+            [style.--x]="star.x"
+            [style.--size]="star.size"
+            [style.--delay]="star.delay"
+          ></span>
+        }
+        <div class="moon"></div>
+        <div class="shooting-star"></div>
+      }
+    }
+
+    @for (cloud of s.clouds; track $index) {
+      <span
+        class="cloud"
+        [style.--y]="cloud.y"
+        [style.--size]="cloud.size"
+        [style.--layer]="$index % 3"
+        [style.--duration]="cloud.duration"
+        [style.--delay]="cloud.delay"
+      ></span>
+    }
+
+    @switch (s.type) {
+      @case ('rainy') {
+        <ng-container *ngTemplateOutlet="rain; context: { $implicit: s }" />
+      }
+      @case ('stormy') {
+        <ng-container *ngTemplateOutlet="rain; context: { $implicit: s }" />
+        <div class="flash"></div>
+        <svg
+          viewBox="0 0 64 160"
+          class="bolt"
+        >
+          <path d="M38 0 L10 78 H30 L18 160 L56 60 H34 L50 0 Z" />
+        </svg>
+      }
+      @case ('snowy') {
+        @for (flake of s.particles; track $index) {
+          <span
+            class="flake"
+            [style.--x]="flake.x"
+            [style.--size]="flake.size"
+            [style.--duration]="flake.duration"
+            [style.--drift]="flake.drift"
+            [style.--delay]="flake.delay"
+          ></span>
+        }
+      }
+      @case ('foggy') {
+        @for (band of s.particles; track $index) {
+          <span
+            class="fog-band"
+            [style.--y]="band.y"
+            [style.--layer]="$index"
+            [style.--duration]="band.duration"
+            [style.--delay]="band.delay"
+          ></span>
+        }
+      }
+    }
+  </div>
+}
+
+<ng-template
+  let-s
+  #rain
+>
+  @for (drop of s.particles; track $index) {
+    <span
+      class="drop"
+      [style.--x]="drop.x"
+      [style.--size]="drop.size"
+      [style.--duration]="drop.duration"
+      [style.--delay]="drop.delay"
+    ></span>
+    @if ($index < splashCount) {
+      <span
+        class="splash"
+        [style.--x]="drop.x"
+        [style.--duration]="drop.duration"
+        [style.--delay]="drop.delay"
+      ></span>
+    }
+  }
+</ng-template>

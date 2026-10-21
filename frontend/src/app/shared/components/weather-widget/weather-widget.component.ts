@@ -11,74 +11,81 @@ import { WeatherService } from '../../../core/services/weather.service';
   imports: [TooltipModule, TranslateModule],
   template: `
     @if (weatherService.weather()) {
-      <div
+      <button
+        type="button"
         tooltipPosition="bottom"
         class="flex align-items-center gap-2 cursor-pointer weather-widget"
         [pTooltip]="tooltipText"
+        [attr.aria-label]="tooltipText + '. ' + ('WEATHER.REPLAY' | translate)"
+        (click)="onReplay()"
       >
-        <div class="weather-icon-container">
+        <span class="weather-icon-container">
           @switch (weatherService.weatherType()) {
             @case ('sunny') {
-              <div class="weather-icon">
-                <div class="sunny-rays"></div>
-                <div class="sunny-body"></div>
-              </div>
+              <span class="weather-icon">
+                <span class="sunny-rays"></span>
+                <span class="sunny-body"></span>
+              </span>
             }
             @case ('cloudy') {
-              <div class="weather-icon">
-                <div class="cloud"></div>
-              </div>
+              <span class="weather-icon">
+                <span class="cloud"></span>
+              </span>
             }
             @case ('partly-cloudy') {
-              <div class="weather-icon">
-                <div class="cloud"></div>
-                <div class="partly-cloudy-sun"></div>
-              </div>
+              <span class="weather-icon">
+                <span class="cloud"></span>
+                <span class="partly-cloudy-sun"></span>
+              </span>
             }
             @case ('rainy') {
-              <div class="weather-icon">
-                <div class="rain-cloud"></div>
-                <div class="rain-drop"></div>
-                <div class="rain-drop"></div>
-                <div class="rain-drop"></div>
-              </div>
+              <span class="weather-icon">
+                <span class="rain-cloud"></span>
+                <span class="rain-drop"></span>
+                <span class="rain-drop"></span>
+                <span class="rain-drop"></span>
+              </span>
             }
             @case ('snowy') {
-              <div class="weather-icon">
-                <div class="storm-cloud"></div>
-                <div class="snow-flake">❄</div>
-                <div class="snow-flake">❄</div>
-                <div class="snow-flake">❄</div>
-              </div>
+              <span class="weather-icon">
+                <span class="storm-cloud"></span>
+                <span class="snow-flake">❄</span>
+                <span class="snow-flake">❄</span>
+                <span class="snow-flake">❄</span>
+              </span>
             }
             @case ('stormy') {
-              <div class="weather-icon">
-                <div class="storm-cloud"></div>
-                <div class="lightning"></div>
-              </div>
+              <span class="weather-icon">
+                <span class="storm-cloud"></span>
+                <span class="lightning"></span>
+              </span>
             }
             @case ('foggy') {
-              <div class="weather-icon">
-                <div class="fog-line"></div>
-                <div class="fog-line"></div>
-                <div class="fog-line"></div>
-              </div>
+              <span class="weather-icon">
+                <span class="fog-line"></span>
+                <span class="fog-line"></span>
+                <span class="fog-line"></span>
+              </span>
             }
             @default {
               <span class="text-2xl">❓</span>
             }
           }
-        </div>
+        </span>
         <span class="font-bold text-sm"
           >{{ weatherService.weather()?.temperature }}°C</span
         >
-      </div>
+      </button>
     }
   `,
   styleUrls: ['./weather-icons.scss'],
   styles: [
     `
       .weather-widget {
+        border: 0;
+        background: none;
+        color: inherit;
+        font: inherit;
         padding: 0.25rem 0.5rem;
         border-radius: 8px;
         transition: background-color 0.2s;
@@ -133,6 +140,10 @@ export class WeatherWidgetComponent implements OnInit {
         ),
       error: (err) => console.error('Weather widget error:', err),
     });
+  }
+
+  onReplay(): void {
+    this.weatherService.replayEffect();
   }
 
   get tooltipText(): string {

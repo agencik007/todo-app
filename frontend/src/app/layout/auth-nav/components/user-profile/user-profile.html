@@ -209,6 +209,27 @@
                 />
               </label>
             }
+            <label
+              for="weather-effects-input"
+              class="setting-row setting-row--switch"
+            >
+              <span class="setting-text">
+                <span
+                  id="weather-effects-label"
+                  class="setting-label"
+                >
+                  {{ 'NAV.WEATHER_EFFECTS' | translate }}
+                </span>
+                <span class="setting-hint">{{ 'NAV.WEATHER_EFFECTS_HINT' | translate }}</span>
+              </span>
+              <p-toggleswitch
+                styleClass="setting-switch"
+                inputId="weather-effects-input"
+                ariaLabelledBy="weather-effects-label"
+                [ngModel]="weatherEffectsEnabled()"
+                (ngModelChange)="onWeatherEffectsChange($event)"
+              />
+            </label>
             <a
               routerLink="/privacy"
               class="setting-row setting-row--link"
