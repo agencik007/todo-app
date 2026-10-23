@@ -372,9 +372,36 @@
     }
   },
   "WEATHER": {
-    "TEMP": "Temp",
-    "WIND": "Wiatr",
-    "REPLAY": "Pokaż animację pogody"
+    "REPLAY": "Pokaż animację pogody",
+    "TOOLTIP": "{{place}} – {{description}}, {{temp}}°C (odczuwalna {{feelsLike}}°C), wiatr {{wind}} km/h",
+    "YOUR_LOCATION": "Twoja lokalizacja",
+    "CODE": {
+      "CLEAR": "Bezchmurnie",
+      "MAINLY_CLEAR": "Przeważnie bezchmurnie",
+      "PARTLY_CLOUDY": "Częściowe zachmurzenie",
+      "OVERCAST": "Pochmurno",
+      "FOG": "Mgła",
+      "RIME_FOG": "Marznąca mgła",
+      "DRIZZLE_LIGHT": "Lekka mżawka",
+      "DRIZZLE": "Mżawka",
+      "DRIZZLE_DENSE": "Gęsta mżawka",
+      "FREEZING_DRIZZLE": "Marznąca mżawka",
+      "RAIN_LIGHT": "Lekki deszcz",
+      "RAIN": "Deszcz",
+      "RAIN_HEAVY": "Ulewny deszcz",
+      "FREEZING_RAIN": "Marznący deszcz",
+      "SNOW_LIGHT": "Lekki śnieg",
+      "SNOW": "Śnieg",
+      "SNOW_HEAVY": "Intensywny śnieg",
+      "SNOW_GRAINS": "Śnieg ziarnisty",
+      "SHOWERS_LIGHT": "Przelotny deszcz",
+      "SHOWERS": "Przelotne opady deszczu",
+      "SHOWERS_HEAVY": "Gwałtowne ulewy",
+      "SNOW_SHOWERS": "Przelotne opady śniegu",
+      "THUNDERSTORM": "Burza",
+      "THUNDERSTORM_HAIL": "Burza z gradem",
+      "UNKNOWN": "Nieznane warunki"
+    }
   },
   "LOGIN_ANIMATION": {
     "LOADING_TODOS": "Ładowanie zadań…",
@@ -398,7 +425,7 @@
   },
   "PRIVACY": {
     "TITLE": "Polityka prywatności",
-    "UPDATED": "Ostatnia aktualizacja: 14 października 2026",
+    "UPDATED": "Ostatnia aktualizacja: 23 października 2026",
     "BACK": "Wróć",
     "SECTIONS": [
       {
@@ -415,7 +442,7 @@
       },
       {
         "TITLE": "Lokalizacja i pogoda",
-        "BODY": "Widżet pogody pyta o lokalizację tylko za Twoją zgodą. Współrzędne są wysyłane bezpośrednio z Twojego urządzenia do Open-Meteo (open-meteo.com) w celu pobrania prognozy i nie są przez nas zapisywane."
+        "BODY": "Widżet pogody pyta o lokalizację tylko za Twoją zgodą. Współrzędne są wysyłane bezpośrednio z Twojego urządzenia do Open-Meteo (open-meteo.com) w celu pobrania prognozy oraz do BigDataCloud (bigdatacloud.com) w celu pokazania nazwy Twojej miejscowości i nie są przez nas zapisywane. Nazwa miejscowości jest zapamiętywana na Twoim urządzeniu, aby nie wyszukiwać jej ponownie w tym samym miejscu."
       },
       {
         "TITLE": "Przechowywanie i usuwanie",

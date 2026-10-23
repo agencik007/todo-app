@@ -1,6 +1,7 @@
 import { test as base } from '@playwright/test';
 
 import { createVerifiedUser, loginViaApi, TestUser } from './api';
+import { weatherMock } from './weather';
 
 interface Fixtures {
   /** A fresh, verified user (not logged in). */
@@ -11,11 +12,12 @@ interface Fixtures {
 
 export const test = base.extend<Fixtures>({
   page: async ({ page }, use) => {
-    // The header weather widget calls a third-party API; keep tests hermetic.
+    // The header weather widget calls third-party APIs; keep tests hermetic.
     await page.route('https://api.open-meteo.com/**', (route) =>
-      route.fulfill({
-        json: { current: { temperature_2m: 20, wind_speed_10m: 5, weather_code: 0, is_day: 1 } },
-      }),
+      route.fulfill({ json: weatherMock.forecast }),
+    );
+    await page.route('https://api.bigdatacloud.net/**', (route) =>
+      route.fulfill({ json: weatherMock.place }),
     );
     await use(page);
   },

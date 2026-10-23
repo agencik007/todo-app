@@ -372,9 +372,36 @@
     }
   },
   "WEATHER": {
-    "TEMP": "Temp",
-    "WIND": "Wind",
-    "REPLAY": "Show the weather animation"
+    "REPLAY": "Show the weather animation",
+    "TOOLTIP": "{{place}} – {{description}}, {{temp}}°C (feels like {{feelsLike}}°C), wind {{wind}} km/h",
+    "YOUR_LOCATION": "Your location",
+    "CODE": {
+      "CLEAR": "Clear sky",
+      "MAINLY_CLEAR": "Mainly clear",
+      "PARTLY_CLOUDY": "Partly cloudy",
+      "OVERCAST": "Overcast",
+      "FOG": "Fog",
+      "RIME_FOG": "Freezing fog",
+      "DRIZZLE_LIGHT": "Light drizzle",
+      "DRIZZLE": "Drizzle",
+      "DRIZZLE_DENSE": "Dense drizzle",
+      "FREEZING_DRIZZLE": "Freezing drizzle",
+      "RAIN_LIGHT": "Light rain",
+      "RAIN": "Rain",
+      "RAIN_HEAVY": "Heavy rain",
+      "FREEZING_RAIN": "Freezing rain",
+      "SNOW_LIGHT": "Light snow",
+      "SNOW": "Snow",
+      "SNOW_HEAVY": "Heavy snow",
+      "SNOW_GRAINS": "Snow grains",
+      "SHOWERS_LIGHT": "Light showers",
+      "SHOWERS": "Showers",
+      "SHOWERS_HEAVY": "Heavy showers",
+      "SNOW_SHOWERS": "Snow showers",
+      "THUNDERSTORM": "Thunderstorm",
+      "THUNDERSTORM_HAIL": "Thunderstorm with hail",
+      "UNKNOWN": "Unknown conditions"
+    }
   },
   "LOGIN_ANIMATION": {
     "LOADING_TODOS": "Loading tasks…",
@@ -398,7 +425,7 @@
   },
   "PRIVACY": {
     "TITLE": "Privacy policy",
-    "UPDATED": "Last updated: 14 October 2026",
+    "UPDATED": "Last updated: 23 October 2026",
     "BACK": "Back",
     "SECTIONS": [
       {
@@ -415,7 +442,7 @@
       },
       {
         "TITLE": "Location and weather",
-        "BODY": "The weather widget asks for your location only with your permission. Coordinates are sent directly from your device to Open-Meteo (open-meteo.com) to fetch the forecast and are not stored by us."
+        "BODY": "The weather widget asks for your location only with your permission. Coordinates are sent directly from your device to Open-Meteo (open-meteo.com) to fetch the forecast and to BigDataCloud (bigdatacloud.com) to show the name of your town; neither is stored by us. The town name is remembered on your device so it is not looked up again at the same place."
       },
       {
         "TITLE": "Retention and deletion",

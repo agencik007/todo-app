@@ -2,6 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import {
   ApplicationRef,
   Component,
+  computed,
   DestroyRef,
   inject,
   OnInit,
@@ -10,7 +11,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TooltipModule } from 'primeng/tooltip';
 import { filter, first, fromEvent, interval, merge } from 'rxjs';
-import { WeatherService } from '../../../core/services/weather.service';
+import { LanguageService } from '../../../core/services/language.service';
+import {
+  weatherDescriptionKey,
+  WeatherService,
+} from '../../../core/services/weather.service';
 
 @Component({
   selector: 'app-weather-widget',
@@ -21,8 +26,10 @@ import { WeatherService } from '../../../core/services/weather.service';
         type="button"
         tooltipPosition="bottom"
         class="flex align-items-center gap-2 cursor-pointer weather-widget"
-        [pTooltip]="tooltipText"
-        [attr.aria-label]="tooltipText + '. ' + ('WEATHER.REPLAY' | translate)"
+        [pTooltip]="tooltipText()"
+        [attr.aria-label]="
+          tooltipText() + '. ' + ('WEATHER.REPLAY' | translate)
+        "
         (click)="onReplay()"
       >
         <span class="weather-icon-container">
@@ -78,9 +85,7 @@ import { WeatherService } from '../../../core/services/weather.service';
             }
           }
         </span>
-        <span class="font-bold text-sm"
-          >{{ weatherService.weather()?.temperature }}°C</span
-        >
+        <span class="font-bold text-sm">{{ temperature() }}°C</span>
       </button>
     }
   `,
@@ -118,6 +123,28 @@ export class WeatherWidgetComponent implements OnInit {
   readonly #destroyRef = inject(DestroyRef);
   readonly #document = inject(DOCUMENT);
   readonly #appRef = inject(ApplicationRef);
+  readonly #languageService = inject(LanguageService);
+
+  readonly temperature = computed(() =>
+    Math.round(this.weatherService.weather()?.temperature ?? 0),
+  );
+
+  readonly tooltipText = computed(() => {
+    const w = this.weatherService.weather();
+    if (!w) return '';
+    // Re-translate when the language (and its translations) change.
+    this.#languageService.currentLang();
+
+    const t = (key: string, params?: object): string =>
+      this.#translateService.instant(key, params);
+    return t('WEATHER.TOOLTIP', {
+      place: this.weatherService.place()?.name ?? t('WEATHER.YOUR_LOCATION'),
+      description: t(weatherDescriptionKey(w.weatherCode)),
+      temp: Math.round(w.temperature),
+      feelsLike: Math.round(w.apparentTemperature),
+      wind: Math.round(w.windSpeed),
+    });
+  });
 
   ngOnInit(): void {
     this.#loadWeather();
@@ -146,27 +173,10 @@ export class WeatherWidgetComponent implements OnInit {
   }
 
   #loadWeather(): void {
-    this.weatherService.getGeolocation().subscribe({
-      next: (position) =>
-        this.weatherService.fetchWeather(
-          position.coords.latitude,
-          position.coords.longitude,
-        ),
-      error: (err) => console.error('Weather widget error:', err),
-    });
+    this.weatherService.loadForCurrentPosition();
   }
 
   onReplay(): void {
     this.weatherService.replayEffect();
-  }
-
-  get tooltipText(): string {
-    const w = this.weatherService.weather();
-    if (!w) return '';
-
-    const tempLabel = this.#translateService.instant('WEATHER.TEMP');
-    const windLabel = this.#translateService.instant('WEATHER.WIND');
-
-    return `${tempLabel}: ${w.temperature}°C, ${windLabel}: ${w.windSpeed} km/h`;
   }
 }

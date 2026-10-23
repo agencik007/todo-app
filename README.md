@@ -108,6 +108,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - ✅ User accounts: registration, email verification, password reset, avatar, self-service account deletion
 - ✅ Public privacy policy page (`/privacy`, English and Polish)
 - ✅ Security: password strength validation, refresh token rotation with reuse detection, rate limiting, CSP and security headers
+- ✅ Header weather widget (Open-Meteo forecast for your location, place name from BigDataCloud; only with your permission)
 - ✅ Polish / English UI (ngx-translate), light / dark mode and color themes
 - ✅ Responsive design
 

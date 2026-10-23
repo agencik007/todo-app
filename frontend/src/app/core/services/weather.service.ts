@@ -1,21 +1,24 @@
 import { httpResource } from '@angular/common/http';
-import { computed, Injectable, signal } from '@angular/core';
+import {
+  computed,
+  effect,
+  inject,
+  Injectable,
+  linkedSignal,
+  signal,
+  untracked,
+} from '@angular/core';
 import { Observable } from 'rxjs';
-
-export interface WeatherData {
-  temperature: number;
-  windSpeed: number;
-  weatherCode: number;
-  isDay: boolean;
-}
-
-export type WeatherType =
-  'sunny' | 'partly-cloudy' | 'cloudy' | 'rainy' | 'snowy' | 'stormy' | 'foggy';
+import { CurrentWeather, WeatherType } from '../models/weather.model';
+import { LanguageService } from './language.service';
+import { PlaceNameService } from './place-name.service';
 
 /** Shape of the open-meteo /v1/forecast response (only the fields we use). */
 interface OpenMeteoResponse {
   current: {
     temperature_2m: number;
+    apparent_temperature: number;
+    relative_humidity_2m: number;
     wind_speed_10m: number;
     weather_code: number;
     is_day: number;
@@ -26,13 +29,14 @@ interface OpenMeteoResponse {
   providedIn: 'root',
 })
 export class WeatherService {
+  readonly #placeName = inject(PlaceNameService);
+  readonly #languageService = inject(LanguageService);
+
   static readonly REFRESH_INTERVAL_MS = 30 * 60 * 1000;
   static readonly EFFECTS_STORAGE_KEY = 'weather_effects_enabled';
 
   readonly #apiUrl = 'https://api.open-meteo.com/v1/forecast';
 
-  // A new object on every fetchWeather() call, so the resource fetches again
-  // even when the coordinates did not change.
   readonly #location = signal<{ lat: number; lon: number } | null>(null);
 
   // Resource for fetching raw weather data
@@ -42,21 +46,36 @@ export class WeatherService {
     if (!loc) return undefined;
 
     // Construct URL only when location is available
-    return `${this.#apiUrl}?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,wind_speed_10m,weather_code,is_day`;
+    return (
+      `${this.#apiUrl}?latitude=${loc.lat}&longitude=${loc.lon}` +
+      '&current=temperature_2m,apparent_temperature,relative_humidity_2m,' +
+      'wind_speed_10m,weather_code,is_day&timezone=auto'
+    );
   });
 
-  // Publicly exposed signal with transformed data
-  readonly weather = computed<WeatherData | null>(() => {
-    const raw = this.#weatherResource.value();
-    if (!raw) return null;
+  // Publicly exposed signal with transformed data. A refresh or a failed one
+  // keeps the last forecast, so the widget does not blink every 30 minutes.
+  readonly weather = linkedSignal<
+    OpenMeteoResponse | undefined,
+    CurrentWeather | null
+  >({
+    source: () => this.#weatherResource.value(),
+    computation: (raw, previous) => {
+      if (!raw) return previous?.value ?? null;
 
-    return {
-      temperature: raw.current.temperature_2m,
-      windSpeed: raw.current.wind_speed_10m,
-      weatherCode: raw.current.weather_code,
-      isDay: raw.current.is_day === 1,
-    };
-  });
+      return {
+        temperature: raw.current.temperature_2m,
+        apparentTemperature: raw.current.apparent_temperature,
+        humidity: raw.current.relative_humidity_2m,
+        windSpeed: raw.current.wind_speed_10m,
+        weatherCode: raw.current.weather_code,
+        isDay: raw.current.is_day === 1,
+      };
+    },
+  }).asReadonly();
+
+  /** Where the forecast is for; null while unknown. */
+  readonly place = this.#placeName.place;
 
   readonly weatherType = computed<WeatherType | null>(() => {
     const code = this.weather()?.weatherCode;
@@ -74,13 +93,22 @@ export class WeatherService {
   /** Bumped when the user asks to see the current weather scene again. */
   readonly replayRequests = this.#replayRequests.asReadonly();
 
-  /** Time of the last fetchWeather() call (ms), 0 before the first one. */
+  /** Time of the last forecast request (ms), 0 before the first one. */
   lastFetchAt = 0;
 
-  // Action to update location and trigger fetch
-  fetchWeather(lat: number, lon: number): void {
-    this.lastFetchAt = Date.now();
-    this.#location.set({ lat, lon });
+  constructor() {
+    // The place name follows the interface language.
+    effect(() => {
+      this.#languageService.currentLang();
+      untracked(() => {
+        if (this.#location()) this.#loadPosition(false);
+      });
+    });
+  }
+
+  /** Fetches the forecast and the place name for the device's position. */
+  loadForCurrentPosition(): void {
+    this.#loadPosition(true);
   }
 
   setEffectsEnabled(enabled: boolean): void {
@@ -96,7 +124,25 @@ export class WeatherService {
     this.#replayRequests.update((count) => count + 1);
   }
 
-  getGeolocation(): Observable<GeolocationPosition> {
+  #loadPosition(withForecast: boolean): void {
+    this.#getGeolocation().subscribe({
+      next: ({ coords }) => {
+        if (withForecast) {
+          this.lastFetchAt = Date.now();
+          // A new object, so the resource fetches again at the same place.
+          this.#location.set({ lat: coords.latitude, lon: coords.longitude });
+        }
+        this.#placeName.lookup(
+          coords.latitude,
+          coords.longitude,
+          this.#languageService.currentLang(),
+        );
+      },
+      error: (err) => console.error('Weather widget error:', err),
+    });
+  }
+
+  #getGeolocation(): Observable<GeolocationPosition> {
     return new Observable((observer) => {
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
@@ -124,6 +170,42 @@ export class WeatherService {
     }
   }
 }
+
+/** i18n key describing a WMO weather interpretation code (WW). */
+export function weatherDescriptionKey(code: number): string {
+  return `WEATHER.CODE.${WEATHER_DESCRIPTIONS[code] ?? 'UNKNOWN'}`;
+}
+
+const WEATHER_DESCRIPTIONS: Record<number, string> = {
+  0: 'CLEAR',
+  1: 'MAINLY_CLEAR',
+  2: 'PARTLY_CLOUDY',
+  3: 'OVERCAST',
+  45: 'FOG',
+  48: 'RIME_FOG',
+  51: 'DRIZZLE_LIGHT',
+  53: 'DRIZZLE',
+  55: 'DRIZZLE_DENSE',
+  56: 'FREEZING_DRIZZLE',
+  57: 'FREEZING_DRIZZLE',
+  61: 'RAIN_LIGHT',
+  63: 'RAIN',
+  65: 'RAIN_HEAVY',
+  66: 'FREEZING_RAIN',
+  67: 'FREEZING_RAIN',
+  71: 'SNOW_LIGHT',
+  73: 'SNOW',
+  75: 'SNOW_HEAVY',
+  77: 'SNOW_GRAINS',
+  80: 'SHOWERS_LIGHT',
+  81: 'SHOWERS',
+  82: 'SHOWERS_HEAVY',
+  85: 'SNOW_SHOWERS',
+  86: 'SNOW_SHOWERS',
+  95: 'THUNDERSTORM',
+  96: 'THUNDERSTORM_HAIL',
+  99: 'THUNDERSTORM_HAIL',
+};
 
 /** Maps a WMO weather interpretation code (WW) to a weather type. */
 function toWeatherType(code: number): WeatherType {
