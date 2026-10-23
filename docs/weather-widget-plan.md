@@ -1,6 +1,6 @@
 # Weather widget expansion plan
 
-> **Status:** proposal, nothing implemented yet.
+> **Status:** Phases 1 and 2 implemented (see [Implementation notes](#implementation-notes-phases-1-and-2)); Phases 3 and 4 are proposals.
 > **Scope:** `frontend/` (weather service, widget, new details dialog, i18n, privacy policy), `frontend/src/server.ts` (CSP), `e2e/`, docs. No backend changes.
 
 The header weather widget today shows an icon and the temperature; its tooltip says `Temp: 20°C, Wind: 5 km/h` and a click replays the full-screen weather animation. This plan adds the place name, turns the click into a details dialog with hourly and 7-day forecasts, and lets users who deny geolocation pick a city. It is split into small PRs, because every merge to `develop` is a production release.
@@ -67,7 +67,7 @@ daily=weather_code,temperature_2m_max,temperature_2m_min,
 timezone=auto&forecast_days=7&forecast_hours=24
 ```
 
-`timezone=auto` makes daily boundaries and sunrise/sunset local to the forecast place (not the browser), and the response's `timezone` gives a fallback label (`Europe/Warsaw` → "Warsaw") if reverse geocoding fails. The payload is a few KB every 30 minutes — no need to fetch the forecast lazily on dialog open.
+`timezone=auto` makes daily boundaries and sunrise/sunset local to the forecast place (not the browser), and `timeformat=unixtime` lets the dialog format every time in that zone with `Intl.DateTimeFormat`. The payload is a few KB every 30 minutes — no need to fetch the forecast lazily on dialog open.
 
 `WeatherData` grows into `{ current, hourly: HourlyPoint[], daily: DailyPoint[], timezone }`, mapped from the snake_case response in the service so components never see Open-Meteo's shape.
 
@@ -84,9 +84,9 @@ Open-Meteo's geocoding API is forward-only (name → coordinates), so the place 
 
 Rules:
 
-- Round coordinates to 2 decimals (~1 km) before sending — enough for a city name, less precise data shared.
+- Send the coordinates exactly as the Geolocation API returned them: BigDataCloud's fair-use terms allow only live device coordinates (no stored, cached or altered ones).
 - Cache `{ lat, lon, lang } → name` in `localStorage` (try/catch, like `EFFECTS_STORAGE_KEY`); re-query only when the rounded coordinates or the language change. In practice one request per user per place.
-- Failure never hides the weather: fall back to the time-zone city, then to "Your location".
+- Failure never hides the weather: fall back to "Your location" (the time-zone city was dropped — it names the wrong town for most of a country).
 - Name shown: `city || locality`, plus `principalSubdivision` in the dialog subtitle ("Warszawa, Mazowieckie").
 
 ### 3.3 Weather descriptions: i18n per WMO code group
@@ -111,8 +111,8 @@ Small, user-visible, fixes the reported gap.
 4. Tooltip becomes a `computed()` (reacts to language changes, unlike today's getter) with two lines:
    - **Warszawa**
    - Light rain · 12°C (feels like 9°C) · wind 18 km/h
-5. CSP: add `https://api-bdc.net` (verify the exact host the client endpoint uses) to `connect-src` in `server.ts`.
-6. Privacy policy (`LEGAL.*.LOCATION`, EN + PL): rounded coordinates are also sent to BigDataCloud to show the place name; nothing stored by us.
+5. CSP: add `https://api.bigdatacloud.net` to `connect-src` in `server.ts`.
+6. Privacy policy (`LEGAL.*.LOCATION`, EN + PL): coordinates are also sent to BigDataCloud to show the place name; nothing stored by us.
 
 ## 5. Phase 2 — details dialog
 
@@ -132,7 +132,7 @@ New `shared/components/weather-widget/weather-details-dialog/` (component + SCSS
 
 - Times formatted in the forecast's time zone (`timeZone` option of `Intl.DateTimeFormat`), 24h for `pl`, locale default for `en`.
 - Loading: skeletons for the strip/rows; error: inline message with "Try again" — never a toast.
-- Offline (`AuthStore.canWrite` false): show the last data with "Offline — data from 14:05" instead of hiding (keep the last response in `localStorage`, max ~6 h old).
+- _(Not done — open question 3.)_ Offline (`AuthStore.canWrite` false): show the last data with "Offline — data from 14:05" instead of hiding (keep the last response in `localStorage`, max ~6 h old).
 - Reduced motion: icon animations off (they already respect it in the effects; apply the same to the dialog icon).
 - Dialog content is a separate component so its code isn't loaded until first open (`@defer (on interaction)` around the dialog).
 
@@ -184,13 +184,13 @@ Each PR: Conventional Commits, EN + PL i18n, lint + build + e2e green.
 
 ## 11. Risks
 
-| Risk                                                    | Mitigation                                                                                                          |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Reverse-geocoding provider changes terms or goes down   | Isolated in one service with fallbacks; swapping providers touches one file + CSP + privacy text.                   |
-| Sharing location with an extra third party              | Rounded coordinates, cached, disclosed in the privacy policy; the manual city mode sends no device location at all. |
-| Bigger initial bundle                                   | Dialog behind `@defer`; icons are CSS already.                                                                      |
-| Tooltip/dialog text drifts from the mocked data in e2e  | Assert on mocked values (fixed city, 20°C) only.                                                                    |
-| Dialog visuals clash with the dynamic background/themes | Use design tokens only; check both themes and all background modes before merge.                                    |
+| Risk                                                    | Mitigation                                                                                                                |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Reverse-geocoding provider changes terms or goes down   | Isolated in one service with fallbacks; swapping providers touches one file + CSP + privacy text.                         |
+| Sharing location with an extra third party              | Looked up once per place (cached), disclosed in the privacy policy; the manual city mode sends no device location at all. |
+| Bigger initial bundle                                   | Dialog behind `@defer`; icons are CSS already.                                                                            |
+| Tooltip/dialog text drifts from the mocked data in e2e  | Assert on mocked values (fixed city, 20°C) only.                                                                          |
+| Dialog visuals clash with the dynamic background/themes | Use design tokens only; check both themes and all background modes before merge.                                          |
 
 ## 12. Open questions
 
@@ -198,3 +198,13 @@ Each PR: Conventional Commits, EN + PL i18n, lint + build + e2e green.
 2. Should "Weather animations" move into the dialog, or stay in the user menu as well?
 3. Offline: show stale data (proposed) or keep hiding the widget as `pwa-plan.md` says today?
 4. Which Phase 4 ideas are worth doing first?
+
+---
+
+## Implementation notes (Phases 1 and 2)
+
+- `core/services/place-name.service.ts` (BigDataCloud, cached per ~1 km area and language under `localStorage.weather_place`); `WeatherService.loadForCurrentPosition()` asks for the position once and feeds both APIs; a language change looks the name up again.
+- `WeatherService.forecast` keeps the last forecast during a refresh or after a failed one (the widget used to disappear for the length of every refresh).
+- `shared/components/weather-widget/weather-icon/` is the icon (moon at night, still under reduced motion); `weather-details-dialog/` is the dialog, loaded with `@defer` on the first click (prefetched on hover). The "Weather animations" toggle is in the dialog footer and stays in the user menu.
+- The widget still hides offline (`canWrite`), as `docs/pwa-plan.md` says.
+- e2e: `e2e/tests/weather.spec.ts` with both APIs mocked in `e2e/fixtures/weather.ts`.

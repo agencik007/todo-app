@@ -1,0 +1,40 @@
+<span class="weather-icon">
+  @switch (type()) {
+    @case ('sunny') {
+      @if (isNight()) {
+        <span class="moon-body"></span>
+      } @else {
+        <span class="sunny-rays"></span>
+        <span class="sunny-body"></span>
+      }
+    }
+    @case ('cloudy') {
+      <span class="cloud"></span>
+    }
+    @case ('partly-cloudy') {
+      <span class="cloud"></span>
+      <span [class]="isNight() ? 'partly-cloudy-moon' : 'partly-cloudy-sun'"></span>
+    }
+    @case ('rainy') {
+      <span class="rain-cloud"></span>
+      <span class="rain-drop"></span>
+      <span class="rain-drop"></span>
+      <span class="rain-drop"></span>
+    }
+    @case ('snowy') {
+      <span class="storm-cloud"></span>
+      <span class="snow-flake">❄</span>
+      <span class="snow-flake">❄</span>
+      <span class="snow-flake">❄</span>
+    }
+    @case ('stormy') {
+      <span class="storm-cloud"></span>
+      <span class="lightning"></span>
+    }
+    @case ('foggy') {
+      <span class="fog-line"></span>
+      <span class="fog-line"></span>
+      <span class="fog-line"></span>
+    }
+  }
+</span>

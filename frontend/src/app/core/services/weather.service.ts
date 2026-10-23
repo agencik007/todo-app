@@ -9,21 +9,62 @@ import {
   untracked,
 } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CurrentWeather, WeatherType } from '../models/weather.model';
+import {
+  CurrentWeather,
+  WeatherForecast,
+  WeatherType,
+} from '../models/weather.model';
 import { LanguageService } from './language.service';
 import { PlaceNameService } from './place-name.service';
 
 /** Shape of the open-meteo /v1/forecast response (only the fields we use). */
 interface OpenMeteoResponse {
+  timezone: string;
   current: {
     temperature_2m: number;
     apparent_temperature: number;
     relative_humidity_2m: number;
+    precipitation: number;
+    cloud_cover: number;
+    pressure_msl: number;
     wind_speed_10m: number;
+    wind_gusts_10m: number;
+    wind_direction_10m: number;
     weather_code: number;
     is_day: number;
   };
+  /** Times are unix seconds (timeformat=unixtime). */
+  hourly: {
+    time: number[];
+    temperature_2m: number[];
+    weather_code: number[];
+    precipitation_probability: (number | null)[];
+    is_day: number[];
+  };
+  daily: {
+    time: number[];
+    weather_code: number[];
+    temperature_2m_max: number[];
+    temperature_2m_min: number[];
+    precipitation_probability_max: (number | null)[];
+    sunrise: number[];
+    sunset: number[];
+    uv_index_max: (number | null)[];
+  };
 }
+
+const FORECAST_QUERY = [
+  'current=temperature_2m,apparent_temperature,relative_humidity_2m,' +
+    'precipitation,cloud_cover,pressure_msl,wind_speed_10m,wind_gusts_10m,' +
+    'wind_direction_10m,weather_code,is_day',
+  'hourly=temperature_2m,weather_code,precipitation_probability,is_day',
+  'daily=weather_code,temperature_2m_max,temperature_2m_min,' +
+    'precipitation_probability_max,sunrise,sunset,uv_index_max',
+  'forecast_hours=24',
+  'forecast_days=7',
+  'timezone=auto',
+  'timeformat=unixtime',
+].join('&');
 
 @Injectable({
   providedIn: 'root',
@@ -46,33 +87,23 @@ export class WeatherService {
     if (!loc) return undefined;
 
     // Construct URL only when location is available
-    return (
-      `${this.#apiUrl}?latitude=${loc.lat}&longitude=${loc.lon}` +
-      '&current=temperature_2m,apparent_temperature,relative_humidity_2m,' +
-      'wind_speed_10m,weather_code,is_day&timezone=auto'
-    );
+    return `${this.#apiUrl}?latitude=${loc.lat}&longitude=${loc.lon}&${FORECAST_QUERY}`;
   });
 
   // Publicly exposed signal with transformed data. A refresh or a failed one
   // keeps the last forecast, so the widget does not blink every 30 minutes.
-  readonly weather = linkedSignal<
+  readonly forecast = linkedSignal<
     OpenMeteoResponse | undefined,
-    CurrentWeather | null
+    WeatherForecast | null
   >({
     source: () => this.#weatherResource.value(),
-    computation: (raw, previous) => {
-      if (!raw) return previous?.value ?? null;
-
-      return {
-        temperature: raw.current.temperature_2m,
-        apparentTemperature: raw.current.apparent_temperature,
-        humidity: raw.current.relative_humidity_2m,
-        windSpeed: raw.current.wind_speed_10m,
-        weatherCode: raw.current.weather_code,
-        isDay: raw.current.is_day === 1,
-      };
-    },
+    computation: (raw, previous) =>
+      raw ? toForecast(raw) : (previous?.value ?? null),
   }).asReadonly();
+
+  readonly weather = computed<CurrentWeather | null>(
+    () => this.forecast()?.current ?? null,
+  );
 
   /** Where the forecast is for; null while unknown. */
   readonly place = this.#placeName.place;
@@ -171,6 +202,45 @@ export class WeatherService {
   }
 }
 
+function toForecast(raw: OpenMeteoResponse): WeatherForecast {
+  const { current, hourly, daily } = raw;
+  const ms = (seconds: number): number => seconds * 1000;
+  return {
+    current: {
+      temperature: current.temperature_2m,
+      apparentTemperature: current.apparent_temperature,
+      humidity: current.relative_humidity_2m,
+      precipitation: current.precipitation,
+      cloudCover: current.cloud_cover,
+      pressure: current.pressure_msl,
+      windSpeed: current.wind_speed_10m,
+      windGusts: current.wind_gusts_10m,
+      windDirection: current.wind_direction_10m,
+      weatherCode: current.weather_code,
+      isDay: current.is_day === 1,
+    },
+    hourly: hourly.time.map((time, i) => ({
+      time: ms(time),
+      temperature: hourly.temperature_2m[i],
+      weatherCode: hourly.weather_code[i],
+      precipitationProbability: hourly.precipitation_probability[i],
+      isDay: hourly.is_day[i] === 1,
+    })),
+    daily: daily.time.map((time, i) => ({
+      date: ms(time),
+      weatherCode: daily.weather_code[i],
+      temperatureMax: daily.temperature_2m_max[i],
+      temperatureMin: daily.temperature_2m_min[i],
+      precipitationProbability: daily.precipitation_probability_max[i],
+      sunrise: ms(daily.sunrise[i]),
+      sunset: ms(daily.sunset[i]),
+      uvIndexMax: daily.uv_index_max[i],
+    })),
+    timeZone: raw.timezone,
+    receivedAt: Date.now(),
+  };
+}
+
 /** i18n key describing a WMO weather interpretation code (WW). */
 export function weatherDescriptionKey(code: number): string {
   return `WEATHER.CODE.${WEATHER_DESCRIPTIONS[code] ?? 'UNKNOWN'}`;
@@ -208,7 +278,7 @@ const WEATHER_DESCRIPTIONS: Record<number, string> = {
 };
 
 /** Maps a WMO weather interpretation code (WW) to a weather type. */
-function toWeatherType(code: number): WeatherType {
+export function toWeatherType(code: number): WeatherType {
   if (code === 0) return 'sunny';
   if (code === 1) return 'partly-cloudy';
   if (code >= 2 && code <= 3) return 'cloudy';

@@ -4,8 +4,11 @@ import {
   Component,
   computed,
   DestroyRef,
+  ElementRef,
   inject,
   OnInit,
+  signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -16,80 +19,47 @@ import {
   weatherDescriptionKey,
   WeatherService,
 } from '../../../core/services/weather.service';
+import { WeatherDetailsDialogComponent } from './weather-details-dialog/weather-details-dialog.component';
+import { WeatherIconComponent } from './weather-icon/weather-icon.component';
 
 @Component({
   selector: 'app-weather-widget',
-  imports: [TooltipModule, TranslateModule],
+  imports: [
+    TooltipModule,
+    TranslateModule,
+    WeatherIconComponent,
+    WeatherDetailsDialogComponent,
+  ],
   template: `
-    @if (weatherService.weather()) {
+    @if (weatherService.weather(); as weather) {
       <button
         type="button"
         tooltipPosition="bottom"
         class="flex align-items-center gap-2 cursor-pointer weather-widget"
+        aria-haspopup="dialog"
+        #widgetButton
         [pTooltip]="tooltipText()"
         [attr.aria-label]="
-          tooltipText() + '. ' + ('WEATHER.REPLAY' | translate)
+          tooltipText() + '. ' + ('WEATHER.OPEN_DETAILS' | translate)
         "
-        (click)="onReplay()"
+        (click)="onOpenDetails()"
       >
         <span class="weather-icon-container">
-          @switch (weatherService.weatherType()) {
-            @case ('sunny') {
-              <span class="weather-icon">
-                <span class="sunny-rays"></span>
-                <span class="sunny-body"></span>
-              </span>
-            }
-            @case ('cloudy') {
-              <span class="weather-icon">
-                <span class="cloud"></span>
-              </span>
-            }
-            @case ('partly-cloudy') {
-              <span class="weather-icon">
-                <span class="cloud"></span>
-                <span class="partly-cloudy-sun"></span>
-              </span>
-            }
-            @case ('rainy') {
-              <span class="weather-icon">
-                <span class="rain-cloud"></span>
-                <span class="rain-drop"></span>
-                <span class="rain-drop"></span>
-                <span class="rain-drop"></span>
-              </span>
-            }
-            @case ('snowy') {
-              <span class="weather-icon">
-                <span class="storm-cloud"></span>
-                <span class="snow-flake">❄</span>
-                <span class="snow-flake">❄</span>
-                <span class="snow-flake">❄</span>
-              </span>
-            }
-            @case ('stormy') {
-              <span class="weather-icon">
-                <span class="storm-cloud"></span>
-                <span class="lightning"></span>
-              </span>
-            }
-            @case ('foggy') {
-              <span class="weather-icon">
-                <span class="fog-line"></span>
-                <span class="fog-line"></span>
-                <span class="fog-line"></span>
-              </span>
-            }
-            @default {
-              <span class="text-2xl">❓</span>
-            }
+          @if (weatherService.weatherType(); as type) {
+            <app-weather-icon [type]="type" [isDay]="weather.isDay" />
           }
         </span>
         <span class="font-bold text-sm">{{ temperature() }}°C</span>
       </button>
+
+      @defer (on interaction(widgetButton); prefetch on hover(widgetButton)) {
+        <app-weather-details-dialog
+          [visible]="isDetailsOpen()"
+          (visibleChange)="onDetailsVisibleChange($event)"
+        />
+      }
     }
   `,
-  styleUrls: ['./weather-icons.scss'],
   styles: [
     `
       .weather-widget {
@@ -124,6 +94,11 @@ export class WeatherWidgetComponent implements OnInit {
   readonly #document = inject(DOCUMENT);
   readonly #appRef = inject(ApplicationRef);
   readonly #languageService = inject(LanguageService);
+
+  readonly widgetButton =
+    viewChild<ElementRef<HTMLButtonElement>>('widgetButton');
+
+  readonly isDetailsOpen = signal(false);
 
   readonly temperature = computed(() =>
     Math.round(this.weatherService.weather()?.temperature ?? 0),
@@ -176,7 +151,13 @@ export class WeatherWidgetComponent implements OnInit {
     this.weatherService.loadForCurrentPosition();
   }
 
-  onReplay(): void {
-    this.weatherService.replayEffect();
+  onOpenDetails(): void {
+    this.isDetailsOpen.set(true);
+  }
+
+  onDetailsVisibleChange(visible: boolean): void {
+    this.isDetailsOpen.set(visible);
+    // Back to the widget, where keyboard users opened the dialog.
+    if (!visible) this.widgetButton()?.nativeElement.focus();
   }
 }
