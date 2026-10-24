@@ -1,8 +1,9 @@
 // Full-screen weather scene. Every particle gets random 0–1 values from the
 // component (--x, --y, --delay, --duration, --size, --drift); the timings and
 // sizes below turn them into real units. Keep the scene length in sync with
-// WeatherEffectsComponent.DURATION_MS.
-$scene-duration: 7s;
+// WeatherEffectsComponent.DURATION_MS. Under 5 s on purpose: moving content
+// that starts by itself and runs longer needs a way to pause it (WCAG 2.2.2).
+$scene-duration: 4.5s;
 
 .weather-scene {
   position: fixed;
@@ -232,7 +233,8 @@ $scene-duration: 7s;
     transparent
   );
   transform: translateX(-30vw) rotate(20deg);
-  animation: flare-sweep 2.4s ease-in-out 2s forwards;
+  animation: flare-sweep ($scene-duration * 0.34) ease-in-out
+    ($scene-duration * 0.28) forwards;
 }
 
 @keyframes flare-sweep {
@@ -378,7 +380,7 @@ $scene-duration: 7s;
   box-shadow: 0 0 8px var(--p-yellow-100);
   opacity: 0;
   transform: rotate(-25deg);
-  animation: shooting 1.1s ease-in 3s forwards;
+  animation: shooting 0.8s ease-in ($scene-duration * 0.42) forwards;
 }
 
 @keyframes shooting {
@@ -426,8 +428,8 @@ $scene-duration: 7s;
   transform: translateX(-40vw);
   // Nearer clouds (lower layer) move faster: parallax.
   animation: drift
-    calc(#{$scene-duration} + var(--layer) * 2s + var(--duration) * 2s) linear
-    calc(var(--delay) * -8s) forwards;
+    calc(#{$scene-duration} + var(--layer) * 1.3s + var(--duration) * 1.3s)
+    linear calc(var(--delay) * -5s) forwards;
 }
 
 @keyframes drift {
@@ -469,8 +471,9 @@ $scene-duration: 7s;
 
   // Lit from inside when the lightning strikes.
   animation:
-    drift calc(#{$scene-duration} + var(--layer) * 2s + var(--duration) * 2s)
-      linear calc(var(--delay) * -8s) forwards,
+    drift
+      calc(#{$scene-duration} + var(--layer) * 1.3s + var(--duration) * 1.3s)
+      linear calc(var(--delay) * -5s) forwards,
     cloud-lit $scene-duration linear forwards;
 }
 
@@ -525,8 +528,7 @@ $scene-duration: 7s;
     var(--p-surface-0)
   );
   opacity: calc(0.25 + var(--size) * 0.6);
-  animation: fall var(--fall) linear calc(var(--delay) * 1.5s) infinite
-    backwards;
+  animation: fall var(--fall) linear calc(var(--delay) * 1s) infinite backwards;
 }
 
 // Slanted by the wind: a 12° tilt moves the drop ~25vh left over 120vh.
@@ -549,7 +551,7 @@ $scene-duration: 7s;
   border: 1.5px solid color-mix(in srgb, var(--p-sky-200) 80%, transparent);
   border-radius: 50%;
   opacity: 0;
-  animation: splash var(--fall) ease-out calc(var(--delay) * 1.5s) infinite;
+  animation: splash var(--fall) ease-out calc(var(--delay) * 1s) infinite;
 
   &::before,
   &::after {
@@ -561,7 +563,7 @@ $scene-duration: 7s;
     height: 3px;
     border-radius: 50%;
     background: var(--p-sky-100);
-    animation: droplet-left var(--fall) ease-out calc(var(--delay) * 1.5s)
+    animation: droplet-left var(--fall) ease-out calc(var(--delay) * 1s)
       infinite;
   }
 
@@ -781,8 +783,8 @@ $scene-duration: 7s;
     transparent 70%
   );
   opacity: calc(0.95 - var(--near) * 0.55);
-  animation: snowfall calc(7s - var(--size) * 3s + var(--duration) * 2s)
-    ease-in-out calc(var(--delay) * 2.5s) infinite backwards;
+  animation: snowfall calc(4.5s - var(--size) * 2s + var(--duration) * 1.5s)
+    ease-in-out calc(var(--delay) * 1.5s) infinite backwards;
 }
 
 // Sways from side to side on the way down.
@@ -819,7 +821,7 @@ $scene-duration: 7s;
     transparent 70%
   );
   filter: blur(24px);
-  animation: fog-slide calc(5s + var(--duration) * 3s) ease-in-out
+  animation: fog-slide calc(3.5s + var(--duration) * 2s) ease-in-out
     calc(var(--delay) * -2s) infinite alternate;
 }
 

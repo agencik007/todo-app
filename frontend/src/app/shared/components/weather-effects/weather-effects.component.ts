@@ -51,7 +51,7 @@ export class WeatherEffectsComponent {
   readonly #document = inject(DOCUMENT);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
-  static readonly DURATION_MS = 7000;
+  static readonly DURATION_MS = 4500;
 
   readonly scene = signal<WeatherScene | null>(null);
 
