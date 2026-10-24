@@ -1,10 +1,21 @@
 /* Weather Icons Animations */
+:host {
+  --scale: 1;
+  display: inline-block;
+  flex-shrink: 0;
+  width: calc(40px * var(--scale));
+  height: calc(40px * var(--scale));
+  vertical-align: middle;
+}
+
+// Drawn at 40 px, scaled to the host size.
 .weather-icon {
   width: 40px;
   height: 40px;
   position: relative;
-  display: inline-block;
-  vertical-align: middle;
+  display: block;
+  transform: scale(var(--scale));
+  transform-origin: 0 0;
 }
 
 /* --- SUNNY --- */
@@ -60,6 +71,33 @@
   100% {
     transform: translate(-50%, -50%) rotate(360deg);
   }
+}
+
+/* --- CLEAR NIGHT --- */
+// A crescent: the inset shadow is the lit part of the disc.
+.moon-body,
+.partly-cloudy-moon {
+  border-radius: 50%;
+  position: absolute;
+  box-shadow: inset -5px 3px 0 0 var(--p-amber-100);
+  filter: drop-shadow(0 0 4px var(--p-amber-200));
+  transform: rotate(-20deg);
+}
+
+.moon-body {
+  width: 20px;
+  height: 20px;
+  top: 10px;
+  left: 10px;
+}
+
+.partly-cloudy-moon {
+  width: 12px;
+  height: 12px;
+  top: 25%;
+  left: 62%;
+  box-shadow: inset -3px 2px 0 0 var(--p-amber-100);
+  z-index: 1;
 }
 
 /* --- CLOUDY / PARTLY CLOUDY --- */
@@ -283,5 +321,20 @@
   100% {
     transform: translateX(-40%);
     opacity: 0;
+  }
+}
+
+/* --- REDUCED MOTION --- */
+// Still icons; drops, flakes and the bolt (hidden between animation
+// frames) stay visible.
+@media (prefers-reduced-motion: reduce) {
+  .weather-icon * {
+    animation: none !important;
+  }
+
+  .rain-drop,
+  .snow-flake,
+  .lightning {
+    opacity: 1;
   }
 }

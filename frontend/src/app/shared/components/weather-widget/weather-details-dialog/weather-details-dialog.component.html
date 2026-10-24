@@ -1,0 +1,253 @@
+<p-dialog
+  [visible]="visible()"
+  [styleClass]="
+    isCompact()
+      ? 'premium-dialog weather-dialog weather-dialog--sheet'
+      : 'premium-dialog weather-dialog'
+  "
+  [style]="{ width: '640px', maxWidth: isCompact() ? '100vw' : '95vw' }"
+  [resizable]="false"
+  [position]="isCompact() ? 'bottom' : 'center'"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  (visibleChange)="visible.set($event)"
+>
+  <ng-template pTemplate="header">
+    <div class="dialog-heading">
+      <span class="p-dialog-title">{{ title() }}</span>
+      @if (place()?.region; as region) {
+        <span class="dialog-subtitle">{{ region }}</span>
+      }
+      <span class="dialog-subtitle">{{ updatedText() }}</span>
+    </div>
+    <div class="dialog-header-actions">
+      <button
+        type="button"
+        tooltipPosition="bottom"
+        size="lg"
+        appIconButton
+        [pTooltip]="'WEATHER.REFRESH' | translate"
+        [disabled]="isLoading()"
+        [attr.aria-label]="'WEATHER.REFRESH' | translate"
+        (click)="onRefresh()"
+      >
+        <i
+          class="pi pi-refresh"
+          [class.pi-spin]="isLoading()"
+        ></i>
+      </button>
+      <button
+        type="button"
+        tooltipPosition="bottom"
+        size="lg"
+        appIconButton
+        [pTooltip]="'WEATHER.REPLAY' | translate"
+        [attr.aria-label]="'WEATHER.REPLAY' | translate"
+        (click)="onReplay()"
+      >
+        <i class="pi pi-sparkles"></i>
+      </button>
+    </div>
+  </ng-template>
+
+  @if (hero(); as hero) {
+    <section
+      class="hero"
+      [class.hero--night]="!hero.isDay"
+      [attr.data-weather]="hero.type"
+      [attr.aria-label]="'WEATHER.NOW' | translate"
+    >
+      <app-weather-icon
+        [type]="hero.type"
+        [size]="isCompact() ? 64 : 88"
+        [isDay]="hero.isDay"
+      />
+      <p class="hero-temperature">{{ hero.temperature }}°</p>
+      <div class="hero-text">
+        <p class="hero-description">{{ hero.description }}</p>
+        <p class="hero-meta">
+          {{ 'WEATHER.FEELS_LIKE' | translate: { temp: hero.feelsLike } }}
+        </p>
+        @if (hero.max !== null) {
+          <p class="hero-meta">
+            {{ 'WEATHER.MIN_MAX' | translate: { min: hero.min, max: hero.max } }}
+          </p>
+        }
+      </div>
+    </section>
+
+    <section
+      class="weather-section"
+      aria-labelledby="weather-hourly-title"
+    >
+      <h3
+        id="weather-hourly-title"
+        class="section-title"
+      >
+        {{ 'WEATHER.NEXT_HOURS' | translate }}
+      </h3>
+      <ol
+        tabindex="0"
+        class="hourly"
+        [attr.aria-label]="'WEATHER.NEXT_HOURS' | translate"
+      >
+        @for (item of hourly(); track item.time + item.kind) {
+          <li
+            class="hour"
+            [class.hour--sun]="item.kind !== 'hour'"
+          >
+            <span class="hour-time">{{ item.label }}</span>
+            @switch (item.kind) {
+              @case ('hour') {
+                <app-weather-icon
+                  [type]="item.type"
+                  [size]="32"
+                  [label]="item.description"
+                  [isDay]="item.isDay"
+                />
+                <span class="hour-temperature">{{ item.temperature }}°</span>
+                <span class="hour-rain">
+                  @if (item.precipitationProbability !== null) {
+                    <span class="sr-only">{{ 'WEATHER.RAIN_CHANCE' | translate }}</span>
+                    {{ item.precipitationProbability }}%
+                  }
+                </span>
+              }
+              @case ('sunrise') {
+                <i
+                  class="pi pi-arrow-circle-up hour-sun-icon"
+                  aria-hidden="true"
+                ></i>
+                <span class="hour-sun-label">{{ 'WEATHER.DETAILS.SUNRISE' | translate }}</span>
+              }
+              @case ('sunset') {
+                <i
+                  class="pi pi-arrow-circle-down hour-sun-icon"
+                  aria-hidden="true"
+                ></i>
+                <span class="hour-sun-label">{{ 'WEATHER.DETAILS.SUNSET' | translate }}</span>
+              }
+            }
+          </li>
+        }
+      </ol>
+    </section>
+
+    <section
+      class="weather-section"
+      aria-labelledby="weather-daily-title"
+    >
+      <h3
+        id="weather-daily-title"
+        class="section-title"
+      >
+        {{ 'WEATHER.NEXT_DAYS' | translate }}
+      </h3>
+      <ul class="daily">
+        @for (day of daily(); track day.date) {
+          <li class="day">
+            <span class="day-name">{{ day.label }}</span>
+            <app-weather-icon
+              [type]="day.type"
+              [size]="28"
+              [label]="day.description"
+            />
+            <span class="day-rain">
+              @if (day.precipitationProbability !== null) {
+                <span class="sr-only">{{ 'WEATHER.RAIN_CHANCE' | translate }}</span>
+                {{ day.precipitationProbability }}%
+              }
+            </span>
+            <span class="day-temperature day-temperature--min">
+              <span class="sr-only">{{ 'WEATHER.MIN' | translate }}</span>
+              {{ day.temperatureMin }}°
+            </span>
+            <span
+              class="range"
+              aria-hidden="true"
+            >
+              <span
+                class="range-fill"
+                [style.width.%]="day.rangeWidth"
+                [style.left.%]="day.rangeStart"
+              ></span>
+            </span>
+            <span class="day-temperature">
+              <span class="sr-only">{{ 'WEATHER.MAX' | translate }}</span>
+              {{ day.temperatureMax }}°
+            </span>
+          </li>
+        }
+      </ul>
+    </section>
+
+    <section
+      class="weather-section"
+      aria-labelledby="weather-details-title"
+    >
+      <h3
+        id="weather-details-title"
+        class="section-title"
+      >
+        {{ 'WEATHER.DETAILS.TITLE' | translate }}
+      </h3>
+      <dl class="details">
+        @for (tile of details(); track tile.label) {
+          <div class="tile">
+            <dt class="tile-label">
+              <i
+                class="pi {{ tile.icon }}"
+                aria-hidden="true"
+              ></i>
+              {{ tile.label }}
+            </dt>
+            <dd class="tile-value">
+              {{ tile.value }}
+              @if (tile.arrow !== undefined) {
+                <i
+                  class="pi pi-arrow-up tile-arrow"
+                  aria-hidden="true"
+                  [style.transform]="'rotate(' + tile.arrow + 'deg)'"
+                ></i>
+              }
+            </dd>
+            @if (tile.hint) {
+              <dd class="tile-hint">{{ tile.hint }}</dd>
+            }
+          </div>
+        }
+      </dl>
+    </section>
+
+    <footer class="weather-footer">
+      <label
+        for="weather-dialog-effects"
+        class="effects-toggle"
+      >
+        <span>{{ 'NAV.WEATHER_EFFECTS' | translate }}</span>
+        <p-toggleswitch
+          inputId="weather-dialog-effects"
+          [ngModel]="effectsEnabled()"
+          (ngModelChange)="onEffectsChange($event)"
+        />
+      </label>
+      <span class="attribution">
+        {{ 'WEATHER.SOURCE' | translate }}
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://open-meteo.com"
+          >Open-Meteo</a
+        >
+        ·
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://www.bigdatacloud.com"
+          >BigDataCloud</a
+        >
+      </span>
+    </footer>
+  }
+</p-dialog>

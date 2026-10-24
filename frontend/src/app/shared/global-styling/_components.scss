@@ -20,6 +20,30 @@
   background: color-mix(in srgb, var(--p-red-500) 10%, transparent) !important;
 }
 
+// Weather details (shared/components/weather-widget/weather-details-dialog).
+// Its own content is styled in the component; this is the PrimeNG frame.
+.weather-dialog {
+  .p-dialog-header {
+    align-items: flex-start;
+  }
+
+  .p-dialog-content {
+    padding: 0 var(--app-space-5) var(--app-space-5);
+  }
+
+  // Compact screens: a bottom sheet.
+  &.weather-dialog--sheet {
+    margin: 0;
+    max-height: 88vh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+
+    .p-dialog-content {
+      padding-bottom: calc(var(--app-space-5) + var(--app-safe-bottom));
+    }
+  }
+}
+
 .premium-dialog {
   .p-dialog-header {
     display: flex;

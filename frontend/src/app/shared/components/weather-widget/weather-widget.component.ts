@@ -2,89 +2,64 @@ import { DOCUMENT } from '@angular/common';
 import {
   ApplicationRef,
   Component,
+  computed,
   DestroyRef,
+  ElementRef,
   inject,
   OnInit,
+  signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TooltipModule } from 'primeng/tooltip';
 import { filter, first, fromEvent, interval, merge } from 'rxjs';
-import { WeatherService } from '../../../core/services/weather.service';
+import { LanguageService } from '../../../core/services/language.service';
+import {
+  weatherDescriptionKey,
+  WeatherService,
+} from '../../../core/services/weather.service';
+import { WeatherDetailsDialogComponent } from './weather-details-dialog/weather-details-dialog.component';
+import { WeatherIconComponent } from './weather-icon/weather-icon.component';
 
 @Component({
   selector: 'app-weather-widget',
-  imports: [TooltipModule, TranslateModule],
+  imports: [
+    TooltipModule,
+    TranslateModule,
+    WeatherIconComponent,
+    WeatherDetailsDialogComponent,
+  ],
   template: `
-    @if (weatherService.weather()) {
+    @if (weatherService.weather(); as weather) {
       <button
         type="button"
         tooltipPosition="bottom"
         class="flex align-items-center gap-2 cursor-pointer weather-widget"
-        [pTooltip]="tooltipText"
-        [attr.aria-label]="tooltipText + '. ' + ('WEATHER.REPLAY' | translate)"
-        (click)="onReplay()"
+        aria-haspopup="dialog"
+        #widgetButton
+        [pTooltip]="tooltipText()"
+        [attr.aria-label]="
+          tooltipText() + '. ' + ('WEATHER.OPEN_DETAILS' | translate)
+        "
+        (click)="onOpenDetails()"
       >
         <span class="weather-icon-container">
-          @switch (weatherService.weatherType()) {
-            @case ('sunny') {
-              <span class="weather-icon">
-                <span class="sunny-rays"></span>
-                <span class="sunny-body"></span>
-              </span>
-            }
-            @case ('cloudy') {
-              <span class="weather-icon">
-                <span class="cloud"></span>
-              </span>
-            }
-            @case ('partly-cloudy') {
-              <span class="weather-icon">
-                <span class="cloud"></span>
-                <span class="partly-cloudy-sun"></span>
-              </span>
-            }
-            @case ('rainy') {
-              <span class="weather-icon">
-                <span class="rain-cloud"></span>
-                <span class="rain-drop"></span>
-                <span class="rain-drop"></span>
-                <span class="rain-drop"></span>
-              </span>
-            }
-            @case ('snowy') {
-              <span class="weather-icon">
-                <span class="storm-cloud"></span>
-                <span class="snow-flake">❄</span>
-                <span class="snow-flake">❄</span>
-                <span class="snow-flake">❄</span>
-              </span>
-            }
-            @case ('stormy') {
-              <span class="weather-icon">
-                <span class="storm-cloud"></span>
-                <span class="lightning"></span>
-              </span>
-            }
-            @case ('foggy') {
-              <span class="weather-icon">
-                <span class="fog-line"></span>
-                <span class="fog-line"></span>
-                <span class="fog-line"></span>
-              </span>
-            }
-            @default {
-              <span class="text-2xl">❓</span>
-            }
+          @if (weatherService.weatherType(); as type) {
+            <app-weather-icon [type]="type" [isDay]="weather.isDay" />
           }
         </span>
-        <span class="font-bold text-sm"
-          >{{ weatherService.weather()?.temperature }}°C</span
-        >
+        <span class="font-bold text-sm">{{ temperature() }}°C</span>
       </button>
+
+      @defer (on interaction(widgetButton); prefetch on hover(widgetButton)) {
+        <app-weather-details-dialog
+          [visible]="isDetailsOpen()"
+          (visibleChange)="onDetailsVisibleChange($event)"
+        />
+      }
     }
   `,
-  styleUrls: ['./weather-icons.scss'],
   styles: [
     `
       .weather-widget {
@@ -118,6 +93,33 @@ export class WeatherWidgetComponent implements OnInit {
   readonly #destroyRef = inject(DestroyRef);
   readonly #document = inject(DOCUMENT);
   readonly #appRef = inject(ApplicationRef);
+  readonly #languageService = inject(LanguageService);
+
+  readonly widgetButton =
+    viewChild<ElementRef<HTMLButtonElement>>('widgetButton');
+
+  readonly isDetailsOpen = signal(false);
+
+  readonly temperature = computed(() =>
+    Math.round(this.weatherService.weather()?.temperature ?? 0),
+  );
+
+  readonly tooltipText = computed(() => {
+    const w = this.weatherService.weather();
+    if (!w) return '';
+    // Re-translate when the language (and its translations) change.
+    this.#languageService.currentLang();
+
+    const t = (key: string, params?: object): string =>
+      this.#translateService.instant(key, params);
+    return t('WEATHER.TOOLTIP', {
+      place: this.weatherService.place()?.name ?? t('WEATHER.YOUR_LOCATION'),
+      description: t(weatherDescriptionKey(w.weatherCode)),
+      temp: Math.round(w.temperature),
+      feelsLike: Math.round(w.apparentTemperature),
+      wind: Math.round(w.windSpeed),
+    });
+  });
 
   ngOnInit(): void {
     this.#loadWeather();
@@ -146,27 +148,16 @@ export class WeatherWidgetComponent implements OnInit {
   }
 
   #loadWeather(): void {
-    this.weatherService.getGeolocation().subscribe({
-      next: (position) =>
-        this.weatherService.fetchWeather(
-          position.coords.latitude,
-          position.coords.longitude,
-        ),
-      error: (err) => console.error('Weather widget error:', err),
-    });
+    this.weatherService.loadForCurrentPosition();
   }
 
-  onReplay(): void {
-    this.weatherService.replayEffect();
+  onOpenDetails(): void {
+    this.isDetailsOpen.set(true);
   }
 
-  get tooltipText(): string {
-    const w = this.weatherService.weather();
-    if (!w) return '';
-
-    const tempLabel = this.#translateService.instant('WEATHER.TEMP');
-    const windLabel = this.#translateService.instant('WEATHER.WIND');
-
-    return `${tempLabel}: ${w.temperature}°C, ${windLabel}: ${w.windSpeed} km/h`;
+  onDetailsVisibleChange(visible: boolean): void {
+    this.isDetailsOpen.set(visible);
+    // Back to the widget, where keyboard users opened the dialog.
+    if (!visible) this.widgetButton()?.nativeElement.focus();
   }
 }

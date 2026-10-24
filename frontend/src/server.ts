@@ -22,7 +22,8 @@ app.disable('x-powered-by');
  * - scripts only from our own origin (theme-init.js is external, no inline JS),
  * - styles need 'unsafe-inline' because Angular/PrimeNG inject <style> tags at
  *   runtime; fonts are self-hosted, so no third-party style/font origins,
- * - connect-src covers the backend API and the open-meteo weather API,
+ * - connect-src covers the backend API, the open-meteo weather API and
+ *   BigDataCloud (place name for the weather widget),
  * - avatars are rendered from blob: URLs created out of IndexedDB,
  * - the service worker (ngsw-worker.js) and the web app manifest are our own.
  *
@@ -43,7 +44,7 @@ const contentSecurityPolicy = [
   `style-src 'self' 'unsafe-inline'`,
   `font-src 'self'`,
   `img-src 'self' data: blob:`,
-  `connect-src 'self' ${apiOrigin} https://api.open-meteo.com`.replace(
+  `connect-src 'self' ${apiOrigin} https://api.open-meteo.com https://api.bigdatacloud.net`.replace(
     /\s+/g,
     ' ',
   ),

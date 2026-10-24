@@ -8,11 +8,9 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { WeatherType } from '../../../core/models/weather.model';
 import { LoginAnimationService } from '../../../core/services/login-animation.service';
-import {
-  WeatherService,
-  WeatherType,
-} from '../../../core/services/weather.service';
+import { WeatherService } from '../../../core/services/weather.service';
 
 interface WeatherScene {
   type: WeatherType;
