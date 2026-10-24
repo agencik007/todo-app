@@ -3,6 +3,12 @@
   // zmienna zamiast tokenów szkła, których jasna/ciemna logika tu nie pasuje.
   --tooltip-bg: color-mix(in srgb, var(--p-slate-900) 90%, transparent);
   z-index: 1000000 !important;
+  // PrimeNG mierzy kontener (nie tekst), wybierając pozycję mieszczącą się
+  // w oknie — tekst musi się w nim zawijać, inaczej wylewa się poza ekran.
+  // max-content zamiast inline fit-content PrimeNG: szerokość nie zależy
+  // od tego, jak blisko prawej krawędzi PrimeNG akurat próbuje go ustawić.
+  width: max-content !important;
+  --p-tooltip-max-width: min(20rem, calc(100vw - 2 * var(--app-space-4)));
 
   .p-tooltip-text {
     background: var(--tooltip-bg);
@@ -15,14 +21,8 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    white-space: nowrap;
-    width: max-content;
-
-    @media screen and (max-width: 768px) {
-      white-space: normal;
-      word-break: break-word;
-      max-width: calc(80vw - 100px);
-    }
+    white-space: pre-line;
+    overflow-wrap: break-word;
   }
 
   // Arrows
