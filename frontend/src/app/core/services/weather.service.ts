@@ -10,7 +10,9 @@ import {
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
+  ChosenLocation,
   CurrentWeather,
+  Place,
   WeatherForecast,
   WeatherType,
 } from '../models/weather.model';
@@ -66,6 +68,11 @@ const FORECAST_QUERY = [
   'timeformat=unixtime',
 ].join('&');
 
+interface Coordinates {
+  lat: number;
+  lon: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -75,10 +82,21 @@ export class WeatherService {
 
   static readonly REFRESH_INTERVAL_MS = 30 * 60 * 1000;
   static readonly EFFECTS_STORAGE_KEY = 'weather_effects_enabled';
+  static readonly LOCATION_STORAGE_KEY = 'weather_location';
 
   readonly #apiUrl = 'https://api.open-meteo.com/v1/forecast';
 
-  readonly #location = signal<{ lat: number; lon: number } | null>(null);
+  readonly #location = signal<Coordinates | null>(null);
+
+  readonly #chosenLocation = signal(this.#loadChosenLocation());
+  /** A city the user picked; null while the device's position is used. */
+  readonly chosenLocation = this.#chosenLocation.asReadonly();
+
+  readonly #geolocationFailed = signal(false);
+  /** No city chosen and the device's position is unavailable (denied). */
+  readonly needsLocation = computed(
+    () => !this.#chosenLocation() && this.#geolocationFailed(),
+  );
 
   // Resource for fetching raw weather data
   // It automatically refetches when #location signal changes
@@ -91,14 +109,26 @@ export class WeatherService {
   });
 
   // Publicly exposed signal with transformed data. A refresh or a failed one
-  // keeps the last forecast, so the widget does not blink every 30 minutes.
+  // at the same place keeps the last forecast, so the widget does not blink
+  // every 30 minutes; another place starts empty.
   readonly forecast = linkedSignal<
-    OpenMeteoResponse | undefined,
+    { raw: OpenMeteoResponse | undefined; location: Coordinates | null },
     WeatherForecast | null
   >({
-    source: () => this.#weatherResource.value(),
-    computation: (raw, previous) =>
-      raw ? toForecast(raw) : (previous?.value ?? null),
+    source: () => ({
+      raw: this.#weatherResource.value(),
+      location: this.#location(),
+    }),
+    computation: ({ raw, location }, previous) => {
+      if (raw) return toForecast(raw);
+      const previousLocation = previous?.source.location;
+      const samePlace =
+        !!location &&
+        !!previousLocation &&
+        location.lat === previousLocation.lat &&
+        location.lon === previousLocation.lon;
+      return samePlace ? (previous?.value ?? null) : null;
+    },
   }).asReadonly();
 
   readonly weather = computed<CurrentWeather | null>(
@@ -106,7 +136,12 @@ export class WeatherService {
   );
 
   /** Where the forecast is for; null while unknown. */
-  readonly place = this.#placeName.place;
+  readonly place = computed<Place | null>(() => {
+    const chosen = this.#chosenLocation();
+    return chosen
+      ? { name: chosen.name, region: chosen.region }
+      : this.#placeName.place();
+  });
 
   readonly weatherType = computed<WeatherType | null>(() => {
     const code = this.weather()?.weatherCode;
@@ -132,14 +167,47 @@ export class WeatherService {
     effect(() => {
       this.#languageService.currentLang();
       untracked(() => {
-        if (this.#location()) this.#loadPosition(false);
+        if (this.#location() && !this.#chosenLocation()) {
+          this.#loadPosition(false);
+        }
       });
     });
   }
 
-  /** Fetches the forecast and the place name for the device's position. */
-  loadForCurrentPosition(): void {
-    this.#loadPosition(true);
+  /** Fetches the forecast for the chosen city or the device's position. */
+  refresh(): void {
+    const chosen = this.#chosenLocation();
+    if (chosen) {
+      this.#fetchForecast({ lat: chosen.latitude, lon: chosen.longitude });
+    } else {
+      this.#loadPosition(true);
+    }
+  }
+
+  /** Shows the weather for `location` from now on, without geolocation. */
+  chooseLocation(location: ChosenLocation): void {
+    this.#chosenLocation.set(location);
+    try {
+      localStorage.setItem(
+        WeatherService.LOCATION_STORAGE_KEY,
+        JSON.stringify(location),
+      );
+    } catch {
+      // Storage blocked: the city is used until the page is closed.
+    }
+    this.refresh();
+  }
+
+  /** Forgets the chosen city and goes back to the device's position. */
+  useDeviceLocation(): void {
+    this.#chosenLocation.set(null);
+    try {
+      localStorage.removeItem(WeatherService.LOCATION_STORAGE_KEY);
+    } catch {
+      // Storage blocked: nothing was stored.
+    }
+    this.#location.set(null);
+    this.refresh();
   }
 
   setEffectsEnabled(enabled: boolean): void {
@@ -155,13 +223,20 @@ export class WeatherService {
     this.#replayRequests.update((count) => count + 1);
   }
 
+  #fetchForecast(location: Coordinates): void {
+    this.lastFetchAt = Date.now();
+    // A new object, so the resource fetches again at the same place.
+    this.#location.set({ ...location });
+  }
+
   #loadPosition(withForecast: boolean): void {
     this.#getGeolocation().subscribe({
       next: ({ coords }) => {
+        this.#geolocationFailed.set(false);
+        // A city chosen while the position was on its way wins.
+        if (this.#chosenLocation()) return;
         if (withForecast) {
-          this.lastFetchAt = Date.now();
-          // A new object, so the resource fetches again at the same place.
-          this.#location.set({ lat: coords.latitude, lon: coords.longitude });
+          this.#fetchForecast({ lat: coords.latitude, lon: coords.longitude });
         }
         this.#placeName.lookup(
           coords.latitude,
@@ -169,7 +244,8 @@ export class WeatherService {
           this.#languageService.currentLang(),
         );
       },
-      error: (err) => console.error('Weather widget error:', err),
+      // Denied, unavailable or unsupported: the widget offers a city search.
+      error: () => this.#geolocationFailed.set(true),
     });
   }
 
@@ -189,6 +265,15 @@ export class WeatherService {
         observer.error(new Error('Geolocation not supported'));
       }
     });
+  }
+
+  #loadChosenLocation(): ChosenLocation | null {
+    try {
+      const raw = localStorage.getItem(WeatherService.LOCATION_STORAGE_KEY);
+      return raw ? (JSON.parse(raw) as ChosenLocation) : null;
+    } catch {
+      return null;
+    }
   }
 
   #loadEffectsEnabled(): boolean {

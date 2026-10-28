@@ -12,6 +12,7 @@
   [draggable]="false"
   [dismissableMask]="true"
   (visibleChange)="visible.set($event)"
+  (onHide)="closed.emit()"
 >
   <ng-template pTemplate="header">
     <div class="dialog-heading">
@@ -22,13 +23,28 @@
       <span class="dialog-subtitle">{{ updatedText() }}</span>
     </div>
     <div class="dialog-header-actions">
+      @if (!needsLocation()) {
+        <button
+          type="button"
+          tooltipPosition="bottom"
+          size="lg"
+          aria-controls="weather-location-search"
+          appIconButton
+          [pTooltip]="'WEATHER.CHANGE_LOCATION' | translate"
+          [attr.aria-label]="'WEATHER.CHANGE_LOCATION' | translate"
+          [attr.aria-expanded]="showSearch()"
+          (click)="onToggleSearch()"
+        >
+          <i class="pi pi-map-marker"></i>
+        </button>
+      }
       <button
         type="button"
         tooltipPosition="bottom"
         size="lg"
         appIconButton
         [pTooltip]="'WEATHER.REFRESH' | translate"
-        [disabled]="isLoading()"
+        [disabled]="isLoading() || needsLocation()"
         [attr.aria-label]="'WEATHER.REFRESH' | translate"
         (click)="onRefresh()"
       >
@@ -50,6 +66,54 @@
       </button>
     </div>
   </ng-template>
+
+  @if (showSearch()) {
+    <section
+      id="weather-location-search"
+      class="location-search"
+      [class.location-search--alone]="needsLocation()"
+      [attr.aria-label]="'WEATHER.CHANGE_LOCATION' | translate"
+    >
+      @if (needsLocation()) {
+        <p class="location-hint">
+          <i
+            class="pi pi-info-circle"
+            aria-hidden="true"
+          ></i>
+          {{ 'WEATHER.LOCATION_OFF' | translate }}
+        </p>
+      }
+      <label
+        for="weather-city-search"
+        class="location-label"
+      >
+        {{ 'WEATHER.SEARCH_CITY' | translate }}
+      </label>
+      <p-autocomplete
+        inputId="weather-city-search"
+        appendTo="body"
+        [suggestions]="suggestions()"
+        [showEmptyMessage]="true"
+        [placeholder]="'WEATHER.SEARCH_PLACEHOLDER' | translate"
+        [optionLabel]="cityLabel"
+        [minQueryLength]="2"
+        [emptyMessage]="'WEATHER.NO_CITIES' | translate"
+        [delay]="300"
+        [autofocus]="true"
+        (onSelect)="onChooseCity($event)"
+        (completeMethod)="onSearch($event)"
+      />
+      @if (chosenLocation()) {
+        <p-button
+          size="small"
+          icon="pi pi-map-marker"
+          [text]="true"
+          [label]="'WEATHER.USE_MY_LOCATION' | translate"
+          (onClick)="onUseDeviceLocation()"
+        />
+      }
+    </section>
+  }
 
   @if (hero(); as hero) {
     <section
@@ -249,5 +313,13 @@
         >
       </span>
     </footer>
+  } @else if (!needsLocation()) {
+    <p class="weather-loading">
+      <i
+        class="pi pi-spin pi-spinner"
+        aria-hidden="true"
+      ></i>
+      {{ 'WEATHER.LOADING' | translate }}
+    </p>
   }
 </p-dialog>

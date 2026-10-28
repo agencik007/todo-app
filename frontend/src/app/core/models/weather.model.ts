@@ -56,3 +56,9 @@ export interface Place {
   /** Region or country, shown under the name in the details dialog. */
   region: string | null;
 }
+
+/** A city the user picked instead of the device's position. */
+export interface ChosenLocation extends Place {
+  latitude: number;
+  longitude: number;
+}

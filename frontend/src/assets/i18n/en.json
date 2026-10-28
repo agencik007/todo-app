@@ -419,6 +419,15 @@
       "VERY_HIGH": "Very high",
       "EXTREME": "Extreme"
     },
+    "TITLE": "Weather",
+    "SET_LOCATION": "Set weather location",
+    "CHANGE_LOCATION": "Change location",
+    "SEARCH_CITY": "Search for a city",
+    "SEARCH_PLACEHOLDER": "e.g. Kraków",
+    "NO_CITIES": "No matching cities",
+    "USE_MY_LOCATION": "Use my location",
+    "LOCATION_OFF": "Location access is off. Choose a city to see its weather.",
+    "LOADING": "Loading the forecast…",
     "CODE": {
       "CLEAR": "Clear sky",
       "MAINLY_CLEAR": "Mainly clear",
@@ -469,7 +478,7 @@
   },
   "PRIVACY": {
     "TITLE": "Privacy policy",
-    "UPDATED": "Last updated: 23 October 2026",
+    "UPDATED": "Last updated: 28 October 2026",
     "BACK": "Back",
     "SECTIONS": [
       {
@@ -486,7 +495,7 @@
       },
       {
         "TITLE": "Location and weather",
-        "BODY": "The weather widget asks for your location only with your permission. Coordinates are sent directly from your device to Open-Meteo (open-meteo.com) to fetch the forecast and to BigDataCloud (bigdatacloud.com) to show the name of your town; neither is stored by us. The town name is remembered on your device so it is not looked up again at the same place."
+        "BODY": "The weather widget asks for your location only with your permission. Coordinates are sent directly from your device to Open-Meteo (open-meteo.com) to fetch the forecast and to BigDataCloud (bigdatacloud.com) to show the name of your town; neither is stored by us. The town name is remembered on your device so it is not looked up again at the same place. You can choose a city instead: its name is searched with Open-Meteo, your device location is not used, and the city is remembered on your device until you switch back to your location."
       },
       {
         "TITLE": "Retention and deletion",

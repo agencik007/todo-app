@@ -41,6 +41,13 @@ export const weatherMock = {
       uv_index_max: [6.3, 2, 4, 7, 5, 3, 1],
     },
   },
+  /** City search results, whatever the query. */
+  cities: {
+    results: [
+      { name: 'Gdańsk', latitude: 54.35, longitude: 18.65, admin1: 'Pomerania', country: 'Poland' },
+      { name: 'Gdynia', latitude: 54.52, longitude: 18.53, admin1: 'Pomerania', country: 'Poland' },
+    ],
+  },
   place: {
     city: 'Kraków',
     locality: 'Kraków',

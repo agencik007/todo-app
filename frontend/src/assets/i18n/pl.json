@@ -419,6 +419,15 @@
       "VERY_HIGH": "Bardzo wysoki",
       "EXTREME": "Ekstremalny"
     },
+    "TITLE": "Pogoda",
+    "SET_LOCATION": "Ustaw lokalizację pogody",
+    "CHANGE_LOCATION": "Zmień lokalizację",
+    "SEARCH_CITY": "Wyszukaj miasto",
+    "SEARCH_PLACEHOLDER": "np. Kraków",
+    "NO_CITIES": "Nie znaleziono miasta",
+    "USE_MY_LOCATION": "Użyj mojej lokalizacji",
+    "LOCATION_OFF": "Dostęp do lokalizacji jest wyłączony. Wybierz miasto, aby zobaczyć pogodę.",
+    "LOADING": "Wczytywanie prognozy…",
     "CODE": {
       "CLEAR": "Bezchmurnie",
       "MAINLY_CLEAR": "Przeważnie bezchmurnie",
@@ -469,7 +478,7 @@
   },
   "PRIVACY": {
     "TITLE": "Polityka prywatności",
-    "UPDATED": "Ostatnia aktualizacja: 23 października 2026",
+    "UPDATED": "Ostatnia aktualizacja: 28 października 2026",
     "BACK": "Wróć",
     "SECTIONS": [
       {
@@ -486,7 +495,7 @@
       },
       {
         "TITLE": "Lokalizacja i pogoda",
-        "BODY": "Widżet pogody pyta o lokalizację tylko za Twoją zgodą. Współrzędne są wysyłane bezpośrednio z Twojego urządzenia do Open-Meteo (open-meteo.com) w celu pobrania prognozy oraz do BigDataCloud (bigdatacloud.com) w celu pokazania nazwy Twojej miejscowości i nie są przez nas zapisywane. Nazwa miejscowości jest zapamiętywana na Twoim urządzeniu, aby nie wyszukiwać jej ponownie w tym samym miejscu."
+        "BODY": "Widżet pogody pyta o lokalizację tylko za Twoją zgodą. Współrzędne są wysyłane bezpośrednio z Twojego urządzenia do Open-Meteo (open-meteo.com) w celu pobrania prognozy oraz do BigDataCloud (bigdatacloud.com) w celu pokazania nazwy Twojej miejscowości i nie są przez nas zapisywane. Nazwa miejscowości jest zapamiętywana na Twoim urządzeniu, aby nie wyszukiwać jej ponownie w tym samym miejscu. Zamiast tego możesz wybrać miasto: jego nazwa jest wyszukiwana w Open-Meteo, lokalizacja Twojego urządzenia nie jest wtedy używana, a miasto jest zapamiętywane na Twoim urządzeniu, dopóki nie wrócisz do swojej lokalizacji."
       },
       {
         "TITLE": "Przechowywanie i usuwanie",

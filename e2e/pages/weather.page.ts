@@ -11,6 +11,32 @@ export class WeatherPage {
     this.dialog = page.getByRole('dialog');
   }
 
+  /** Shown instead of the weather when location access is off. */
+  setLocationButton(): Locator {
+    return this.page.getByRole('button', { name: 'Set weather location' });
+  }
+
+  changeLocationButton(): Locator {
+    return this.dialog.getByRole('button', { name: 'Change location' });
+  }
+
+  citySearch(): Locator {
+    return this.dialog.getByRole('combobox', { name: 'Search for a city' });
+  }
+
+  async chooseCity(query: string, option: string): Promise<void> {
+    await this.citySearch().fill(query);
+    await this.page.getByRole('option', { name: option }).click();
+  }
+
+  useMyLocationButton(): Locator {
+    return this.dialog.getByRole('button', { name: 'Use my location' });
+  }
+
+  title(): Locator {
+    return this.dialog.locator('.p-dialog-title');
+  }
+
   hourlyItems(): Locator {
     return this.dialog.getByRole('list', { name: 'Next 24 hours' }).getByRole('listitem');
   }

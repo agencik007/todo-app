@@ -19,6 +19,7 @@ import {
   weatherDescriptionKey,
   WeatherService,
 } from '../../../core/services/weather.service';
+import { IconButtonDirective } from '../../ui/icon-button/icon-button.directive';
 import { WeatherDetailsDialogComponent } from './weather-details-dialog/weather-details-dialog.component';
 import { WeatherIconComponent } from './weather-icon/weather-icon.component';
 
@@ -27,6 +28,7 @@ import { WeatherIconComponent } from './weather-icon/weather-icon.component';
   imports: [
     TooltipModule,
     TranslateModule,
+    IconButtonDirective,
     WeatherIconComponent,
     WeatherDetailsDialogComponent,
   ],
@@ -51,13 +53,30 @@ import { WeatherIconComponent } from './weather-icon/weather-icon.component';
         </span>
         <span class="font-bold text-sm">{{ temperature() }}°C</span>
       </button>
+    } @else if (weatherService.needsLocation()) {
+      <!-- Location access is off: let the user pick a city instead. -->
+      <button
+        type="button"
+        tooltipPosition="bottom"
+        size="xl"
+        aria-haspopup="dialog"
+        appIconButton
+        #widgetButton
+        [pTooltip]="'WEATHER.SET_LOCATION' | translate"
+        [attr.aria-label]="'WEATHER.SET_LOCATION' | translate"
+        (click)="onOpenDetails()"
+      >
+        <i class="pi pi-map-marker"></i>
+      </button>
+    }
 
-      @defer (on interaction(widgetButton); prefetch on hover(widgetButton)) {
-        <app-weather-details-dialog
-          [visible]="isDetailsOpen()"
-          (visibleChange)="onDetailsVisibleChange($event)"
-        />
-      }
+    <!-- Loaded on the first click; prefetched once the app is idle. -->
+    @defer (when isDetailsOpen(); prefetch on idle) {
+      <app-weather-details-dialog
+        [visible]="isDetailsOpen()"
+        (visibleChange)="isDetailsOpen.set($event)"
+        (closed)="onDetailsClosed()"
+      />
     }
   `,
   styles: [
@@ -148,16 +167,19 @@ export class WeatherWidgetComponent implements OnInit {
   }
 
   #loadWeather(): void {
-    this.weatherService.loadForCurrentPosition();
+    this.weatherService.refresh();
   }
 
   onOpenDetails(): void {
     this.isDetailsOpen.set(true);
   }
 
-  onDetailsVisibleChange(visible: boolean): void {
-    this.isDetailsOpen.set(visible);
-    // Back to the widget, where keyboard users opened the dialog.
-    if (!visible) this.widgetButton()?.nativeElement.focus();
+  /**
+   * Back to the widget, where keyboard users opened the dialog. Only once the
+   * dialog is gone: PrimeNG moves focus into it after the opening animation,
+   * so an earlier call loses to that when the dialog is closed right away.
+   */
+  onDetailsClosed(): void {
+    this.widgetButton()?.nativeElement.focus();
   }
 }

@@ -1,6 +1,6 @@
 # Weather widget expansion plan
 
-> **Status:** Phases 1 and 2 implemented (see [Implementation notes](#implementation-notes-phases-1-and-2)); Phases 3 and 4 are proposals.
+> **Status:** Phases 1 and 2 and Phase 3 items 1–2 implemented (see [Implementation notes](#implementation-notes-phases-1-and-2) and [Phase 3 notes](#implementation-notes-phase-3-items-12)); Phase 3 item 3 (units) and Phase 4 are proposals.
 > **Scope:** `frontend/` (weather service, widget, new details dialog, i18n, privacy policy), `frontend/src/server.ts` (CSP), `e2e/`, docs. No backend changes.
 
 The header weather widget today shows an icon and the temperature; its tooltip says `Temp: 20°C, Wind: 5 km/h` and a click replays the full-screen weather animation. This plan adds the place name, turns the click into a details dialog with hourly and 7-day forecasts, and lets users who deny geolocation pick a city. It is split into small PRs, because every merge to `develop` is a production release.
@@ -138,8 +138,8 @@ New `shared/components/weather-widget/weather-details-dialog/` (component + SCSS
 
 ## 6. Phase 3 — manual location and preferences
 
-1. **City search** in the dialog header ("Change location"): `p-autocomplete` on Open-Meteo geocoding (`https://geocoding-api.open-meteo.com/v1/search?name=…&count=5&language=pl`), debounced 300 ms, results "Kraków, Małopolskie, Poland". Choosing one stores `{ name, lat, lon }` in `localStorage` and stops using geolocation; "Use my location" switches back. CSP: add the geocoding host.
-2. **Geolocation denied** → widget still renders as a small "Set location" button (cloud icon, no temperature) that opens the dialog on the search field. Today it silently disappears.
+1. _(Done.)_ **City search** in the dialog header ("Change location"): `p-autocomplete` on Open-Meteo geocoding (`https://geocoding-api.open-meteo.com/v1/search?name=…&count=5&language=pl`), debounced 300 ms, results "Kraków, Małopolskie, Poland". Choosing one stores `{ name, lat, lon }` in `localStorage` and stops using geolocation; "Use my location" switches back. CSP: add the geocoding host.
+2. _(Done.)_ **Geolocation denied** → widget still renders as a small "Set location" button (cloud icon, no temperature) that opens the dialog on the search field. Today it silently disappears.
 3. **Units** (in the dialog footer or user settings): °C/°F, km/h / m/s / mph — passed to Open-Meteo as `temperature_unit` / `wind_speed_unit`, stored in `localStorage`. Default from language (`pl` → °C, km/h).
 
 ## 7. Phase 4 (optional) — extras
@@ -208,3 +208,11 @@ Each PR: Conventional Commits, EN + PL i18n, lint + build + e2e green.
 - `shared/components/weather-widget/weather-icon/` is the icon (moon at night, still under reduced motion); `weather-details-dialog/` is the dialog, loaded with `@defer` on the first click (prefetched on hover). The "Weather animations" toggle is in the dialog footer and stays in the user menu.
 - The widget still hides offline (`canWrite`), as `docs/pwa-plan.md` says.
 - e2e: `e2e/tests/weather.spec.ts` with both APIs mocked in `e2e/fixtures/weather.ts`.
+
+## Implementation notes (Phase 3, items 1–2)
+
+- `core/services/location-search.service.ts` searches Open-Meteo geocoding (5 results, interface language; a failed search shows no results). The chosen city (`ChosenLocation`: name, region, coordinates) is stored under `localStorage.weather_location`; while it is set, no geolocation or BigDataCloud request is made and the language change does not look the name up again.
+- `WeatherService.needsLocation` is true when no city is chosen and geolocation failed (denied, unavailable, unsupported). The widget then shows a map-marker icon button ("Set weather location") instead of hiding. A prompt the user has not answered yet still shows nothing.
+- The dialog's search (`p-autocomplete`, 2+ characters, 300 ms) opens from the header's map-marker button, or by itself without a location, focused. "Use my location" forgets the city.
+- A forecast is kept during a refresh only for the same coordinates, so switching places never shows the old place's weather under the new name.
+- Focus returns to the widget when the dialog has finished closing (`onHide`): PrimeNG moves focus into the dialog only after its opening animation, and closing it before that used to leave focus on `<body>` (the e2e test was flaky).

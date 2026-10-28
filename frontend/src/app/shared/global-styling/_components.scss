@@ -31,6 +31,12 @@
     padding: 0 var(--app-space-5) var(--app-space-5);
   }
 
+  // City search: full-width input.
+  .p-autocomplete,
+  .p-autocomplete-input {
+    width: 100%;
+  }
+
   // Compact screens: a bottom sheet.
   &.weather-dialog--sheet {
     margin: 0;

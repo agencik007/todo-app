@@ -108,7 +108,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - ✅ User accounts: registration, email verification, password reset, avatar, self-service account deletion
 - ✅ Public privacy policy page (`/privacy`, English and Polish)
 - ✅ Security: password strength validation, refresh token rotation with reuse detection, rate limiting, CSP and security headers
-- ✅ Header weather widget (Open-Meteo forecast for your location, place name from BigDataCloud; only with your permission) with a details dialog: now, the next 24 hours, 7 days, wind, UV, sunrise and sunset
+- ✅ Header weather widget (Open-Meteo forecast for your location, place name from BigDataCloud; only with your permission, or a city you search for) with a details dialog: now, the next 24 hours, 7 days, wind, UV, sunrise and sunset
 - ✅ Polish / English UI (ngx-translate), light / dark mode and color themes
 - ✅ Responsive design
 
@@ -363,7 +363,7 @@ make lint-frontend        # in Docker
 
 ### End-to-End Tests (Playwright)
 
-`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, creating, editing, completing, filtering and deleting tasks, the weather widget and its forecast dialog (both third-party weather APIs are mocked), and a smoke test that fails on any Content-Security-Policy violation. A separate Playwright project, `pwa`, runs `tests/pwa.spec.ts` with service workers allowed: the manifest with its icons, shortcut and screenshots, the iOS launch screens, the "New task" shortcut opening the form, the app icon badge, `no-cache` on the service worker files, the app shell loading offline (in both languages), the Install app item, a signed-in user changing tasks offline (kept across a reload) and the changes reaching the server once back online, a create whose response was lost being retried without a duplicate, and logout deleting the offline copy; every other test blocks service workers so it always hits the network.
+`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, creating, editing, completing, filtering and deleting tasks, the weather widget, its forecast dialog and choosing a city with or without location access (the third-party weather APIs are mocked), and a smoke test that fails on any Content-Security-Policy violation. A separate Playwright project, `pwa`, runs `tests/pwa.spec.ts` with service workers allowed: the manifest with its icons, shortcut and screenshots, the iOS launch screens, the "New task" shortcut opening the form, the app icon badge, `no-cache` on the service worker files, the app shell loading offline (in both languages), the Install app item, a signed-in user changing tasks offline (kept across a reload) and the changes reaching the server once back online, a create whose response was lost being retried without a duplicate, and logout deleting the offline copy; every other test blocks service workers so it always hits the network.
 
 They run against a separate, throwaway stack defined in `docker/docker-compose.e2e.yml`: production images (SSR frontend), a PostgreSQL database on tmpfs, MailHog, and rate limiting disabled (`TESTING=1`). Each test registers its own user, so tests are independent and run in parallel.
 

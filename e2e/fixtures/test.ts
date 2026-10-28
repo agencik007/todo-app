@@ -16,6 +16,9 @@ export const test = base.extend<Fixtures>({
     await page.route('https://api.open-meteo.com/**', (route) =>
       route.fulfill({ json: weatherMock.forecast }),
     );
+    await page.route('https://geocoding-api.open-meteo.com/**', (route) =>
+      route.fulfill({ json: weatherMock.cities }),
+    );
     await page.route('https://api.bigdatacloud.net/**', (route) =>
       route.fulfill({ json: weatherMock.place }),
     );
