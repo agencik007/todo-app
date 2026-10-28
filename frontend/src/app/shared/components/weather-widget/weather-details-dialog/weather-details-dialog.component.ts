@@ -7,13 +7,25 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import {
+  AutoCompleteCompleteEvent,
+  AutoCompleteModule,
+  AutoCompleteSelectEvent,
+} from 'primeng/autocomplete';
+import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
-import { WeatherType } from '../../../../core/models/weather.model';
+import { Subject, switchMap } from 'rxjs';
+import {
+  ChosenLocation,
+  WeatherType,
+} from '../../../../core/models/weather.model';
 import { LanguageService } from '../../../../core/services/language.service';
+import { LocationSearchService } from '../../../../core/services/location-search.service';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import {
   toWeatherType,
@@ -65,11 +77,14 @@ const MIN_SHOWN_PRECIPITATION = 20;
 
 /**
  * Forecast for the widget's place: now, the next 24 hours, 7 days and the
- * details (wind, UV, pressure…). Opens from the header weather widget.
+ * details (wind, UV, pressure…). Opens from the header weather widget; also
+ * where the user picks a city instead of the device's position.
  */
 @Component({
   selector: 'app-weather-details-dialog',
   imports: [
+    AutoCompleteModule,
+    ButtonModule,
     DialogModule,
     FormsModule,
     ToggleSwitchModule,
@@ -86,6 +101,7 @@ export class WeatherDetailsDialogComponent {
   readonly #translate = inject(TranslateService);
   readonly #languageService = inject(LanguageService);
   readonly #screenSize = inject(ScreenSizeService);
+  readonly #locationSearch = inject(LocationSearchService);
 
   readonly visible = model(false);
 
@@ -97,13 +113,41 @@ export class WeatherDetailsDialogComponent {
   readonly isLoading = this.#weatherService.isLoading;
   readonly effectsEnabled = this.#weatherService.effectsEnabled;
   readonly isCompact = this.#screenSize.isCompact;
+  readonly needsLocation = this.#weatherService.needsLocation;
+  readonly chosenLocation = this.#weatherService.chosenLocation;
+
+  readonly #isSearchOpen = signal(false);
+  /** The city search: on request, and always without a location to show. */
+  readonly showSearch = computed(
+    () => this.#isSearchOpen() || this.needsLocation(),
+  );
+
+  readonly #queries = new Subject<string>();
+  readonly suggestions = toSignal(
+    this.#queries.pipe(
+      switchMap((query) =>
+        this.#locationSearch.search(
+          query.trim(),
+          this.#languageService.currentLang(),
+        ),
+      ),
+    ),
+    { initialValue: [] as ChosenLocation[] },
+  );
+
+  /** "Kraków, Lesser Poland, Poland" in the suggestions. */
+  readonly cityLabel = (location: ChosenLocation): string =>
+    location.region ? `${location.name}, ${location.region}` : location.name;
+
   /** Clock for "Updated 5 minutes ago"; ticks only while the dialog is open. */
   readonly now = signal(Date.now());
 
   readonly title = computed(() => {
     this.#languageService.currentLang();
-    return (
-      this.place()?.name ?? this.#translate.instant('WEATHER.YOUR_LOCATION')
+    const name = this.place()?.name;
+    if (name) return name;
+    return this.#translate.instant(
+      this.needsLocation() ? 'WEATHER.TITLE' : 'WEATHER.YOUR_LOCATION',
     );
   });
 
@@ -293,7 +337,10 @@ export class WeatherDetailsDialogComponent {
 
   constructor() {
     effect((onCleanup) => {
-      if (!this.visible()) return;
+      if (!this.visible()) {
+        this.#isSearchOpen.set(false);
+        return;
+      }
       this.now.set(Date.now());
       const id = setInterval(() => this.now.set(Date.now()), 30_000);
       onCleanup(() => clearInterval(id));
@@ -310,7 +357,25 @@ export class WeatherDetailsDialogComponent {
   }
 
   onRefresh(): void {
-    this.#weatherService.loadForCurrentPosition();
+    this.#weatherService.refresh();
+  }
+
+  onToggleSearch(): void {
+    this.#isSearchOpen.update((open) => !open);
+  }
+
+  onSearch(event: AutoCompleteCompleteEvent): void {
+    this.#queries.next(event.query);
+  }
+
+  onChooseCity(event: AutoCompleteSelectEvent): void {
+    this.#weatherService.chooseLocation(event.value as ChosenLocation);
+    this.#isSearchOpen.set(false);
+  }
+
+  onUseDeviceLocation(): void {
+    this.#weatherService.useDeviceLocation();
+    this.#isSearchOpen.set(false);
   }
 
   onReplay(): void {
