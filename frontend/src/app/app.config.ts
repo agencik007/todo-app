@@ -26,6 +26,7 @@ import { routes } from './app.routes';
 import { patchPrimeNgAutofocus } from './core/config/primeng-autofocus.patch';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { notificationInterceptor } from './core/interceptors/notification.interceptor';
+import { serviceWorkerBypassInterceptor } from './core/interceptors/service-worker-bypass.interceptor';
 import { AppUpdateService } from './core/services/app-update.service';
 import { LanguageService } from './core/services/language.service';
 import { PwaInstallService } from './core/services/pwa-install.service';
@@ -59,7 +60,11 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideClientHydration(),
     provideHttpClient(
-      withInterceptors([notificationInterceptor, authInterceptor]),
+      withInterceptors([
+        notificationInterceptor,
+        authInterceptor,
+        serviceWorkerBypassInterceptor,
+      ]),
       withFetch(),
     ),
     provideApi(environment.apiUrl),
