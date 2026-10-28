@@ -26,7 +26,7 @@
     "@angular/platform-server": "^21.2.25",
     "@angular/router": "^21.2.25",
     "@angular/service-worker": "^21.2.25",
-    "@angular/ssr": "^21.2.27",
+    "@angular/ssr": "^21.2.28",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@ngrx/signals": "^21.0.1",
     "@ngx-translate/core": "^17.0.0",
@@ -40,16 +40,16 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular/build": "^21.2.27",
-    "@angular/cli": "^21.2.27",
+    "@angular/build": "^21.2.28",
+    "@angular/cli": "^21.2.28",
     "@angular/compiler-cli": "^21.2.25",
     "@eslint/js": "^9.39.2",
-    "@openapitools/openapi-generator-cli": "^2.41.0",
+    "@openapitools/openapi-generator-cli": "^2.42.0",
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",
     "angular-eslint": "^21.2.0",
-    "baseline-browser-mapping": "^2.11.29",
+    "baseline-browser-mapping": "^2.11.31",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
@@ -65,7 +65,7 @@
     "prettier-plugin-organize-imports": "^4.3.0",
     "sharp": "^0.35.5",
     "typescript": "~5.9.2",
-    "typescript-eslint": "^8.71.2",
+    "typescript-eslint": "^8.72.0",
     "zone.js": "^0.16.3"
   }
 }
