@@ -1,8 +1,10 @@
 import { BrowserContext, Page } from '@playwright/test';
 
 import { expect, test } from '../fixtures/test';
+import { weatherMock } from '../fixtures/weather';
 import { GuestNav, LoginPage, UserMenu } from '../pages/auth.pages';
 import { TodosPage } from '../pages/todos.page';
+import { WeatherPage } from '../pages/weather.page';
 
 // Runs in the `pwa` project, the only one with service workers allowed.
 
@@ -319,3 +321,31 @@ test('logging out deletes the offline copy of the tasks', async ({ page, context
   await expect(page.getByText('Private task')).toBeHidden();
 });
 
+test('weather requests go past the service worker', async ({ page, context, loggedIn }) => {
+  void loggedIn;
+  // The worker fetches what it handles under the CSP it was installed with,
+  // and keeps that CSP until its script changes: a host added to connect-src
+  // later stays blocked there (the worker answers 504). Third-party requests
+  // must therefore reach the network directly, under the page's current CSP.
+  // With a worker in control, page.route() mocks miss its requests, so the
+  // mocks here cover the whole context.
+  await context.route('https://api.open-meteo.com/**', (route) =>
+    route.fulfill({ json: weatherMock.forecast }),
+  );
+  await context.route('https://api.bigdatacloud.net/**', (route) =>
+    route.fulfill({ json: weatherMock.place }),
+  );
+  await context.grantPermissions(['geolocation']);
+  await context.setGeolocation({ latitude: 50.06, longitude: 19.94 });
+  await new TodosPage(page).goto();
+  await installServiceWorker(page);
+
+  // The place name is cached on the device; look it up again.
+  await page.evaluate(() => localStorage.removeItem('weather_place'));
+  const forecast = page.waitForResponse('https://api.open-meteo.com/**');
+  const place = page.waitForResponse('https://api.bigdatacloud.net/**');
+  await page.reload();
+  expect((await forecast).fromServiceWorker()).toBe(false);
+  expect((await place).fromServiceWorker()).toBe(false);
+  await expect(new WeatherPage(page).widget).toHaveAccessibleName(/^Kraków – Clear sky/);
+});
