@@ -12,6 +12,7 @@
   [draggable]="false"
   [dismissableMask]="true"
   (visibleChange)="visible.set($event)"
+  (onHide)="closed.emit()"
 >
   <ng-template pTemplate="header">
     <div class="dialog-heading">

@@ -55,7 +55,8 @@ import { WeatherIconComponent } from './weather-icon/weather-icon.component';
       @defer (on interaction(widgetButton); prefetch on hover(widgetButton)) {
         <app-weather-details-dialog
           [visible]="isDetailsOpen()"
-          (visibleChange)="onDetailsVisibleChange($event)"
+          (visibleChange)="isDetailsOpen.set($event)"
+          (closed)="onDetailsClosed()"
         />
       }
     }
@@ -155,9 +156,12 @@ export class WeatherWidgetComponent implements OnInit {
     this.isDetailsOpen.set(true);
   }
 
-  onDetailsVisibleChange(visible: boolean): void {
-    this.isDetailsOpen.set(visible);
-    // Back to the widget, where keyboard users opened the dialog.
-    if (!visible) this.widgetButton()?.nativeElement.focus();
+  /**
+   * Back to the widget, where keyboard users opened the dialog. Only once the
+   * dialog is gone: PrimeNG moves focus into it after the opening animation,
+   * so an earlier call loses to that when the dialog is closed right away.
+   */
+  onDetailsClosed(): void {
+    this.widgetButton()?.nativeElement.focus();
   }
 }

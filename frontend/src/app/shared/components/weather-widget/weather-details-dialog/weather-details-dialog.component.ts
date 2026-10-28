@@ -4,6 +4,7 @@ import {
   effect,
   inject,
   model,
+  output,
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -87,6 +88,9 @@ export class WeatherDetailsDialogComponent {
   readonly #screenSize = inject(ScreenSizeService);
 
   readonly visible = model(false);
+
+  /** The dialog has finished closing (after its animation). */
+  readonly closed = output<void>();
 
   readonly forecast = this.#weatherService.forecast;
   readonly place = this.#weatherService.place;

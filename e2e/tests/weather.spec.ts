@@ -43,6 +43,8 @@ test('the widget names the place and opens the forecast details', async ({ page,
   await expect(weather.detail('Pressure')).toHaveText('1015 hPa');
   await expect(weather.dialog).toContainText('From north-west, gusts 13 km/h');
 
+  // The dialog takes focus once it has opened; Escape gives it back.
+  await expect(weather.dialog.locator(':focus')).toHaveCount(1);
   await page.keyboard.press('Escape');
   await expect(weather.dialog).toBeHidden();
   await expect(weather.widget).toBeFocused();
