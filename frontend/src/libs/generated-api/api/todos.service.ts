@@ -17,6 +17,10 @@ import { Observable }                                        from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
+import { GroupSuggestion } from '../model/groupSuggestion';
+// @ts-ignore
+import { GroupSuggestionRequest } from '../model/groupSuggestionRequest';
+// @ts-ignore
 import { HTTPValidationError } from '../model/hTTPValidationError';
 // @ts-ignore
 import { Todo } from '../model/todo';
@@ -43,7 +47,7 @@ export class TodosService extends BaseService {
 
     /**
      * Create Todo
-     * Create a new todo.  Idempotent per client_id: the client retries a create it made offline until it gets an answer, so a repeated client_id returns the todo created the first time (200) instead of a duplicate (201).  Args:     todo: Todo data to create.     response: Used to answer a repeated create with 200.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The created (or previously created) todo item.
+     * Create a new todo.  Idempotent per client_id: the client retries a create it made offline until it gets an answer, so a repeated client_id returns the todo created the first time (200) instead of a duplicate (201).  Args:     todo: Todo data to create.     response: Used to answer a repeated create with 200.     db: Database session.     current_user: Current authenticated user.     embedder: Text embedder, or None when AI suggestions are unavailable.  Returns:     Todo: The created (or previously created) todo item.
      * @endpoint post /todos
      * @param todoCreate 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -395,8 +399,78 @@ export class TodosService extends BaseService {
     }
 
     /**
+     * Suggest Group For Todo
+     * Suggest a group for a todo being written, using the local embedding model.  A sync route on purpose: inference runs in the threadpool, off the event loop.  Args:     request: FastAPI request object (for rate limiting).     suggestion_request: Title and description typed so far.     db: Database session.     current_user: Current authenticated user.     embedder: Text embedder, or None when AI suggestions are unavailable.  Returns:     GroupSuggestion: One of the user\&#39;s groups, a catalogue group to     create, or no suggestion.  Raises:     HTTPException: 503 if suggestions are disabled or the model fails.
+     * @endpoint post /todos/suggest-group
+     * @param groupSuggestionRequest 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public suggestGroupForTodoTodosSuggestGroupPost(groupSuggestionRequest: GroupSuggestionRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<GroupSuggestion>;
+    public suggestGroupForTodoTodosSuggestGroupPost(groupSuggestionRequest: GroupSuggestionRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<GroupSuggestion>>;
+    public suggestGroupForTodoTodosSuggestGroupPost(groupSuggestionRequest: GroupSuggestionRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<GroupSuggestion>>;
+    public suggestGroupForTodoTodosSuggestGroupPost(groupSuggestionRequest: GroupSuggestionRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (groupSuggestionRequest === null || groupSuggestionRequest === undefined) {
+            throw new Error('Required parameter groupSuggestionRequest was null or undefined when calling suggestGroupForTodoTodosSuggestGroupPost.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (OAuth2PasswordBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('OAuth2PasswordBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/todos/suggest-group`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<GroupSuggestion>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: groupSuggestionRequest,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Update Todo
-     * Update an existing todo.  Args:     todoId: ID of the todo to update.     todo_update: Updated todo data.     db: Database session.     current_user: Current authenticated user.  Returns:     Todo: The updated todo item.  Raises:     HTTPException: If todo not found or user is not the owner.
+     * Update an existing todo.  Args:     todoId: ID of the todo to update.     todo_update: Updated todo data.     db: Database session.     current_user: Current authenticated user.     embedder: Text embedder, or None when AI suggestions are unavailable.  Returns:     Todo: The updated todo item.  Raises:     HTTPException: If todo not found or user is not the owner.
      * @endpoint put /todos/{todoId}
      * @param todoId 
      * @param todoUpdate 

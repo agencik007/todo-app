@@ -19,6 +19,8 @@ import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 // @ts-ignore
 import { Group } from '../model/group';
 // @ts-ignore
+import { GroupCatalogItem } from '../model/groupCatalogItem';
+// @ts-ignore
 import { GroupCreate } from '../model/groupCreate';
 // @ts-ignore
 import { GroupUpdate } from '../model/groupUpdate';
@@ -43,7 +45,7 @@ export class GroupsService extends BaseService {
 
     /**
      * Create Group
-     * Create a new group.  Args:     group: Group data to create.     db: Database session.     current_user: Current authenticated user.  Returns:     Group: The created group.  Raises:     HTTPException: If user has reached the maximum number of groups.
+     * Create a new group.  Args:     group: Group data to create.     db: Database session.     current_user: Current authenticated user.     embedder: Text embedder, or None when AI suggestions are unavailable.  Returns:     Group: The created group.  Raises:     HTTPException: If user has reached the maximum number of groups.
      * @endpoint post /groups
      * @param groupCreate 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -159,6 +161,62 @@ export class GroupsService extends BaseService {
         let localVarPath = `/groups/${this.configuration.encodeParam({name: "groupId", value: groupId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<{ [key: string]: any; }>('delete', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get Group Catalog
+     * Get the starter group catalogue, with names in the user\&#39;s language.  Args:     current_user: Current authenticated user.  Returns:     List[GroupCatalogItem]: Catalogue entries in display order.
+     * @endpoint get /groups/catalog
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public getGroupCatalogGroupsCatalogGet(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<GroupCatalogItem>>;
+    public getGroupCatalogGroupsCatalogGet(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<GroupCatalogItem>>>;
+    public getGroupCatalogGroupsCatalogGet(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<GroupCatalogItem>>>;
+    public getGroupCatalogGroupsCatalogGet(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (OAuth2PasswordBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('OAuth2PasswordBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/groups/catalog`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<Array<GroupCatalogItem>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 responseType: <any>responseType_,
@@ -289,7 +347,7 @@ export class GroupsService extends BaseService {
 
     /**
      * Update Group
-     * Update an existing group.  Args:     groupId: ID of the group to update.     group_update: Updated group data.     db: Database session.     current_user: Current authenticated user.  Returns:     Group: The updated group.  Raises:     HTTPException: If group not found or user is not the owner.
+     * Update an existing group.  Args:     groupId: ID of the group to update.     group_update: Updated group data.     db: Database session.     current_user: Current authenticated user.     embedder: Text embedder, or None when AI suggestions are unavailable.  Returns:     Group: The updated group.  Raises:     HTTPException: If group not found or user is not the owner.
      * @endpoint put /groups/{groupId}
      * @param groupId 
      * @param groupUpdate 
