@@ -16,14 +16,6 @@ export interface SuggestionState {
   stopped: boolean;
 }
 
-export const INITIAL_SUGGESTION_STATE: SuggestionState = {
-  groupId: null,
-  source: 'empty',
-  chip: null,
-  reason: null,
-  stopped: false,
-};
-
 /**
  * Applies one suggestion response to the form's group state. The latest
  * response wins over an AI value or chip, but never over a group the user

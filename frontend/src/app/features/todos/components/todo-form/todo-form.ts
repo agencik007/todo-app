@@ -11,7 +11,13 @@ import {
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { form, FormField, required } from '@angular/forms/signals';
-import { GroupSuggestionRequest, Todo, TodoCreate, TodosService } from '@api';
+import {
+  GroupSuggestion,
+  GroupSuggestionRequest,
+  Todo,
+  TodoCreate,
+  TodosService,
+} from '@api';
 import { TranslatePipe } from '@ngx-translate/core';
 import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
@@ -20,18 +26,15 @@ import {
   debounceTime,
   distinctUntilChanged,
   EMPTY,
-  filter,
+  map,
+  of,
   switchMap,
 } from 'rxjs';
 import { SILENT_NOTIFICATIONS } from '../../../../core/interceptors/notification.interceptor';
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
 import { GroupStore } from '../../../groups/store/group.store';
-import {
-  INITIAL_SUGGESTION_STATE,
-  reduceSuggestion,
-  SuggestionState,
-} from './group-suggestion';
+import { reduceSuggestion, SuggestionState } from './group-suggestion';
 
 interface TodoFormModel {
   title: string;
@@ -47,6 +50,20 @@ type SuggestionMeta = Omit<SuggestionState, 'groupId'>;
  * suggestions until the page reloads. Shared by every form instance.
  */
 let suggestionsDisabled = false;
+
+const INITIAL_META: SuggestionMeta = {
+  source: 'empty',
+  chip: null,
+  reason: null,
+  stopped: false,
+};
+
+const NO_SUGGESTION: GroupSuggestion = {
+  groupId: null,
+  newGroup: null,
+  confidence: 'low',
+  reason: null,
+};
 
 @Component({
   selector: 'app-todo-form',
@@ -91,7 +108,7 @@ export class TodoFormComponent {
 
   readonly suggestion = linkedSignal<Todo | null, SuggestionMeta>({
     source: this.todo,
-    computation: () => this.#initialMeta(),
+    computation: () => INITIAL_META,
   });
 
   readonly creatingGroup = signal(false);
@@ -126,20 +143,25 @@ export class TodoFormComponent {
     toObservable(request)
       .pipe(
         debounceTime(TodoFormComponent.SUGGEST_DEBOUNCE_MS),
-        filter((r) => r.title.length > 0 && this.#canSuggest()),
         distinctUntilChanged(
           (a, b) =>
             a.run === b.run &&
             a.title === b.title &&
             a.description === b.description,
         ),
-        switchMap(({ title, description }) => {
+        // Every newer input goes through switchMap, so it cancels the
+        // request still in flight – even one that doesn't ask again.
+        switchMap(({ run, title, description }) => {
+          if (!this.#canSuggest()) return EMPTY;
+          // An emptied title counts as "no suggestion".
+          if (!title) return of({ run, response: NO_SUGGESTION });
           const body: GroupSuggestionRequest = { title, description };
           return this.#todosService
             .suggestGroupForTodoTodosSuggestGroupPost(body, 'body', false, {
               context: new HttpContext().set(SILENT_NOTIFICATIONS, true),
             })
             .pipe(
+              map((response) => ({ run, response })),
               catchError(() => {
                 suggestionsDisabled = true;
                 return EMPTY;
@@ -148,9 +170,10 @@ export class TodoFormComponent {
         }),
         takeUntilDestroyed(),
       )
-      .subscribe((response) => {
-        // The form may have switched to edit mode while the request ran.
-        if (!this.#canSuggest()) return;
+      .subscribe(({ run, response }) => {
+        // Drop answers for a form that was reset (dialog closed) or switched
+        // to edit mode, or that the user took over, while the request ran.
+        if (run !== this.#formRun() || !this.#canSuggest()) return;
         const { groupId, ...meta } = reduceSuggestion(
           { groupId: this.todoModel().groupId, ...this.suggestion() },
           response,
@@ -158,11 +181,6 @@ export class TodoFormComponent {
         this.todoModel.update((m) => ({ ...m, groupId }));
         this.suggestion.set(meta);
       });
-  }
-
-  #initialMeta(): SuggestionMeta {
-    const { source, chip, reason, stopped } = INITIAL_SUGGESTION_STATE;
-    return { source, chip, reason, stopped };
   }
 
   #canSuggest(): boolean {
@@ -192,7 +210,7 @@ export class TodoFormComponent {
   reset(): void {
     this.todoModel.set({ title: '', description: '', groupId: null });
     this.todoForm().reset();
-    this.suggestion.set(this.#initialMeta());
+    this.suggestion.set(INITIAL_META);
     this.#formRun.update((n) => n + 1);
   }
 
