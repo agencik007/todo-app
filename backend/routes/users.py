@@ -230,7 +230,7 @@ async def update_language(
 
 
 @router.post("/me/onboarding", response_model=UserResponse)
-async def complete_onboarding(
+def complete_onboarding(
     onboarding: OnboardingRequest,
     current_user: User = Depends(get_current_verified_user),
     db: Session = Depends(get_db),
@@ -240,6 +240,8 @@ async def complete_onboarding(
     Finish the first-login onboarding by creating the chosen starter groups.
 
     An empty list skips the onboarding. Group names use the user's language.
+    A sync route on purpose: embedding the names runs in the threadpool, off
+    the event loop.
 
     Args:
         onboarding: Keys of the catalogue groups to create.

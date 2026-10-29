@@ -179,6 +179,79 @@ def test_onboarding_groups_get_embeddings(authenticated_client, test_db):
     assert all(g.embedding is not None and len(g.embedding) == 1536 for g in groups)
 
 
+def test_onboarding_embeds_all_groups_in_one_call(
+    authenticated_client, test_db, monkeypatch
+):
+    calls: list[list[str]] = []
+
+    class CountingEmbedder(FakeEmbedder):
+        def embed(self, texts):
+            calls.append(list(texts))
+            return super().embed(texts)
+
+    counting = CountingEmbedder()
+    monkeypatch.setitem(app.dependency_overrides, get_embedder, lambda: counting)
+
+    response = authenticated_client.post(
+        "/users/me/onboarding", json={"groupKeys": ["HOME", "WORK", "HEALTH"]}
+    )
+
+    assert response.status_code == 200
+    assert calls == [["Home", "Work", "Health"]]
+    test_db.expire_all()
+    groups = {g.name: g.embedding for g in test_db.query(Group).all()}
+    assert groups == {
+        name: vector_to_bytes(FakeEmbedder().embed([name])[0])
+        for name in ("Home", "Work", "Health")
+    }
+
+
+def test_onboarding_succeeds_without_vectors_when_embedder_fails(
+    authenticated_client, test_db, monkeypatch
+):
+    failing = FailingEmbedder()
+    monkeypatch.setitem(app.dependency_overrides, get_embedder, lambda: failing)
+
+    response = authenticated_client.post(
+        "/users/me/onboarding", json={"groupKeys": ["HOME", "WORK"]}
+    )
+
+    assert response.status_code == 200
+    test_db.expire_all()
+    assert [g.embedding for g in test_db.query(Group).all()] == [None, None]
+
+
+def test_warm_up_embedder_loads_the_model_in_a_thread(monkeypatch):
+    loaded = FakeEmbedder()
+    monkeypatch.setenv("AI_SUGGESTIONS_ENABLED", "true")
+    monkeypatch.setattr(embedder, "FastEmbedEmbedder", lambda: loaded)
+    embedder.reset_embedder()
+
+    thread = embedder.warm_up_embedder()
+
+    assert thread is not None
+    thread.join(timeout=5)
+    assert get_embedder() is loaded
+
+
+def test_warm_up_embedder_survives_a_load_failure(monkeypatch):
+    def boom():
+        raise RuntimeError("no model")
+
+    monkeypatch.setenv("AI_SUGGESTIONS_ENABLED", "true")
+    monkeypatch.setattr(embedder, "FastEmbedEmbedder", boom)
+    embedder.reset_embedder()
+
+    embedder.warm_up_embedder().join(timeout=5)
+
+    assert get_embedder() is None
+
+
+def test_warm_up_embedder_does_nothing_when_disabled(monkeypatch):
+    monkeypatch.setenv("AI_SUGGESTIONS_ENABLED", "false")
+    assert embedder.warm_up_embedder() is None
+
+
 def test_create_todo_succeeds_when_embedder_fails(authenticated_client, test_db):
     app.dependency_overrides[get_embedder] = lambda: FailingEmbedder()
     install_embedder(FailingEmbedder())

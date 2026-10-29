@@ -14,7 +14,7 @@ from models.group import Group as GroupModel
 from models.group import GroupColor
 from models.schemas import Group, GroupCatalogItem, GroupCreate, GroupUpdate
 from models.user import User
-from services.embedder import Embedder, embed_one, get_embedder
+from services.embedder import Embedder, embed_many, embed_one, get_embedder
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 
@@ -54,15 +54,14 @@ def create_groups_for_user(
             break
         if name.lower() in existing:
             continue
-        group = GroupModel(
-            name=name,
-            color=color,
-            user_id=user.id,
-            embedding=embed_one(embedder, name),
-        )
-        db.add(group)
-        created.append(group)
+        created.append(GroupModel(name=name, color=color, user_id=user.id))
         existing.add(name.lower())
+
+    # One model call for all the names instead of one per group.
+    vectors = embed_many(embedder, [group.name for group in created])
+    for group, vector in zip(created, vectors, strict=True):
+        group.embedding = vector
+        db.add(group)
 
     db.flush()
     return created

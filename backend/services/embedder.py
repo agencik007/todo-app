@@ -56,6 +56,16 @@ def install_embedder(instance: Embedder | None) -> None:
         _loaded = True
 
 
+def suggestions_enabled() -> bool:
+    """AI_SUGGESTIONS_ENABLED, on unless set to false/0/no/off."""
+    return os.getenv("AI_SUGGESTIONS_ENABLED", "true").strip().lower() not in (
+        "false",
+        "0",
+        "no",
+        "off",
+    )
+
+
 def get_embedder() -> Embedder | None:
     """FastAPI dependency: lazy per-process singleton.
 
@@ -63,12 +73,7 @@ def get_embedder() -> Embedder | None:
     load (logged once; the failure is cached and not retried).
     """
     global _loaded, _embedder
-    if os.getenv("AI_SUGGESTIONS_ENABLED", "true").strip().lower() in (
-        "false",
-        "0",
-        "no",
-        "off",
-    ):
+    if not suggestions_enabled():
         return None
     with _lock:
         if not _loaded:
@@ -81,6 +86,19 @@ def get_embedder() -> Embedder | None:
         return _embedder
 
 
+def warm_up_embedder() -> threading.Thread | None:
+    """Load the model in a background thread so the first request is fast.
+
+    Never blocks or fails the caller: get_embedder() logs and caches a load
+    failure. Returns the thread, or None when suggestions are disabled.
+    """
+    if not suggestions_enabled():
+        return None
+    thread = threading.Thread(target=get_embedder, name="embedder-warm-up", daemon=True)
+    thread.start()
+    return thread
+
+
 def vector_to_bytes(v: np.ndarray) -> bytes:
     return np.asarray(v, dtype=np.float32).tobytes()
 
@@ -89,18 +107,24 @@ def bytes_to_vector(b: bytes) -> np.ndarray:
     return np.frombuffer(b, dtype=np.float32).copy()
 
 
-def embed_one(embedder: Embedder | None, text: str) -> bytes | None:
-    """Embed `text` into storable bytes; None if there is no embedder or it fails.
+def embed_many(embedder: Embedder | None, texts: list[str]) -> list[bytes | None]:
+    """Embed `texts` in one model call into storable bytes.
 
-    Failures are logged without the text, which is user content.
+    All None if there is no embedder or it fails. Failures are logged without
+    the texts, which are user content.
     """
-    if embedder is None:
-        return None
+    if embedder is None or not texts:
+        return [None] * len(texts)
     try:
-        return vector_to_bytes(embedder.embed([text])[0])
+        return [vector_to_bytes(v) for v in embedder.embed(texts)]
     except Exception:
         logger.exception("Could not compute an embedding")
-        return None
+        return [None] * len(texts)
+
+
+def embed_one(embedder: Embedder | None, text: str) -> bytes | None:
+    """Embed `text` into storable bytes; None if there is no embedder or it fails."""
+    return embed_many(embedder, [text])[0]
 
 
 def todo_embedding_text(title: str, description: str | None) -> str:

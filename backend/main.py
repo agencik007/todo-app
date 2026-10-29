@@ -25,6 +25,7 @@ from sqlalchemy import inspect as sa_inspect
 
 from config.database import Base, engine
 from routes import auth_router, groups_router, todo_router, users_router
+from services.embedder import warm_up_embedder
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +133,10 @@ async def lifespan(app: FastAPI):
     """Application lifespan handler - runs on startup and shutdown."""
     # Startup: Create database tables
     _bootstrap_schema()
+    # Load the embedding model in the background so the first suggestion
+    # doesn't wait for it; tests never load the real model.
+    if os.getenv("TESTING") != "1":
+        warm_up_embedder()
     yield
     # Shutdown: Cleanup if needed
 
