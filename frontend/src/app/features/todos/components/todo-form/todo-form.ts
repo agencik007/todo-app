@@ -28,7 +28,9 @@ import {
   EMPTY,
   map,
   of,
+  Subject,
   switchMap,
+  takeUntil,
 } from 'rxjs';
 import { SILENT_NOTIFICATIONS } from '../../../../core/interceptors/notification.interceptor';
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
@@ -116,6 +118,10 @@ export class TodoFormComponent {
   /** Bumped by reset(), so the same text typed again asks again. */
   readonly #formRun = signal(0);
 
+  /** Set by onSubmit(): no more suggestions once the todo is on its way. */
+  readonly #submitted = signal(false);
+  readonly #submit$ = new Subject<void>();
+
   /** The existing group a `medium` chip points at (hidden if it's gone). */
   readonly chipGroup = computed(() => {
     const chip = this.suggestion().chip;
@@ -161,6 +167,8 @@ export class TodoFormComponent {
               context: new HttpContext().set(SILENT_NOTIFICATIONS, true),
             })
             .pipe(
+              // Abort a request still in flight when the user clicks Add.
+              takeUntil(this.#submit$),
               map((response) => ({ run, response })),
               catchError(() => {
                 suggestionsDisabled = true;
@@ -188,6 +196,7 @@ export class TodoFormComponent {
     return (
       !suggestionsDisabled &&
       this.todo() === null &&
+      !this.#submitted() &&
       !s.stopped &&
       s.source !== 'user'
     );
@@ -203,6 +212,8 @@ export class TodoFormComponent {
       groupId: model.groupId,
     };
 
+    this.#submitted.set(true);
+    this.#submit$.next();
     this.save.emit(todoData);
   }
 
@@ -211,6 +222,7 @@ export class TodoFormComponent {
     this.todoModel.set({ title: '', description: '', groupId: null });
     this.todoForm().reset();
     this.suggestion.set(INITIAL_META);
+    this.#submitted.set(false);
     this.#formRun.update((n) => n + 1);
   }
 

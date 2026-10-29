@@ -292,9 +292,6 @@ test('a create whose response was lost is retried without a duplicate', async ({
     },
     { times: 1 },
   );
-  // The group suggestion for the typed title can still go out after the
-  // click; its answer would bring the app back online before the check below.
-  await context.route('**/todos/suggest-group', (route) => route.abort('internetdisconnected'));
   await todos.add('Sent twice');
   await expect(page.getByRole('status').filter({ hasText: 'You are offline.' })).toBeVisible();
   await expect(todos.row('Sent twice').getByRole('img', { name: 'Waiting to sync' })).toBeVisible();

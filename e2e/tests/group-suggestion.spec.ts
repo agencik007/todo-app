@@ -72,6 +72,22 @@ test('manual choice is never overridden', async ({ page }) => {
   await expect(form.aiHint).toBeHidden();
 });
 
+test('no suggestion is asked for once the task is added', async ({ page }) => {
+  const form = new TodoForm(page);
+  const todos = new TodosPage(page);
+  await form.open();
+
+  const suggestRequest = page.waitForRequest(SUGGEST_URL, { timeout: 1_500 }).catch(() => null);
+  await form.title.fill('Kupić mleko');
+  await form.submit.click();
+
+  // Add stops the suggestions: the debounce that runs out after the click
+  // sends nothing.
+  expect(await suggestRequest).toBeNull();
+  await expect(form.dialog).toBeHidden();
+  await expect(todos.row('Kupić mleko')).toBeVisible();
+});
+
 test('(mocked) a medium-confidence group is offered and "Use" selects it', async ({
   page,
   request,
