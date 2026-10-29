@@ -8,6 +8,7 @@ import { urls } from './fixtures/env';
  */
 export default defineConfig({
   testDir: './tests',
+  globalSetup: './fixtures/global-setup.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

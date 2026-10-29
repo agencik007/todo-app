@@ -1,7 +1,14 @@
 import { test as base } from '@playwright/test';
 
-import { createVerifiedUser, loginViaApi, TestUser } from './api';
+import { createVerifiedUser, loginViaApi, newUser, TestUser } from './api';
 import { weatherMock } from './weather';
+
+interface Options {
+  /** Language of the `user` fixture's account (`test.use({ language: 'pl' })`). */
+  language: 'en' | 'pl';
+  /** Whether the `user` fixture has finished the first-login onboarding. */
+  onboarded: boolean;
+}
 
 interface Fixtures {
   /** A fresh, verified user (not logged in). */
@@ -10,7 +17,9 @@ interface Fixtures {
   loggedIn: TestUser;
 }
 
-export const test = base.extend<Fixtures>({
+export const test = base.extend<Options & Fixtures>({
+  language: ['en', { option: true }],
+  onboarded: [true, { option: true }],
   page: async ({ page }, use) => {
     // The header weather widget calls third-party APIs; keep tests hermetic.
     await page.route('https://api.open-meteo.com/**', (route) =>
@@ -24,8 +33,8 @@ export const test = base.extend<Fixtures>({
     );
     await use(page);
   },
-  user: async ({ request }, use) => {
-    await use(await createVerifiedUser(request));
+  user: async ({ request, language, onboarded }, use) => {
+    await use(await createVerifiedUser(request, newUser(language), { onboarded }));
   },
   loggedIn: async ({ page, user }, use) => {
     await loginViaApi(page.request, user);
