@@ -14,8 +14,9 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Offline mode** - without a connection a signed-in user still sees their last synced tasks and groups (with an offline banner) and can create, edit, complete and delete tasks; the changes are queued in IndexedDB and sent once the API is back (a create carries a `clientId`, so a retry never duplicates it). Groups, reordering and account settings stay online-only. The copy holds one user's data at a time and is deleted on logout
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
-- ✅ **Backend Tests** - 124 unit and integration tests with coverage (min. 80% enforced)
-- ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, tasks)
+- ✅ **Backend Tests** - 183 unit and integration tests with coverage (min. 80% enforced)
+- ✅ **Starter groups and local AI group suggestions** - a first-sign-in picker for starter groups and a group suggestion while typing a new task, computed by a small multilingual embedding model that runs inside the backend (no external AI service, no data leaves the server)
+- ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, onboarding, tasks, group suggestions)
 - ✅ **CI/CD** - GitHub Actions runs lint, tests, builds and E2E tests on every pull request and push to `develop`, then deploys `develop` to production
 - ✅ **Simple Local Setup** - One `make dev` starts everything; tests run against their own `<db>_test` database
 
@@ -105,6 +106,8 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 
 - ✅ Create, edit, complete and delete tasks; drag & drop reordering
 - ✅ Groups for organizing tasks
+- ✅ First-sign-in onboarding (`/welcome`): pick starter groups from a catalogue (English and Polish names, depending on the account language) or skip
+- ✅ Group suggestions while creating a task: a local multilingual embedding model compares the title and description with your groups (and the tasks already in them) and suggests a group, or a catalogue group to create. Nothing is sent to a third party; see [AI group suggestions](#ai-group-suggestions)
 - ✅ User accounts: registration, email verification, password reset, avatar, self-service account deletion
 - ✅ Public privacy policy page (`/privacy`, English and Polish)
 - ✅ Security: password strength validation, refresh token rotation with reuse detection, rate limiting, CSP and security headers
@@ -123,6 +126,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - **Pydantic** - data validation
 - **Jinja2** - email templates
 - **Uvicorn** - ASGI server
+- **fastembed** - local ONNX embedding model for group suggestions (no PyTorch)
 
 ### Frontend
 
@@ -237,6 +241,8 @@ MAILHOG_PORT=1025
 FRONTEND_URL=http://localhost:4200
 ```
 
+Optional: `AI_SUGGESTIONS_ENABLED` (default `true`; `false`, `0`, `no` or `off` turns the group suggestions off, see [AI group suggestions](#ai-group-suggestions)). In Docker it is set in `docker/docker.env`.
+
 > [!NOTE]
 > `ALLOWED_HOSTS` and `CORS_ORIGINS` are required — the backend refuses to start without them (see `backend/main.py`). `SECRET_KEY` must be at least 32 characters and not a known placeholder (see `backend/services/auth_service.py`).
 >
@@ -247,6 +253,17 @@ FRONTEND_URL=http://localhost:4200
 ### Docker (Alternative Setup)
 
 If you prefer using Docker, the entire application can be run in containers — see [Quick Start](#-quick-start).
+
+### AI group suggestions
+
+When you create a task, the app suggests a group for it. Everything runs locally in the backend:
+
+- **Model:** `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (English, Polish and many other languages) through `fastembed` (ONNX runtime, no PyTorch). The Docker image bakes the model in at `/opt/models` (`FASTEMBED_CACHE_DIR`), so nothing is downloaded at runtime.
+- **Cost:** the backend image is about 1.53 GB (it was about 775 MB without the model). Each Uvicorn worker holds its own copy of the model, about 580 MB of extra RAM per worker, so about 1.15 GB with the default `--workers 2`. If memory is tight, change `--workers 2` to `--workers 1` in `docker/Dockerfile.backend`.
+- **Startup:** the backend loads the model at startup (skipped with `TESTING=1`; the e2e stack warms it in `e2e/fixtures/global-setup.ts`). Embeddings of groups and tasks are stored in the database and filled in lazily on the first suggestion request.
+- **Switching it off:** `AI_SUGGESTIONS_ENABLED=false` in `docker/docker.env` (or `backend/.env`) disables the endpoint and skips loading the model. `POST /todos/suggest-group` then answers `503 SUGGESTIONS_UNAVAILABLE` and the task form simply shows no suggestion.
+- **Tuning:** the confidence thresholds and neighbour settings are constants at the top of `backend/services/suggestion_service.py`. Check changes against the labelled cases in `backend/tests/data/suggestion_eval.json` with `docker exec todo-backend python -m scripts.eval_suggestions`.
+- **Changing the model:** embeddings from another model are not comparable. After changing `MODEL_NAME` in `backend/services/embedder.py`, set the `embedding` column of `todos` and `groups` to `NULL`; the lazy backfill recomputes them on the next suggestion request.
 
 ## 🏃‍♂️ Running the app
 
@@ -310,16 +327,20 @@ After running the backend with `DEBUG=True`, API documentation is available at:
 
 ### Available endpoints
 
-| Prefix    | Description                                                                                                     |
-| --------- | --------------------------------------------------------------------------------------------------------------- |
-| `/`       | Application status                                                                                              |
-| `/health` | Health check (process only)                                                                                     |
-| `/auth`   | Registration, login, token refresh, email verification, password reset; `/auth/health` also checks the database |
-| `/users`  | Current user's avatar, language preference and account deletion                                                 |
-| `/todos`  | Tasks CRUD and reordering                                                                                       |
-| `/groups` | Task groups CRUD                                                                                                |
+| Prefix    | Description                                                                                                             |
+| --------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `/`       | Application status                                                                                                      |
+| `/health` | Health check (process only)                                                                                             |
+| `/auth`   | Registration, login, token refresh, email verification, password reset; `/auth/health` also checks the database         |
+| `/users`  | Current user's avatar, language preference, account deletion and first-sign-in onboarding (`POST /users/me/onboarding`) |
+| `/todos`  | Tasks CRUD, reordering and group suggestions (`POST /todos/suggest-group`)                                              |
+| `/groups` | Task groups CRUD and the starter group catalogue (`GET /groups/catalog`)                                                |
 
 All `/todos`, `/groups` and `/users` endpoints require an authenticated user with a verified email. The full, up-to-date list is in Swagger UI.
+
+- `GET /groups/catalog` returns the starter groups (localised names) the user can pick from.
+- `POST /users/me/onboarding` takes `groupKeys` (catalogue keys), creates those groups and marks the account as onboarded (`onboardingCompleted` in `UserResponse`). A repeat call answers `409`. The frontend sends users who have not finished it to `/welcome`.
+- `POST /todos/suggest-group` takes a title and optional description and returns a suggested existing group or a catalogue group to create, with a confidence. Limited to 60 requests per minute per user; answers `503` with `SUGGESTIONS_UNAVAILABLE` when the feature is disabled or the model cannot be loaded.
 
 ---
 
@@ -327,7 +348,7 @@ All `/todos`, `/groups` and `/users` endpoints require an authenticated user wit
 
 ### Backend - Tests (Pytest)
 
-The application has a comprehensive suite of tests (currently **124**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
+The application has a comprehensive suite of tests (currently **183**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
 
 ```bash
 # In Docker (dev stack running)
@@ -505,6 +526,7 @@ PgAdmin is a web tool for managing PostgreSQL:
 
 - **Base**: Python 3.12 slim
 - **Stages**: `runtime` (final image, used by production, `make deploy` and the e2e stack) installs `requirements.txt` only; `dev` adds `requirements-dev.txt` (pytest, ruff, httpx) and is what `docker-compose.override.yml` builds (`target: dev`), so `make test-backend` keeps working in the dev container
+- **Model**: the embedding model for group suggestions is downloaded at build time into `/opt/models` (about 0.2 GB; see [AI group suggestions](#ai-group-suggestions))
 - **Server**: Uvicorn with 2 workers (production); `docker-compose.override.yml` switches it to `--reload` for development
 - **Security**: Non-root user (`app`), which also owns `/app/uploadedFiles` so the `backend_uploads` volume is writable
 - **Health checks**: Socket connection test
@@ -802,10 +824,10 @@ todo-app/
 │   ├── templates/email/     # Jinja2 email templates (layout, shared blocks, one .html + .txt per email)
 │   ├── models/              # SQLAlchemy models (user, todo, group, refresh_token) + Pydantic schemas
 │   ├── routes/              # API routes (auth, users, todos, groups)
-│   ├── services/            # Business logic (auth, email)
+│   ├── services/            # Business logic (auth, email, embedder + suggestion_service for group suggestions)
 │   ├── migrations/          # Alembic migrations
 │   ├── openapi/             # export_openapi.py + the exported openapi.json (input of `npm run generate-api`)
-│   ├── scripts/             # seed.py - sample data for development
+│   ├── scripts/             # seed.py - sample data for development; eval_suggestions.py - evaluates the group suggestion thresholds
 │   ├── tests/               # Pytest suite
 │   ├── main.py              # Application entrypoint
 │   ├── requirements.txt     # Python runtime dependencies (production image)
@@ -817,7 +839,7 @@ todo-app/
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── core/        # Guards, interceptors, services, store/ (AuthStore), config, models, tokens, utils
-│   │   │   ├── features/    # auth/, groups/, todos/ (components/ plus store/ or services/), legal/ (privacy policy)
+│   │   │   ├── features/    # auth/, groups/, onboarding/ (starter group picker), todos/ (components/ plus store/ or services/), legal/ (privacy policy)
 │   │   │   ├── shared/
 │   │   │   │   ├── ui/              # Design system primitives (badge, empty-state, form-field, icon-button)
 │   │   │   │   ├── global-styling/  # SCSS partials, incl. _tokens.scss (design tokens)
