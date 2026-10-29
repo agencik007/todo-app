@@ -222,6 +222,14 @@
       "FIELD_DESCRIPTION_PLACEHOLDER": "Dodaj opcjonalny opis…",
       "FIELD_GROUP": "Grupa",
       "FIELD_GROUP_HINT": "Opcjonalne – organizuj zadania w grupy",
+      "AI_PICKED": "✨ Wybrane przez AI",
+      "AI_UNDO": "Cofnij",
+      "AI_SUGGESTION": "✨ Sugestia:",
+      "AI_USE": "Użyj",
+      "AI_NEW_GROUP": "✨ Żadna z Twoich grup nie pasuje. Może nowa:",
+      "AI_CREATE_ASSIGN": "Utwórz i przypisz",
+      "AI_NO_THANKS": "Nie, dzięki",
+      "AI_REASON": "Podobne do: {{title}}",
       "CANCEL": "Anuluj",
       "SUBMIT_ADD": "Dodaj zadanie",
       "SUBMIT_SAVE": "Zapisz zmiany",
@@ -480,7 +488,7 @@
   },
   "PRIVACY": {
     "TITLE": "Polityka prywatności",
-    "UPDATED": "Ostatnia aktualizacja: 28 października 2026",
+    "UPDATED": "Ostatnia aktualizacja: 29 października 2026",
     "BACK": "Wróć",
     "SECTIONS": [
       {
@@ -489,7 +497,7 @@
       },
       {
         "TITLE": "W jakim celu",
-        "BODY": "Dane służą wyłącznie do działania aplikacji: logowania, synchronizacji zadań między urządzeniami i wysyłki wiadomości dotyczących konta (weryfikacja adresu, reset hasła). Nie sprzedajemy danych, nie wyświetlamy reklam i nie profilujemy użytkowników."
+        "BODY": "Dane służą wyłącznie do działania aplikacji: logowania, synchronizacji zadań między urządzeniami i wysyłki wiadomości dotyczących konta (weryfikacja adresu, reset hasła). Nie sprzedajemy danych, nie wyświetlamy reklam i nie profilujemy użytkowników. Treść Twoich zadań jest analizowana na własnym serwerze aplikacji, aby podpowiedzieć grupę dla nowego zadania; nie trafia do podmiotów trzecich."
       },
       {
         "TITLE": "Ciasteczka i pamięć lokalna",

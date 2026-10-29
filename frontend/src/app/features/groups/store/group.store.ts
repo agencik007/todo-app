@@ -103,15 +103,20 @@ export class GroupStore {
     });
   }
 
-  createGroup(groupData: GroupCreate): void {
-    this.#groupsService.createGroupGroupsPost(groupData).subscribe({
-      next: (newGroup) => {
-        this.#setSyncedGroups([...this.#groups(), newGroup]);
-        this.closeDialog();
-      },
-      error: (err: Error) => {
-        this.#error.set(err.message);
-      },
+  /** Resolves with the created group, or `null` when the request failed. */
+  createGroup(groupData: GroupCreate): Promise<Group | null> {
+    return new Promise((resolve) => {
+      this.#groupsService.createGroupGroupsPost(groupData).subscribe({
+        next: (newGroup) => {
+          this.#setSyncedGroups([...this.#groups(), newGroup]);
+          this.closeDialog();
+          resolve(newGroup);
+        },
+        error: (err: Error) => {
+          this.#error.set(err.message);
+          resolve(null);
+        },
+      });
     });
   }
 
