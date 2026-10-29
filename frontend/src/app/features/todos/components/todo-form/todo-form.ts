@@ -1,4 +1,4 @@
-import { HttpContext } from '@angular/common/http';
+import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   computed,
@@ -33,6 +33,8 @@ import {
   takeUntil,
 } from 'rxjs';
 import { SILENT_NOTIFICATIONS } from '../../../../core/interceptors/notification.interceptor';
+import { NetworkStatusService } from '../../../../core/services/network-status.service';
+import { isServerUnreachable } from '../../../../core/utils/network-error.util';
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
 import { GroupStore } from '../../../groups/store/group.store';
@@ -48,8 +50,9 @@ interface TodoFormModel {
 type SuggestionMeta = Omit<SuggestionState, 'groupId'>;
 
 /**
- * Set once the endpoint fails (503 = feature off, or any other error): no more
- * suggestions until the page reloads. Shared by every form instance.
+ * Set once the endpoint fails while the server is reachable (503 = feature
+ * off, or another 4xx/5xx): no more suggestions until the page reloads.
+ * Offline and 429 don't set it. Shared by every form instance.
  */
 let suggestionsDisabled = false;
 
@@ -84,6 +87,7 @@ const NO_SUGGESTION: GroupSuggestion = {
 export class TodoFormComponent {
   readonly #groupStore = inject(GroupStore);
   readonly #todosService = inject(TodosService);
+  readonly #networkStatus = inject(NetworkStatusService);
 
   static readonly SUGGEST_DEBOUNCE_MS = 500;
   static readonly TITLE_MAX = 200;
@@ -170,8 +174,12 @@ export class TodoFormComponent {
               // Abort a request still in flight when the user clicks Add.
               takeUntil(this.#submit$),
               map((response) => ({ run, response })),
-              catchError(() => {
-                suggestionsDisabled = true;
+              catchError((error: unknown) => {
+                // Offline or rate-limited: try again on the next input.
+                const transient =
+                  isServerUnreachable(error) ||
+                  (error instanceof HttpErrorResponse && error.status === 429);
+                if (!transient) suggestionsDisabled = true;
                 return EMPTY;
               }),
             );
@@ -195,6 +203,7 @@ export class TodoFormComponent {
     const s = this.suggestion();
     return (
       !suggestionsDisabled &&
+      this.#networkStatus.online() &&
       this.todo() === null &&
       !this.#submitted() &&
       !s.stopped &&
