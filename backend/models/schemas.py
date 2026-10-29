@@ -7,6 +7,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from pydantic.alias_generators import to_camel
+from pydantic_core import PydanticCustomError
 
 from models.group import GroupColor
 
@@ -158,9 +159,30 @@ class UserResponse(UserBase):
     is_verified: bool
     avatar_url: str | None = None
     language: str
+    onboarding_completed: bool = False
     message: str | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class OnboardingRequest(CamelBaseModel):
+    """Schema for finishing the first-login onboarding with starter groups."""
+
+    group_keys: list[str] = Field(default_factory=list, max_length=15)
+
+    @field_validator("group_keys")
+    @classmethod
+    def check_known_keys(cls, v: list[str]) -> list[str]:
+        from config.group_catalog import get_catalog_entry
+
+        for key in v:
+            if get_catalog_entry(key) is None:
+                # PydanticCustomError keeps the error context JSON-serializable,
+                # which the 422 handler in main.py relies on.
+                raise PydanticCustomError(
+                    "unknown_group_key", "Unknown group key: {key}", {"key": key}
+                )
+        return v
 
 
 class UserLanguageUpdate(CamelBaseModel):

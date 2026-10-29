@@ -336,7 +336,8 @@
     "TODO_INVALID_INDEX": "Nieprawidłowy indeks zadania",
     "HEALTH_DATABASE_UNAVAILABLE": "Baza danych jest niedostępna. Spróbuj ponownie później.",
     "USER_ACCOUNT_DELETED": "Twoje konto zostało usunięte",
-    "USER_INVALID_PASSWORD": "Nieprawidłowe hasło"
+    "USER_INVALID_PASSWORD": "Nieprawidłowe hasło",
+    "USER_ONBOARDING_ALREADY_COMPLETED": "Konfiguracja konta została już zakończona."
   },
   "GROUPS": {
     "SIDEBAR": {

@@ -11,6 +11,7 @@ from config.auth import get_current_verified_user
 from config.database import get_db
 from config.group_catalog import GROUP_CATALOG
 from models.group import Group as GroupModel
+from models.group import GroupColor
 from models.schemas import Group, GroupCatalogItem, GroupCreate, GroupUpdate
 from models.user import User
 
@@ -18,6 +19,43 @@ router = APIRouter(prefix="/groups", tags=["groups"])
 
 # Maximum number of groups per user
 MAX_GROUPS_PER_USER = 50
+
+
+def create_groups_for_user(
+    db: Session, user: User, entries: list[tuple[str, GroupColor]]
+) -> list[GroupModel]:
+    """
+    Create groups for a user from (name, color) pairs.
+
+    Skips names the user already has (case-insensitive) and stops at
+    MAX_GROUPS_PER_USER. Does not commit; the caller owns the transaction.
+
+    Args:
+        db: Database session.
+        user: Owner of the new groups.
+        entries: (name, color) pairs to create, in order.
+
+    Returns:
+        list[GroupModel]: The groups that were actually created.
+    """
+    existing = {
+        name.lower()
+        for (name,) in db.query(GroupModel.name).filter(GroupModel.user_id == user.id)
+    }
+    created: list[GroupModel] = []
+
+    for name, color in entries:
+        if len(existing) >= MAX_GROUPS_PER_USER:
+            break
+        if name.lower() in existing:
+            continue
+        group = GroupModel(name=name, color=color, user_id=user.id)
+        db.add(group)
+        created.append(group)
+        existing.add(name.lower())
+
+    db.flush()
+    return created
 
 
 @router.get("", response_model=list[Group])
