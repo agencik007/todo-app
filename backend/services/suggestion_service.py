@@ -2,18 +2,23 @@
 Group suggestion for a new todo, from local text embeddings.
 
 For the new todo's vector q and each of the user's groups g:
-name_sim = cos(q, g), knn_sim = mean of the top-3 cos(q, t) over g's todos,
-score(g) = max(name_sim, knn_sim). The best group is "high" at T_HIGH and
-"medium" at T_MED; below that, the best catalogue group the user doesn't
-have is proposed at T_CATALOG; otherwise there is no suggestion.
+name_sim = cos(q, g), knn_sim = the sum of the top-3 cos(q, t) over g's
+todos divided by 3 (missing neighbours count as 0), and
+score(g) = max(name_sim, knn_sim - KNN_MARGIN). The best group is "high" at
+T_HIGH and "medium" at T_MED; below that, the best catalogue group the user
+doesn't have is proposed at T_CATALOG; otherwise there is no suggestion.
 
-Two refinements, measured with scripts/eval_suggestions.py (raw cosines
-scored 17/41 there; with both, 35/41):
+Refinements, measured with scripts/eval_suggestions.py (on the cold-start
+cases raw cosines scored 17/41; with the first two, 35/41):
 - Every cosine is taken after removing the mean vector of the catalogue
   words. Short texts share a large common component in this model, so raw
   cosines rank e.g. "Coś" closest to "Zakupy" (0.67).
 - A group named like a catalogue entry (either language) is also compared
   with that entry's names and keywords: name_sim is the better of the two.
+- Todo-to-todo cosines run higher than todo-to-name ones (unrelated todos
+  reach 0.3-0.5 after centring), so knn_sim is padded to KNN_K neighbours
+  and lowered by KNN_MARGIN before it competes with name_sim. A group with
+  one or two todos can't win on a single noisy cosine.
 """
 
 import logging
@@ -39,12 +44,14 @@ from services.embedder import (
 
 logger = logging.getLogger(__name__)
 
-# Tuned with scripts/eval_suggestions.py: high 20/21 precise, accuracy 35/41.
+# Tuned with scripts/eval_suggestions.py: high 44/46 precise, accuracy 77/90.
 T_HIGH = 0.30
 T_MED = 0.25
 T_CATALOG = 0.25
 
 KNN_K = 3
+# Subtracted from knn_sim; tuned with scripts/eval_suggestions.py.
+KNN_MARGIN = 0.25
 BACKFILL_TODO_LIMIT = 200
 # Upper bound on the past todos compared per request (newest first).
 KNN_TODO_LIMIT = 1000
@@ -173,9 +180,9 @@ def best_group(
         name_sim = float((vectors @ q).max())
         top = sorted(todo_sims.get(group_id, []), key=lambda s: s[0], reverse=True)
         top = top[:KNN_K]
-        knn_sim = sum(sim for sim, _ in top) / len(top) if top else None
-        if knn_sim is not None and knn_sim > name_sim:
-            match = GroupMatch(group_id, knn_sim, top[0][1])
+        knn_score = sum(sim for sim, _ in top) / KNN_K - KNN_MARGIN if top else None
+        if knn_score is not None and knn_score > name_sim:
+            match = GroupMatch(group_id, knn_score, top[0][1])
         else:
             match = GroupMatch(group_id, name_sim, None)
         if best is None or match.score > best.score:

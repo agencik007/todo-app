@@ -23,6 +23,7 @@ def fake_thresholds(monkeypatch):
     monkeypatch.setattr(suggestion_service, "T_HIGH", 0.8)
     monkeypatch.setattr(suggestion_service, "T_MED", 0.5)
     monkeypatch.setattr(suggestion_service, "T_CATALOG", 0.2)
+    monkeypatch.setattr(suggestion_service, "KNN_MARGIN", 0.0)
 
 
 def _group(db, user, name: str) -> Group:
@@ -72,6 +73,40 @@ def test_suggest_high_by_past_todos(authenticated_client, test_db, test_user):
     assert body["reason"] == "kupić mleko chleb"
 
 
+def test_single_similar_past_todo_is_not_high(authenticated_client, test_db, test_user):
+    # cos = 0.91 with the only todo: a plain mean of the neighbours would say
+    # "high"; padded to KNN_K neighbours it is 0.30.
+    group = _group(test_db, test_user, "Dom")
+    _todo(test_db, test_user, "kupić mleko chleb masło ser", group)
+
+    response = authenticated_client.post(
+        URL, json={"title": "kupić mleko chleb masło ser jajka"}
+    )
+
+    body = response.json()
+    assert body["confidence"] != "high"
+    assert body["groupId"] is None
+
+
+def test_knn_margin_lowers_past_todo_scores(
+    authenticated_client, test_db, test_user, monkeypatch
+):
+    monkeypatch.setattr(suggestion_service, "KNN_MARGIN", 0.25)
+    group = _group(test_db, test_user, "Dom")
+    for _ in range(3):
+        _todo(test_db, test_user, "kupić mleko chleb", group)
+
+    response = authenticated_client.post(URL, json={"title": "kupić mleko chleb"})
+
+    # knn_sim 1.0 - 0.25 = 0.75: below T_HIGH (0.8), above T_MED (0.5).
+    assert response.json() == {
+        "groupId": group.id,
+        "newGroup": None,
+        "confidence": "medium",
+        "reason": "kupić mleko chleb",
+    }
+
+
 def test_suggest_medium(authenticated_client, test_db, test_user):
     group = _group(test_db, test_user, "mleko chleb")
 
@@ -115,16 +150,25 @@ def test_catalogue_named_group_matches_by_catalogue_keywords(
 
 
 def test_catalog_skips_group_user_has_in_other_language(
-    authenticated_client, test_db, test_user
+    authenticated_client, test_db, test_user, monkeypatch
 ):
+    # HEALTH matches 3 words of the title and SPORT 2, so HEALTH would win
+    # if the owned "Health" group (English name, Polish user) weren't skipped.
+    monkeypatch.setattr(suggestion_service, "T_CATALOG", 0.1)
     test_user.language = "pl"
     test_db.commit()
     _group(test_db, test_user, "Health")
 
-    response = authenticated_client.post(URL, json={"title": "dentysta lekarz"})
+    response = authenticated_client.post(
+        URL, json={"title": "dentysta lekarz leki trening rower"}
+    )
 
-    new_group = response.json()["newGroup"]
-    assert new_group is None or new_group["key"] != "HEALTH"
+    assert response.json() == {
+        "groupId": None,
+        "newGroup": {"key": "SPORT", "name": "Sport", "color": "green"},
+        "confidence": "medium",
+        "reason": None,
+    }
 
 
 def test_suggest_no_match_returns_low_nulls(authenticated_client, test_db, test_user):

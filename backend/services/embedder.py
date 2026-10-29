@@ -3,6 +3,7 @@
 import logging
 import os
 import threading
+from collections.abc import Callable
 from typing import Protocol
 
 import numpy as np
@@ -86,15 +87,29 @@ def get_embedder() -> Embedder | None:
         return _embedder
 
 
-def warm_up_embedder() -> threading.Thread | None:
+def warm_up_embedder(
+    after: Callable[[Embedder], object] | None = None,
+) -> threading.Thread | None:
     """Load the model in a background thread so the first request is fast.
 
-    Never blocks or fails the caller: get_embedder() logs and caches a load
-    failure. Returns the thread, or None when suggestions are disabled.
+    `after` then runs in the same thread with the loaded embedder (e.g. to
+    precompute vectors). Never blocks or fails the caller: get_embedder()
+    logs and caches a load failure, and a failing `after` is logged.
+    Returns the thread, or None when suggestions are disabled.
     """
     if not suggestions_enabled():
         return None
-    thread = threading.Thread(target=get_embedder, name="embedder-warm-up", daemon=True)
+
+    def run() -> None:
+        embedder = get_embedder()
+        if embedder is None or after is None:
+            return
+        try:
+            after(embedder)
+        except Exception:
+            logger.exception("Could not warm up the embedder")
+
+    thread = threading.Thread(target=run, name="embedder-warm-up", daemon=True)
     thread.start()
     return thread
 

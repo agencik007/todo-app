@@ -234,6 +234,31 @@ def test_warm_up_embedder_loads_the_model_in_a_thread(monkeypatch):
     assert get_embedder() is loaded
 
 
+def test_warm_up_embedder_runs_after_with_the_loaded_embedder(monkeypatch):
+    loaded = FakeEmbedder()
+    seen = []
+    monkeypatch.setenv("AI_SUGGESTIONS_ENABLED", "true")
+    monkeypatch.setattr(embedder, "FastEmbedEmbedder", lambda: loaded)
+    embedder.reset_embedder()
+
+    embedder.warm_up_embedder(after=seen.append).join(timeout=5)
+
+    assert seen == [loaded]
+
+
+def test_warm_up_embedder_survives_a_failing_after(monkeypatch, caplog):
+    def boom(_embedder):
+        raise RuntimeError("no catalogue")
+
+    monkeypatch.setenv("AI_SUGGESTIONS_ENABLED", "true")
+    monkeypatch.setattr(embedder, "FastEmbedEmbedder", FakeEmbedder)
+    embedder.reset_embedder()
+
+    embedder.warm_up_embedder(after=boom).join(timeout=5)
+
+    assert "Could not warm up the embedder" in caplog.text
+
+
 def test_warm_up_embedder_survives_a_load_failure(monkeypatch):
     def boom():
         raise RuntimeError("no model")

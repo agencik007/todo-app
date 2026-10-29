@@ -1,5 +1,22 @@
 {
   "groups": ["Dom", "Praca", "Zakupy", "Hobby"],
+  "todos": {
+    "Dom": [
+      "Posprzątać łazienkę",
+      "Wymienić żarówkę w przedpokoju",
+      "Clean the fridge",
+      "Podlać kwiaty na balkonie",
+      "Zadzwonić do babci"
+    ],
+    "Praca": [
+      "Odpisać na maile od klienta",
+      "Prepare the weekly status update",
+      "Zaktualizować dokumentację projektu",
+      "Zarezerwować salę na spotkanie zespołu"
+    ],
+    "Zakupy": ["Kupić karmę dla kota", "Order printer ink"],
+    "Hobby": ["Obejrzeć nowy film w kinie"]
+  },
   "cases": [
     { "title": "Kupić mleko i chleb", "description": null, "expected": "Zakupy" },
     { "title": "Zamówić nowe buty przez internet", "description": null, "expected": "Zakupy" },
@@ -37,6 +54,10 @@
     { "title": "Pobiegać 5 km w parku", "description": null, "expected": "catalog:SPORT" },
     { "title": "Wymienić opony na zimowe", "description": null, "expected": "catalog:CAR" },
     { "title": "Get the car washed", "description": null, "expected": "catalog:CAR" },
+    { "title": "Kupić żwirek dla kota", "description": null, "expected": "Zakupy" },
+    { "title": "Update the project documentation", "description": null, "expected": "Praca" },
+    { "title": "Odpisać klientowi na maila", "description": null, "expected": "Praca" },
+    { "title": "Wipe the kitchen counters", "description": null, "expected": "Dom" },
     { "title": "Ku", "description": null, "expected": null },
     { "title": "asdf qwerty", "description": null, "expected": null },
     { "title": "Coś", "description": null, "expected": null },
