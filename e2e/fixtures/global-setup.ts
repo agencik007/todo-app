@@ -6,8 +6,8 @@ import { urls } from './env';
 /**
  * Loads the embedding model before the tests start. The e2e backend runs with
  * TESTING=1, which skips the startup warm-up, so each of its uvicorn workers
- * loads the model on the first todo create or suggestion - under the load of
- * a parallel run that takes up to ~20 s and times tests out. Concurrent
+ * loads the model on its first suggestion (writes never wait for it) - under
+ * the load of a parallel run that takes up to ~20 s and times tests out. Concurrent
  * suggestion requests reach every worker; a round where all of them answer
  * fast means the workers are warm.
  */

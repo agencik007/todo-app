@@ -10,6 +10,7 @@ from services.embedder import (
     bytes_to_vector,
     embed_one,
     get_embedder,
+    get_loaded_embedder,
     install_embedder,
     todo_embedding_text,
     vector_to_bytes,
@@ -190,7 +191,7 @@ def test_onboarding_embeds_all_groups_in_one_call(
             return super().embed(texts)
 
     counting = CountingEmbedder()
-    monkeypatch.setitem(app.dependency_overrides, get_embedder, lambda: counting)
+    monkeypatch.setitem(app.dependency_overrides, get_loaded_embedder, lambda: counting)
 
     response = authenticated_client.post(
         "/users/me/onboarding", json={"groupKeys": ["HOME", "WORK", "HEALTH"]}
@@ -210,7 +211,7 @@ def test_onboarding_succeeds_without_vectors_when_embedder_fails(
     authenticated_client, test_db, monkeypatch
 ):
     failing = FailingEmbedder()
-    monkeypatch.setitem(app.dependency_overrides, get_embedder, lambda: failing)
+    monkeypatch.setitem(app.dependency_overrides, get_loaded_embedder, lambda: failing)
 
     response = authenticated_client.post(
         "/users/me/onboarding", json={"groupKeys": ["HOME", "WORK"]}
@@ -278,13 +279,13 @@ def test_warm_up_embedder_does_nothing_when_disabled(monkeypatch):
 
 
 def test_create_todo_succeeds_when_embedder_fails(authenticated_client, test_db):
-    app.dependency_overrides[get_embedder] = lambda: FailingEmbedder()
+    app.dependency_overrides[get_loaded_embedder] = lambda: FailingEmbedder()
     install_embedder(FailingEmbedder())
     try:
         response = authenticated_client.post("/todos", json={"title": "Buy milk"})
         group = authenticated_client.post("/groups", json={"name": "Home"})
     finally:
-        app.dependency_overrides[get_embedder] = lambda: FakeEmbedder()
+        app.dependency_overrides[get_loaded_embedder] = lambda: FakeEmbedder()
         install_embedder(FakeEmbedder())
     assert response.status_code == 201
     assert group.status_code == 201
@@ -293,10 +294,62 @@ def test_create_todo_succeeds_when_embedder_fails(authenticated_client, test_db)
 
 
 def test_create_todo_succeeds_when_embedder_unavailable(authenticated_client, test_db):
-    app.dependency_overrides[get_embedder] = lambda: None
+    app.dependency_overrides[get_loaded_embedder] = lambda: None
     try:
         response = authenticated_client.post("/todos", json={"title": "Buy milk"})
     finally:
-        app.dependency_overrides[get_embedder] = lambda: FakeEmbedder()
+        app.dependency_overrides[get_loaded_embedder] = lambda: FakeEmbedder()
     assert response.status_code == 201
     assert _todo_embedding(test_db, response.json()["id"]) is None
+
+
+def test_get_loaded_embedder_never_loads_the_model(monkeypatch):
+    def boom():
+        raise AssertionError("the model must not be loaded")
+
+    monkeypatch.setenv("AI_SUGGESTIONS_ENABLED", "true")
+    monkeypatch.setattr(embedder, "FastEmbedEmbedder", boom)
+    embedder.reset_embedder()
+    assert get_loaded_embedder() is None
+
+    fake = FakeEmbedder()
+    install_embedder(fake)
+    assert get_loaded_embedder() is fake
+
+
+def test_get_loaded_embedder_returns_none_when_disabled(monkeypatch):
+    monkeypatch.setenv("AI_SUGGESTIONS_ENABLED", "false")
+    install_embedder(FakeEmbedder())
+    assert get_loaded_embedder() is None
+
+
+def test_write_never_loads_the_model_and_suggest_backfills(
+    authenticated_client, test_db, monkeypatch
+):
+    """A write before the model is loaded saves a NULL vector at once; the
+    next suggestion (which may load the model) fills it in."""
+    loads = []
+
+    def recording_load():
+        loads.append(1)
+        return FakeEmbedder()
+
+    monkeypatch.setenv("AI_SUGGESTIONS_ENABLED", "true")
+    monkeypatch.setattr(embedder, "FastEmbedEmbedder", recording_load)
+    embedder.reset_embedder()
+    # The real dependencies, not the autouse FakeEmbedder overrides.
+    app.dependency_overrides.pop(get_embedder, None)
+    app.dependency_overrides.pop(get_loaded_embedder, None)
+
+    response = authenticated_client.post("/todos", json={"title": "Buy milk"})
+    assert response.status_code == 201
+    todo_id = response.json()["id"]
+    assert _todo_embedding(test_db, todo_id) is None
+    assert loads == []
+
+    suggestion = authenticated_client.post(
+        "/todos/suggest-group", json={"title": "Buy bread"}
+    )
+    assert suggestion.status_code == 200
+    assert loads == [1]
+    assert _todo_embedding(test_db, todo_id) is not None

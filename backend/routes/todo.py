@@ -26,7 +26,13 @@ from models.schemas import (
 from models.todo import Todo as TodoModel
 from models.user import User
 from services.auth_service import verify_token
-from services.embedder import Embedder, embed_one, get_embedder, todo_embedding_text
+from services.embedder import (
+    Embedder,
+    embed_one,
+    get_embedder,
+    get_loaded_embedder,
+    todo_embedding_text,
+)
 from services.suggestion_service import SuggestionsUnavailableError, suggest_group
 
 router = APIRouter(prefix="/todos", tags=["todos"])
@@ -221,7 +227,7 @@ def create_todo(
     response: Response,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
-    embedder: Embedder | None = Depends(get_embedder),
+    embedder: Embedder | None = Depends(get_loaded_embedder),
 ) -> Todo:
     """
     Create a new todo.
@@ -293,7 +299,7 @@ def update_todo(
     todo_update: TodoUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
-    embedder: Embedder | None = Depends(get_embedder),
+    embedder: Embedder | None = Depends(get_loaded_embedder),
 ) -> Todo:
     """
     Update an existing todo.

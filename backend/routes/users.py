@@ -35,7 +35,7 @@ from models.user import User
 from routes.auth import _clear_refresh_cookie
 from routes.groups import create_groups_for_user
 from services.auth_service import verify_password
-from services.embedder import Embedder, get_embedder
+from services.embedder import Embedder, get_loaded_embedder
 
 router = APIRouter(prefix="/users", tags=["users"])
 logger = logging.getLogger(__name__)
@@ -234,7 +234,7 @@ def complete_onboarding(
     onboarding: OnboardingRequest,
     current_user: User = Depends(get_current_verified_user),
     db: Session = Depends(get_db),
-    embedder: Embedder | None = Depends(get_embedder),
+    embedder: Embedder | None = Depends(get_loaded_embedder),
 ):
     """
     Finish the first-login onboarding by creating the chosen starter groups.

@@ -14,7 +14,7 @@ from models.group import Group as GroupModel
 from models.group import GroupColor
 from models.schemas import Group, GroupCatalogItem, GroupCreate, GroupUpdate
 from models.user import User
-from services.embedder import Embedder, embed_many, embed_one, get_embedder
+from services.embedder import Embedder, embed_many, embed_one, get_loaded_embedder
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 
@@ -160,7 +160,7 @@ def create_group(
     group: GroupCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
-    embedder: Embedder | None = Depends(get_embedder),
+    embedder: Embedder | None = Depends(get_loaded_embedder),
 ) -> Group:
     """
     Create a new group.
@@ -209,7 +209,7 @@ def update_group(
     group_update: GroupUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
-    embedder: Embedder | None = Depends(get_embedder),
+    embedder: Embedder | None = Depends(get_loaded_embedder),
 ) -> Group:
     """
     Update an existing group.

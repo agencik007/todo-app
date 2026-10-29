@@ -53,6 +53,7 @@ def install_embedder(instance: Embedder | None) -> None:
     """Make `instance` the process-wide embedder without loading a model. For tests."""
     global _loaded, _embedder
     with _lock:
+        # _embedder before _loaded: get_loaded_embedder() reads them unlocked.
         _embedder = instance
         _loaded = True
 
@@ -83,8 +84,23 @@ def get_embedder() -> Embedder | None:
             except Exception:
                 logger.exception("Could not load the embedding model")
                 _embedder = None
+            # _embedder before _loaded: get_loaded_embedder() reads them unlocked.
             _loaded = True
         return _embedder
+
+
+def get_loaded_embedder() -> Embedder | None:
+    """FastAPI dependency for writes: the embedder if already loaded, else None.
+
+    Never loads the model and never waits for the lock, so a todo or group
+    write is not held up by a model load in progress. A row saved without a
+    vector is filled by the lazy backfill on the next suggestion. Safe
+    without the lock: `_embedder` and `_loaded` are each rebound in one step,
+    and every writer assigns `_embedder` before setting `_loaded`.
+    """
+    if not suggestions_enabled() or not _loaded:
+        return None
+    return _embedder
 
 
 def warm_up_embedder(

@@ -48,7 +48,7 @@ Every email the backend sends follows the same rules, so a new one looks and beh
 
 ## Testing
 
-- The full suite is 183 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
+- The full suite is 186 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
 - Single test: `docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec backend python -m pytest tests/test_filename.py::test_function_name`.
 - Test and lint tools (pytest, pytest-asyncio, pytest-cov, httpx, ruff) live in `backend/requirements-dev.txt`, not `requirements.txt`: the production image installs runtime dependencies only, the dev container (`target: dev`) and CI install both.
 - Tests never use the application database: `conftest.py` derives `<db>_test` from `DATABASE_URL` (created automatically if the DB user has permission), or uses `TEST_DATABASE_URL` if set.
@@ -63,6 +63,7 @@ Every email the backend sends follows the same rules, so a new one looks and beh
 ## Group suggestions (embeddings)
 
 - `services/embedder.py` wraps the `fastembed` model (`MODEL_NAME`), baked into the Docker image and kept as a lazy per-process singleton; `AI_SUGGESTIONS_ENABLED=false` (also `0`, `no`, `off`) turns it off and the endpoint answers 503 `SUGGESTIONS_UNAVAILABLE`.
+- Writes (todo/group create and update, onboarding) take `Depends(get_loaded_embedder)`, which returns the embedder only if it is already loaded and never waits for a load; only the suggest route uses the waiting `get_embedder`. A row saved without a vector is filled by the lazy backfill. The autouse fixture in `conftest.py` overrides both.
 - Changing `MODEL_NAME` makes every stored vector meaningless: set the `embedding` column of `todos` and `groups` to `NULL` (in a migration or by hand) and the lazy backfill in `services/suggestion_service.py` recomputes them on the next suggest request.
 - The thresholds and limits (`T_HIGH`, `T_MED`, `T_CATALOG`, `KNN_MARGIN`, `KNN_TODO_LIMIT`, `BACKFILL_TODO_LIMIT`) are tuned with `docker exec todo-backend python -m scripts.eval_suggestions` against `tests/data/suggestion_eval.json`. Add a case there for every misclassification you fix and re-run it before changing a constant.
 

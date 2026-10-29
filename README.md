@@ -14,7 +14,7 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Offline mode** - without a connection a signed-in user still sees their last synced tasks and groups (with an offline banner) and can create, edit, complete and delete tasks; the changes are queued in IndexedDB and sent once the API is back (a create carries a `clientId`, so a retry never duplicates it). Groups, reordering and account settings stay online-only. The copy holds one user's data at a time and is deleted on logout
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
-- ✅ **Backend Tests** - 183 unit and integration tests with coverage (min. 80% enforced)
+- ✅ **Backend Tests** - 186 unit and integration tests with coverage (min. 80% enforced)
 - ✅ **Starter groups and local AI group suggestions** - a first-sign-in picker for starter groups and a group suggestion while typing a new task, computed by a small multilingual embedding model that runs inside the backend (no external AI service, no data leaves the server)
 - ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, onboarding, tasks, group suggestions)
 - ✅ **CI/CD** - GitHub Actions runs lint, tests, builds and E2E tests on every pull request and push to `develop`, then deploys `develop` to production
@@ -260,7 +260,7 @@ When you create a task, the app suggests a group for it. Everything runs locally
 
 - **Model:** `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (English, Polish and many other languages) through `fastembed` (ONNX runtime, no PyTorch). The Docker image bakes the model in at `/opt/models` (`FASTEMBED_CACHE_DIR`), so nothing is downloaded at runtime.
 - **Cost:** the backend image is about 1.53 GB (it was about 775 MB without the model). Each Uvicorn worker holds its own copy of the model, about 580 MB of extra RAM per worker, so about 1.15 GB with the default `--workers 2`. If memory is tight, change `--workers 2` to `--workers 1` in `docker/Dockerfile.backend`.
-- **Startup:** the backend loads the model at startup (skipped with `TESTING=1`; the e2e stack warms it in `e2e/fixtures/global-setup.ts`). Embeddings of groups and tasks are stored in the database and filled in lazily on the first suggestion request.
+- **Startup:** the backend loads the model at startup (skipped with `TESTING=1`; the e2e stack warms it in `e2e/fixtures/global-setup.ts`). Embeddings of groups and tasks are stored in the database and filled in lazily on the first suggestion request. Creating or editing a task or group never waits for the model: while it is still loading, the row is saved without an embedding and the backfill adds it later.
 - **Switching it off:** `AI_SUGGESTIONS_ENABLED=false` in `docker/docker.env` (or `backend/.env`) disables the endpoint and skips loading the model. `POST /todos/suggest-group` then answers `503 SUGGESTIONS_UNAVAILABLE` and the task form simply shows no suggestion.
 - **Tuning:** the confidence thresholds and neighbour settings are constants at the top of `backend/services/suggestion_service.py`. Check changes against the labelled cases in `backend/tests/data/suggestion_eval.json` with `docker exec todo-backend python -m scripts.eval_suggestions`.
 - **Changing the model:** embeddings from another model are not comparable. After changing `MODEL_NAME` in `backend/services/embedder.py`, set the `embedding` column of `todos` and `groups` to `NULL`; the lazy backfill recomputes them on the next suggestion request.
@@ -348,7 +348,7 @@ All `/todos`, `/groups` and `/users` endpoints require an authenticated user wit
 
 ### Backend - Tests (Pytest)
 
-The application has a comprehensive suite of tests (currently **183**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
+The application has a comprehensive suite of tests (currently **186**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
 
 ```bash
 # In Docker (dev stack running)
