@@ -1,0 +1,71 @@
+<div class="welcome">
+  <header class="welcome-header">
+    <h1>{{ 'ONBOARDING.TITLE' | translate }}</h1>
+    <p>{{ 'ONBOARDING.SUBTITLE' | translate }}</p>
+  </header>
+
+  @switch (status()) {
+    @case ('loading') {
+      <div
+        role="status"
+        class="welcome-loading"
+        [attr.aria-label]="'ONBOARDING.LOADING' | translate"
+      >
+        <p-progressSpinner strokeWidth="4" />
+      </div>
+    }
+    @case ('error') {
+      <app-empty-state
+        tone="danger"
+        icon="pi-exclamation-circle"
+        [heading]="'ONBOARDING.LOAD_ERROR_TITLE' | translate"
+        [description]="'ONBOARDING.LOAD_ERROR_MESSAGE' | translate"
+      />
+    }
+    @case ('ready') {
+      <div class="welcome-grid">
+        @for (item of catalog(); track item.key) {
+          <button
+            type="button"
+            class="welcome-tile {{ colorClass(item) }}"
+            [class.selected]="selected().has(item.key)"
+            [attr.data-key]="item.key"
+            [attr.aria-pressed]="selected().has(item.key)"
+            (click)="toggle(item.key)"
+          >
+            <span
+              class="welcome-tile-icon"
+              aria-hidden="true"
+              >{{ item.icon }}</span
+            >
+            <span class="welcome-tile-name">{{ item.name }}</span>
+            <i
+              class="pi pi-check welcome-tile-check"
+              aria-hidden="true"
+            ></i>
+          </button>
+        }
+      </div>
+    }
+  }
+
+  <footer class="welcome-footer">
+    <p-button
+      severity="secondary"
+      [text]="true"
+      [label]="'ONBOARDING.SKIP' | translate"
+      [disabled]="submitting() || !canWrite()"
+      (onClick)="skip()"
+    />
+    @if (status() === 'ready') {
+      <p-button
+        iconPos="right"
+        icon="pi pi-arrow-right"
+        [loading]="submitting()"
+        [label]="'ONBOARDING.SUBMIT' | translate: { count: selectedCount() }"
+        [disabled]="submitting() || !canWrite()"
+        (onClick)="submit()"
+      />
+    }
+  </footer>
+</div>

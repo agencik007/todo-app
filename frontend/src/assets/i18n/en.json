@@ -516,6 +516,15 @@
     "UNRECOVERABLE_DETAIL": "Its cached files are out of date.",
     "RELOAD": "Reload"
   },
+  "ONBOARDING": {
+    "TITLE": "Hi! Where do we start?",
+    "SUBTITLE": "Pick the groups you'll use. You can change them later.",
+    "SKIP": "Skip",
+    "SUBMIT": "Let's go ({{count}})",
+    "LOADING": "Loading groups…",
+    "LOAD_ERROR_TITLE": "Couldn't load the groups",
+    "LOAD_ERROR_MESSAGE": "Check your connection, or skip and add groups later."
+  },
   "OFFLINE": {
     "TITLE": "You are offline.",
     "DETAIL": "Some features are unavailable until you reconnect.",

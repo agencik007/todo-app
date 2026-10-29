@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { onboardingGuard, welcomeGuard } from './core/guards/onboarding.guard';
 
 export const routes: Routes = [
   {
@@ -59,7 +60,12 @@ export const routes: Routes = [
   {
     path: 'todos',
     loadComponent: () => import('./features/todos/components/todo-list/todo-list').then((m) => m.TodoListComponent),
-    canActivate: [authGuard],
+    canActivate: [authGuard, onboardingGuard],
+  },
+  {
+    path: 'welcome',
+    loadComponent: () => import('./features/onboarding/components/welcome/welcome').then((m) => m.WelcomeComponent),
+    canActivate: [authGuard, welcomeGuard],
   },
   {
     path: '**',

@@ -516,6 +516,15 @@
     "UNRECOVERABLE_DETAIL": "Jej pliki w pamięci podręcznej są nieaktualne.",
     "RELOAD": "Odśwież"
   },
+  "ONBOARDING": {
+    "TITLE": "Cześć! Od czego zaczniemy?",
+    "SUBTITLE": "Wybierz grupy, których będziesz używać. Później możesz je zmienić.",
+    "SKIP": "Pomiń",
+    "SUBMIT": "Zaczynamy ({{count}})",
+    "LOADING": "Wczytywanie grup…",
+    "LOAD_ERROR_TITLE": "Nie udało się wczytać grup",
+    "LOAD_ERROR_MESSAGE": "Sprawdź połączenie albo pomiń i dodaj grupy później."
+  },
   "OFFLINE": {
     "TITLE": "Jesteś offline.",
     "DETAIL": "Część funkcji jest niedostępna do czasu połączenia.",
