@@ -55,6 +55,16 @@ class Group(GroupBase):
     updated_at: datetime
 
 
+class GroupCatalogItem(CamelBaseModel):
+    """Schema for a starter group catalogue entry, localised for the user."""
+
+    key: str
+    icon: str
+    color: GroupColor
+    name: str
+    preselected: bool
+
+
 # =============================================================================
 # Todo Schemas
 # =============================================================================

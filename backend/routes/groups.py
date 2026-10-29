@@ -9,8 +9,9 @@ from sqlalchemy.orm import Session
 from config.api_messages import ApiMessages, api_error, api_success
 from config.auth import get_current_verified_user
 from config.database import get_db
+from config.group_catalog import GROUP_CATALOG
 from models.group import Group as GroupModel
-from models.schemas import Group, GroupCreate, GroupUpdate
+from models.schemas import Group, GroupCatalogItem, GroupCreate, GroupUpdate
 from models.user import User
 
 router = APIRouter(prefix="/groups", tags=["groups"])
@@ -41,6 +42,31 @@ def get_groups(
         .all()
     )
     return groups
+
+
+@router.get("/catalog", response_model=list[GroupCatalogItem])
+def get_group_catalog(
+    current_user: User = Depends(get_current_verified_user),
+) -> list[GroupCatalogItem]:
+    """
+    Get the starter group catalogue, with names in the user's language.
+
+    Args:
+        current_user: Current authenticated user.
+
+    Returns:
+        List[GroupCatalogItem]: Catalogue entries in display order.
+    """
+    return [
+        GroupCatalogItem(
+            key=entry.key,
+            icon=entry.icon,
+            color=entry.color,
+            name=entry.name(current_user.language),
+            preselected=entry.preselected,
+        )
+        for entry in GROUP_CATALOG
+    ]
 
 
 @router.get("/{groupId}", response_model=Group)
