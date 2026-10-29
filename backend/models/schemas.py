@@ -3,10 +3,12 @@ Pydantic schemas - Request/Response models for API validation.
 """
 
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from pydantic.alias_generators import to_camel
+from pydantic_core import PydanticCustomError
 
 from models.group import GroupColor
 
@@ -53,6 +55,16 @@ class Group(GroupBase):
     user_id: int
     created_at: datetime
     updated_at: datetime
+
+
+class GroupCatalogItem(CamelBaseModel):
+    """Schema for a starter group catalogue entry, localised for the user."""
+
+    key: str
+    icon: str
+    color: GroupColor
+    name: str
+    preselected: bool
 
 
 # =============================================================================
@@ -107,6 +119,36 @@ class Todo(TodoBase):
     group: Group | None = None
 
 
+class GroupSuggestionRequest(CamelBaseModel):
+    """Text of a todo being written, to suggest a group for."""
+
+    title: str = Field(min_length=1, max_length=200)
+    description: str | None = Field(None, max_length=1000)
+
+
+class SuggestedNewGroup(CamelBaseModel):
+    """A catalogue group the user doesn't have yet, named in their language."""
+
+    key: str
+    name: str
+    color: GroupColor
+
+
+class GroupSuggestion(CamelBaseModel):
+    """
+    Suggested group for a new todo.
+
+    Either group_id (one of the user's groups) or new_group (a catalogue group
+    to create) is set, or neither ("no suggestion", confidence "low"). reason is
+    the title of the most similar past todo, or None when the group name matched.
+    """
+
+    group_id: int | None = None
+    new_group: SuggestedNewGroup | None = None
+    confidence: Literal["high", "medium", "low"]
+    reason: str | None = None
+
+
 # =============================================================================
 # User Schemas
 # =============================================================================
@@ -148,9 +190,30 @@ class UserResponse(UserBase):
     is_verified: bool
     avatar_url: str | None = None
     language: str
+    onboarding_completed: bool = False
     message: str | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class OnboardingRequest(CamelBaseModel):
+    """Schema for finishing the first-login onboarding with starter groups."""
+
+    group_keys: list[str] = Field(default_factory=list, max_length=15)
+
+    @field_validator("group_keys")
+    @classmethod
+    def check_known_keys(cls, v: list[str]) -> list[str]:
+        from config.group_catalog import get_catalog_entry
+
+        for key in v:
+            if get_catalog_entry(key) is None:
+                # PydanticCustomError keeps the error context JSON-serializable,
+                # which the 422 handler in main.py relies on.
+                raise PydanticCustomError(
+                    "unknown_group_key", "Unknown group key: {key}", {"key": key}
+                )
+        return v
 
 
 class UserLanguageUpdate(CamelBaseModel):

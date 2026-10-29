@@ -3,6 +3,7 @@ import { waitForEmailLink } from '../fixtures/mailhog';
 import { expect, test } from '../fixtures/test';
 import { GuestNav, LoginPage, RegisterPage, UserMenu } from '../pages/auth.pages';
 import { TodosPage } from '../pages/todos.page';
+import { WelcomePage } from '../pages/welcome.page';
 
 test('a new user registers, verifies the email, logs in and logs out', async ({
   page,
@@ -19,6 +20,9 @@ test('a new user registers, verifies the email, logs in and logs out', async ({
   await expect(page).toHaveURL(/\/login\?verified=success/);
 
   await new LoginPage(page).login(user);
+  // A brand-new account starts with the starter group picker.
+  await expect(page).toHaveURL(/\/welcome/);
+  await new WelcomePage(page).skip.click();
   await expect(page).toHaveURL(/\/todos/);
   await expect(new TodosPage(page).greeting()).toBeVisible();
 

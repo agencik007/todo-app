@@ -9,14 +9,62 @@ from sqlalchemy.orm import Session
 from config.api_messages import ApiMessages, api_error, api_success
 from config.auth import get_current_verified_user
 from config.database import get_db
+from config.group_catalog import GROUP_CATALOG
 from models.group import Group as GroupModel
-from models.schemas import Group, GroupCreate, GroupUpdate
+from models.group import GroupColor
+from models.schemas import Group, GroupCatalogItem, GroupCreate, GroupUpdate
 from models.user import User
+from services.embedder import Embedder, embed_many, embed_one, get_loaded_embedder
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 
 # Maximum number of groups per user
 MAX_GROUPS_PER_USER = 50
+
+
+def create_groups_for_user(
+    db: Session,
+    user: User,
+    entries: list[tuple[str, GroupColor]],
+    embedder: Embedder | None = None,
+) -> list[GroupModel]:
+    """
+    Create groups for a user from (name, color) pairs.
+
+    Skips names the user already has (case-insensitive) and stops at
+    MAX_GROUPS_PER_USER. Does not commit; the caller owns the transaction.
+
+    Args:
+        db: Database session.
+        user: Owner of the new groups.
+        entries: (name, color) pairs to create, in order.
+        embedder: Text embedder; groups get no embedding when it is None.
+
+    Returns:
+        list[GroupModel]: The groups that were actually created.
+    """
+    existing = {
+        name.lower()
+        for (name,) in db.query(GroupModel.name).filter(GroupModel.user_id == user.id)
+    }
+    created: list[GroupModel] = []
+
+    for name, color in entries:
+        if len(existing) >= MAX_GROUPS_PER_USER:
+            break
+        if name.lower() in existing:
+            continue
+        created.append(GroupModel(name=name, color=color, user_id=user.id))
+        existing.add(name.lower())
+
+    # One model call for all the names instead of one per group.
+    vectors = embed_many(embedder, [group.name for group in created])
+    for group, vector in zip(created, vectors, strict=True):
+        group.embedding = vector
+        db.add(group)
+
+    db.flush()
+    return created
 
 
 @router.get("", response_model=list[Group])
@@ -41,6 +89,31 @@ def get_groups(
         .all()
     )
     return groups
+
+
+@router.get("/catalog", response_model=list[GroupCatalogItem])
+def get_group_catalog(
+    current_user: User = Depends(get_current_verified_user),
+) -> list[GroupCatalogItem]:
+    """
+    Get the starter group catalogue, with names in the user's language.
+
+    Args:
+        current_user: Current authenticated user.
+
+    Returns:
+        List[GroupCatalogItem]: Catalogue entries in display order.
+    """
+    return [
+        GroupCatalogItem(
+            key=entry.key,
+            icon=entry.icon,
+            color=entry.color,
+            name=entry.name(current_user.language),
+            preselected=entry.preselected,
+        )
+        for entry in GROUP_CATALOG
+    ]
 
 
 @router.get("/{groupId}", response_model=Group)
@@ -87,6 +160,7 @@ def create_group(
     group: GroupCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
+    embedder: Embedder | None = Depends(get_loaded_embedder),
 ) -> Group:
     """
     Create a new group.
@@ -95,6 +169,7 @@ def create_group(
         group: Group data to create.
         db: Database session.
         current_user: Current authenticated user.
+        embedder: Text embedder, or None when AI suggestions are unavailable.
 
     Returns:
         Group: The created group.
@@ -118,6 +193,7 @@ def create_group(
     # Create new group
     group_data = group.model_dump()
     group_data["user_id"] = current_user.id
+    group_data["embedding"] = embed_one(embedder, group.name)
 
     db_group = GroupModel(**group_data)
     db.add(db_group)
@@ -133,6 +209,7 @@ def update_group(
     group_update: GroupUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
+    embedder: Embedder | None = Depends(get_loaded_embedder),
 ) -> Group:
     """
     Update an existing group.
@@ -142,6 +219,7 @@ def update_group(
         group_update: Updated group data.
         db: Database session.
         current_user: Current authenticated user.
+        embedder: Text embedder, or None when AI suggestions are unavailable.
 
     Returns:
         Group: The updated group.
@@ -169,6 +247,9 @@ def update_group(
     update_data = group_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(group, field, value)
+
+    if "name" in update_data:
+        group.embedding = embed_one(embedder, group.name)
 
     db.commit()
     db.refresh(group)

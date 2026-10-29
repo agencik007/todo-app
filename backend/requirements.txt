@@ -22,5 +22,8 @@ email-validator==2.3.0
 slowapi==0.1.10
 alembic==1.20.1
 
+# Local sentence embeddings (ONNX, no PyTorch); the model is baked into the image
+fastembed==0.9.1
+
 # Test and lint tools live in requirements-dev.txt (not shipped in the
 # production image).

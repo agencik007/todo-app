@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    LargeBinary,
     String,
     UniqueConstraint,
 )
@@ -39,6 +40,8 @@ class Todo(Base):
         Integer, ForeignKey("groups.id", ondelete="SET NULL"), nullable=True, index=True
     )
     client_id = Column(String(36), nullable=True)
+    # float32 text embedding (services/embedder.py); never exposed by the API
+    embedding = Column(LargeBinary, nullable=True)
 
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

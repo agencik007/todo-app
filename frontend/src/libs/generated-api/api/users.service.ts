@@ -19,9 +19,13 @@ import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 // @ts-ignore
 import { HTTPValidationError } from '../model/hTTPValidationError';
 // @ts-ignore
+import { OnboardingRequest } from '../model/onboardingRequest';
+// @ts-ignore
 import { UserDeleteConfirm } from '../model/userDeleteConfirm';
 // @ts-ignore
 import { UserLanguageUpdate } from '../model/userLanguageUpdate';
+// @ts-ignore
+import { UserResponse } from '../model/userResponse';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
@@ -37,6 +41,76 @@ export class UsersService extends BaseService {
 
     constructor(protected httpClient: HttpClient, @Optional() @Inject(BASE_PATH) basePath: string|string[], @Optional() configuration?: Configuration) {
         super(basePath, configuration);
+    }
+
+    /**
+     * Complete Onboarding
+     * Finish the first-login onboarding by creating the chosen starter groups.  An empty list skips the onboarding. Group names use the user\&#39;s language. A sync route on purpose: embedding the names runs in the threadpool, off the event loop.  Args:     onboarding: Keys of the catalogue groups to create.     current_user: Current authenticated user.     db: Database session.     embedder: Text embedder, or None when AI suggestions are unavailable.  Returns:     UserResponse: The user, with onboardingCompleted set.  Raises:     HTTPException: 409 if the onboarding was already completed.
+     * @endpoint post /users/me/onboarding
+     * @param onboardingRequest 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public completeOnboardingUsersMeOnboardingPost(onboardingRequest: OnboardingRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserResponse>;
+    public completeOnboardingUsersMeOnboardingPost(onboardingRequest: OnboardingRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserResponse>>;
+    public completeOnboardingUsersMeOnboardingPost(onboardingRequest: OnboardingRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserResponse>>;
+    public completeOnboardingUsersMeOnboardingPost(onboardingRequest: OnboardingRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (onboardingRequest === null || onboardingRequest === undefined) {
+            throw new Error('Required parameter onboardingRequest was null or undefined when calling completeOnboardingUsersMeOnboardingPost.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (OAuth2PasswordBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('OAuth2PasswordBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/users/me/onboarding`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<UserResponse>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: onboardingRequest,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
     }
 
     /**

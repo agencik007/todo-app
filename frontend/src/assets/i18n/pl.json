@@ -222,6 +222,14 @@
       "FIELD_DESCRIPTION_PLACEHOLDER": "Dodaj opcjonalny opis…",
       "FIELD_GROUP": "Grupa",
       "FIELD_GROUP_HINT": "Opcjonalne – organizuj zadania w grupy",
+      "AI_PICKED": "✨ Wybrane przez AI",
+      "AI_UNDO": "Cofnij",
+      "AI_SUGGESTION": "✨ Sugestia:",
+      "AI_USE": "Użyj",
+      "AI_NEW_GROUP": "✨ Żadna z Twoich grup nie pasuje. Może nowa:",
+      "AI_CREATE_ASSIGN": "Utwórz i przypisz",
+      "AI_NO_THANKS": "Nie, dzięki",
+      "AI_REASON": "Podobne do: {{title}}",
       "CANCEL": "Anuluj",
       "SUBMIT_ADD": "Dodaj zadanie",
       "SUBMIT_SAVE": "Zapisz zmiany",
@@ -336,7 +344,9 @@
     "TODO_INVALID_INDEX": "Nieprawidłowy indeks zadania",
     "HEALTH_DATABASE_UNAVAILABLE": "Baza danych jest niedostępna. Spróbuj ponownie później.",
     "USER_ACCOUNT_DELETED": "Twoje konto zostało usunięte",
-    "USER_INVALID_PASSWORD": "Nieprawidłowe hasło"
+    "USER_INVALID_PASSWORD": "Nieprawidłowe hasło",
+    "USER_ONBOARDING_ALREADY_COMPLETED": "Konfiguracja konta została już zakończona.",
+    "SUGGESTIONS_UNAVAILABLE": "Podpowiedzi są teraz niedostępne."
   },
   "GROUPS": {
     "SIDEBAR": {
@@ -478,7 +488,7 @@
   },
   "PRIVACY": {
     "TITLE": "Polityka prywatności",
-    "UPDATED": "Ostatnia aktualizacja: 28 października 2026",
+    "UPDATED": "Ostatnia aktualizacja: 29 października 2026",
     "BACK": "Wróć",
     "SECTIONS": [
       {
@@ -487,7 +497,7 @@
       },
       {
         "TITLE": "W jakim celu",
-        "BODY": "Dane służą wyłącznie do działania aplikacji: logowania, synchronizacji zadań między urządzeniami i wysyłki wiadomości dotyczących konta (weryfikacja adresu, reset hasła). Nie sprzedajemy danych, nie wyświetlamy reklam i nie profilujemy użytkowników."
+        "BODY": "Dane służą wyłącznie do działania aplikacji: logowania, synchronizacji zadań między urządzeniami i wysyłki wiadomości dotyczących konta (weryfikacja adresu, reset hasła). Nie sprzedajemy danych, nie wyświetlamy reklam i nie profilujemy użytkowników. Treść Twoich zadań jest analizowana na własnym serwerze aplikacji, aby podpowiedzieć grupę dla nowego zadania; nie trafia do podmiotów trzecich."
       },
       {
         "TITLE": "Ciasteczka i pamięć lokalna",
@@ -513,6 +523,15 @@
     "UNRECOVERABLE_SUMMARY": "Aplikacja wymaga odświeżenia",
     "UNRECOVERABLE_DETAIL": "Jej pliki w pamięci podręcznej są nieaktualne.",
     "RELOAD": "Odśwież"
+  },
+  "ONBOARDING": {
+    "TITLE": "Cześć! Od czego zaczniemy?",
+    "SUBTITLE": "Wybierz grupy, których będziesz używać. Później możesz je zmienić.",
+    "SKIP": "Pomiń",
+    "SUBMIT": "Zaczynamy ({{count}})",
+    "LOADING": "Wczytywanie grup…",
+    "LOAD_ERROR_TITLE": "Nie udało się wczytać grup",
+    "LOAD_ERROR_MESSAGE": "Sprawdź połączenie albo pomiń i dodaj grupy później."
   },
   "OFFLINE": {
     "TITLE": "Jesteś offline.",

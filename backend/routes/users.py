@@ -6,6 +6,7 @@ import logging
 import os
 import secrets
 import shutil
+from datetime import UTC, datetime
 from pathlib import Path
 
 import anyio
@@ -23,10 +24,18 @@ from sqlalchemy.orm import Session
 from config.api_messages import ApiMessages, api_error, api_success
 from config.auth import get_current_verified_user
 from config.database import get_db
-from models.schemas import UserDeleteConfirm, UserLanguageUpdate
+from config.group_catalog import get_catalog_entry
+from models.schemas import (
+    OnboardingRequest,
+    UserDeleteConfirm,
+    UserLanguageUpdate,
+    UserResponse,
+)
 from models.user import User
 from routes.auth import _clear_refresh_cookie
+from routes.groups import create_groups_for_user
 from services.auth_service import verify_password
+from services.embedder import Embedder, get_loaded_embedder
 
 router = APIRouter(prefix="/users", tags=["users"])
 logger = logging.getLogger(__name__)
@@ -218,6 +227,51 @@ async def update_language(
     return api_success(
         ApiMessages.USER_LANGUAGE_UPDATED, language=current_user.language
     )
+
+
+@router.post("/me/onboarding", response_model=UserResponse)
+def complete_onboarding(
+    onboarding: OnboardingRequest,
+    current_user: User = Depends(get_current_verified_user),
+    db: Session = Depends(get_db),
+    embedder: Embedder | None = Depends(get_loaded_embedder),
+):
+    """
+    Finish the first-login onboarding by creating the chosen starter groups.
+
+    An empty list skips the onboarding. Group names use the user's language.
+    A sync route on purpose: embedding the names runs in the threadpool, off
+    the event loop.
+
+    Args:
+        onboarding: Keys of the catalogue groups to create.
+        current_user: Current authenticated user.
+        db: Database session.
+        embedder: Text embedder, or None when AI suggestions are unavailable.
+
+    Returns:
+        UserResponse: The user, with onboardingCompleted set.
+
+    Raises:
+        HTTPException: 409 if the onboarding was already completed.
+    """
+    user = db.get(User, current_user.id)
+    if user.onboarding_completed:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=api_error(ApiMessages.USER_ONBOARDING_ALREADY_COMPLETED),
+        )
+
+    entries = []
+    for key in dict.fromkeys(onboarding.group_keys):
+        entry = get_catalog_entry(key)
+        entries.append((entry.name(user.language), entry.color))
+
+    create_groups_for_user(db, user, entries, embedder)
+    user.onboarding_completed_at = datetime.now(UTC)
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 @router.delete("/me")

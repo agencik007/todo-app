@@ -222,6 +222,14 @@
       "FIELD_DESCRIPTION_PLACEHOLDER": "Add optional description…",
       "FIELD_GROUP": "Group",
       "FIELD_GROUP_HINT": "Optional – organize your tasks by group",
+      "AI_PICKED": "✨ Picked by AI",
+      "AI_UNDO": "Undo",
+      "AI_SUGGESTION": "✨ Suggestion:",
+      "AI_USE": "Use",
+      "AI_NEW_GROUP": "✨ None of your groups fit. How about:",
+      "AI_CREATE_ASSIGN": "Create and assign",
+      "AI_NO_THANKS": "No thanks",
+      "AI_REASON": "Similar to: {{title}}",
       "CANCEL": "Cancel",
       "SUBMIT_ADD": "Add task",
       "SUBMIT_SAVE": "Save changes",
@@ -336,7 +344,9 @@
     "TODO_INVALID_INDEX": "Invalid todo index",
     "HEALTH_DATABASE_UNAVAILABLE": "The database is unavailable. Please try again later.",
     "USER_ACCOUNT_DELETED": "Your account has been deleted",
-    "USER_INVALID_PASSWORD": "Incorrect password"
+    "USER_INVALID_PASSWORD": "Incorrect password",
+    "USER_ONBOARDING_ALREADY_COMPLETED": "Onboarding is already completed.",
+    "SUGGESTIONS_UNAVAILABLE": "Suggestions are unavailable right now."
   },
   "GROUPS": {
     "SIDEBAR": {
@@ -478,7 +488,7 @@
   },
   "PRIVACY": {
     "TITLE": "Privacy policy",
-    "UPDATED": "Last updated: 28 October 2026",
+    "UPDATED": "Last updated: 29 October 2026",
     "BACK": "Back",
     "SECTIONS": [
       {
@@ -487,7 +497,7 @@
       },
       {
         "TITLE": "Why we use it",
-        "BODY": "Your data is used only to provide the app: signing you in, syncing your tasks between devices and sending account emails (address verification and password reset). We do not sell your data, show ads or use it for profiling."
+        "BODY": "Your data is used only to provide the app: signing you in, syncing your tasks between devices and sending account emails (address verification and password reset). We do not sell your data, show ads or use it for profiling. The text of your tasks is analysed on the app's own server to suggest a group for a new task; it is not sent to third parties."
       },
       {
         "TITLE": "Cookies and local storage",
@@ -513,6 +523,15 @@
     "UNRECOVERABLE_SUMMARY": "The app needs to reload",
     "UNRECOVERABLE_DETAIL": "Its cached files are out of date.",
     "RELOAD": "Reload"
+  },
+  "ONBOARDING": {
+    "TITLE": "Hi! Where do we start?",
+    "SUBTITLE": "Pick the groups you'll use. You can change them later.",
+    "SKIP": "Skip",
+    "SUBMIT": "Let's go ({{count}})",
+    "LOADING": "Loading groups…",
+    "LOAD_ERROR_TITLE": "Couldn't load the groups",
+    "LOAD_ERROR_MESSAGE": "Check your connection, or skip and add groups later."
   },
   "OFFLINE": {
     "TITLE": "You are offline.",

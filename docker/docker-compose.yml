@@ -44,6 +44,7 @@ services:
       # containers on todo-network reach the API by its service name.
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
+      - AI_SUGGESTIONS_ENABLED=${AI_SUGGESTIONS_ENABLED:-true}
       # ── Email ──────────────────────────────────────────────────────────────
       - EMAIL_FROM=${EMAIL_FROM:-noreply@example.com}
       - USE_MAILHOG=${USE_MAILHOG:-true}

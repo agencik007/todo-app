@@ -30,6 +30,9 @@ class User(Base):
     email_verification_token = Column(String, nullable=True, index=True)
     email_verification_expires_at = Column(DateTime(timezone=True), nullable=True)
 
+    # Set when the user finishes (or skips) the first-login onboarding
+    onboarding_completed_at = Column(DateTime(timezone=True), nullable=True)
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
@@ -42,6 +45,11 @@ class User(Base):
     refresh_tokens = relationship(
         "RefreshToken", back_populates="owner", cascade="all, delete-orphan"
     )
+
+    @property
+    def onboarding_completed(self) -> bool:
+        """Whether the user has already gone through the onboarding."""
+        return self.onboarding_completed_at is not None
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email})>"

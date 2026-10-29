@@ -2,9 +2,12 @@
 Todo routes - CRUD operations for todo items.
 """
 
+import os
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
@@ -13,11 +16,41 @@ from config.api_messages import ApiMessages, api_error, api_success
 from config.auth import get_current_verified_user
 from config.database import get_db
 from models.group import Group as GroupModel
-from models.schemas import Todo, TodoCreate, TodoUpdate
+from models.schemas import (
+    GroupSuggestion,
+    GroupSuggestionRequest,
+    Todo,
+    TodoCreate,
+    TodoUpdate,
+)
 from models.todo import Todo as TodoModel
 from models.user import User
+from services.auth_service import verify_token
+from services.embedder import (
+    Embedder,
+    embed_one,
+    get_embedder,
+    get_loaded_embedder,
+    todo_embedding_text,
+)
+from services.suggestion_service import SuggestionsUnavailableError, suggest_group
 
 router = APIRouter(prefix="/todos", tags=["todos"])
+
+
+def suggestion_rate_limit_key(request: Request) -> str:
+    """Rate-limit per user (id from the Bearer access token), else per IP."""
+    scheme, _, token = request.headers.get("authorization", "").partition(" ")
+    if scheme.lower() == "bearer" and token:
+        payload = verify_token(token, token_type="access")
+        if payload and payload.get("sub"):
+            return f"user:{payload['sub']}"
+    return get_remote_address(request)
+
+
+limiter = Limiter(
+    key_func=suggestion_rate_limit_key, enabled=os.getenv("TESTING") != "1"
+)
 
 
 def validate_group_ownership(db: Session, group_id: int | None, user_id: int) -> None:
@@ -96,6 +129,53 @@ def get_todos(
     return todos
 
 
+@router.post("/suggest-group", response_model=GroupSuggestion)
+@limiter.limit("60/minute")
+def suggest_group_for_todo(
+    request: Request,
+    suggestion_request: GroupSuggestionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_verified_user),
+    embedder: Embedder | None = Depends(get_embedder),
+) -> GroupSuggestion:
+    """
+    Suggest a group for a todo being written, using the local embedding model.
+
+    A sync route on purpose: inference runs in the threadpool, off the event
+    loop.
+
+    Args:
+        request: FastAPI request object (for rate limiting).
+        suggestion_request: Title and description typed so far.
+        db: Database session.
+        current_user: Current authenticated user.
+        embedder: Text embedder, or None when AI suggestions are unavailable.
+
+    Returns:
+        GroupSuggestion: One of the user's groups, a catalogue group to
+        create, or no suggestion.
+
+    Raises:
+        HTTPException: 503 if suggestions are disabled or the model fails.
+    """
+    unavailable = HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail=api_error(ApiMessages.SUGGESTIONS_UNAVAILABLE),
+    )
+    if embedder is None:
+        raise unavailable
+    try:
+        return suggest_group(
+            db,
+            current_user,
+            embedder,
+            suggestion_request.title,
+            suggestion_request.description,
+        )
+    except SuggestionsUnavailableError:
+        raise unavailable from None
+
+
 @router.get("/{todoId}", response_model=Todo)
 def read_todo(
     todoId: int,
@@ -147,6 +227,7 @@ def create_todo(
     response: Response,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
+    embedder: Embedder | None = Depends(get_loaded_embedder),
 ) -> Todo:
     """
     Create a new todo.
@@ -160,6 +241,7 @@ def create_todo(
         response: Used to answer a repeated create with 200.
         db: Database session.
         current_user: Current authenticated user.
+        embedder: Text embedder, or None when AI suggestions are unavailable.
 
     Returns:
         Todo: The created (or previously created) todo item.
@@ -186,6 +268,9 @@ def create_todo(
     )
     max_index = max_index if max_index is not None else -1
     todo_data["index"] = max_index + 1
+    todo_data["embedding"] = embed_one(
+        embedder, todo_embedding_text(todo.title, todo.description)
+    )
 
     db_todo = TodoModel(**todo_data)
     db.add(db_todo)
@@ -214,6 +299,7 @@ def update_todo(
     todo_update: TodoUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
+    embedder: Embedder | None = Depends(get_loaded_embedder),
 ) -> Todo:
     """
     Update an existing todo.
@@ -223,6 +309,7 @@ def update_todo(
         todo_update: Updated todo data.
         db: Database session.
         current_user: Current authenticated user.
+        embedder: Text embedder, or None when AI suggestions are unavailable.
 
     Returns:
         Todo: The updated todo item.
@@ -255,6 +342,11 @@ def update_todo(
 
     for field, value in update_data.items():
         setattr(todo, field, value)
+
+    if "title" in update_data or "description" in update_data:
+        todo.embedding = embed_one(
+            embedder, todo_embedding_text(todo.title, todo.description)
+        )
 
     db.commit()
     db.refresh(todo)

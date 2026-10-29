@@ -143,3 +143,7 @@ CLAUDE.md
 
 # Server-side deploy state (`make deploy`, .github/workflows/deploy.yml)
 /.deploy/
+
+# Superpowers brainstorming mockups and design docs (local only)
+.superpowers/
+docs/superpowers/

@@ -21,6 +21,12 @@ RUN apt-get update && apt-get install -y \
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Bake the embedding model into the image so the app never downloads it at
+# runtime. World-readable: the app runs as the non-root user `app`.
+ENV FASTEMBED_CACHE_DIR=/opt/models
+RUN python -c "from fastembed import TextEmbedding; TextEmbedding('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2', cache_dir='/opt/models')" \
+  && chmod -R a+rX /opt/models
+
 # Create non-root user for security. uploadedFiles/ (user avatars) must exist
 # in the image and belong to that user: docker-compose.yml mounts a named
 # volume there, and a new volume takes its ownership from the image directory.

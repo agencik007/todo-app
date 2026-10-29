@@ -59,6 +59,90 @@
       [ngModel]="todoModel().groupId"
       (ngModelChange)="onGroupChange($event)"
     />
-    <small class="text-color-secondary">{{ 'TODOS.FORM.FIELD_GROUP_HINT' | translate }}</small>
+    @if (suggestion().source === 'ai') {
+      <small
+        class="ai-hint text-color-secondary"
+        [attr.title]="
+          suggestion().reason
+            ? ('TODOS.FORM.AI_REASON' | translate: { title: suggestion().reason })
+            : null
+        "
+        data-testid="ai-group-hint"
+      >
+        <span>{{ 'TODOS.FORM.AI_PICKED' | translate }}</span>
+        <span aria-hidden="true">·</span>
+        <button
+          type="button"
+          class="ai-link"
+          (click)="onUndoSuggestion()"
+        >
+          {{ 'TODOS.FORM.AI_UNDO' | translate }}
+        </button>
+      </small>
+    } @else {
+      <small class="text-color-secondary">{{ 'TODOS.FORM.FIELD_GROUP_HINT' | translate }}</small>
+    }
+
+    @if (chipGroup(); as group) {
+      <div
+        class="ai-chip"
+        [attr.title]="
+          suggestion().reason
+            ? ('TODOS.FORM.AI_REASON' | translate: { title: suggestion().reason })
+            : null
+        "
+        data-testid="ai-group-chip"
+      >
+        <span class="ai-chip-text">{{ 'TODOS.FORM.AI_SUGGESTION' | translate }}</span>
+        <app-badge
+          size="sm"
+          [label]="group.name"
+          [color]="group.color"
+        />
+        <span class="ai-action">
+          <span aria-hidden="true">·</span>
+          <button
+            type="button"
+            class="ai-link"
+            (click)="onUseSuggestion()"
+          >
+            {{ 'TODOS.FORM.AI_USE' | translate }}
+          </button>
+        </span>
+      </div>
+    } @else if (newGroupChip(); as proposal) {
+      <div
+        class="ai-chip ai-chip-new"
+        data-testid="ai-new-group-chip"
+      >
+        <span class="ai-chip-text">{{ 'TODOS.FORM.AI_NEW_GROUP' | translate }}</span>
+        <app-badge
+          size="sm"
+          [label]="proposal.name"
+          [color]="proposal.color"
+        />
+        <span class="ai-action">
+          <span aria-hidden="true">·</span>
+          <button
+            type="button"
+            class="ai-link"
+            [disabled]="creatingGroup()"
+            (click)="onCreateSuggestedGroup()"
+          >
+            {{ 'TODOS.FORM.AI_CREATE_ASSIGN' | translate }}
+          </button>
+        </span>
+        <span class="ai-action">
+          <span aria-hidden="true">·</span>
+          <button
+            type="button"
+            class="ai-link ai-link-muted"
+            (click)="onDismissSuggestion()"
+          >
+            {{ 'TODOS.FORM.AI_NO_THANKS' | translate }}
+          </button>
+        </span>
+      </div>
+    }
   </app-form-field>
 </form>
