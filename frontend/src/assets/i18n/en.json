@@ -337,7 +337,8 @@
     "HEALTH_DATABASE_UNAVAILABLE": "The database is unavailable. Please try again later.",
     "USER_ACCOUNT_DELETED": "Your account has been deleted",
     "USER_INVALID_PASSWORD": "Incorrect password",
-    "USER_ONBOARDING_ALREADY_COMPLETED": "Onboarding is already completed."
+    "USER_ONBOARDING_ALREADY_COMPLETED": "Onboarding is already completed.",
+    "SUGGESTIONS_UNAVAILABLE": "Suggestions are unavailable right now."
   },
   "GROUPS": {
     "SIDEBAR": {

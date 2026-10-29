@@ -337,7 +337,8 @@
     "HEALTH_DATABASE_UNAVAILABLE": "Baza danych jest niedostępna. Spróbuj ponownie później.",
     "USER_ACCOUNT_DELETED": "Twoje konto zostało usunięte",
     "USER_INVALID_PASSWORD": "Nieprawidłowe hasło",
-    "USER_ONBOARDING_ALREADY_COMPLETED": "Konfiguracja konta została już zakończona."
+    "USER_ONBOARDING_ALREADY_COMPLETED": "Konfiguracja konta została już zakończona.",
+    "SUGGESTIONS_UNAVAILABLE": "Podpowiedzi są teraz niedostępne."
   },
   "GROUPS": {
     "SIDEBAR": {

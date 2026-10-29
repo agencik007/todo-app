@@ -3,6 +3,7 @@ Pydantic schemas - Request/Response models for API validation.
 """
 
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
@@ -116,6 +117,36 @@ class Todo(TodoBase):
     created_at: datetime
     updated_at: datetime
     group: Group | None = None
+
+
+class GroupSuggestionRequest(CamelBaseModel):
+    """Text of a todo being written, to suggest a group for."""
+
+    title: str = Field(min_length=1, max_length=200)
+    description: str | None = Field(None, max_length=1000)
+
+
+class SuggestedNewGroup(CamelBaseModel):
+    """A catalogue group the user doesn't have yet, named in their language."""
+
+    key: str
+    name: str
+    color: GroupColor
+
+
+class GroupSuggestion(CamelBaseModel):
+    """
+    Suggested group for a new todo.
+
+    Either group_id (one of the user's groups) or new_group (a catalogue group
+    to create) is set, or neither ("no suggestion", confidence "low"). reason is
+    the title of the most similar past todo, or None when the group name matched.
+    """
+
+    group_id: int | None = None
+    new_group: SuggestedNewGroup | None = None
+    confidence: Literal["high", "medium", "low"]
+    reason: str | None = None
 
 
 # =============================================================================
