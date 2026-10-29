@@ -16,6 +16,7 @@ from models.group import Group as GroupModel
 from models.schemas import Todo, TodoCreate, TodoUpdate
 from models.todo import Todo as TodoModel
 from models.user import User
+from services.embedder import Embedder, embed_one, get_embedder, todo_embedding_text
 
 router = APIRouter(prefix="/todos", tags=["todos"])
 
@@ -147,6 +148,7 @@ def create_todo(
     response: Response,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
+    embedder: Embedder | None = Depends(get_embedder),
 ) -> Todo:
     """
     Create a new todo.
@@ -160,6 +162,7 @@ def create_todo(
         response: Used to answer a repeated create with 200.
         db: Database session.
         current_user: Current authenticated user.
+        embedder: Text embedder, or None when AI suggestions are unavailable.
 
     Returns:
         Todo: The created (or previously created) todo item.
@@ -186,6 +189,9 @@ def create_todo(
     )
     max_index = max_index if max_index is not None else -1
     todo_data["index"] = max_index + 1
+    todo_data["embedding"] = embed_one(
+        embedder, todo_embedding_text(todo.title, todo.description)
+    )
 
     db_todo = TodoModel(**todo_data)
     db.add(db_todo)
@@ -214,6 +220,7 @@ def update_todo(
     todo_update: TodoUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
+    embedder: Embedder | None = Depends(get_embedder),
 ) -> Todo:
     """
     Update an existing todo.
@@ -223,6 +230,7 @@ def update_todo(
         todo_update: Updated todo data.
         db: Database session.
         current_user: Current authenticated user.
+        embedder: Text embedder, or None when AI suggestions are unavailable.
 
     Returns:
         Todo: The updated todo item.
@@ -255,6 +263,11 @@ def update_todo(
 
     for field, value in update_data.items():
         setattr(todo, field, value)
+
+    if "title" in update_data or "description" in update_data:
+        todo.embedding = embed_one(
+            embedder, todo_embedding_text(todo.title, todo.description)
+        )
 
     db.commit()
     db.refresh(todo)

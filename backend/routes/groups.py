@@ -14,6 +14,7 @@ from models.group import Group as GroupModel
 from models.group import GroupColor
 from models.schemas import Group, GroupCatalogItem, GroupCreate, GroupUpdate
 from models.user import User
+from services.embedder import Embedder, embed_one, get_embedder
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 
@@ -22,7 +23,10 @@ MAX_GROUPS_PER_USER = 50
 
 
 def create_groups_for_user(
-    db: Session, user: User, entries: list[tuple[str, GroupColor]]
+    db: Session,
+    user: User,
+    entries: list[tuple[str, GroupColor]],
+    embedder: Embedder | None = None,
 ) -> list[GroupModel]:
     """
     Create groups for a user from (name, color) pairs.
@@ -34,6 +38,7 @@ def create_groups_for_user(
         db: Database session.
         user: Owner of the new groups.
         entries: (name, color) pairs to create, in order.
+        embedder: Text embedder; groups get no embedding when it is None.
 
     Returns:
         list[GroupModel]: The groups that were actually created.
@@ -49,7 +54,12 @@ def create_groups_for_user(
             break
         if name.lower() in existing:
             continue
-        group = GroupModel(name=name, color=color, user_id=user.id)
+        group = GroupModel(
+            name=name,
+            color=color,
+            user_id=user.id,
+            embedding=embed_one(embedder, name),
+        )
         db.add(group)
         created.append(group)
         existing.add(name.lower())
@@ -151,6 +161,7 @@ def create_group(
     group: GroupCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
+    embedder: Embedder | None = Depends(get_embedder),
 ) -> Group:
     """
     Create a new group.
@@ -159,6 +170,7 @@ def create_group(
         group: Group data to create.
         db: Database session.
         current_user: Current authenticated user.
+        embedder: Text embedder, or None when AI suggestions are unavailable.
 
     Returns:
         Group: The created group.
@@ -182,6 +194,7 @@ def create_group(
     # Create new group
     group_data = group.model_dump()
     group_data["user_id"] = current_user.id
+    group_data["embedding"] = embed_one(embedder, group.name)
 
     db_group = GroupModel(**group_data)
     db.add(db_group)
@@ -197,6 +210,7 @@ def update_group(
     group_update: GroupUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_verified_user),
+    embedder: Embedder | None = Depends(get_embedder),
 ) -> Group:
     """
     Update an existing group.
@@ -206,6 +220,7 @@ def update_group(
         group_update: Updated group data.
         db: Database session.
         current_user: Current authenticated user.
+        embedder: Text embedder, or None when AI suggestions are unavailable.
 
     Returns:
         Group: The updated group.
@@ -233,6 +248,9 @@ def update_group(
     update_data = group_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(group, field, value)
+
+    if "name" in update_data:
+        group.embedding = embed_one(embedder, group.name)
 
     db.commit()
     db.refresh(group)

@@ -89,6 +89,20 @@ def bytes_to_vector(b: bytes) -> np.ndarray:
     return np.frombuffer(b, dtype=np.float32).copy()
 
 
+def embed_one(embedder: Embedder | None, text: str) -> bytes | None:
+    """Embed `text` into storable bytes; None if there is no embedder or it fails.
+
+    Failures are logged without the text, which is user content.
+    """
+    if embedder is None:
+        return None
+    try:
+        return vector_to_bytes(embedder.embed([text])[0])
+    except Exception:
+        logger.exception("Could not compute an embedding")
+        return None
+
+
 def todo_embedding_text(title: str, description: str | None) -> str:
     description = (description or "").strip()
     if not description:
