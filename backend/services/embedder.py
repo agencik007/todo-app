@@ -48,6 +48,14 @@ def reset_embedder() -> None:
         _embedder = None
 
 
+def install_embedder(instance: Embedder | None) -> None:
+    """Make `instance` the process-wide embedder without loading a model. For tests."""
+    global _loaded, _embedder
+    with _lock:
+        _embedder = instance
+        _loaded = True
+
+
 def get_embedder() -> Embedder | None:
     """FastAPI dependency: lazy per-process singleton.
 

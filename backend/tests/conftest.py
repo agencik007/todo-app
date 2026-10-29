@@ -15,7 +15,7 @@ from models.group import Group
 from models.todo import Todo
 from models.user import User
 from services.auth_service import hash_password
-from services.embedder import get_embedder
+from services.embedder import get_embedder, install_embedder, reset_embedder
 from tests.fakes import FakeEmbedder
 
 
@@ -124,11 +124,16 @@ def db_cleanup():
 
 @pytest.fixture(scope="function", autouse=True)
 def fake_embedder():
-    """Never load the real model in tests: dependants get the FakeEmbedder."""
+    """Never load the real model in tests.
+
+    Both the dependency and a direct get_embedder() call return the FakeEmbedder.
+    """
     from main import app
 
     app.dependency_overrides[get_embedder] = lambda: FakeEmbedder()
+    install_embedder(FakeEmbedder())
     yield
+    reset_embedder()
     app.dependency_overrides.pop(get_embedder, None)
 
 

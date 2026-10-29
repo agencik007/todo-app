@@ -62,7 +62,14 @@ def test_get_embedder_caches_load_failure(monkeypatch):
     monkeypatch.setenv("AI_SUGGESTIONS_ENABLED", "true")
     monkeypatch.setattr(embedder, "FastEmbedEmbedder", Boom)
     embedder.reset_embedder()
-    assert get_embedder() is None
-    assert get_embedder() is None
-    assert len(calls) == 1
-    embedder.reset_embedder()
+    try:
+        assert get_embedder() is None
+        assert get_embedder() is None
+        assert len(calls) == 1
+    finally:
+        embedder.reset_embedder()
+
+
+def test_get_embedder_returns_fake_in_tests(monkeypatch):
+    monkeypatch.setenv("AI_SUGGESTIONS_ENABLED", "true")
+    assert isinstance(get_embedder(), FakeEmbedder)
