@@ -29,6 +29,10 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
     command: npx ng serve --host 0.0.0.0 --poll 1000
+    # ng serve listens on IPv4 only, while `localhost` in Alpine resolves to
+    # ::1 first, so the base healthcheck gets "connection refused" here.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:4200/"]
     # Dev-only: bind-mount source for hot-reload. Production runs the built
     # SSR image as-is.
     volumes:
