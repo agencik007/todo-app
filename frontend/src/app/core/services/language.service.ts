@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { PrimeNG } from 'primeng/config';
 
 @Injectable({
   providedIn: 'root',
@@ -8,6 +9,7 @@ import { TranslateService } from '@ngx-translate/core';
 export class LanguageService {
   private translate = inject(TranslateService);
   private platformId = inject(PLATFORM_ID);
+  private primeng = inject(PrimeNG);
 
   currentLang = signal<string>('en');
 
@@ -34,7 +36,7 @@ export class LanguageService {
     } else {
       // On server, use english without making HTTP request
       this.translate.setFallbackLang('en');
-      this.translate.use('en').subscribe();
+      this.translate.use('en').subscribe(() => this.applyPrimeNgLocale());
       this.currentLang.set('en');
       return Promise.resolve();
     }
@@ -63,6 +65,7 @@ export class LanguageService {
       this.translate.use(lang).subscribe({
         next: () => {
           this.currentLang.set(lang);
+          this.applyPrimeNgLocale();
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('lang', lang);
             document.documentElement.lang = lang;
@@ -75,5 +78,9 @@ export class LanguageService {
         },
       });
     });
+  }
+
+  private applyPrimeNgLocale(): void {
+    this.primeng.setTranslation(this.translate.instant('PRIMENG'));
   }
 }
