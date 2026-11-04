@@ -448,6 +448,8 @@ export class TodoStore {
                 completed: todo.completed,
                 groupId: todo.groupId,
                 clientId: todo.clientId,
+                dueDate: todo.dueDate,
+                dueTime: todo.dueTime,
               },
               context,
             ),

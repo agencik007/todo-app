@@ -18,5 +18,7 @@ export interface TodoUpdate {
     completed?: boolean | null;
     index?: number | null;
     groupId?: number | null;
+    dueDate?: string | null;
+    dueTime?: string | null;
 }
 
