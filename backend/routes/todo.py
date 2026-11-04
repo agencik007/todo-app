@@ -72,6 +72,29 @@ def validate_due(due_date: date | None, due_time: time | None) -> None:
         )
 
 
+def resolve_due(todo: TodoModel, update_data: dict) -> tuple[date | None, time | None]:
+    """
+    Work out the due date and time a todo ends up with after an update.
+
+    An explicit null due date without a due time in the body clears both.
+
+    Args:
+        todo: The stored todo.
+        update_data: Fields sent in the update (unset fields excluded).
+
+    Returns:
+        tuple: The final (due_date, due_time) pair.
+    """
+    due_date = update_data.get("due_date", todo.due_date)
+    if "due_time" in update_data:
+        due_time = update_data["due_time"]
+    elif due_date is None:
+        due_time = None
+    else:
+        due_time = todo.due_time
+    return due_date, due_time
+
+
 def validate_group_ownership(db: Session, group_id: int | None, user_id: int) -> None:
     """
     Validate that the group belongs to the user.
@@ -360,6 +383,12 @@ def update_todo(
     # Validate group ownership if group_id is being updated
     if "group_id" in update_data:
         validate_group_ownership(db, update_data.get("group_id"), current_user.id)
+
+    # Validate the final due pair before touching the todo
+    if "due_date" in update_data or "due_time" in update_data:
+        due_date, due_time = resolve_due(todo, update_data)
+        validate_due(due_date, due_time)
+        update_data["due_date"], update_data["due_time"] = due_date, due_time
 
     for field, value in update_data.items():
         setattr(todo, field, value)

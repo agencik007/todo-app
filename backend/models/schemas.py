@@ -118,6 +118,10 @@ class TodoUpdate(CamelBaseModel):
     completed: bool | None = None
     index: int | None = None
     group_id: int | None = None
+    due_date: date | None = None
+    due_time: time | None = None
+
+    _normalize_due_time = field_validator("due_time")(normalize_due_time)
 
 
 class Todo(TodoBase):

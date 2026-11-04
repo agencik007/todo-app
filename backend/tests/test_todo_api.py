@@ -457,3 +457,86 @@ class TestTodoDueDate:
 
         assert item["dueDate"] == "2026-11-07"
         assert item["dueTime"] == "14:00:00"
+
+    def _create_dated(self, client: TestClient) -> int:
+        """Create a todo due 2026-11-07 at 14:00 and return its id."""
+        response = client.post(
+            "/todos", json={"title": "A", "dueDate": "2026-11-07", "dueTime": "14:00"}
+        )
+        return response.json()["id"]
+
+    def test_update_sets_due_fields(self, authenticated_client: TestClient):
+        """Test PUT /todos/{id} changes the due date and time."""
+        todo_id = self._create_dated(authenticated_client)
+
+        response = authenticated_client.put(
+            f"/todos/{todo_id}", json={"dueDate": "2026-11-08", "dueTime": "09:00"}
+        )
+
+        assert response.status_code == 200
+        assert response.json()["dueDate"] == "2026-11-08"
+        assert response.json()["dueTime"] == "09:00:00"
+
+    def test_update_without_due_fields_keeps_them(
+        self, authenticated_client: TestClient
+    ):
+        """Test PUT /todos/{id} without due fields leaves them untouched."""
+        todo_id = self._create_dated(authenticated_client)
+
+        response = authenticated_client.put(
+            f"/todos/{todo_id}", json={"title": "Renamed"}
+        )
+
+        assert response.status_code == 200
+        assert response.json()["dueDate"] == "2026-11-07"
+        assert response.json()["dueTime"] == "14:00:00"
+
+    def test_update_clearing_date_clears_time(self, authenticated_client: TestClient):
+        """Test clearing the due date also clears the due time."""
+        todo_id = self._create_dated(authenticated_client)
+
+        response = authenticated_client.put(f"/todos/{todo_id}", json={"dueDate": None})
+
+        assert response.status_code == 200
+        assert response.json()["dueDate"] is None
+        assert response.json()["dueTime"] is None
+
+    def test_update_clearing_time_keeps_date(self, authenticated_client: TestClient):
+        """Test clearing only the due time keeps the due date."""
+        todo_id = self._create_dated(authenticated_client)
+
+        response = authenticated_client.put(f"/todos/{todo_id}", json={"dueTime": None})
+
+        assert response.status_code == 200
+        assert response.json()["dueDate"] == "2026-11-07"
+        assert response.json()["dueTime"] is None
+
+    def test_update_time_on_undated_todo_is_rejected(
+        self, authenticated_client: TestClient
+    ):
+        """Test a due time cannot be set on a todo without a date."""
+        todo_id = authenticated_client.post("/todos", json={"title": "A"}).json()["id"]
+
+        response = authenticated_client.put(
+            f"/todos/{todo_id}", json={"title": "B", "dueTime": "10:00"}
+        )
+
+        assert response.status_code == 422
+        assert response.json()["detail"] == api_error(
+            ApiMessages.TODO_DUE_TIME_WITHOUT_DATE
+        )
+        item = authenticated_client.get("/todos").json()[0]
+        assert item["title"] == "A"
+        assert item["dueTime"] is None
+
+    def test_update_date_null_and_time_set_is_rejected(
+        self, authenticated_client: TestClient
+    ):
+        """Test clearing the date while setting a time is refused."""
+        todo_id = self._create_dated(authenticated_client)
+
+        response = authenticated_client.put(
+            f"/todos/{todo_id}", json={"dueDate": None, "dueTime": "10:00"}
+        )
+
+        assert response.status_code == 422
