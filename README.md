@@ -14,7 +14,7 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Offline mode** - without a connection a signed-in user still sees their last synced tasks and groups (with an offline banner) and can create, edit, complete and delete tasks; the changes are queued in IndexedDB and sent once the API is back (a create carries a `clientId`, so a retry never duplicates it). Groups, reordering and account settings stay online-only. The copy holds one user's data at a time and is deleted on logout
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
-- ✅ **Backend Tests** - 186 unit and integration tests with coverage (min. 80% enforced)
+- ✅ **Backend Tests** - 199 unit and integration tests with coverage (min. 80% enforced)
 - ✅ **Starter groups and local AI group suggestions** - a first-sign-in picker for starter groups and a group suggestion while typing a new task, computed by a small multilingual embedding model that runs inside the backend (no external AI service, no data leaves the server)
 - ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, onboarding, tasks, group suggestions)
 - ✅ **CI/CD** - GitHub Actions runs lint, tests, builds and E2E tests on every pull request and push to `develop`, then deploys `develop` to production
@@ -348,7 +348,7 @@ All `/todos`, `/groups` and `/users` endpoints require an authenticated user wit
 
 ### Backend - Tests (Pytest)
 
-The application has a comprehensive suite of tests (currently **186**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
+The application has a comprehensive suite of tests (currently **199**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
 
 ```bash
 # In Docker (dev stack running)
