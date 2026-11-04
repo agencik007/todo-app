@@ -77,12 +77,25 @@ test.describe('east of UTC', () => {
 
   test('quick picks keep the local day east of UTC', async ({ page, loggedIn }) => {
     void loggedIn;
+    // Pin the clock (timers keep running) to 20:00 UTC of the previous day, when
+    // Auckland (UTC+12/+13) is already on the next calendar day. Without that, a
+    // UTC-based "today" in the app would only differ for part of the real day.
+    // A past instant keeps the server-issued access token valid.
+    const instant = new Date();
+    instant.setUTCDate(instant.getUTCDate() - 1);
+    instant.setUTCHours(20, 0, 0, 0);
+    const aucklandDate = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Pacific/Auckland',
+    }).format(instant);
+    expect(aucklandDate).not.toBe(instant.toISOString().slice(0, 10));
+    await page.clock.install({ time: instant });
+
     const todos = new TodosPage(page);
     await todos.goto();
     await expect(todos.greeting()).toBeVisible();
 
-    await todos.add('Due today', undefined, { date: 'Today' });
-    await todos.add('Due tomorrow', undefined, { date: 'Tomorrow' });
+    await todos.add('Due today', { due: { date: 'Today' } });
+    await todos.add('Due tomorrow', { due: { date: 'Tomorrow' } });
     await expect(todos.dueChip('Due today')).toHaveText('Today');
     await expect(todos.dueChip('Due tomorrow')).toHaveText('Tomorrow');
 

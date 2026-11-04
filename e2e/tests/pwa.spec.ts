@@ -314,7 +314,7 @@ test('a due date set offline is sent once the connection is back', async ({
   await page.reload();
   await expect(offlineBanner).toBeVisible();
 
-  await todos.add('Dated offline', undefined, { date: 'Tomorrow' });
+  await todos.add('Dated offline', { due: { date: 'Tomorrow' } });
   await expect(todos.dueChip('Dated offline')).toHaveText('Tomorrow');
   await expect(offlineBanner).toContainText('Waiting to sync: 1');
 

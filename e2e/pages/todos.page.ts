@@ -31,8 +31,13 @@ export class TodosPage {
 
   async add(
     title: string,
-    description?: string,
-    due?: { date: 'Today' | 'Tomorrow'; time?: 'Morning' | 'Afternoon' | 'Evening' },
+    {
+      description,
+      due,
+    }: {
+      description?: string;
+      due?: { date: 'Today' | 'Tomorrow'; time?: 'Morning' | 'Afternoon' | 'Evening' };
+    } = {},
   ): Promise<void> {
     await this.page.getByRole('button', { name: 'Add task' }).click();
     await this.dialog.getByRole('textbox', { name: /^Title/ }).fill(title);

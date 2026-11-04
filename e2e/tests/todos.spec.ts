@@ -15,7 +15,7 @@ test('a new user starts with an empty list', async ({ page }) => {
 test('creates, edits, completes and deletes a task', async ({ page }) => {
   const todos = new TodosPage(page);
 
-  await todos.add('Buy milk', 'Two litres');
+  await todos.add('Buy milk', { description: 'Two litres' });
   await expect(todos.row('Buy milk')).toContainText('Two litres');
 
   await todos.rename('Buy milk', 'Buy oat milk');
