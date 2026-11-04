@@ -345,6 +345,7 @@
     "USER_LANGUAGE_UPDATED": "Preferencje językowe zostały zaktualizowane",
     "TODO_REORDER_SUCCESS": "Kolejność zadania zaktualizowana pomyślnie",
     "TODO_INVALID_INDEX": "Nieprawidłowy indeks zadania",
+    "TODO_DUE_TIME_WITHOUT_DATE": "Najpierw wybierz datę, potem godzinę.",
     "HEALTH_DATABASE_UNAVAILABLE": "Baza danych jest niedostępna. Spróbuj ponownie później.",
     "USER_ACCOUNT_DELETED": "Twoje konto zostało usunięte",
     "USER_INVALID_PASSWORD": "Nieprawidłowe hasło",

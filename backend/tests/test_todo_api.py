@@ -11,6 +11,7 @@ These tests verify that our REST API works correctly:
 
 from fastapi.testclient import TestClient
 
+from config.api_messages import ApiMessages, api_error
 from models.group import Group
 from models.todo import Todo
 
@@ -378,3 +379,81 @@ class TestTodoAPI:
         assert response.status_code == 200
         data = response.json()
         assert data["groupId"] == second_group["id"]
+
+
+class TestTodoDueDate:
+    """Test the optional due date and time of a todo."""
+
+    def test_create_with_date_and_time(self, authenticated_client: TestClient):
+        """Test POST /todos stores a due date and time."""
+        response = authenticated_client.post(
+            "/todos", json={"title": "A", "dueDate": "2026-11-07", "dueTime": "14:00"}
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["dueDate"] == "2026-11-07"
+        assert data["dueTime"] == "14:00:00"
+
+    def test_create_with_date_only(self, authenticated_client: TestClient):
+        """Test POST /todos accepts a due date without a time."""
+        response = authenticated_client.post(
+            "/todos", json={"title": "A", "dueDate": "2026-11-07"}
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["dueDate"] == "2026-11-07"
+        assert data["dueTime"] is None
+
+    def test_create_without_due_fields(self, authenticated_client: TestClient):
+        """Test POST /todos leaves the due fields empty by default."""
+        response = authenticated_client.post("/todos", json={"title": "A"})
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["dueDate"] is None
+        assert data["dueTime"] is None
+
+    def test_create_time_without_date_is_rejected(
+        self, authenticated_client: TestClient
+    ):
+        """Test POST /todos rejects a due time without a due date."""
+        response = authenticated_client.post(
+            "/todos", json={"title": "A", "dueTime": "14:00"}
+        )
+
+        assert response.status_code == 422
+        assert response.json()["detail"] == api_error(
+            ApiMessages.TODO_DUE_TIME_WITHOUT_DATE
+        )
+
+    def test_due_time_seconds_are_dropped(self, authenticated_client: TestClient):
+        """Test the due time is stored with minute precision."""
+        response = authenticated_client.post(
+            "/todos",
+            json={"title": "A", "dueDate": "2026-11-07", "dueTime": "14:00:59.5"},
+        )
+
+        assert response.status_code == 201
+        assert response.json()["dueTime"] == "14:00:00"
+
+    def test_due_time_with_offset_is_rejected(self, authenticated_client: TestClient):
+        """Test a due time carrying a UTC offset is refused."""
+        response = authenticated_client.post(
+            "/todos",
+            json={"title": "A", "dueDate": "2026-11-07", "dueTime": "14:00+02:00"},
+        )
+
+        assert response.status_code == 422
+
+    def test_get_returns_due_fields(self, authenticated_client: TestClient):
+        """Test GET /todos returns the stored due date and time."""
+        authenticated_client.post(
+            "/todos", json={"title": "A", "dueDate": "2026-11-07", "dueTime": "14:00"}
+        )
+
+        item = authenticated_client.get("/todos").json()[0]
+
+        assert item["dueDate"] == "2026-11-07"
+        assert item["dueTime"] == "14:00:00"

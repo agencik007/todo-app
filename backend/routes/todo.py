@@ -3,6 +3,7 @@ Todo routes - CRUD operations for todo items.
 """
 
 import os
+from datetime import date, time
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -51,6 +52,24 @@ def suggestion_rate_limit_key(request: Request) -> str:
 limiter = Limiter(
     key_func=suggestion_rate_limit_key, enabled=os.getenv("TESTING") != "1"
 )
+
+
+def validate_due(due_date: date | None, due_time: time | None) -> None:
+    """
+    Validate that a due time comes with a due date.
+
+    Args:
+        due_date: Due date of the todo, if any.
+        due_time: Due time of the todo, if any.
+
+    Raises:
+        HTTPException: 422 if a time is set without a date.
+    """
+    if due_time is not None and due_date is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=api_error(ApiMessages.TODO_DUE_TIME_WITHOUT_DATE),
+        )
 
 
 def validate_group_ownership(db: Session, group_id: int | None, user_id: int) -> None:
@@ -252,6 +271,8 @@ def create_todo(
             response.status_code = status.HTTP_200_OK
             existing.owner_email = current_user.email
             return existing
+
+    validate_due(todo.due_date, todo.due_time)
 
     todo_data = todo.model_dump()
     todo_data["user_id"] = current_user.id
