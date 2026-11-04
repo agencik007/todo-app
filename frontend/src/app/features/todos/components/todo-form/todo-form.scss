@@ -1,3 +1,13 @@
+// Height-only resize: the width follows the dialog, and the height stays between
+// the initial four rows and a cap that keeps the dialog's buttons on screen.
+.description-input {
+  display: block;
+  max-width: 100%;
+  min-height: 6.5rem;
+  max-height: min(20rem, 40vh);
+  resize: vertical;
+}
+
 .ai-hint {
   display: inline-flex;
   flex-wrap: wrap;
