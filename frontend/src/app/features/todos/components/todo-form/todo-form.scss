@@ -81,4 +81,10 @@
   margin-top: var(--app-space-1);
   color: var(--p-text-muted-color);
   font-size: var(--app-text-sm);
+
+  .link-button {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 24px;
+  }
 }

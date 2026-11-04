@@ -214,6 +214,7 @@
       "DUE_YESTERDAY": "Wczoraj",
       "DUE_TOOLTIP": "Termin: {{date}}",
       "DUE_OVERDUE": "Po terminie",
+      "DUE_SR_PREFIX": "Termin:",
       "TOOLTIP_EDIT": "Edytuj zadanie",
       "TOOLTIP_DELETE": "Usuń zadanie",
       "EMPTY_TITLE": "Brak zadań",
@@ -605,6 +606,21 @@
     "dateFormat": "dd.mm.yy",
     "today": "Dziś",
     "clear": "Wyczyść",
-    "weekHeader": "Tydz."
+    "weekHeader": "Tydz.",
+    "chooseDate": "Wybierz datę",
+    "chooseMonth": "Wybierz miesiąc",
+    "chooseYear": "Wybierz rok",
+    "prevMonth": "Poprzedni miesiąc",
+    "nextMonth": "Następny miesiąc",
+    "prevYear": "Poprzedni rok",
+    "nextYear": "Następny rok",
+    "prevDecade": "Poprzednia dekada",
+    "nextDecade": "Następna dekada",
+    "prevHour": "Poprzednia godzina",
+    "nextHour": "Następna godzina",
+    "prevMinute": "Poprzednia minuta",
+    "nextMinute": "Następna minuta",
+    "am": "AM",
+    "pm": "PM"
   }
 }

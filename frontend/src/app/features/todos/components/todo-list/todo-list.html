@@ -311,6 +311,7 @@
                   <div class="row-line-2">
                     @if (todo.dueDate) {
                       @let dueState = dueStatusOf(todo);
+                      <span class="sr-only">{{ 'TODOS.LIST.DUE_SR_PREFIX' | translate }}</span>
                       <span
                         tooltipPosition="top"
                         class="meta-item due-chip"
