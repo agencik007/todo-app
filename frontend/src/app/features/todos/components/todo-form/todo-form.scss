@@ -72,3 +72,13 @@
   gap: var(--app-space-2);
   white-space: nowrap;
 }
+
+.quick-picks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-1) var(--app-space-2);
+  margin-top: var(--app-space-1);
+  color: var(--p-text-muted-color);
+  font-size: var(--app-text-sm);
+}

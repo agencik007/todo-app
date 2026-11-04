@@ -43,6 +43,77 @@
   </app-form-field>
 
   <app-form-field
+    inputId="dueDate"
+    [label]="'TODOS.FORM.FIELD_DUE_DATE' | translate"
+  >
+    <!-- ngModel, not [formField]: same reason as the group select -->
+    <p-datepicker
+      styleClass="w-full"
+      inputId="dueDate"
+      class="w-full"
+      appendTo="body"
+      [showIcon]="true"
+      [showClear]="true"
+      [placeholder]="'TODOS.FORM.FIELD_DUE_DATE_PLACEHOLDER' | translate"
+      [ngModelOptions]="{ standalone: true }"
+      [ngModel]="dueDateValue()"
+      (ngModelChange)="onDueDateChange($event)"
+    />
+    <div class="quick-picks">
+      <button
+        type="button"
+        class="ai-link"
+        (click)="onQuickDate(0)"
+      >
+        {{ 'TODOS.FORM.DUE_TODAY' | translate }}
+      </button>
+      <span aria-hidden="true">·</span>
+      <button
+        type="button"
+        class="ai-link"
+        (click)="onQuickDate(1)"
+      >
+        {{ 'TODOS.FORM.DUE_TOMORROW' | translate }}
+      </button>
+    </div>
+  </app-form-field>
+
+  @if (todoModel().dueDate) {
+    <app-form-field
+      inputId="dueTime"
+      [label]="'TODOS.FORM.FIELD_DUE_TIME' | translate"
+    >
+      <p-datepicker
+        styleClass="w-full"
+        inputId="dueTime"
+        class="w-full"
+        appendTo="body"
+        [timeOnly]="true"
+        [showClear]="true"
+        [placeholder]="'TODOS.FORM.FIELD_DUE_TIME_PLACEHOLDER' | translate"
+        [ngModelOptions]="{ standalone: true }"
+        [ngModel]="dueTimeValue()"
+        [hourFormat]="hourFormat()"
+        (ngModelChange)="onDueTimeChange($event)"
+      />
+      <div class="quick-picks">
+        @for (preset of timePresets; track preset.key; let last = $last) {
+          <button
+            type="button"
+            class="ai-link"
+            (click)="onQuickTime(preset.time)"
+          >
+            {{ 'TODOS.FORM.DUE_' + preset.key | translate }}
+          </button>
+          @if (!last) {
+            <span aria-hidden="true">·</span>
+          }
+        }
+      </div>
+    </app-form-field>
+  }
+
+  <app-form-field
     inputId="group"
     [label]="'TODOS.FORM.FIELD_GROUP' | translate"
   >

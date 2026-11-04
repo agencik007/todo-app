@@ -309,6 +309,29 @@
 
                   <!-- Line 2: meta -->
                   <div class="row-line-2">
+                    @if (todo.dueDate) {
+                      <span
+                        tooltipPosition="top"
+                        class="meta-item due-chip"
+                        [pTooltip]="dueTooltip(todo)"
+                        [class.is-today]="dueStatusOf(todo) === 'today'"
+                        [class.is-overdue]="dueStatusOf(todo) === 'overdue'"
+                        data-testid="due-chip"
+                      >
+                        <i
+                          class="pi"
+                          aria-hidden="true"
+                          [class.pi-exclamation-circle]="dueStatusOf(todo) === 'overdue'"
+                          [class.pi-calendar]="dueStatusOf(todo) !== 'overdue'"
+                        ></i>
+                        {{ dueLabel(todo) }}
+                      </span>
+                      <span
+                        class="meta-sep"
+                        aria-hidden="true"
+                        >·</span
+                      >
+                    }
                     @if (getGroupById(todo.groupId); as todoGroup) {
                       <app-badge
                         tooltipPosition="top"

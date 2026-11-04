@@ -608,6 +608,16 @@
     }
   }
 
+  .due-chip {
+    &.is-today {
+      color: var(--p-primary-color);
+    }
+
+    &.is-overdue {
+      color: var(--p-red-500);
+    }
+  }
+
   .meta-sep {
     opacity: 0.45;
     user-select: none;
