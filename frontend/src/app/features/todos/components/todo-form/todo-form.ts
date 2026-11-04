@@ -50,6 +50,10 @@ import {
 } from '../../utils/due-date.util';
 import { reduceSuggestion, SuggestionState } from './group-suggestion';
 
+/** Keeps the picker's value stable while other fields change. */
+const sameInstant = (a: Date | null, b: Date | null): boolean =>
+  a?.getTime() === b?.getTime();
+
 interface TodoFormModel {
   title: string;
   description: string;
@@ -107,7 +111,6 @@ export class TodoFormComponent {
   static readonly SUGGEST_DEBOUNCE_MS = 500;
   static readonly TITLE_MAX = 200;
   static readonly DESCRIPTION_MAX = 1000;
-  readonly timePresets = DUE_TIME_PRESETS;
 
   todo = input<Todo | null>(null);
 
@@ -131,15 +134,21 @@ export class TodoFormComponent {
   readonly groups = this.#groupStore.groups;
 
   /** The pickers hold `Date`s; the model keeps the API's strings. */
-  readonly dueDateValue = computed(() => {
-    const iso = this.todoModel().dueDate;
-    return iso ? fromIsoDate(iso) : null;
-  });
+  readonly dueDateValue = computed(
+    () => {
+      const iso = this.todoModel().dueDate;
+      return iso ? fromIsoDate(iso) : null;
+    },
+    { equal: sameInstant },
+  );
 
-  readonly dueTimeValue = computed(() => {
-    const time = this.todoModel().dueTime;
-    return time ? fromTimeString(time) : null;
-  });
+  readonly dueTimeValue = computed(
+    () => {
+      const time = this.todoModel().dueTime;
+      return time ? fromTimeString(time) : null;
+    },
+    { equal: sameInstant },
+  );
 
   readonly hourFormat = computed(() =>
     this.#language.currentLang() === 'pl' ? '24' : '12',
@@ -151,6 +160,8 @@ export class TodoFormComponent {
   });
 
   readonly creatingGroup = signal(false);
+
+  readonly timePresets = DUE_TIME_PRESETS;
 
   /** Bumped by reset(), so the same text typed again asks again. */
   readonly #formRun = signal(0);

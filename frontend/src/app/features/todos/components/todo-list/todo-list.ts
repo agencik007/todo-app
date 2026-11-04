@@ -12,6 +12,7 @@ import {
   ElementRef,
   HostListener,
   inject,
+  NgZone,
   OnInit,
   PLATFORM_ID,
   signal,
@@ -91,6 +92,7 @@ export class TodoListComponent implements OnInit {
   readonly #route = inject(ActivatedRoute);
   readonly #router = inject(Router);
   readonly #document = inject(DOCUMENT);
+  readonly #ngZone = inject(NgZone);
   readonly #destroyRef = inject(DestroyRef);
   readonly #language = inject(LanguageService);
 
@@ -204,11 +206,16 @@ export class TodoListComponent implements OnInit {
   }
 
   #keepNowFresh(): void {
-    const refresh = (): void => this.now.set(new Date());
+    // Outside the zone: a pending interval would keep ApplicationRef unstable
+    // and delay the service worker registration (registerWhenStable).
+    const refresh = (): void =>
+      this.#ngZone.run(() => this.now.set(new Date()));
     const onVisibility = (): void => {
       if (this.#document.visibilityState === 'visible') refresh();
     };
-    const interval = setInterval(refresh, 60_000);
+    const interval = this.#ngZone.runOutsideAngular(() =>
+      setInterval(refresh, 60_000),
+    );
     this.#document.addEventListener('visibilitychange', onVisibility);
     this.#destroyRef.onDestroy(() => {
       clearInterval(interval);

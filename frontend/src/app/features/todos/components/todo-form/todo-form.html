@@ -62,7 +62,7 @@
     <div class="quick-picks">
       <button
         type="button"
-        class="ai-link"
+        class="link-button"
         (click)="onQuickDate(0)"
       >
         {{ 'TODOS.FORM.DUE_TODAY' | translate }}
@@ -70,7 +70,7 @@
       <span aria-hidden="true">·</span>
       <button
         type="button"
-        class="ai-link"
+        class="link-button"
         (click)="onQuickDate(1)"
       >
         {{ 'TODOS.FORM.DUE_TOMORROW' | translate }}
@@ -100,7 +100,7 @@
         @for (preset of timePresets; track preset.key; let last = $last) {
           <button
             type="button"
-            class="ai-link"
+            class="link-button"
             (click)="onQuickTime(preset.time)"
           >
             {{ 'TODOS.FORM.DUE_' + preset.key | translate }}
@@ -145,7 +145,7 @@
         <span aria-hidden="true">·</span>
         <button
           type="button"
-          class="ai-link"
+          class="link-button"
           (click)="onUndoSuggestion()"
         >
           {{ 'TODOS.FORM.AI_UNDO' | translate }}
@@ -175,7 +175,7 @@
           <span aria-hidden="true">·</span>
           <button
             type="button"
-            class="ai-link"
+            class="link-button"
             (click)="onUseSuggestion()"
           >
             {{ 'TODOS.FORM.AI_USE' | translate }}
@@ -197,7 +197,7 @@
           <span aria-hidden="true">·</span>
           <button
             type="button"
-            class="ai-link"
+            class="link-button"
             [disabled]="creatingGroup()"
             (click)="onCreateSuggestedGroup()"
           >
@@ -208,7 +208,7 @@
           <span aria-hidden="true">·</span>
           <button
             type="button"
-            class="ai-link ai-link-muted"
+            class="link-button link-button-muted"
             (click)="onDismissSuggestion()"
           >
             {{ 'TODOS.FORM.AI_NO_THANKS' | translate }}

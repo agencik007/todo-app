@@ -36,7 +36,7 @@
   overflow-wrap: anywhere;
 }
 
-.ai-link {
+.link-button {
   padding: 0;
   border: none;
   border-radius: var(--app-radius-sm);
@@ -61,7 +61,7 @@
   }
 }
 
-.ai-link-muted {
+.link-button-muted {
   color: var(--p-text-muted-color);
 }
 

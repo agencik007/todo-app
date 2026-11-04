@@ -305,8 +305,6 @@ test('a due date set offline is sent once the connection is back', async ({
   void loggedIn;
   const todos = new TodosPage(page);
   const offlineBanner = page.getByRole('status').filter({ hasText: 'You are offline.' });
-  // The offline banner would cover the submit button of the taller dialog.
-  await page.setViewportSize({ width: 1280, height: 1000 });
   await todos.goto();
   await todos.add('Seed task');
   await expect.poll(() => offlineTodoTitles(page)).toEqual(['Seed task']);
@@ -321,6 +319,8 @@ test('a due date set offline is sent once the connection is back', async ({
   await expect(offlineBanner).toContainText('Waiting to sync: 1');
 
   await goOnline(context);
+  // The reconnect refresh can hit the service worker while it still aborts; the event retries.
+  await page.evaluate(() => window.dispatchEvent(new Event('online')));
   await expect(offlineBanner).toBeHidden();
   await expect(page.getByRole('img', { name: 'Waiting to sync' })).toHaveCount(0);
 
@@ -352,6 +352,7 @@ test('a create whose response was lost is retried without a duplicate', async ({
   await expect(todos.row('Sent twice').getByRole('img', { name: 'Waiting to sync' })).toBeVisible();
 
   // Online again: the retry carries the same clientId and gets the same todo.
+  // The reconnect refresh can hit the service worker while it still aborts; the event retries.
   await page.evaluate(() => window.dispatchEvent(new Event('online')));
   await expect(todos.row('Sent twice').getByRole('img', { name: 'Waiting to sync' })).toBeHidden();
   await page.reload();
