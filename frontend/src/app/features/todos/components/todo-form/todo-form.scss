@@ -36,7 +36,7 @@
   overflow-wrap: anywhere;
 }
 
-.ai-link {
+.link-button {
   padding: 0;
   border: none;
   border-radius: var(--app-radius-sm);
@@ -61,7 +61,7 @@
   }
 }
 
-.ai-link-muted {
+.link-button-muted {
   color: var(--p-text-muted-color);
 }
 
@@ -71,4 +71,20 @@
   align-items: center;
   gap: var(--app-space-2);
   white-space: nowrap;
+}
+
+.quick-picks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-1) var(--app-space-2);
+  margin-top: var(--app-space-1);
+  color: var(--p-text-muted-color);
+  font-size: var(--app-text-sm);
+
+  .link-button {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 24px;
+  }
 }

@@ -608,6 +608,32 @@
     }
   }
 
+  .due-chip {
+    &.is-today {
+      color: var(--p-primary-color);
+    }
+
+    &.is-overdue {
+      color: var(--p-red-700);
+
+      :host-context(.dark) & {
+        color: var(--p-red-400);
+      }
+    }
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .meta-sep {
     opacity: 0.45;
     user-select: none;

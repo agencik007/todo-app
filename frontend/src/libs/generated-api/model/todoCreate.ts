@@ -21,6 +21,8 @@ export interface TodoCreate {
     completed?: boolean;
     index?: number;
     groupId?: number | null;
+    dueDate?: string | null;
+    dueTime?: string | null;
     clientId?: string | null;
 }
 

@@ -5,11 +5,13 @@ Todo model - SQLAlchemy model for todos table.
 from sqlalchemy import (
     Boolean,
     Column,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
     LargeBinary,
     String,
+    Time,
     UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
@@ -40,6 +42,10 @@ class Todo(Base):
         Integer, ForeignKey("groups.id", ondelete="SET NULL"), nullable=True, index=True
     )
     client_id = Column(String(36), nullable=True)
+    # Optional deadline; a time is only allowed together with a date. Both are
+    # wall-clock values (no timezone), shown as the user entered them.
+    due_date = Column(Date, nullable=True)
+    due_time = Column(Time, nullable=True)
     # float32 text embedding (services/embedder.py); never exposed by the API
     embedding = Column(LargeBinary, nullable=True)
 

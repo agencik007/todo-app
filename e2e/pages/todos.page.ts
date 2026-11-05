@@ -29,11 +29,26 @@ export class TodosPage {
     return this.page.getByRole('button', { name: new RegExp(`^${name} \\d+$`) });
   }
 
-  async add(title: string, description?: string): Promise<void> {
+  async add(
+    title: string,
+    {
+      description,
+      due,
+    }: {
+      description?: string;
+      due?: { date: 'Today' | 'Tomorrow'; time?: 'Morning' | 'Afternoon' | 'Evening' };
+    } = {},
+  ): Promise<void> {
     await this.page.getByRole('button', { name: 'Add task' }).click();
     await this.dialog.getByRole('textbox', { name: /^Title/ }).fill(title);
     if (description) {
       await this.dialog.getByRole('textbox', { name: 'Description' }).fill(description);
+    }
+    if (due) {
+      await this.dialog.getByRole('button', { name: due.date, exact: true }).click();
+      if (due.time) {
+        await this.dialog.getByRole('button', { name: due.time, exact: true }).click();
+      }
     }
     await this.dialog.getByRole('button', { name: 'Add task' }).click();
     await expect(this.dialog).toBeHidden();
@@ -44,6 +59,40 @@ export class TodosPage {
     await row.hover();
     await row.getByRole('button', { name: 'Edit task' }).click();
     await this.dialog.getByRole('textbox', { name: /^Title/ }).fill(newTitle);
+    await this.dialog.getByRole('button', { name: 'Save changes' }).click();
+    await expect(this.dialog).toBeHidden();
+  }
+
+  /** The due date chip in a task's row. */
+  dueChip(title: string): Locator {
+    return this.row(title).getByTestId('due-chip');
+  }
+
+  /**
+   * Opens the edit dialog and sets the due date with the quick buttons, or
+   * clears it with the date field's clear icon (it has no accessible name, so
+   * it is found by PrimeNG's class inside the due date field), then saves.
+   */
+  async setDue(
+    title: string,
+    due: { date: 'Today' | 'Tomorrow' | null; time?: 'Morning' | 'Afternoon' | 'Evening' },
+  ): Promise<void> {
+    const row = this.row(title);
+    await row.hover();
+    await row.getByRole('button', { name: 'Edit task' }).click();
+    if (due.date === null) {
+      await this.dialog
+        .locator('p-datepicker')
+        .filter({ has: this.page.locator('#dueDate') })
+        .locator('.p-datepicker-clear-icon')
+        .click();
+      await expect(this.dialog.getByRole('button', { name: 'Morning' })).toBeHidden();
+    } else {
+      await this.dialog.getByRole('button', { name: due.date, exact: true }).click();
+      if (due.time) {
+        await this.dialog.getByRole('button', { name: due.time, exact: true }).click();
+      }
+    }
     await this.dialog.getByRole('button', { name: 'Save changes' }).click();
     await expect(this.dialog).toBeHidden();
   }

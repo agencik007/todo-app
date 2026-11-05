@@ -84,3 +84,17 @@ export async function groupsViaApi(request: APIRequestContext, user: TestUser): 
   expect(response.ok(), await response.text()).toBeTruthy();
   return response.json();
 }
+
+/** Creates a todo through the API (optionally dated and/or completed) for `user`. */
+export async function createTodoViaApi(
+  request: APIRequestContext,
+  user: TestUser,
+  body: { title: string; dueDate?: string; dueTime?: string; completed?: boolean },
+): Promise<void> {
+  const token = await loginViaApi(request, user);
+  const response = await request.post(`${urls.api}/todos`, {
+    data: body,
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  expect(response.ok(), await response.text()).toBeTruthy();
+}

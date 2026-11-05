@@ -143,6 +143,7 @@ Use `ngx-translate`. Add translations to `src/assets/i18n/en.json` and `pl.json`
 
 Every user-facing text (templates, `aria-label`s, tooltips, toasts) comes from the i18n files — never hardcode it, not even as a fallback. Delete keys once nothing uses them.
 
+- **PrimeNG strings:** PrimeNG's own component strings (datepicker month and day names, first day of week, date format, picker aria labels) live under the top-level `PRIMENG` block in both i18n files, use PrimeNG's own key names (camelCase) and are applied by `LanguageService` on every language switch. Add every key to both languages.
 - **Voice:** address the user directly (EN "you", PL "ty"); never speak as "we" ("życzymy", "wysłaliśmy"). Friendly but plain, no slang ("usera" → "użytkownika").
 - **Terms** — one word per concept, in both languages:
 

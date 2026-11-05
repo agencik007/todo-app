@@ -22,6 +22,8 @@ export interface Todo {
     completed?: boolean;
     index?: number;
     groupId?: number | null;
+    dueDate?: string | null;
+    dueTime?: string | null;
     id: number;
     userId: number;
     clientId?: string | null;

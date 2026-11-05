@@ -7,10 +7,12 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   computed,
+  DestroyRef,
   effect,
   ElementRef,
   HostListener,
   inject,
+  NgZone,
   OnInit,
   PLATFORM_ID,
   signal,
@@ -32,6 +34,7 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+import { LanguageService } from '../../../../core/services/language.service';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
@@ -43,6 +46,12 @@ import {
 import { SidebarComponent } from '../../../groups/components/sidebar/sidebar.component';
 import { GroupStore } from '../../../groups/store/group.store';
 import { TodoStore } from '../../store/todo.store';
+import {
+  DueStatus,
+  dueStatus,
+  formatDueFull,
+  formatDueLabel,
+} from '../../utils/due-date.util';
 import { TodoFormComponent } from '../todo-form/todo-form';
 
 type StatusFilter = 'all' | 'pending' | 'completed';
@@ -83,6 +92,9 @@ export class TodoListComponent implements OnInit {
   readonly #route = inject(ActivatedRoute);
   readonly #router = inject(Router);
   readonly #document = inject(DOCUMENT);
+  readonly #ngZone = inject(NgZone);
+  readonly #destroyRef = inject(DestroyRef);
+  readonly #language = inject(LanguageService);
 
   readonly addButton = viewChild<ElementRef<HTMLButtonElement>>('addButton');
   readonly scrollContainer =
@@ -94,6 +106,8 @@ export class TodoListComponent implements OnInit {
   readonly statusFilter = signal<StatusFilter>('all');
   readonly searchQuery = signal('');
   readonly focusedIndex = signal(-1);
+  /** Drives the due chips; refreshed every minute and when the tab shows again. */
+  readonly now = signal(new Date());
 
   readonly todos = computed(() => {
     const status = this.statusFilter();
@@ -187,7 +201,26 @@ export class TodoListComponent implements OnInit {
     this.isBrowser.set(isPlatformBrowser(this.#platformId));
     if (this.isBrowser()) {
       this.#openFormFromShortcut();
+      this.#keepNowFresh();
     }
+  }
+
+  #keepNowFresh(): void {
+    // Outside the zone: a pending interval would keep ApplicationRef unstable
+    // and delay the service worker registration (registerWhenStable).
+    const refresh = (): void =>
+      this.#ngZone.run(() => this.now.set(new Date()));
+    const onVisibility = (): void => {
+      if (this.#document.visibilityState === 'visible') refresh();
+    };
+    const interval = this.#ngZone.runOutsideAngular(() =>
+      setInterval(refresh, 60_000),
+    );
+    this.#document.addEventListener('visibilitychange', onVisibility);
+    this.#destroyRef.onDestroy(() => {
+      clearInterval(interval);
+      this.#document.removeEventListener('visibilitychange', onVisibility);
+    });
   }
 
   /**
@@ -391,6 +424,37 @@ export class TodoListComponent implements OnInit {
 
   formatDate(dateString: string | undefined): string {
     return formatDateTime(dateString);
+  }
+
+  dueStatusOf(todo: Todo): DueStatus | null {
+    return dueStatus(todo, this.now());
+  }
+
+  dueLabel(todo: Todo): string {
+    return formatDueLabel(
+      todo.dueDate!,
+      todo.dueTime,
+      this.now(),
+      this.#language.currentLang(),
+      {
+        today: this.#translate.instant('TODOS.LIST.DUE_TODAY'),
+        tomorrow: this.#translate.instant('TODOS.LIST.DUE_TOMORROW'),
+        yesterday: this.#translate.instant('TODOS.LIST.DUE_YESTERDAY'),
+      },
+    );
+  }
+
+  dueTooltip(todo: Todo): string {
+    const text = this.#translate.instant('TODOS.LIST.DUE_TOOLTIP', {
+      date: formatDueFull(
+        todo.dueDate!,
+        todo.dueTime,
+        this.#language.currentLang(),
+      ),
+    });
+    return this.dueStatusOf(todo) === 'overdue'
+      ? `${text} – ${this.#translate.instant('TODOS.LIST.DUE_OVERDUE')}`
+      : text;
   }
 
   getRelativeTime(dateString: string | undefined): string {

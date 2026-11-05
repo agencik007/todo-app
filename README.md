@@ -14,9 +14,9 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Offline mode** - without a connection a signed-in user still sees their last synced tasks and groups (with an offline banner) and can create, edit, complete and delete tasks; the changes are queued in IndexedDB and sent once the API is back (a create carries a `clientId`, so a retry never duplicates it). Groups, reordering and account settings stay online-only. The copy holds one user's data at a time and is deleted on logout
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
-- ✅ **Backend Tests** - 186 unit and integration tests with coverage (min. 80% enforced)
+- ✅ **Backend Tests** - 199 unit and integration tests with coverage (min. 80% enforced)
 - ✅ **Starter groups and local AI group suggestions** - a first-sign-in picker for starter groups and a group suggestion while typing a new task, computed by a small multilingual embedding model that runs inside the backend (no external AI service, no data leaves the server)
-- ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, onboarding, tasks, group suggestions)
+- ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, onboarding, tasks, due dates, group suggestions)
 - ✅ **CI/CD** - GitHub Actions runs lint, tests, builds and E2E tests on every pull request and push to `develop`, then deploys `develop` to production
 - ✅ **Simple Local Setup** - One `make dev` starts everything; tests run against their own `<db>_test` database
 
@@ -105,6 +105,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 ### Features
 
 - ✅ Create, edit, complete and delete tasks; drag & drop reordering
+- ✅ Optional due date and time for tasks (date picker with quick picks), shown as a chip on the list and highlighted when overdue
 - ✅ Groups for organizing tasks
 - ✅ First-sign-in onboarding (`/welcome`): pick starter groups from a catalogue (English and Polish names, depending on the account language) or skip
 - ✅ Group suggestions while creating a task: a local multilingual embedding model compares the title and description with your groups (and the tasks already in them) and suggests a group, or a catalogue group to create. Nothing is sent to a third party; see [AI group suggestions](#ai-group-suggestions)
@@ -348,7 +349,7 @@ All `/todos`, `/groups` and `/users` endpoints require an authenticated user wit
 
 ### Backend - Tests (Pytest)
 
-The application has a comprehensive suite of tests (currently **186**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
+The application has a comprehensive suite of tests (currently **199**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
 
 ```bash
 # In Docker (dev stack running)
@@ -384,7 +385,7 @@ make lint-frontend        # in Docker
 
 ### End-to-End Tests (Playwright)
 
-`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, the first-sign-in starter group picker (`/welcome`), creating, editing, completing, filtering and deleting tasks, the AI group suggestions in the task form (the real local embedding model; the medium-confidence and unavailable cases are mocked), the weather widget, its forecast dialog and choosing a city with or without location access (the third-party weather APIs are mocked), and a smoke test that fails on any Content-Security-Policy violation. A separate Playwright project, `pwa`, runs `tests/pwa.spec.ts` with service workers allowed: the manifest with its icons, shortcut and screenshots, the iOS launch screens, the "New task" shortcut opening the form, the app icon badge, `no-cache` on the service worker files, the app shell loading offline (in both languages), the Install app item, a signed-in user changing tasks offline (kept across a reload) and the changes reaching the server once back online, a create whose response was lost being retried without a duplicate, logout deleting the offline copy, and weather requests skipping the service worker; every other test blocks service workers so it always hits the network.
+`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, the first-sign-in starter group picker (`/welcome`), creating, editing, completing, filtering and deleting tasks, due dates (the date and time quick picks, clearing the date, the overdue state and a check that the quick picks keep the local day in a time zone east of UTC), the AI group suggestions in the task form (the real local embedding model; the medium-confidence and unavailable cases are mocked), the weather widget, its forecast dialog and choosing a city with or without location access (the third-party weather APIs are mocked), and a smoke test that fails on any Content-Security-Policy violation. A separate Playwright project, `pwa`, runs `tests/pwa.spec.ts` with service workers allowed: the manifest with its icons, shortcut and screenshots, the iOS launch screens, the "New task" shortcut opening the form, the app icon badge, `no-cache` on the service worker files, the app shell loading offline (in both languages), the Install app item, a signed-in user changing tasks offline (kept across a reload) and the changes reaching the server once back online (including a due date set offline), a create whose response was lost being retried without a duplicate, logout deleting the offline copy, and weather requests skipping the service worker; every other test blocks service workers so it always hits the network.
 
 They run against a separate, throwaway stack defined in `docker/docker-compose.e2e.yml`: production images (SSR frontend), a PostgreSQL database on tmpfs, MailHog, and rate limiting disabled (`TESTING=1`). Each test registers its own user, so tests are independent and run in parallel. `TESTING=1` also skips the backend's startup model warm-up, so the global setup (`e2e/fixtures/global-setup.ts`) loads the embedding model in every backend worker before the tests start.
 
@@ -879,7 +880,7 @@ The application uses a centralized messaging structure between backend and front
     - Always return appropriate HTTP status codes (200, 201, 400, 401, 403, 404).
 
 2.  **Frontend (Toasts)**: `notificationInterceptor` automatically catches these codes and displays toasts.
-3.  **Translations**: A map from codes to text content (PL/EN) sits in `frontend/src/assets/i18n/`.
+3.  **Translations**: A map from codes to text content (PL/EN) sits in `frontend/src/assets/i18n/`. The same files also carry a top-level `PRIMENG` block with PrimeNG's own strings (month and day names, first day of week, date format, date picker aria labels), which `LanguageService` applies on every language switch.
 
 ## 🎨 Design System
 

@@ -297,6 +297,37 @@ test('tasks changed offline are kept and sent once the connection is back', asyn
   await expect(todos.row('Rename me')).toBeHidden();
 });
 
+test('a due date set offline is sent once the connection is back', async ({
+  page,
+  context,
+  loggedIn,
+}) => {
+  void loggedIn;
+  const todos = new TodosPage(page);
+  const offlineBanner = page.getByRole('status').filter({ hasText: 'You are offline.' });
+  await todos.goto();
+  await todos.add('Seed task');
+  await expect.poll(() => offlineTodoTitles(page)).toEqual(['Seed task']);
+  await installServiceWorker(page);
+
+  await goOffline(context);
+  await page.reload();
+  await expect(offlineBanner).toBeVisible();
+
+  await todos.add('Dated offline', { due: { date: 'Tomorrow' } });
+  await expect(todos.dueChip('Dated offline')).toHaveText('Tomorrow');
+  await expect(offlineBanner).toContainText('Waiting to sync: 1');
+
+  await goOnline(context);
+  // The reconnect refresh can hit the service worker while it still aborts; the event retries.
+  await page.evaluate(() => window.dispatchEvent(new Event('online')));
+  await expect(offlineBanner).toBeHidden();
+  await expect(page.getByRole('img', { name: 'Waiting to sync' })).toHaveCount(0);
+
+  await page.reload();
+  await expect(todos.dueChip('Dated offline')).toHaveText('Tomorrow');
+});
+
 test('a create whose response was lost is retried without a duplicate', async ({
   page,
   context,
@@ -321,6 +352,7 @@ test('a create whose response was lost is retried without a duplicate', async ({
   await expect(todos.row('Sent twice').getByRole('img', { name: 'Waiting to sync' })).toBeVisible();
 
   // Online again: the retry carries the same clientId and gets the same todo.
+  // The reconnect refresh can hit the service worker while it still aborts; the event retries.
   await page.evaluate(() => window.dispatchEvent(new Event('online')));
   await expect(todos.row('Sent twice').getByRole('img', { name: 'Waiting to sync' })).toBeHidden();
   await page.reload();

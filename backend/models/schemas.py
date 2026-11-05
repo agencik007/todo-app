@@ -2,7 +2,7 @@
 Pydantic schemas - Request/Response models for API validation.
 """
 
-from datetime import datetime
+from datetime import date, datetime, time
 from typing import Literal
 from uuid import UUID
 
@@ -80,6 +80,19 @@ class TodoBase(CamelBaseModel):
     completed: bool = False
     index: int = 0
     group_id: int | None = None
+    due_date: date | None = None
+    due_time: time | None = None
+
+
+def normalize_due_time(v: time | None) -> time | None:
+    """Keep a due time at minute precision and refuse a UTC offset."""
+    if v is None:
+        return None
+    if v.tzinfo is not None:
+        raise PydanticCustomError(
+            "due_time_offset", "Due time must not carry a UTC offset"
+        )
+    return v.replace(second=0, microsecond=0)
 
 
 class TodoCreate(TodoBase):
@@ -94,6 +107,8 @@ class TodoCreate(TodoBase):
         ),
     )
 
+    _normalize_due_time = field_validator("due_time")(normalize_due_time)
+
 
 class TodoUpdate(CamelBaseModel):
     """Schema for updating an existing todo (all fields optional)."""
@@ -103,6 +118,10 @@ class TodoUpdate(CamelBaseModel):
     completed: bool | None = None
     index: int | None = None
     group_id: int | None = None
+    due_date: date | None = None
+    due_time: time | None = None
+
+    _normalize_due_time = field_validator("due_time")(normalize_due_time)
 
 
 class Todo(TodoBase):
