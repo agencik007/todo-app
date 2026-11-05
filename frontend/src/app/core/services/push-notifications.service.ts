@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { HttpContext } from '@angular/common/http';
+import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import {
   computed,
   DestroyRef,
@@ -104,7 +104,9 @@ export class PushNotificationsService {
       this.#configLoaded.set(true);
     } catch {
       // Unreachable: the toggle stays disabled until the next refresh.
+      return;
     }
+    await this.#verifySubscription();
   }
 
   /** Asks for permission, subscribes this browser and registers it. */
@@ -187,6 +189,16 @@ export class PushNotificationsService {
           context: new HttpContext().set(SILENT_NOTIFICATIONS, true),
         }),
       );
+      if (result.sent === 0) {
+        // The server has no device to push to: the toggle's "on" is stale.
+        this.#messageService.add({
+          severity: 'warn',
+          summary: this.#translate.instant('MESSAGES.ERROR'),
+          detail: this.#translate.instant('SETTINGS.NOTIFICATIONS.TEST_NONE'),
+          life: 5000,
+        });
+        return;
+      }
       this.#messageService.add({
         severity: 'success',
         summary: this.#translate.instant('MESSAGES.SUCCESS'),
@@ -235,6 +247,49 @@ export class PushNotificationsService {
     this.#swPush.unsubscribe().catch(() => undefined);
   }
 
+  /**
+   * "On" must mean the server knows this browser: re-registers the browser's
+   * subscription (idempotent) so a row the server pruned, or never stored, is
+   * restored. A subscription the server refuses, or one made with an old
+   * VAPID key, is dropped locally and the toggle shows off.
+   */
+  async #verifySubscription(): Promise<void> {
+    const subscription = this.#subscription();
+    const config = this.#config();
+    if (!subscription || !config?.enabled || !config.publicKey) {
+      return;
+    }
+
+    if (!matchesServerKey(subscription, config.publicKey)) {
+      await this.#swPush.unsubscribe().catch(() => undefined);
+      return;
+    }
+
+    const { keys } = subscription.toJSON();
+    try {
+      await firstValueFrom(
+        this.#push.subscribePushSubscriptionsPost(
+          {
+            endpoint: subscription.endpoint,
+            keys: {
+              p256Dh: keys?.['p256dh'] ?? '',
+              auth: keys?.['auth'] ?? '',
+            },
+            userAgent: navigator.userAgent,
+          },
+          'body',
+          false,
+          { context: new HttpContext().set(SILENT_NOTIFICATIONS, true) },
+        ),
+      );
+    } catch (error) {
+      if (isRefusal(error)) {
+        await this.#swPush.unsubscribe().catch(() => undefined);
+      }
+      // Anything else (server down, session over): try again next time.
+    }
+  }
+
   async #forget(subscription: PushSubscription): Promise<void> {
     try {
       await firstValueFrom(
@@ -249,6 +304,34 @@ export class PushNotificationsService {
       // Logout goes on.
     }
   }
+}
+
+/** The server answered that it will not take this subscription (not a 401). */
+function isRefusal(error: unknown): boolean {
+  return (
+    error instanceof HttpErrorResponse &&
+    error.status >= 400 &&
+    error.status < 500 &&
+    ![401, 408, 429].includes(error.status)
+  );
+}
+
+/** Whether the subscription was made with the server's current VAPID key. */
+function matchesServerKey(
+  subscription: PushSubscription,
+  publicKey: string,
+): boolean {
+  const key = subscription.options?.applicationServerKey;
+  if (!key) {
+    return true; // Not exposed by this browser: assume it matches.
+  }
+  const actual = new Uint8Array(key);
+  const padded = publicKey.replace(/-/g, '+').replace(/_/g, '/');
+  const binary = atob(padded + '='.repeat((4 - (padded.length % 4)) % 4));
+  return (
+    actual.length === binary.length &&
+    actual.every((byte, index) => byte === binary.charCodeAt(index))
+  );
 }
 
 function hasNotificationApi(): boolean {

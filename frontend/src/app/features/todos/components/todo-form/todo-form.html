@@ -125,6 +125,7 @@
         inputId="reminder"
         class="w-full"
         appendTo="body"
+        [pt]="showReminderHint() ? { label: { 'aria-describedby': 'reminder-hint' } } : undefined"
         [placeholder]="'TODOS.FORM.REMINDER_NONE' | translate"
         [options]="reminderOptions()"
         [ngModelOptions]="{ standalone: true }"
@@ -133,6 +134,7 @@
       />
       @if (showReminderHint()) {
         <small
+          id="reminder-hint"
           class="text-color-secondary"
           data-testid="reminder-hint"
         >
