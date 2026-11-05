@@ -77,6 +77,7 @@ export class AuthStore {
   );
 
   #isResuming = false;
+  #isLoggingOut = false;
 
   constructor() {
     // Back online during an offline session: restore the real session.
@@ -246,6 +247,7 @@ export class AuthStore {
     this.#isOfflineSession.set(false);
     this._error.set(null);
     this._userAvatar.set(null);
+    this.#pushNotifications.dropLocal();
     void this.#offlineData.clear({ keepPendingChanges });
     void this.indexedDbService.deleteAvatar();
   }
@@ -258,13 +260,21 @@ export class AuthStore {
    * 3. Clears the in-memory access token and all UI signals
    */
   async logout(): Promise<void> {
-    await this.#pushNotifications.forgetDevice();
+    if (this.#isLoggingOut) {
+      return;
+    }
+    this.#isLoggingOut = true;
+    try {
+      await this.#pushNotifications.forgetDevice();
 
-    // Notify backend first — it will clear the HttpOnly refresh cookie.
-    this.authService.logout().subscribe();
+      // Notify backend first — it will clear the HttpOnly refresh cookie.
+      this.authService.logout().subscribe();
 
-    // Clear signals and in-memory token immediately for UI responsiveness.
-    this.clearUser();
+      // Clear signals and in-memory token immediately for UI responsiveness.
+      this.clearUser();
+    } finally {
+      this.#isLoggingOut = false;
+    }
   }
 
   // ==================== Avatar Management ====================

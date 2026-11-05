@@ -17,7 +17,8 @@ import { MessageService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
 import { SILENT_NOTIFICATIONS } from '../interceptors/notification.interceptor';
 
-export type PushState = 'unsupported' | 'unavailable' | 'denied' | 'off' | 'on';
+export type PushState =
+  'loading' | 'unsupported' | 'unavailable' | 'denied' | 'off' | 'on';
 
 /**
  * Browser (Web Push) notifications for task reminders on this device.
@@ -33,8 +34,6 @@ export type PushState = 'unsupported' | 'unavailable' | 'denied' | 'off' | 'on';
   providedIn: 'root',
 })
 export class PushNotificationsService {
-  static readonly FORGET_TIMEOUT_MS = 3000;
-
   readonly #destroyRef = inject(DestroyRef);
   readonly #messageService = inject(MessageService);
   readonly #platformId = inject(PLATFORM_ID);
@@ -42,8 +41,11 @@ export class PushNotificationsService {
   readonly #swPush = inject(SwPush);
   readonly #translate = inject(TranslateService);
 
+  static readonly FORGET_TIMEOUT_MS = 3000;
+
   readonly #isBrowser = isPlatformBrowser(this.#platformId);
   readonly #config = signal<PushConfig | null>(null);
+  readonly #configLoaded = signal(false);
   readonly #permission = signal<NotificationPermission>('default');
   readonly #subscription = signal<PushSubscription | null>(null);
   readonly #busy = signal(false);
@@ -54,6 +56,9 @@ export class PushNotificationsService {
   readonly state = computed<PushState>(() => {
     if (!this.#isBrowser || !this.#swPush.isEnabled || !hasNotificationApi()) {
       return 'unsupported';
+    }
+    if (!this.#configLoaded()) {
+      return 'loading';
     }
     if (!this.#config()?.enabled) {
       return 'unavailable';
@@ -73,6 +78,13 @@ export class PushNotificationsService {
         .pipe(takeUntilDestroyed(this.#destroyRef))
         .subscribe((subscription) => this.#subscription.set(subscription));
     }
+    if (this.#isBrowser && hasNotificationApi()) {
+      // The user may block or allow notifications in the browser meanwhile.
+      this.#permission.set(Notification.permission);
+      document.addEventListener('visibilitychange', () =>
+        this.#permission.set(Notification.permission),
+      );
+    }
   }
 
   /** Loads the server config and the browser's permission; call when online. */
@@ -89,8 +101,9 @@ export class PushNotificationsService {
           }),
         ),
       );
+      this.#configLoaded.set(true);
     } catch {
-      // Unreachable: the toggle stays unavailable until the next refresh.
+      // Unreachable: the toggle stays disabled until the next refresh.
     }
   }
 
@@ -98,6 +111,14 @@ export class PushNotificationsService {
   async enable(): Promise<boolean> {
     const publicKey = this.#config()?.publicKey;
     if (this.state() !== 'off' || !publicKey) {
+      return false;
+    }
+
+    // Called first, still inside the click: Safari / iOS only show the prompt
+    // while the user's tap is the current activation.
+    const permission = await Notification.requestPermission();
+    this.#permission.set(permission);
+    if (permission !== 'granted') {
       return false;
     }
 
@@ -109,10 +130,8 @@ export class PushNotificationsService {
           serverPublicKey: publicKey,
         });
       } catch {
-        // Permission refused or the push service is unreachable.
+        // The push service is unreachable.
         return false;
-      } finally {
-        this.#permission.set(Notification.permission);
       }
 
       const { keys } = subscription.toJSON();
@@ -182,12 +201,13 @@ export class PushNotificationsService {
   }
 
   /**
-   * Logout: removes this browser's subscription so the next user of the
-   * device gets no reminders. Never blocks logout for more than 3 seconds and
-   * swallows every error.
+   * Logout: tells the server to forget this browser (best effort, needs the
+   * access token, at most 3 seconds), then always drops the subscription so
+   * the next user of the device gets no reminders. Never throws.
    */
   async forgetDevice(): Promise<void> {
-    if (!this.#isBrowser || !this.#swPush.isEnabled) {
+    const subscription = this.#subscription();
+    if (!this.#isBrowser || !this.#swPush.isEnabled || !subscription) {
       return;
     }
 
@@ -196,18 +216,27 @@ export class PushNotificationsService {
       timer = setTimeout(resolve, PushNotificationsService.FORGET_TIMEOUT_MS);
     });
     try {
-      await Promise.race([this.#forget(), timeout]);
+      await Promise.race([this.#forget(subscription), timeout]);
     } finally {
       clearTimeout(timer);
+      this.dropLocal();
     }
   }
 
-  async #forget(): Promise<void> {
+  /**
+   * A session ended (expired, account deleted, logout): drop this browser's
+   * subscription without the server. The push service then answers 410 and
+   * the server prunes the row, so the next user doesn't get these reminders.
+   */
+  dropLocal(): void {
+    if (!this.#isBrowser || !this.#swPush.isEnabled) {
+      return;
+    }
+    this.#swPush.unsubscribe().catch(() => undefined);
+  }
+
+  async #forget(subscription: PushSubscription): Promise<void> {
     try {
-      const subscription = await firstValueFrom(this.#swPush.subscription);
-      if (!subscription) {
-        return;
-      }
       await firstValueFrom(
         this.#push.unsubscribePushSubscriptionsDelete(
           { endpoint: subscription.endpoint },
@@ -216,7 +245,6 @@ export class PushNotificationsService {
           { context: new HttpContext().set(SILENT_NOTIFICATIONS, true) },
         ),
       );
-      await this.#swPush.unsubscribe();
     } catch {
       // Logout goes on.
     }
