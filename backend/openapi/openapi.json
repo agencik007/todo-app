@@ -808,6 +808,100 @@
         ]
       }
     },
+    "/users/me/timezone": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update Timezone",
+        "description": "Update the user's timezone (an IANA name such as Europe/Warsaw).\n\nArgs:\n    timezone_update: New timezone name.\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    UserResponse: The updated user.\n\nRaises:\n    HTTPException: 422 if the name is not a known timezone.",
+        "operationId": "update_timezone_users_me_timezone_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimezoneUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/users/me/email-reminders": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update Email Reminders",
+        "description": "Switch email reminders on or off for the current user.\n\nArgs:\n    reminders_update: Whether email reminders are enabled.\n    current_user: Current authenticated user.\n    db: Database session.\n\nReturns:\n    UserResponse: The updated user.",
+        "operationId": "update_email_reminders_users_me_email_reminders_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailRemindersUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/users/me/onboarding": {
       "post": {
         "tags": [
@@ -1159,6 +1253,152 @@
         }
       }
     },
+    "/push/config": {
+      "get": {
+        "tags": [
+          "push"
+        ],
+        "summary": "Get Push Config",
+        "description": "Whether push is available and the public key to subscribe with.",
+        "operationId": "get_push_config_push_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushConfig"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/push/subscriptions": {
+      "post": {
+        "tags": [
+          "push"
+        ],
+        "summary": "Subscribe",
+        "description": "Store a browser's push subscription for the current user.\n\nAn endpoint that already exists (e.g. a shared device last used by someone\nelse) is moved to the current user and its keys are updated (200).",
+        "operationId": "subscribe_push_subscriptions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushSubscriptionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "push"
+        ],
+        "summary": "Unsubscribe",
+        "description": "Remove one of the current user's subscriptions (idempotent).",
+        "operationId": "unsubscribe_push_subscriptions_delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushSubscriptionDelete"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/push/test": {
+      "post": {
+        "tags": [
+          "push"
+        ],
+        "summary": "Send Test Push",
+        "description": "Send a test notification to every browser the current user subscribed.",
+        "operationId": "send_test_push_push_test_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/": {
       "get": {
         "tags": [
@@ -1215,6 +1455,20 @@
           "file"
         ],
         "title": "Body_upload_avatar_users_me_avatar_post"
+      },
+      "EmailRemindersUpdate": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "title": "EmailRemindersUpdate",
+        "description": "Schema for switching email reminders on or off."
       },
       "Group": {
         "properties": {
@@ -1503,6 +1757,129 @@
         "title": "PasswordResetRequest",
         "description": "Schema for password reset request (forgot password)."
       },
+      "PushConfig": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "publicKey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publickey"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "title": "PushConfig",
+        "description": "Whether web push is set up and the public VAPID key browsers subscribe with."
+      },
+      "PushKeys": {
+        "properties": {
+          "p256Dh": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "P256Dh"
+          },
+          "auth": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Auth"
+          }
+        },
+        "type": "object",
+        "required": [
+          "p256Dh",
+          "auth"
+        ],
+        "title": "PushKeys",
+        "description": "Encryption keys of a browser's push subscription."
+      },
+      "PushResult": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "sent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "PushResult",
+        "description": "Result of a push endpoint: an API message code, plus a count for a test."
+      },
+      "PushSubscriptionCreate": {
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Endpoint"
+          },
+          "keys": {
+            "$ref": "#/components/schemas/PushKeys"
+          },
+          "userAgent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Useragent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "endpoint",
+          "keys"
+        ],
+        "title": "PushSubscriptionCreate",
+        "description": "A browser's push subscription (https endpoints only)."
+      },
+      "PushSubscriptionDelete": {
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Endpoint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "endpoint"
+        ],
+        "title": "PushSubscriptionDelete",
+        "description": "Identifies the subscription to remove."
+      },
       "SuggestedNewGroup": {
         "properties": {
           "key": {
@@ -1525,6 +1902,21 @@
         ],
         "title": "SuggestedNewGroup",
         "description": "A catalogue group the user doesn't have yet, named in their language."
+      },
+      "TimezoneUpdate": {
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Timezone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timezone"
+        ],
+        "title": "TimezoneUpdate",
+        "description": "Schema for updating the user's IANA timezone."
       },
       "Todo": {
         "properties": {
@@ -1590,6 +1982,17 @@
             ],
             "title": "Duetime"
           },
+          "reminderOffsetMinutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reminderoffsetminutes"
+          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -1620,6 +2023,18 @@
               }
             ],
             "title": "Owneremail"
+          },
+          "remindAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remindat"
           },
           "createdAt": {
             "type": "string",
@@ -1716,6 +2131,17 @@
               }
             ],
             "title": "Duetime"
+          },
+          "reminderOffsetMinutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reminderoffsetminutes"
           },
           "clientId": {
             "anyOf": [
@@ -1818,6 +2244,17 @@
               }
             ],
             "title": "Duetime"
+          },
+          "reminderOffsetMinutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reminderoffsetminutes"
           }
         },
         "type": "object",
@@ -1946,6 +2383,22 @@
           "language": {
             "type": "string",
             "title": "Language"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "emailReminders": {
+            "type": "boolean",
+            "title": "Emailreminders",
+            "default": false
           },
           "onboardingCompleted": {
             "type": "boolean",
