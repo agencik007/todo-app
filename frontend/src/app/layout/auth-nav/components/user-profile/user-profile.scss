@@ -142,7 +142,7 @@
 .dropdown-menu {
   position: absolute;
   top: calc(100% + 12px);
-  right: 0;
+  right: 1rem;
   width: 340px;
   overflow: hidden;
   z-index: 2002; // above the offline banner (2001)
