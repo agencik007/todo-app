@@ -82,9 +82,6 @@ export class UserProfileComponent {
   readonly pushState = this.#pushNotifications.state;
   readonly pushBusy = this.#pushNotifications.busy;
   readonly showIosInstallHint = this.#pushNotifications.showIosInstallHint;
-  /** The switches show the wanted value while the request is in flight. */
-  readonly #pushPending = signal<boolean | null>(null);
-  readonly #emailPending = signal<boolean | null>(null);
   readonly pushChecked = computed(
     () => this.#pushPending() ?? this.pushState() === 'on',
   );
@@ -97,6 +94,10 @@ export class UserProfileComponent {
       !this.canWrite() ||
       this.pushBusy(),
   );
+
+  /** The switches show the wanted value while the request is in flight. */
+  readonly #pushPending = signal<boolean | null>(null);
+  readonly #emailPending = signal<boolean | null>(null);
 
   readonly sanitizedAvatarUrl = computed(() => {
     const url = this.userAvatar();

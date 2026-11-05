@@ -220,9 +220,11 @@
                 >
                   {{ 'SETTINGS.NOTIFICATIONS.PUSH' | translate }}
                 </span>
-                <span class="setting-hint">
-                  {{ 'SETTINGS.NOTIFICATIONS.PUSH_HINT.' + pushState() | translate }}
-                </span>
+                @if (pushState() !== 'loading') {
+                  <span class="setting-hint">
+                    {{ 'SETTINGS.NOTIFICATIONS.PUSH_HINT.' + pushState() | translate }}
+                  </span>
+                }
                 @if (pushState() === 'unsupported' && showIosInstallHint()) {
                   <span class="setting-hint">
                     {{ 'SETTINGS.NOTIFICATIONS.IOS_INSTALL' | translate }}
