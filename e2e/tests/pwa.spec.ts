@@ -402,7 +402,8 @@ for (const viewport of [
     await expect(option).toBeVisible();
     expect(await isOnTop(page, option)).toBe(true);
     await page.keyboard.press('Escape');
-    await page.keyboard.press('Escape');
+    await expect(option).toBeHidden();
+    await todos.dialog.getByRole('button', { name: 'Close' }).click();
     await expect(todos.dialog).toBeHidden();
 
     // The delete confirmation.
