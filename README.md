@@ -14,7 +14,8 @@ Todo App built with **Angular 21** + **Python FastAPI** + **PostgreSQL** using *
 - ✅ **Offline mode** - without a connection a signed-in user still sees their last synced tasks and groups (with an offline banner) and can create, edit, complete and delete tasks; the changes are queued in IndexedDB and sent once the API is back (a create carries a `clientId`, so a retry never duplicates it). Groups, reordering and account settings stay online-only. The copy holds one user's data at a time and is deleted on logout
 - ✅ **Docker** - Full containerization, multi-stage builds, production ready
 - ✅ **Database** - PostgreSQL with persistent storage
-- ✅ **Backend Tests** - 203 unit and integration tests with coverage (min. 80% enforced)
+- ✅ **Backend Tests** - 298 unit and integration tests with coverage (min. 80% enforced)
+- ✅ **Task reminders** - an optional reminder on a task with a due date, delivered as a Web Push notification (even when the app is closed) and, if the user wants, by email; sent by a separate `reminder-worker` container (see [Task reminders](#task-reminders))
 - ✅ **Starter groups and local AI group suggestions** - a first-sign-in picker for starter groups and a group suggestion while typing a new task, computed by a small multilingual embedding model that runs inside the backend (no external AI service, no data leaves the server)
 - ✅ **E2E Tests** - Playwright tests of the full stack (register, verify email via MailHog, login, onboarding, tasks, due dates, group suggestions)
 - ✅ **CI/CD** - GitHub Actions runs lint, tests, builds and E2E tests on every pull request and push to `develop`, then deploys `develop` to production
@@ -106,6 +107,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 
 - ✅ Create, edit, complete and delete tasks; drag & drop reordering
 - ✅ Optional due date and time for tasks (date picker with quick picks), shown as a chip on the list and highlighted when overdue
+- ✅ Optional reminder for a task with a due date (at the time, 15 minutes, 1 hour or 1 day before; for a date without a time, at 9:00 that day or the day before): browser notifications (Web Push) and optional email, set up in the user menu settings; see [Task reminders](#task-reminders)
 - ✅ Groups for organizing tasks
 - ✅ First-sign-in onboarding (`/welcome`): pick starter groups from a catalogue (English and Polish names, depending on the account language) or skip
 - ✅ Group suggestions while creating a task: a local multilingual embedding model compares the title and description with your groups (and the tasks already in them) and suggests a group, or a catalogue group to create. Nothing is sent to a third party; see [AI group suggestions](#ai-group-suggestions)
@@ -128,6 +130,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - **Jinja2** - email templates
 - **Uvicorn** - ASGI server
 - **fastembed** - local ONNX embedding model for group suggestions (no PyTorch)
+- **pywebpush** - Web Push (VAPID) delivery of task reminders
 
 ### Frontend
 
@@ -242,7 +245,7 @@ MAILHOG_PORT=1025
 FRONTEND_URL=http://localhost:4200
 ```
 
-Optional: `AI_SUGGESTIONS_ENABLED` (default `true`; `false`, `0`, `no` or `off` turns the group suggestions off, see [AI group suggestions](#ai-group-suggestions)). In Docker it is set in `docker/docker.env`.
+Optional: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` (browser notifications for task reminders, see [Task reminders](#task-reminders); push stays off while the keys are empty) and `REMINDER_WORKER_ENABLED` (default `true`; only read by the reminder worker). `AI_SUGGESTIONS_ENABLED` (default `true`; `false`, `0`, `no` or `off` turns the group suggestions off, see [AI group suggestions](#ai-group-suggestions)). In Docker it is set in `docker/docker.env`.
 
 > [!NOTE]
 > `ALLOWED_HOSTS` and `CORS_ORIGINS` are required — the backend refuses to start without them (see `backend/main.py`). `SECRET_KEY` must be at least 32 characters and not a known placeholder (see `backend/services/auth_service.py`).
@@ -265,6 +268,35 @@ When you create a task, the app suggests a group for it. Everything runs locally
 - **Switching it off:** `AI_SUGGESTIONS_ENABLED=false` in `docker/docker.env` (or `backend/.env`) disables the endpoint and skips loading the model. `POST /todos/suggest-group` then answers `503 SUGGESTIONS_UNAVAILABLE` and the task form simply shows no suggestion.
 - **Tuning:** the confidence thresholds and neighbour settings are constants at the top of `backend/services/suggestion_service.py`. Check changes against the labelled cases in `backend/tests/data/suggestion_eval.json` with `docker exec todo-backend python -m scripts.eval_suggestions`.
 - **Changing the model:** embeddings from another model are not comparable. After changing `MODEL_NAME` in `backend/services/embedder.py`, set the `embedding` column of `todos` and `groups` to `NULL`; the lazy backfill recomputes them on the next suggestion request.
+
+### Task reminders
+
+A task with a due date can have a reminder: **At the time**, **15 minutes**, **1 hour** or **1 day before** for a task with a time, or **on the day at 9:00** / **the day before at 9:00** for a date without a time (9:00 in the user's time zone, which the browser reports on sign-in). Reminders arrive as:
+
+- **Browser notifications** (Web Push), also when the app is closed. Each user turns them on per browser in the user menu → settings → **Browser notifications** (the browser asks for permission); **Send a test notification** checks the setup. Logging out removes the browser's subscription. On iPhone and iPad web push only works for the app added to the home screen. The toggle says why it is unavailable when push is switched off on the server, blocked in the browser, or not supported (for example in `ng serve`, which has no service worker).
+- **Email**, for users who switch **Email reminders** on in the same settings.
+
+**Setup.** Push needs a VAPID key pair; without it the feature stays off (emails still work). Generate one pair, keep it, and put it in `docker/docker.env` (and `docker/docker.prod.env` on the server):
+
+```bash
+docker exec todo-backend python -m scripts.generate_vapid_keys   # prints VAPID_PUBLIC_KEY=... and VAPID_PRIVATE_KEY=...
+# optional: VAPID_SUBJECT=mailto:you@example.com (default: "mailto:" + EMAIL_FROM)
+```
+
+A new pair invalidates every existing browser subscription, so change it only on purpose. After editing the env file recreate the containers (`make dev` / `make prod`).
+
+**Worker.** The `reminder-worker` service (see [docker-compose.yml](#docker-composeyml)) sends the reminders; check it with `make logs-worker`.
+
+**Manual check in Firefox** (Playwright's Chromium cannot create a push subscription, so this part is not automated). The e2e stack runs the production images, so the service worker is active:
+
+1. Generate a key pair as above and export `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` in the shell that runs the next command.
+2. `make down`, then `make e2e-up`.
+3. In Firefox open `http://localhost:4200`, register, verify the address in MailHog (`http://localhost:8025`) and sign in.
+4. User menu → settings → **Browser notifications** on, and allow the permission prompt.
+5. **Send a test notification**: a system notification appears (on Windows allow notifications for Firefox and turn Focus Assist off).
+6. Create a task due today, 3 minutes from now, with the reminder **At the time**.
+7. Close the app's tab but keep Firefox running: the notification arrives within about 30 seconds of the time, and clicking it opens `/todos`.
+8. `make e2e-down`, then start the dev stack again with `make dev`.
 
 ## 🏃‍♂️ Running the app
 
@@ -333,14 +365,17 @@ After running the backend with `DEBUG=True`, API documentation is available at:
 | `/`       | Application status                                                                                                      |
 | `/health` | Health check (process only)                                                                                             |
 | `/auth`   | Registration, login, token refresh, email verification, password reset; `/auth/health` also checks the database         |
-| `/users`  | Current user's avatar, language preference, account deletion and first-sign-in onboarding (`POST /users/me/onboarding`) |
+| `/users`  | Current user's avatar, language preference, time zone (`PUT /users/me/timezone`), email reminders (`PUT /users/me/email-reminders`), account deletion and first-sign-in onboarding (`POST /users/me/onboarding`) |
 | `/todos`  | Tasks CRUD, reordering and group suggestions (`POST /todos/suggest-group`)                                              |
 | `/groups` | Task groups CRUD and the starter group catalogue (`GET /groups/catalog`)                                                |
+| `/push`   | Browser notifications: `GET /push/config`, `POST` / `DELETE /push/subscriptions`, `POST /push/test`                     |
 
-All `/todos`, `/groups` and `/users` endpoints require an authenticated user with a verified email. The full, up-to-date list is in Swagger UI.
+All `/todos`, `/groups`, `/users` and `/push` endpoints require an authenticated user with a verified email. The full, up-to-date list is in Swagger UI.
 
 - `GET /groups/catalog` returns the starter groups (localised names) the user can pick from.
 - `POST /users/me/onboarding` takes `groupKeys` (catalogue keys), creates those groups and marks the account as onboarded (`onboardingCompleted` in `UserResponse`). A repeat call answers `409`. The frontend sends users who have not finished it to `/welcome`.
+- `/todos` accept `reminderOffsetMinutes` (minutes before the due moment: 0, 15, 60 or 1440 for a task with a time; 0 or 1440 for a date without a time, which fires at 9:00 in the user's time zone; `null` = no reminder) and return the read-only `remindAt` (UTC). A reminder needs a due date (`REMINDER_WITHOUT_DATE`), and the offset must be one of the allowed values (`REMINDER_INVALID_OFFSET`).
+- `GET /push/config` returns `enabled` and the public VAPID key browsers subscribe with. `POST /push/subscriptions` and `POST /push/test` answer `503` with `PUSH_UNAVAILABLE` while the keys are not configured (limited to 20 and 5 requests per minute per client). `POST /push/subscriptions` stores a browser's subscription: the endpoint must be an `https` URL on port 443 of the Firebase Cloud Messaging, Mozilla, Apple or Windows push hosts (anything else is rejected, so the server never calls arbitrary URLs), and the oldest subscription goes once a user has 20. `DELETE /push/subscriptions` removes one; `POST /push/test` sends a test notification to the user's browsers.
 - `POST /todos/suggest-group` takes a title and optional description and returns a suggested existing group or a catalogue group to create, with a confidence. Limited to 60 requests per minute per user; answers `503` with `SUGGESTIONS_UNAVAILABLE` when the feature is disabled or the model cannot be loaded.
 
 ---
@@ -349,7 +384,7 @@ All `/todos`, `/groups` and `/users` endpoints require an authenticated user wit
 
 ### Backend - Tests (Pytest)
 
-The application has a comprehensive suite of tests (currently **203**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
+The application has a comprehensive suite of tests (currently **298**), including API tests for Todo, Auth, Groups and Users. `pytest.ini` always measures coverage and fails the run below **80%**.
 
 ```bash
 # In Docker (dev stack running)
@@ -385,7 +420,7 @@ make lint-frontend        # in Docker
 
 ### End-to-End Tests (Playwright)
 
-`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, the first-sign-in starter group picker (`/welcome`), creating, editing, completing, filtering and deleting tasks, due dates (the date and time quick picks, clearing the date, the overdue state and a check that the quick picks keep the local day in a time zone east of UTC), the AI group suggestions in the task form (the real local embedding model; the medium-confidence and unavailable cases are mocked), the weather widget, its forecast dialog and choosing a city with or without location access (the third-party weather APIs are mocked), and a smoke test that fails on any Content-Security-Policy violation. A separate Playwright project, `pwa`, runs `tests/pwa.spec.ts` with service workers allowed: the manifest with its icons, shortcut and screenshots, the iOS launch screens, the "New task" shortcut opening the form, the app icon badge, `no-cache` on the service worker files, the app shell loading offline (in both languages), the Install app item, a signed-in user changing tasks offline (kept across a reload) and the changes reaching the server once back online (including a due date set offline), a create whose response was lost being retried without a duplicate, logout deleting the offline copy, and weather requests skipping the service worker; every other test blocks service workers so it always hits the network.
+`e2e/` holds Playwright tests that drive the real app in Chromium: registration with email verification (the link is read from MailHog's API), login and logout, account deletion, the public privacy policy page, the first-sign-in starter group picker (`/welcome`), creating, editing, completing, filtering and deleting tasks, due dates (the date and time quick picks, clearing the date, the overdue state and a check that the quick picks keep the local day in a time zone east of UTC), the AI group suggestions in the task form (the real local embedding model; the medium-confidence and unavailable cases are mocked), task reminders (the options following the time, the bell on the due chip, the notifications setting without browser support), the weather widget, its forecast dialog and choosing a city with or without location access (the third-party weather APIs are mocked), and a smoke test that fails on any Content-Security-Policy violation. A separate Playwright project, `pwa`, runs `tests/pwa.spec.ts` with service workers allowed: the manifest with its icons, shortcut and screenshots, the iOS launch screens, the "New task" shortcut opening the form, the app icon badge, `no-cache` on the service worker files, the app shell loading offline (in both languages), the Install app item, a signed-in user changing tasks offline (kept across a reload) and the changes reaching the server once back online (including a due date set offline), a create whose response was lost being retried without a duplicate, logout deleting the offline copy, and weather requests skipping the service worker. Turning browser notifications on and sending a test (`enables notifications and sends a test`) is marked `test.fixme`: Playwright's Chromium cannot create a push subscription, so check it by hand (see [Task reminders](#task-reminders)). The `pwa` project runs Chromium in its new headless mode (`channel: 'chromium'`) so that `Notification.permission` follows `grantPermissions`; every other test blocks service workers so it always hits the network.
 
 They run against a separate, throwaway stack defined in `docker/docker-compose.e2e.yml`: production images (SSR frontend), a PostgreSQL database on tmpfs, MailHog, and rate limiting disabled (`TESTING=1`). Each test registers its own user, so tests are independent and run in parallel. `TESTING=1` also skips the backend's startup model warm-up, so the global setup (`e2e/fixtures/global-setup.ts`) loads the embedding model in every backend worker before the tests start.
 
@@ -440,7 +475,7 @@ When CI passes on a push to `develop`, `.github/workflows/deploy.yml` deploys th
                     └───────────────────────┘ └───────────────────────┘
 ```
 
-All ports are published on `127.0.0.1` only. The browser talks to the frontend and, directly, to the backend API (`API_URL`); in production a reverse proxy on the host puts both behind one domain (see [Production deployment](#production-deployment)).
+The `reminder-worker` container (not drawn) runs the backend image against the same database and sends task reminders. All ports are published on `127.0.0.1` only. The browser talks to the frontend and, directly, to the backend API (`API_URL`); in production a reverse proxy on the host puts both behind one domain (see [Production deployment](#production-deployment)).
 
 ### Launch Modes
 
@@ -630,7 +665,7 @@ The hook is installed by Husky: run `npm install` once in the project root (it s
 
 ### Production deployment
 
-When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200) — with one exception: `/todos` is also the Angular page, so a browser navigation to it (`Accept: text/html` — a refresh, a bookmark, a link) must go to the frontend, otherwise it gets the API's JSON (see the Caddyfile below).
+When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups`, `/push` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200) — with one exception: `/todos` is also the Angular page, so a browser navigation to it (`Accept: text/html` — a refresh, a bookmark, a link) must go to the frontend, otherwise it gets the API's JSON (see the Caddyfile below).
 
 `docker-compose.yml` publishes every port on `127.0.0.1` only (backend 8000, frontend 4200, MailHog 1025/8025, PostgreSQL 5433, pgAdmin 5050), so run the proxy on the host and point it at `127.0.0.1:8000` / `127.0.0.1:4200`; nothing is reachable from outside without it. To open pgAdmin or MailHog on the server, use an SSH tunnel (e.g. `ssh -L 5050:127.0.0.1:5050 <user>@<server>`).
 
@@ -664,7 +699,7 @@ todo.example.com {
 		reverse_proxy 127.0.0.1:4200
 	}
 
-	@api path /auth /auth/* /todos /todos/* /users /users/* /groups /groups/* /uploads/*
+	@api path /auth /auth/* /todos /todos/* /users /users/* /groups /groups/* /push /push/* /uploads/*
 	handle @api {
 		reverse_proxy 127.0.0.1:8000
 	}
@@ -827,12 +862,12 @@ todo-app/
 │   ├── config/              # database, auth, api_messages, password validation
 │   ├── i18n/                # en.json, pl.json - email texts
 │   ├── templates/email/     # Jinja2 email templates (layout, shared blocks, one .html + .txt per email)
-│   ├── models/              # SQLAlchemy models (user, todo, group, refresh_token) + Pydantic schemas
-│   ├── routes/              # API routes (auth, users, todos, groups)
+│   ├── models/              # SQLAlchemy models (user, todo, group, refresh_token, push_subscription) + Pydantic schemas
+│   ├── routes/              # API routes (auth, users, todos, groups, push)
 │   ├── services/            # Business logic (auth, email, embedder + suggestion_service for group suggestions, push + reminders + reminder_worker for task reminders)
 │   ├── migrations/          # Alembic migrations
 │   ├── openapi/             # export_openapi.py + the exported openapi.json (input of `npm run generate-api`)
-│   ├── scripts/             # seed.py - sample data for development; eval_suggestions.py - evaluates the group suggestion thresholds
+│   ├── scripts/             # seed.py - sample data for development; eval_suggestions.py - evaluates the group suggestion thresholds; generate_vapid_keys.py - VAPID key pair for browser notifications
 │   ├── tests/               # Pytest suite
 │   ├── main.py              # Application entrypoint
 │   ├── requirements.txt     # Python runtime dependencies (production image)
