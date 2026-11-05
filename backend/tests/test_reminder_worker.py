@@ -1,6 +1,11 @@
 """Tests for the reminder worker: claiming, channels and the stale cut-off."""
 
+import os
+import signal
+import subprocess
+import sys
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 from sqlalchemy.exc import ProgrammingError
@@ -213,15 +218,32 @@ def test_run_once_batch_size_limits_a_run(test_db, pushed, emails):
     assert (first.sent, second.sent) == (2, 1)
 
 
-def test_main_exits_at_once_when_disabled(monkeypatch):
+def test_main_idles_when_disabled(monkeypatch):
+    """Exiting would restart-loop the container and fail `up --wait`."""
     monkeypatch.setenv("REMINDER_WORKER_ENABLED", "false")
+    calls = []
+    monkeypatch.setattr(
+        reminder_worker, "loop", lambda stop, enabled: calls.append(enabled)
+    )
+
+    reminder_worker.main()
+
+    assert calls == [False]
+
+
+def test_loop_disabled_only_keeps_the_heartbeat(monkeypatch, tmp_path):
     monkeypatch.setattr(
         reminder_worker,
         "run_once",
         lambda *a, **k: pytest.fail("run_once must not run when disabled"),
     )
+    monkeypatch.setattr(reminder_worker, "HEARTBEAT_PATH", tmp_path / "heartbeat")
+    stop = reminder_worker.StopSignal()
+    stop.wait = lambda seconds: stop.set()
 
-    reminder_worker.main()
+    reminder_worker.loop(stop, enabled=False)
+
+    assert (tmp_path / "heartbeat").exists()
 
 
 def test_loop_survives_missing_columns(monkeypatch, tmp_path):
@@ -244,3 +266,23 @@ def test_loop_survives_missing_columns(monkeypatch, tmp_path):
     assert waits == [reminder_worker.WORKER_INTERVAL_SECONDS]
     # Still alive, so the healthcheck stays green while it waits for a schema.
     assert (tmp_path / "heartbeat").exists()
+
+
+def test_worker_module_starts_as_a_script():
+    """`python -m services.reminder_worker` imports `services` before `config`."""
+    process = subprocess.Popen(
+        [sys.executable, "-m", "services.reminder_worker"],
+        env={**os.environ, "REMINDER_WORKER_ENABLED": "false"},
+        cwd=Path(__file__).resolve().parent.parent,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        started = process.stderr.readline()  # first log line, or a traceback
+        process.send_signal(signal.SIGTERM)
+        _, rest = process.communicate(timeout=30)
+    finally:
+        process.kill()
+
+    assert "no reminders will be sent" in started, started + (rest or "")
+    assert process.returncode == 0

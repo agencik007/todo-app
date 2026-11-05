@@ -2,6 +2,9 @@
 Services package - Business logic layer.
 """
 
+# config and services import each other; loading config first (as main.py does)
+# lets `python -m services.<module>` start without a circular import.
+import config  # noqa: F401
 from services.auth_service import (
     authenticate_user,
     create_access_token,

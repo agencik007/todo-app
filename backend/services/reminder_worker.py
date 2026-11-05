@@ -161,19 +161,28 @@ def _touch_heartbeat() -> None:
         logger.warning("Cannot write the heartbeat file")
 
 
-def loop(stop: StopSignal) -> None:
-    """Run passes every WORKER_INTERVAL_SECONDS until `stop` is set."""
+def _log_run(result: ReminderRunResult) -> None:
+    logger.info(
+        "Reminder run: sent=%d skipped_stale=%d failed=%d",
+        result.sent,
+        result.skipped_stale,
+        result.failed,
+    )
+
+
+def loop(stop: StopSignal, *, enabled: bool = True) -> None:
+    """
+    Run passes every WORKER_INTERVAL_SECONDS until `stop` is set.
+
+    Disabled, it only keeps the heartbeat: exiting would make the restart
+    policy loop and `docker compose up --wait` (the deploy) fail.
+    """
     from config import database
 
     while not stop.is_set():
         try:
-            result = run_once(database.SessionLocal, datetime.now(UTC))
-            logger.info(
-                "Reminder run: sent=%d skipped_stale=%d failed=%d",
-                result.sent,
-                result.skipped_stale,
-                result.failed,
-            )
+            if enabled:
+                _log_run(run_once(database.SessionLocal, datetime.now(UTC)))
         except (ProgrammingError, OperationalError) as error:
             # No database yet, or a schema without the reminder columns (the
             # database was rolled back to an older release): wait, don't crash.
@@ -197,14 +206,14 @@ def main() -> None:
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
     )
-    if not worker_enabled():
-        logger.info("REMINDER_WORKER_ENABLED is false, exiting")
-        return
+    enabled = worker_enabled()
+    if not enabled:
+        logger.info("REMINDER_WORKER_ENABLED is false, no reminders will be sent")
     stop = StopSignal()
     signal.signal(signal.SIGTERM, stop.set)
     signal.signal(signal.SIGINT, stop.set)
     logger.info("Reminder worker started (every %ds)", WORKER_INTERVAL_SECONDS)
-    loop(stop)
+    loop(stop, enabled=enabled)
     logger.info("Reminder worker stopped")
 
 
