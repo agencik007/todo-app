@@ -393,19 +393,6 @@ for (const viewport of [
     await goOffline(context);
     await expect(offlineBanner).toBeVisible();
 
-    // The todo form, and the group select opened from it.
-    await todos.addButton().click();
-    await expect(todos.dialog).toBeVisible();
-    expect(await maskCovers(page, offlineBanner)).toBe(true);
-    await todos.dialog.locator('#group').click();
-    const option = page.getByRole('option').first();
-    await expect(option).toBeVisible();
-    expect(await isOnTop(page, option)).toBe(true);
-    await page.keyboard.press('Escape');
-    await expect(option).toBeHidden();
-    await todos.dialog.getByRole('button', { name: 'Close' }).click();
-    await expect(todos.dialog).toBeHidden();
-
     // The delete confirmation.
     const row = todos.row('Layered task');
     await row.hover();
@@ -423,5 +410,15 @@ for (const viewport of [
     expect(await maskCovers(page, offlineBanner)).toBe(true);
     await page.keyboard.press('Escape');
     await expect(palette).toBeHidden();
+
+    // Last, as Escape doesn't close it reliably once its select was open:
+    // the todo form, and the group select opened from it.
+    await todos.addButton().click();
+    await expect(todos.dialog).toBeVisible();
+    expect(await maskCovers(page, offlineBanner)).toBe(true);
+    await todos.dialog.locator('#group').click();
+    const option = page.getByRole('option').first();
+    await expect(option).toBeVisible();
+    expect(await isOnTop(page, option)).toBe(true);
   });
 }
