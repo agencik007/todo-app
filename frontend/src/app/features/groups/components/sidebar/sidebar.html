@@ -408,6 +408,7 @@
   [resizable]="false"
   [modal]="true"
   [draggable]="false"
+  [closeAriaLabel]="'COMMON.CLOSE' | translate"
   (visibleChange)="!$event && hideDialog()"
 >
   <ng-template pTemplate="header">

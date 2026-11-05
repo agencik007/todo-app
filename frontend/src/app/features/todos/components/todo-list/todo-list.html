@@ -455,6 +455,7 @@
         [visible]="formVisible()"
         [style]="{ width: '400px', maxWidth: '95vw' }"
         [modal]="true"
+        [closeAriaLabel]="'COMMON.CLOSE' | translate"
         (visibleChange)="onVisibleChange($event)"
         (onHide)="onDialogHide()"
       >
