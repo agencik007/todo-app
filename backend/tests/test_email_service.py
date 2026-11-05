@@ -155,3 +155,29 @@ class TestAccountLanguage:
         assert response.status_code == 200
         assert sent[0]["subject"] == TRANSLATIONS["pl"]["password_reset"]["subject"]
         assert "1 godzinę" in sent[0]["html"]
+
+
+@pytest.mark.parametrize("use_mailhog", [True, False])
+def test_smtp_connections_have_a_timeout(monkeypatch, use_mailhog):
+    """A hung mail server must not block the caller forever."""
+    connections: list[dict] = []
+
+    class FakeSMTP:
+        def __init__(self, host, port, **kwargs):
+            connections.append(kwargs)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def __getattr__(self, name):
+            return lambda *args, **kwargs: None
+
+    monkeypatch.setattr(email_service.smtplib, "SMTP", FakeSMTP)
+    monkeypatch.setattr(email_service, "USE_MAILHOG", use_mailhog)
+
+    assert email_service.send_email("user@example.com", "Subject", "<p>x</p>")
+
+    assert connections == [{"timeout": email_service.SMTP_TIMEOUT_SECONDS}]

@@ -4,11 +4,13 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
-from sqlalchemy.exc import ProgrammingError
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 from models.push_subscription import PushSubscription
 from models.todo import Todo
@@ -16,33 +18,52 @@ from models.user import User
 from services import email_service, push_service, reminder_worker
 from services.auth_service import hash_password
 from services.reminder_worker import ReminderRunResult, claim_due, run_once
-from tests.conftest import TestingSessionLocal
+from tests.conftest import TestingSessionLocal, test_engine
 
 NOW = datetime(2026, 11, 5, 12, 0, tzinfo=UTC)
 ENDPOINT = "https://fcm.googleapis.com/fcm/send/abc123"
 NOTHING = ReminderRunResult(sent=0, skipped_stale=0, failed=0)
 
 
+def open_transactions() -> int:
+    """Other connections sitting idle inside a transaction right now."""
+    with test_engine.connect() as connection:
+        return connection.execute(
+            text(
+                "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database()"
+                " AND pid <> pg_backend_pid() AND state LIKE 'idle in transaction%'"
+            )
+        ).scalar_one()
+
+
 @pytest.fixture
-def pushed(monkeypatch) -> list[dict]:
+def at_send_time() -> list[int]:
+    """Open transactions seen at each send; the fakes below record into it."""
+    return []
+
+
+@pytest.fixture
+def pushed(monkeypatch, at_send_time) -> list[dict]:
     """VAPID keys configured and a fake push sender."""
     monkeypatch.setenv("VAPID_PUBLIC_KEY", "public-key")
     monkeypatch.setenv("VAPID_PRIVATE_KEY", "private-key")
     calls: list[dict] = []
-    monkeypatch.setattr(
-        push_service,
-        "webpush_send",
-        lambda info, data: calls.append({"info": info, "data": data}),
-    )
+
+    def fake_send(info, data):
+        at_send_time.append(open_transactions())
+        calls.append({"info": info, "data": data})
+
+    monkeypatch.setattr(push_service, "webpush_send", fake_send)
     return calls
 
 
 @pytest.fixture
-def emails(monkeypatch) -> list[dict]:
+def emails(monkeypatch, at_send_time) -> list[dict]:
     """Captures emails instead of sending them."""
     messages: list[dict] = []
 
     def fake_send(to_email, subject, html_content, text_content=None):
+        at_send_time.append(open_transactions())
         messages.append({"to": to_email, "subject": subject, "text": text_content})
         return True
 
@@ -167,13 +188,17 @@ def test_run_once_email_only_when_enabled(test_db, pushed, emails):
     assert "Przypomnienie" in emails[0]["subject"]
 
 
-def test_run_once_push_and_email_both_fire(test_db, pushed, emails):
+def test_run_once_push_and_email_both_fire(test_db, pushed, emails, at_send_time):
     user = make_user(test_db, email_reminders=True)
     make_todo(test_db, user, remind_at=NOW - timedelta(minutes=1))
+    make_todo(test_db, user, remind_at=NOW - timedelta(minutes=2), title="Second")
 
     run_once(TestingSessionLocal, NOW)
 
-    assert len(pushed) == 1 and len(emails) == 1
+    assert len(pushed) == 2 and len(emails) == 2
+    # No transaction (and so no lock) is held while the network is waited on.
+    assert at_send_time == [0, 0, 0, 0]
+    assert open_transactions() == 0
 
 
 def test_run_once_without_channels_marks_handled(test_db, pushed, emails):
@@ -246,26 +271,60 @@ def test_loop_disabled_only_keeps_the_heartbeat(monkeypatch, tmp_path):
     assert (tmp_path / "heartbeat").exists()
 
 
-def test_loop_survives_missing_columns(monkeypatch, tmp_path):
-    """An older schema (rolled-back database) must not crash-loop the worker."""
-    calls = []
+def _run_loop(monkeypatch, tmp_path, error):
+    """One loop pass whose run_once raises `error`; returns the heartbeat path."""
+    heartbeat = tmp_path / "heartbeat"
 
     def failing_run(*args, **kwargs):
-        calls.append(1)
-        raise ProgrammingError("SELECT", {}, Exception("column does not exist"))
+        raise error
 
     monkeypatch.setattr(reminder_worker, "run_once", failing_run)
-    monkeypatch.setattr(reminder_worker, "HEARTBEAT_PATH", tmp_path / "heartbeat")
-    waits = []
+    monkeypatch.setattr(reminder_worker, "HEARTBEAT_PATH", heartbeat)
     stop = reminder_worker.StopSignal()
-    stop.wait = lambda seconds: (waits.append(seconds), stop.set())
-
+    stop.wait = lambda seconds: stop.set()
     reminder_worker.loop(stop)
+    return heartbeat
 
-    assert calls == [1]
-    assert waits == [reminder_worker.WORKER_INTERVAL_SECONDS]
-    # Still alive, so the healthcheck stays green while it waits for a schema.
-    assert (tmp_path / "heartbeat").exists()
+
+def _programming_error(pgcode):
+    orig = Exception("boom")
+    orig.pgcode = pgcode
+    return ProgrammingError("SELECT", {}, orig)
+
+
+@pytest.mark.parametrize("pgcode", ["42703", "42P01"])
+def test_loop_waits_when_the_schema_is_missing_columns(monkeypatch, tmp_path, pgcode):
+    """An older schema (rolled-back database) must not crash-loop the worker."""
+    heartbeat = _run_loop(monkeypatch, tmp_path, _programming_error(pgcode))
+
+    # Alive and waiting for a schema, so the healthcheck stays green.
+    assert heartbeat.exists()
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        _programming_error("42601"),  # a syntax error is a bug, not a schema gap
+        OperationalError("SELECT", {}, Exception("connection refused")),
+        RuntimeError("unexpected"),
+    ],
+)
+def test_loop_goes_unhealthy_on_other_errors(monkeypatch, tmp_path, error):
+    heartbeat = _run_loop(monkeypatch, tmp_path, error)
+
+    assert not heartbeat.exists()
+
+
+def test_run_once_touches_the_heartbeat_per_row(test_db, pushed, emails, monkeypatch):
+    user = make_user(test_db)
+    for minutes in (3, 2, 1):
+        make_todo(test_db, user, remind_at=NOW - timedelta(minutes=minutes))
+    touches = []
+    monkeypatch.setattr(reminder_worker, "_touch_heartbeat", lambda: touches.append(1))
+
+    run_once(TestingSessionLocal, NOW)
+
+    assert len(touches) == 3
 
 
 def test_worker_module_starts_as_a_script():
@@ -277,12 +336,19 @@ def test_worker_module_starts_as_a_script():
         stderr=subprocess.PIPE,
         text=True,
     )
+    first_line: list[str] = []
+    reader = threading.Thread(
+        target=lambda: first_line.append(process.stderr.readline()), daemon=True
+    )
+    reader.start()
     try:
-        started = process.stderr.readline()  # first log line, or a traceback
+        reader.join(timeout=30)  # the first log line, or a traceback
         process.send_signal(signal.SIGTERM)
-        _, rest = process.communicate(timeout=30)
+        process.wait(timeout=30)
     finally:
         process.kill()
+        process.stderr.close()
 
-    assert "no reminders will be sent" in started, started + (rest or "")
+    started = "".join(first_line)
+    assert "no reminders will be sent" in started, started
     assert process.returncode == 0

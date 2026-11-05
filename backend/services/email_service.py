@@ -38,6 +38,8 @@ SMTP_HOST = os.getenv("SMTP_HOST", "smtp-relay.brevo.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+# Give up on an unresponsive mail server instead of blocking the caller forever.
+SMTP_TIMEOUT_SECONDS = 20
 
 # Load translations
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -200,7 +202,9 @@ def send_email(
 
         if USE_MAILHOG:
             # Dev mode — MailHog: no auth, no TLS
-            with smtplib.SMTP(MAILHOG_HOST, MAILHOG_PORT) as server:
+            with smtplib.SMTP(
+                MAILHOG_HOST, MAILHOG_PORT, timeout=SMTP_TIMEOUT_SECONDS
+            ) as server:
                 server.send_message(msg)
             logger.info(
                 "Email sent via MailHog to %s | Subject: %s",
@@ -209,7 +213,9 @@ def send_email(
             )
         else:
             # Prod mode — real SMTP with STARTTLS (Brevo / SendGrid / etc.)
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            with smtplib.SMTP(
+                SMTP_HOST, SMTP_PORT, timeout=SMTP_TIMEOUT_SECONDS
+            ) as server:
                 server.ehlo()
                 server.starttls(context=ssl.create_default_context())
                 server.ehlo()

@@ -165,49 +165,57 @@ def send_to_user(db: Session, user: User, payload: dict) -> int:
     Returns:
         int: Number of browsers the message was delivered to.
     """
-    subscriptions = (
-        db.query(PushSubscription).filter(PushSubscription.user_id == user.id).all()
-    )
+    rows = [
+        (s.id, s.endpoint, s.p256dh, s.auth)
+        for s in db.query(PushSubscription)
+        .filter(PushSubscription.user_id == user.id)
+        .all()
+    ]
+    # End the read transaction: no database transaction stays open (holding
+    # locks) while we wait on push services.
+    db.commit()
     data = json.dumps(payload)
-    delivered = 0
-    changed = False
-    for subscription in subscriptions:
-        if not is_allowed_push_endpoint(subscription.endpoint):
+    delivered_ids: list[int] = []
+    gone_ids: list[int] = []
+    for subscription_id, endpoint, p256dh, auth in rows:
+        if not is_allowed_push_endpoint(endpoint):
             logger.warning(
                 "Skipping subscription %s: endpoint not on a known push service",
-                subscription.id,
+                subscription_id,
             )
             continue
-        info = {
-            "endpoint": subscription.endpoint,
-            "keys": {"p256dh": subscription.p256dh, "auth": subscription.auth},
-        }
+        info = {"endpoint": endpoint, "keys": {"p256dh": p256dh, "auth": auth}}
         try:
             webpush_send(info, data)
         except WebPushException as error:
             status_code = _status_code(error)
             if status_code in GONE_STATUS_CODES:
-                db.delete(subscription)
-                changed = True
+                gone_ids.append(subscription_id)
             else:
                 logger.warning(
                     "Push failed for subscription %s (status %s)",
-                    subscription.id,
+                    subscription_id,
                     status_code,
                 )
         except Exception as error:  # noqa: BLE001 - one bad browser must not stop the rest
             logger.warning(
                 "Push failed for subscription %s (%s)",
-                subscription.id,
+                subscription_id,
                 type(error).__name__,
             )
         else:
-            subscription.last_used_at = datetime.now(UTC)
-            delivered += 1
-            changed = True
-    if changed:
+            delivered_ids.append(subscription_id)
+    if delivered_ids or gone_ids:
+        if gone_ids:
+            db.query(PushSubscription).filter(PushSubscription.id.in_(gone_ids)).delete(
+                synchronize_session=False
+            )
+        if delivered_ids:
+            db.query(PushSubscription).filter(
+                PushSubscription.id.in_(delivered_ids)
+            ).update({"last_used_at": datetime.now(UTC)}, synchronize_session=False)
         db.commit()
-    return delivered
+    return len(delivered_ids)
 
 
 def _find_by_endpoint(db: Session, endpoint: str) -> PushSubscription | None:

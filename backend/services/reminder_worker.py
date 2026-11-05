@@ -19,7 +19,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy.exc import OperationalError, ProgrammingError
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session, selectinload, sessionmaker
 
 from models.todo import Todo
 from services.email_service import send_reminder_email
@@ -39,6 +39,8 @@ logger = logging.getLogger(__name__)
 
 # Touched after every pass; the compose healthcheck wants it younger than 120 s.
 HEARTBEAT_PATH = Path("/tmp/reminder-worker.heartbeat")
+# PostgreSQL errors meaning the schema lacks a table / column (an older release).
+SCHEMA_MISSING_PGCODES = {"42P01", "42703"}
 
 
 @dataclass(frozen=True)
@@ -65,6 +67,7 @@ def claim_due(db: Session, now: datetime, batch_size: int) -> list[Todo]:
             Todo.completed.is_(False),
         )
         .order_by(Todo.remind_at)
+        .options(selectinload(Todo.owner))
         .limit(batch_size)
         .with_for_update(skip_locked=True)
         .all()
@@ -123,8 +126,6 @@ def run_once(
     sent = skipped_stale = failed = 0
     try:
         todos = claim_due(db, now, batch_size)
-        for todo in todos:  # load owners while the claim is still open
-            todo.owner  # noqa: B018
         db.commit()
         for todo in todos:
             if now - todo.remind_at > REMINDER_GRACE:
@@ -133,6 +134,7 @@ def run_once(
                 sent += 1
             else:
                 failed += 1
+            _touch_heartbeat()  # a long batch must not look like a hung worker
     finally:
         db.close()
     return ReminderRunResult(sent=sent, skipped_stale=skipped_stale, failed=failed)
@@ -180,18 +182,29 @@ def loop(stop: StopSignal, *, enabled: bool = True) -> None:
     from config import database
 
     while not stop.is_set():
+        healthy = True
         try:
             if enabled:
                 _log_run(run_once(database.SessionLocal, datetime.now(UTC)))
-        except (ProgrammingError, OperationalError) as error:
-            # No database yet, or a schema without the reminder columns (the
-            # database was rolled back to an older release): wait, don't crash.
+        except ProgrammingError as error:
+            pgcode = getattr(error.orig, "pgcode", None)
+            if pgcode in SCHEMA_MISSING_PGCODES:
+                # A schema without the reminder columns (the database was rolled
+                # back to an older release): wait, don't crash-loop.
+                logger.warning("Reminder run skipped, schema not ready (%s)", pgcode)
+            else:
+                healthy = False
+                logger.error("Reminder run failed (ProgrammingError %s)", pgcode)
+        except OperationalError as error:
+            healthy = False
             logger.warning(
-                "Reminder run skipped, database not ready (%s)", type(error).__name__
+                "Reminder run skipped, database unreachable (%s)", type(error).__name__
             )
         except Exception as error:  # noqa: BLE001 - keep the worker alive
+            healthy = False
             logger.error("Reminder run failed (%s)", type(error).__name__)
-        _touch_heartbeat()
+        if healthy:  # a persistently failing worker goes unhealthy
+            _touch_heartbeat()
         stop.wait(WORKER_INTERVAL_SECONDS)
 
 
