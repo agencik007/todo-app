@@ -365,6 +365,7 @@
     "USER_ACCOUNT_DELETED": "Your account has been deleted",
     "USER_INVALID_PASSWORD": "Incorrect password",
     "USER_ONBOARDING_ALREADY_COMPLETED": "Onboarding is already completed.",
+    "INVALID_TIMEZONE": "This timezone isn't recognized.",
     "SUGGESTIONS_UNAVAILABLE": "Suggestions are unavailable right now."
   },
   "GROUPS": {

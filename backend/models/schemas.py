@@ -209,6 +209,8 @@ class UserResponse(UserBase):
     is_verified: bool
     avatar_url: str | None = None
     language: str
+    timezone: str | None = None
+    email_reminders: bool = False
     onboarding_completed: bool = False
     message: str | None = None
     created_at: datetime
@@ -239,6 +241,18 @@ class UserLanguageUpdate(CamelBaseModel):
     """Schema for updating user language."""
 
     language: str = Field(..., pattern="^(en|pl)$")
+
+
+class TimezoneUpdate(CamelBaseModel):
+    """Schema for updating the user's IANA timezone."""
+
+    timezone: str = Field(..., max_length=64)
+
+
+class EmailRemindersUpdate(CamelBaseModel):
+    """Schema for switching email reminders on or off."""
+
+    enabled: bool
 
 
 class UserDeleteConfirm(CamelBaseModel):

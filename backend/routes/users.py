@@ -8,6 +8,7 @@ import secrets
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import anyio
 from fastapi import (
@@ -26,7 +27,9 @@ from config.auth import get_current_verified_user
 from config.database import get_db
 from config.group_catalog import get_catalog_entry
 from models.schemas import (
+    EmailRemindersUpdate,
     OnboardingRequest,
+    TimezoneUpdate,
     UserDeleteConfirm,
     UserLanguageUpdate,
     UserResponse,
@@ -36,6 +39,7 @@ from routes.auth import _clear_refresh_cookie
 from routes.groups import create_groups_for_user
 from services.auth_service import verify_password
 from services.embedder import Embedder, get_loaded_embedder
+from services.reminders import on_user_timezone_changed
 
 router = APIRouter(prefix="/users", tags=["users"])
 logger = logging.getLogger(__name__)
@@ -227,6 +231,67 @@ async def update_language(
     return api_success(
         ApiMessages.USER_LANGUAGE_UPDATED, language=current_user.language
     )
+
+
+@router.put("/me/timezone", response_model=UserResponse)
+async def update_timezone(
+    timezone_update: TimezoneUpdate,
+    current_user: User = Depends(get_current_verified_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Update the user's timezone (an IANA name such as Europe/Warsaw).
+
+    Args:
+        timezone_update: New timezone name.
+        current_user: Current authenticated user.
+        db: Database session.
+
+    Returns:
+        UserResponse: The updated user.
+
+    Raises:
+        HTTPException: 422 if the name is not a known timezone.
+    """
+    try:
+        ZoneInfo(timezone_update.timezone)
+    except (ZoneInfoNotFoundError, ValueError, OSError):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=api_error(ApiMessages.INVALID_TIMEZONE),
+        )
+
+    user = db.get(User, current_user.id)
+    user.timezone = timezone_update.timezone
+    db.commit()
+    db.refresh(user)
+    on_user_timezone_changed(db, user)
+
+    return user
+
+
+@router.put("/me/email-reminders", response_model=UserResponse)
+async def update_email_reminders(
+    reminders_update: EmailRemindersUpdate,
+    current_user: User = Depends(get_current_verified_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Switch email reminders on or off for the current user.
+
+    Args:
+        reminders_update: Whether email reminders are enabled.
+        current_user: Current authenticated user.
+        db: Database session.
+
+    Returns:
+        UserResponse: The updated user.
+    """
+    user = db.get(User, current_user.id)
+    user.email_reminders = reminders_update.enabled
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 @router.post("/me/onboarding", response_model=UserResponse)

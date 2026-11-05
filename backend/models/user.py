@@ -4,7 +4,7 @@ User model - SQLAlchemy model for users table.
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from sqlalchemy.sql import false, func
 
 from config.database import Base
 
@@ -21,6 +21,9 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     avatar_url = Column(String, nullable=True)
     language = Column(String, default="en", nullable=False)
+    # IANA timezone name (e.g. "Europe/Warsaw"), reported by the browser
+    timezone = Column(String(64), nullable=True)
+    email_reminders = Column(Boolean, nullable=False, server_default=false())
 
     # Password reset fields
     password_reset_token = Column(String, nullable=True, index=True)

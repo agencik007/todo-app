@@ -365,6 +365,7 @@
     "USER_ACCOUNT_DELETED": "Twoje konto zostało usunięte",
     "USER_INVALID_PASSWORD": "Nieprawidłowe hasło",
     "USER_ONBOARDING_ALREADY_COMPLETED": "Konfiguracja konta została już zakończona.",
+    "INVALID_TIMEZONE": "Nie rozpoznano tej strefy czasowej.",
     "SUGGESTIONS_UNAVAILABLE": "Podpowiedzi są teraz niedostępne."
   },
   "GROUPS": {
