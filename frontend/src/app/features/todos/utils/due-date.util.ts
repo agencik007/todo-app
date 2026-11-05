@@ -11,6 +11,35 @@ export const DUE_TIME_PRESETS: readonly {
   { key: 'EVENING', time: '19:00' },
 ];
 
+export interface ReminderOption {
+  /** Minutes before the due moment; `null` = no reminder. */
+  value: number | null;
+  /** Key under `TODOS.FORM`. */
+  key: string;
+}
+
+/** For a task with a time. */
+export const REMINDER_OPTIONS_TIMED: readonly ReminderOption[] = [
+  { value: null, key: 'REMINDER_NONE' },
+  { value: 0, key: 'REMINDER_AT_TIME' },
+  { value: 15, key: 'REMINDER_15' },
+  { value: 60, key: 'REMINDER_60' },
+  { value: 1440, key: 'REMINDER_DAY_BEFORE' },
+];
+
+/** For a date-only task: the server sends them at 9:00. */
+export const REMINDER_OPTIONS_DATE_ONLY: readonly ReminderOption[] = [
+  { value: null, key: 'REMINDER_NONE' },
+  { value: 0, key: 'REMINDER_DAY_OF_9' },
+  { value: 1440, key: 'REMINDER_DAY_BEFORE_9' },
+];
+
+/** The i18n key (under `TODOS.FORM`) naming a stored offset, or null if unknown. */
+export function reminderKey(offset: number, hasTime: boolean): string | null {
+  const options = hasTime ? REMINDER_OPTIONS_TIMED : REMINDER_OPTIONS_DATE_ONLY;
+  return options.find((o) => o.value === offset)?.key ?? null;
+}
+
 const pad = (n: number): string => String(n).padStart(2, '0');
 
 /** Local `YYYY-MM-DD` (never via toISOString, which shifts the day for UTC+ users). */

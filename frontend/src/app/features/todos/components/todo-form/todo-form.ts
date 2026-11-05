@@ -18,7 +18,7 @@ import {
   TodoCreate,
   TodosService,
 } from '@api';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DatePicker } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
@@ -36,6 +36,8 @@ import {
 import { SILENT_NOTIFICATIONS } from '../../../../core/interceptors/notification.interceptor';
 import { LanguageService } from '../../../../core/services/language.service';
 import { NetworkStatusService } from '../../../../core/services/network-status.service';
+import { PushNotificationsService } from '../../../../core/services/push-notifications.service';
+import { AuthStore } from '../../../../core/store/auth.store';
 import { isServerUnreachable } from '../../../../core/utils/network-error.util';
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
@@ -45,6 +47,8 @@ import {
   DUE_TIME_PRESETS,
   fromIsoDate,
   fromTimeString,
+  REMINDER_OPTIONS_DATE_ONLY,
+  REMINDER_OPTIONS_TIMED,
   toIsoDate,
   toTimeString,
 } from '../../utils/due-date.util';
@@ -61,6 +65,8 @@ interface TodoFormModel {
   dueDate: string | null;
   /** `HH:MM`. */
   dueTime: string | null;
+  /** Minutes before the due moment; `null` = no reminder. */
+  reminderOffsetMinutes: number | null;
 }
 
 /** The group value lives in the form model; the rest of SuggestionState here. */
@@ -107,6 +113,9 @@ export class TodoFormComponent {
   readonly #todosService = inject(TodosService);
   readonly #networkStatus = inject(NetworkStatusService);
   readonly #language = inject(LanguageService);
+  readonly #translate = inject(TranslateService);
+  readonly #authStore = inject(AuthStore);
+  readonly #push = inject(PushNotificationsService);
 
   static readonly SUGGEST_DEBOUNCE_MS = 500;
   static readonly TITLE_MAX = 200;
@@ -124,6 +133,7 @@ export class TodoFormComponent {
       groupId: todo?.groupId ?? null,
       dueDate: todo?.dueDate ?? null,
       dueTime: todo?.dueTime?.slice(0, 5) ?? null,
+      reminderOffsetMinutes: todo?.reminderOffsetMinutes ?? null,
     }),
   });
 
@@ -153,6 +163,28 @@ export class TodoFormComponent {
   readonly hourFormat = computed(() =>
     this.#language.currentLang() === 'pl' ? '24' : '12',
   );
+
+  /** The choices depend on whether the task has a time. */
+  readonly reminderOptions = computed(() => {
+    this.#language.currentLang();
+    const options = this.todoModel().dueTime
+      ? REMINDER_OPTIONS_TIMED
+      : REMINDER_OPTIONS_DATE_ONLY;
+    return options.map((o) => ({
+      value: o.value,
+      label: this.#translate.instant(`TODOS.FORM.${o.key}`),
+    }));
+  });
+
+  /** Reminders reach the user nowhere: no push on this device and no email. */
+  readonly showReminderHint = computed(() => {
+    const state = this.#push.state();
+    return (
+      state !== 'on' &&
+      state !== 'loading' &&
+      !this.#authStore.currentUser()?.emailReminders
+    );
+  });
 
   readonly suggestion = linkedSignal<Todo | null, SuggestionMeta>({
     source: this.todo,
@@ -266,6 +298,7 @@ export class TodoFormComponent {
       // null, never undefined: an explicit null clears the value on update.
       dueDate: model.dueDate,
       dueTime: model.dueDate ? model.dueTime : null,
+      reminderOffsetMinutes: model.dueDate ? model.reminderOffsetMinutes : null,
     };
 
     this.#submitted.set(true);
@@ -281,6 +314,7 @@ export class TodoFormComponent {
       groupId: null,
       dueDate: null,
       dueTime: null,
+      reminderOffsetMinutes: null,
     });
     this.todoForm().reset();
     this.suggestion.set(INITIAL_META);
@@ -298,6 +332,7 @@ export class TodoFormComponent {
       ...m,
       dueDate: date ? toIsoDate(date) : null,
       dueTime: date ? m.dueTime : null,
+      reminderOffsetMinutes: date ? m.reminderOffsetMinutes : null,
     }));
   }
 
@@ -305,7 +340,17 @@ export class TodoFormComponent {
     this.todoModel.update((m) => ({
       ...m,
       dueTime: date ? toTimeString(date) : null,
+      // Date-only tasks have no "15 minutes / 1 hour before"; the server maps them to 0.
+      reminderOffsetMinutes:
+        !date &&
+        (m.reminderOffsetMinutes === 15 || m.reminderOffsetMinutes === 60)
+          ? 0
+          : m.reminderOffsetMinutes,
     }));
+  }
+
+  onReminderChange(offset: number | null): void {
+    this.todoModel.update((m) => ({ ...m, reminderOffsetMinutes: offset }));
   }
 
   /** Sets the date to today (0) or tomorrow (1); the time stays. */
