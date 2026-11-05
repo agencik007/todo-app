@@ -1,0 +1,13 @@
+{% extends "base.txt" %}
+{% block content -%}
+{{ t.greeting }}
+
+{{ t.message }}
+
+{{ t.task_text }}
+{{ t.due_text }}
+
+{{ t.button_text }}: {{ action_url }}
+
+{{ t.settings_text }}
+{%- endblock %}

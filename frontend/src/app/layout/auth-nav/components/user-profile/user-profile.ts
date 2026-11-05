@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  effect,
   HostListener,
   inject,
   SecurityContext,
@@ -17,6 +18,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Tooltip } from 'primeng/tooltip';
 import { AppBadgeService } from '../../../../core/services/app-badge.service';
+import { PushNotificationsService } from '../../../../core/services/push-notifications.service';
 import { PwaInstallService } from '../../../../core/services/pwa-install.service';
 import { ScreenSizeService } from '../../../../core/services/screen-size.service';
 import { WeatherService } from '../../../../core/services/weather.service';
@@ -60,6 +62,7 @@ export class UserProfileComponent {
   readonly #pwaInstall = inject(PwaInstallService);
   readonly #appBadge = inject(AppBadgeService);
   readonly #weather = inject(WeatherService);
+  readonly #pushNotifications = inject(PushNotificationsService);
 
   // 6. Signals (always readonly)
   readonly currentUser = this.#authStore.currentUser;
@@ -76,6 +79,25 @@ export class UserProfileComponent {
   readonly weatherEffectsEnabled = this.#weather.effectsEnabled;
   /** False offline: account changes and logout need the server. */
   readonly canWrite = this.#authStore.canWrite;
+  readonly pushState = this.#pushNotifications.state;
+  readonly pushBusy = this.#pushNotifications.busy;
+  readonly showIosInstallHint = this.#pushNotifications.showIosInstallHint;
+  readonly pushChecked = computed(
+    () => this.#pushPending() ?? this.pushState() === 'on',
+  );
+  readonly emailRemindersChecked = computed(
+    () => this.#emailPending() ?? this.currentUser()?.emailReminders ?? false,
+  );
+  readonly pushSwitchDisabled = computed(
+    () =>
+      !['on', 'off'].includes(this.pushState()) ||
+      !this.canWrite() ||
+      this.pushBusy(),
+  );
+
+  /** The switches show the wanted value while the request is in flight. */
+  readonly #pushPending = signal<boolean | null>(null);
+  readonly #emailPending = signal<boolean | null>(null);
 
   readonly sanitizedAvatarUrl = computed(() => {
     const url = this.userAvatar();
@@ -85,8 +107,45 @@ export class UserProfileComponent {
     );
   });
 
+  constructor() {
+    // Config and permission need the server; reload them when it is back.
+    effect(() => {
+      if (this.canWrite()) {
+        void this.#pushNotifications.refresh();
+      }
+    });
+  }
+
   onAppBadgeChange(enabled: boolean): void {
     this.#appBadge.setEnabled(enabled);
+  }
+
+  async onPushChange(enabled: boolean): Promise<void> {
+    this.#pushPending.set(enabled);
+    try {
+      if (enabled) {
+        await this.#pushNotifications.enable();
+      } else {
+        await this.#pushNotifications.disable();
+      }
+    } finally {
+      this.#pushPending.set(null);
+    }
+  }
+
+  onSendTestNotification(): void {
+    void this.#pushNotifications.sendTest();
+  }
+
+  async onEmailRemindersChange(enabled: boolean): Promise<void> {
+    this.#emailPending.set(enabled);
+    try {
+      await this.#authStore.setEmailReminders(enabled);
+    } catch {
+      // The interceptor showed the error; the switch returns to the saved value.
+    } finally {
+      this.#emailPending.set(null);
+    }
   }
 
   onWeatherEffectsChange(enabled: boolean): void {
@@ -127,8 +186,8 @@ export class UserProfileComponent {
   }
 
   // 14. Event handlers (use 'on' prefix)
-  onLogout(): void {
-    this.#authStore.logout();
+  async onLogout(): Promise<void> {
+    await this.#authStore.logout();
     this.#router.navigate(['/login']);
     this.isMenuOpen.set(false);
   }

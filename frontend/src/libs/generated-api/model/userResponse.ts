@@ -19,6 +19,8 @@ export interface UserResponse {
     isVerified: boolean;
     avatarUrl?: string | null;
     language: string;
+    timezone?: string | null;
+    emailReminders?: boolean;
     onboardingCompleted?: boolean;
     message?: string | null;
     createdAt: string;

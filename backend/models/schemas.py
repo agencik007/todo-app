@@ -3,14 +3,22 @@ Pydantic schemas - Request/Response models for API validation.
 """
 
 from datetime import date, datetime, time
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    UrlConstraints,
+    field_validator,
+)
 from pydantic.alias_generators import to_camel
-from pydantic_core import PydanticCustomError
+from pydantic_core import PydanticCustomError, Url
 
 from models.group import GroupColor
+from services.push_endpoints import is_allowed_push_endpoint
 
 
 class CamelBaseModel(BaseModel):
@@ -82,6 +90,7 @@ class TodoBase(CamelBaseModel):
     group_id: int | None = None
     due_date: date | None = None
     due_time: time | None = None
+    reminder_offset_minutes: int | None = None
 
 
 def normalize_due_time(v: time | None) -> time | None:
@@ -120,6 +129,7 @@ class TodoUpdate(CamelBaseModel):
     group_id: int | None = None
     due_date: date | None = None
     due_time: time | None = None
+    reminder_offset_minutes: int | None = None
 
     _normalize_due_time = field_validator("due_time")(normalize_due_time)
 
@@ -133,6 +143,7 @@ class Todo(TodoBase):
     user_id: int
     client_id: UUID | None = None
     owner_email: str | None = None
+    remind_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
     group: Group | None = None
@@ -209,6 +220,8 @@ class UserResponse(UserBase):
     is_verified: bool
     avatar_url: str | None = None
     language: str
+    timezone: str | None = None
+    email_reminders: bool = False
     onboarding_completed: bool = False
     message: str | None = None
     created_at: datetime
@@ -239,6 +252,18 @@ class UserLanguageUpdate(CamelBaseModel):
     """Schema for updating user language."""
 
     language: str = Field(..., pattern="^(en|pl)$")
+
+
+class TimezoneUpdate(CamelBaseModel):
+    """Schema for updating the user's IANA timezone."""
+
+    timezone: str = Field(..., max_length=64)
+
+
+class EmailRemindersUpdate(CamelBaseModel):
+    """Schema for switching email reminders on or off."""
+
+    enabled: bool
 
 
 class UserDeleteConfirm(CamelBaseModel):
@@ -299,3 +324,56 @@ class PasswordReset(CamelBaseModel):
         from config.password_validator import validate_password_strength
 
         return validate_password_strength(v)
+
+
+# =============================================================================
+# Push Schemas
+# =============================================================================
+
+
+class PushConfig(CamelBaseModel):
+    """Whether web push is set up and the public VAPID key browsers subscribe with."""
+
+    enabled: bool
+    public_key: str | None = None
+
+
+# Browsers hand out https endpoints only; the cap bounds the stored value.
+HttpsUrl = Annotated[Url, UrlConstraints(allowed_schemes=["https"], max_length=2048)]
+
+
+class PushKeys(CamelBaseModel):
+    """Encryption keys of a browser's push subscription."""
+
+    p256dh: str = Field(..., min_length=1, max_length=255)
+    auth: str = Field(..., min_length=1, max_length=255)
+
+
+class PushSubscriptionCreate(CamelBaseModel):
+    """A browser's push subscription (https endpoints only)."""
+
+    endpoint: HttpsUrl
+    keys: PushKeys
+    user_agent: str | None = Field(default=None, max_length=1000)
+
+    @field_validator("endpoint")
+    @classmethod
+    def endpoint_on_known_push_service(cls, v: Url) -> Url:
+        if not is_allowed_push_endpoint(str(v)):
+            raise PydanticCustomError(
+                "push_endpoint_not_allowed", "PUSH_ENDPOINT_NOT_ALLOWED"
+            )
+        return v
+
+
+class PushSubscriptionDelete(CamelBaseModel):
+    """Identifies the subscription to remove."""
+
+    endpoint: HttpsUrl
+
+
+class PushResult(CamelBaseModel):
+    """Result of a push endpoint: an API message code, plus a count for a test."""
+
+    message: str
+    sent: int | None = None

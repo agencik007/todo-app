@@ -450,6 +450,7 @@ export class TodoStore {
                 clientId: todo.clientId,
                 dueDate: todo.dueDate,
                 dueTime: todo.dueTime,
+                reminderOffsetMinutes: todo.reminderOffsetMinutes,
               },
               context,
             ),

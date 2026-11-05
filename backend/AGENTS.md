@@ -48,7 +48,7 @@ Every email the backend sends follows the same rules, so a new one looks and beh
 
 ## Testing
 
-- The full suite is 199 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
+- The full suite is 310 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
 - Single test: `docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec backend python -m pytest tests/test_filename.py::test_function_name`.
 - Test and lint tools (pytest, pytest-asyncio, pytest-cov, httpx, ruff) live in `backend/requirements-dev.txt`, not `requirements.txt`: the production image installs runtime dependencies only, the dev container (`target: dev`) and CI install both.
 - Tests never use the application database: `conftest.py` derives `<db>_test` from `DATABASE_URL` (created automatically if the DB user has permission), or uses `TEST_DATABASE_URL` if set.
@@ -56,6 +56,7 @@ Every email the backend sends follows the same rules, so a new one looks and beh
 - **Embeddings in tests:** an autouse fixture in `conftest.py` swaps in `FakeEmbedder` (`tests/fakes.py`) and also installs it into the process-wide singleton (`install_embedder`). Never load the real model in tests: it is slow, memory-hungry and breaks the offline guarantee. Test scoring with fake vectors.
 - **Persistent test database:** `<db>_test` is built once with `create_all` and is not touched by migrations, so a new column needs a manual `ALTER TABLE` there (or drop and recreate the test database) before the suite sees it.
 - **Rate limiting in tests:** rate limiting is enabled by default on sensitive endpoints (registration, login, forgot/reset password, resend verification). Tests must run with `TESTING=1`, which `backend/tests/conftest.py` sets automatically via `os.environ["TESTING"] = "1"`.
+- **Reminder worker and push in tests:** `services/reminder_worker.py` (the `reminder-worker` container) and `services/push_service.py` never reach the network in tests. Always monkeypatch `push_service.webpush_send` (the single place that calls `pywebpush`) with a fake that records or raises, and `email_service.send_email` for email (see the `sent` fixture in `tests/test_push.py` and `pushed` / `emails` in `tests/test_reminder_worker.py`); never send a real push and never contact FCM, Mozilla or Apple. Drive the worker with `run_once` / `claim_due` and an explicit `now`, not with `loop` and its sleeping. New push endpoint hosts go into `services/push_endpoints.py` with a test.
 - **When adding new rate-limited endpoints**, always check `enabled=not IS_TESTING` or `os.getenv("TESTING") != "1"` so the test suite continues to bypass limiting.
 
 ---

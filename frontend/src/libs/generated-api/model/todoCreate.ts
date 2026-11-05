@@ -23,6 +23,7 @@ export interface TodoCreate {
     groupId?: number | null;
     dueDate?: string | null;
     dueTime?: string | null;
+    reminderOffsetMinutes?: number | null;
     clientId?: string | null;
 }
 

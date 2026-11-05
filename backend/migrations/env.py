@@ -27,6 +27,7 @@ from config.database import Base
 
 # Import all models to ensure they are registered with Base.metadata
 from models.group import Group  # noqa: F401
+from models.push_subscription import PushSubscription  # noqa: F401
 from models.refresh_token import RefreshToken  # noqa: F401
 from models.todo import Todo  # noqa: F401
 from models.user import User  # noqa: F401

@@ -3,6 +3,7 @@ Models package - SQLAlchemy models and Pydantic schemas.
 """
 
 from models.group import Group, GroupColor
+from models.push_subscription import PushSubscription
 from models.refresh_token import RefreshToken
 from models.schemas import (
     Group as GroupSchema,
@@ -41,6 +42,7 @@ __all__ = [
     "Group",
     "GroupColor",
     "RefreshToken",
+    "PushSubscription",
     # Group schemas
     "GroupBase",
     "GroupCreate",

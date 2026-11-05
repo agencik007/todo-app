@@ -48,7 +48,7 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 | Prod environment                                             | `make prod`                                                                   |
 | Deploy prebuilt images (CD runs it on the server)            | `make deploy IMAGE_TAG=<sha> BACKEND_IMAGE=... FRONTEND_IMAGE=...`            |
 | Stop all services                                            | `make down`                                                                   |
-| View logs                                                    | `make logs`, `make logs-backend`, `make logs-frontend`                        |
+| View logs                                                    | `make logs`, `make logs-backend`, `make logs-worker`, `make logs-frontend`    |
 | Clean environment (containers, images, volumes)              | `make clean`                                                                  |
 | Backend tests                                                | `make test-backend`                                                           |
 | Single backend test                                          | `DC exec backend python -m pytest tests/test_filename.py::test_function_name` |
@@ -128,6 +128,7 @@ backend/
   services/      # business logic
   templates/email/ # Jinja2 email templates (rules in backend/AGENTS.md)
   migrations/    # Alembic (remember to register models in env.py!)
+  scripts/       # seed.py, eval_suggestions.py, generate_vapid_keys.py (VAPID pair for Web Push task reminders)
   openapi/       # export_openapi.py + openapi.json (input of `npm run generate-api`)
   tests/         # pytest; conftest.py sets TESTING=1
   ruff.toml      # Ruff lint/format configuration

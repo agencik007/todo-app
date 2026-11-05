@@ -311,6 +311,7 @@
                   <div class="row-line-2">
                     @if (todo.dueDate) {
                       @let dueState = dueStatusOf(todo);
+                      @let reminder = reminderLabel(todo);
                       <span class="sr-only">{{ 'TODOS.LIST.DUE_SR_PREFIX' | translate }}</span>
                       <span
                         tooltipPosition="top"
@@ -327,10 +328,21 @@
                           [class.pi-calendar]="dueState !== 'overdue'"
                         ></i>
                         {{ dueLabel(todo) }}
+                        @if (reminder) {
+                          <i
+                            class="pi pi-bell"
+                            aria-hidden="true"
+                          ></i>
+                        }
                         @if (dueState === 'overdue') {
                           <span class="sr-only">, {{ 'TODOS.LIST.DUE_OVERDUE' | translate }}</span>
                         }
                       </span>
+                      @if (reminder) {
+                        <span class="sr-only">
+                          , {{ 'TODOS.LIST.REMINDER_TOOLTIP' | translate: { choice: reminder } }}
+                        </span>
+                      }
                       <span
                         class="meta-sep"
                         aria-hidden="true"

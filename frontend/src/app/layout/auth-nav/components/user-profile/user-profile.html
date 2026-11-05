@@ -210,6 +210,90 @@
               </label>
             }
             <label
+              for="push-input"
+              class="setting-row setting-row--switch"
+            >
+              <span class="setting-text">
+                <span
+                  id="push-label"
+                  class="setting-label"
+                >
+                  {{ 'SETTINGS.NOTIFICATIONS.PUSH' | translate }}
+                </span>
+                @if (pushState() !== 'loading') {
+                  <span
+                    id="push-hint"
+                    class="setting-hint"
+                  >
+                    {{ 'SETTINGS.NOTIFICATIONS.PUSH_HINT.' + pushState() | translate }}
+                  </span>
+                }
+                @if (pushState() === 'unsupported' && showIosInstallHint()) {
+                  <span
+                    id="push-ios-hint"
+                    class="setting-hint"
+                  >
+                    {{ 'SETTINGS.NOTIFICATIONS.IOS_INSTALL' | translate }}
+                  </span>
+                }
+              </span>
+              <p-toggleswitch
+                styleClass="setting-switch"
+                inputId="push-input"
+                ariaLabelledBy="push-label"
+                [pt]="{
+                  input: {
+                    'aria-describedby':
+                      pushState() === 'unsupported' && showIosInstallHint()
+                        ? 'push-hint push-ios-hint'
+                        : 'push-hint',
+                  },
+                }"
+                [ngModel]="pushChecked()"
+                [disabled]="pushSwitchDisabled()"
+                (ngModelChange)="onPushChange($event)"
+              />
+            </label>
+            @if (pushState() === 'on') {
+              <div class="setting-row setting-row--action">
+                <p-button
+                  size="small"
+                  severity="secondary"
+                  [text]="true"
+                  [label]="'SETTINGS.NOTIFICATIONS.TEST' | translate"
+                  [disabled]="!canWrite() || pushBusy()"
+                  (onClick)="onSendTestNotification()"
+                />
+              </div>
+            }
+            <label
+              for="email-reminders-input"
+              class="setting-row setting-row--switch"
+            >
+              <span class="setting-text">
+                <span
+                  id="email-reminders-label"
+                  class="setting-label"
+                >
+                  {{ 'SETTINGS.NOTIFICATIONS.EMAIL' | translate }}
+                </span>
+                <span
+                  id="email-reminders-hint"
+                  class="setting-hint"
+                  >{{ 'SETTINGS.NOTIFICATIONS.EMAIL_HINT' | translate }}</span
+                >
+              </span>
+              <p-toggleswitch
+                styleClass="setting-switch"
+                inputId="email-reminders-input"
+                ariaLabelledBy="email-reminders-label"
+                [pt]="{ input: { 'aria-describedby': 'email-reminders-hint' } }"
+                [ngModel]="emailRemindersChecked()"
+                [disabled]="!canWrite()"
+                (ngModelChange)="onEmailRemindersChange($event)"
+              />
+            </label>
+            <label
               for="weather-effects-input"
               class="setting-row setting-row--switch"
             >

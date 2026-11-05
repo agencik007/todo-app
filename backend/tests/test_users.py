@@ -105,3 +105,50 @@ class TestDeleteAccount:
         )
 
         assert response.status_code == 401
+
+
+class TestUserTimezone:
+    """Test PUT /users/me/timezone and PUT /users/me/email-reminders."""
+
+    def test_timezone_defaults_to_null(self, authenticated_client: TestClient):
+        """A new user has no timezone and email reminders are off."""
+        response = authenticated_client.post(
+            "/users/me/onboarding", json={"groupKeys": []}
+        )
+
+        assert response.status_code == 200
+        assert response.json()["timezone"] is None
+        assert response.json()["emailReminders"] is False
+
+    def test_set_timezone(self, authenticated_client: TestClient, test_db: Session):
+        """A valid IANA timezone is stored and returned."""
+        response = authenticated_client.put(
+            "/users/me/timezone", json={"timezone": "Europe/Warsaw"}
+        )
+
+        assert response.status_code == 200
+        assert response.json()["timezone"] == "Europe/Warsaw"
+        test_db.expire_all()
+        assert test_db.query(User).one().timezone == "Europe/Warsaw"
+
+    def test_set_invalid_timezone(self, authenticated_client: TestClient):
+        """An unknown timezone is rejected with INVALID_TIMEZONE."""
+        response = authenticated_client.put(
+            "/users/me/timezone", json={"timezone": "Mars/Base"}
+        )
+
+        assert response.status_code == 422
+        assert response.json()["detail"]["messageCode"] == "INVALID_TIMEZONE"
+
+    def test_toggle_email_reminders(
+        self, authenticated_client: TestClient, test_db: Session
+    ):
+        """Email reminders default to off; enabling them is returned and stored."""
+        response = authenticated_client.put(
+            "/users/me/email-reminders", json={"enabled": True}
+        )
+
+        assert response.status_code == 200
+        assert response.json()["emailReminders"] is True
+        test_db.expire_all()
+        assert test_db.query(User).one().email_reminders is True

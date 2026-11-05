@@ -24,7 +24,13 @@ from sqlalchemy import Connection, text
 from sqlalchemy import inspect as sa_inspect
 
 from config.database import Base, engine
-from routes import auth_router, groups_router, todo_router, users_router
+from routes import (
+    auth_router,
+    groups_router,
+    push_router,
+    todo_router,
+    users_router,
+)
 from services.embedder import warm_up_embedder
 from services.suggestion_service import catalog_space
 
@@ -175,12 +181,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     """
     errors = exc.errors()
 
-    # Check if any error message contains an AUTH_, TODO_, USER_, or GROUP_ code
+    # Check if any error message contains an AUTH_, TODO_, USER_, GROUP_ or PUSH_ code
     for error in errors:
         msg = error.get("msg", "")
         # Regex to find our API message codes in the Pydantic error message
         # (e.g. "Value error, AUTH_PASSWORD_TOO_COMMON")
-        match = re.search(r"(AUTH_|TODO_|USER_|GROUP_)\w+", msg)
+        match = re.search(r"(AUTH_|TODO_|USER_|GROUP_|PUSH_)\w+", msg)
         if match:
             message_code = match.group(0)
             return JSONResponse(
@@ -239,6 +245,7 @@ app.include_router(auth_router)
 app.include_router(todo_router)
 app.include_router(users_router)
 app.include_router(groups_router)
+app.include_router(push_router)
 
 
 @app.get("/", tags=["health"])

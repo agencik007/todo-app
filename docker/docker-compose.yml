@@ -1,3 +1,27 @@
+# Settings the backend and the reminder worker share (one definition, so they
+# cannot drift apart). Each service adds its own on top.
+x-app-env: &app-env
+  DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set}
+  DEBUG: "False"
+  SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set (e.g. openssl rand -hex 32)}
+  FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
+  # Email
+  EMAIL_FROM: ${EMAIL_FROM:-noreply@example.com}
+  USE_MAILHOG: ${USE_MAILHOG:-true}
+  # Web Push (task reminders); empty keys switch push off. Generate a pair
+  # with `python -m scripts.generate_vapid_keys`.
+  VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+  VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+  VAPID_SUBJECT: ${VAPID_SUBJECT:-}
+  # MailHog (dev)
+  MAILHOG_HOST: ${MAILHOG_HOST:-mailhog}
+  MAILHOG_PORT: ${MAILHOG_PORT:-1025}
+  # Real SMTP / Brevo (prod, used when USE_MAILHOG=false)
+  SMTP_HOST: ${SMTP_HOST:-smtp-relay.brevo.com}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+
 services:
   # PostgreSQL Database
   db:
@@ -36,33 +60,19 @@ services:
     container_name: todo-backend
     restart: unless-stopped
     environment:
-      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL must be set}
-      - DEBUG=False
-      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set (e.g. openssl rand -hex 32)}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:4200}
+      <<: *app-env
+      AI_SUGGESTIONS_ENABLED: ${AI_SUGGESTIONS_ENABLED:-true}
       # Required by backend/main.py (comma-separated). "backend" lets other
       # containers on todo-network reach the API by its service name.
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
-      - AI_SUGGESTIONS_ENABLED=${AI_SUGGESTIONS_ENABLED:-true}
-      # ── Email ──────────────────────────────────────────────────────────────
-      - EMAIL_FROM=${EMAIL_FROM:-noreply@example.com}
-      - USE_MAILHOG=${USE_MAILHOG:-true}
-      # MailHog (dev)
-      - MAILHOG_HOST=${MAILHOG_HOST:-mailhog}
-      - MAILHOG_PORT=${MAILHOG_PORT:-1025}
-      # Real SMTP / Brevo (prod, used when USE_MAILHOG=false)
-      - SMTP_HOST=${SMTP_HOST:-smtp-relay.brevo.com}
-      - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-}
-      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
       # uvicorn only trusts X-Forwarded-For from these peers (default:
       # loopback only, i.e. no one). If you put a reverse proxy in front of
       # this backend, set this to the proxy's IP/CIDR so rate limiting keys
       # off the real client IP instead of the proxy's.
-      - FORWARDED_ALLOW_IPS=${FORWARDED_ALLOW_IPS:-127.0.0.1}
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
       # Mark auth cookies Secure. Set to True when the app is served over HTTPS.
-      - SECURE_COOKIES=${SECURE_COOKIES:-False}
+      SECURE_COOKIES: ${SECURE_COOKIES:-False}
     ports:
       # Loopback only, like db and pgAdmin: the reverse proxy on the host
       # reaches it at 127.0.0.1:8000, nothing else should.
@@ -90,6 +100,45 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+
+  # Reminder worker - same image as the backend, sends due task reminders
+  # (push + email). Needs the backend's database, email and VAPID settings.
+  # Run more than one and each reminder is still sent once (row locks).
+  reminder-worker:
+    image: ${BACKEND_IMAGE:-todo-backend}:${IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: todo-reminder-worker
+    restart: unless-stopped
+    # A pass can outlast the default 10 s: let it finish before SIGKILL.
+    stop_grace_period: 120s
+    command: ["python", "-m", "services.reminder_worker"]
+    environment:
+      <<: *app-env
+      # false = the worker stays up but sends nothing (exiting would make the
+      # restart policy loop and fail `up --wait`)
+      REMINDER_WORKER_ENABLED: ${REMINDER_WORKER_ENABLED:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    networks:
+      - todo-network
+    healthcheck:
+      # The worker touches this file after every pass (every 30 s).
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import os, sys, time; sys.exit(time.time() - os.path.getmtime('/tmp/reminder-worker.heartbeat') > 120)",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   # Angular Frontend
   frontend:

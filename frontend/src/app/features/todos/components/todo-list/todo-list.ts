@@ -51,6 +51,7 @@ import {
   dueStatus,
   formatDueFull,
   formatDueLabel,
+  reminderKey,
 } from '../../utils/due-date.util';
 import { TodoFormComponent } from '../todo-form/todo-form';
 
@@ -452,9 +453,24 @@ export class TodoListComponent implements OnInit {
         this.#language.currentLang(),
       ),
     });
-    return this.dueStatusOf(todo) === 'overdue'
-      ? `${text} – ${this.#translate.instant('TODOS.LIST.DUE_OVERDUE')}`
-      : text;
+    const withStatus =
+      this.dueStatusOf(todo) === 'overdue'
+        ? `${text} – ${this.#translate.instant('TODOS.LIST.DUE_OVERDUE')}`
+        : text;
+    const reminder = this.reminderLabel(todo);
+    return reminder
+      ? `${withStatus} – ${this.#translate.instant('TODOS.LIST.REMINDER_TOOLTIP', { choice: reminder })}`
+      : withStatus;
+  }
+
+  /** The reminder choice in words, or null without a reminder. */
+  reminderLabel(todo: Todo): string | null {
+    const offset = todo.reminderOffsetMinutes;
+    if (offset == null) {
+      return null;
+    }
+    const key = reminderKey(offset, !!todo.dueTime);
+    return key ? this.#translate.instant(`TODOS.FORM.${key}`) : null;
   }
 
   getRelativeTime(dateString: string | undefined): string {

@@ -22,10 +22,30 @@
     "fallback_text": "Przycisk nie działa? Skopiuj ten link do przeglądarki:",
     "ignore_text": "Jeśli prośba nie pochodzi od Ciebie, zignoruj tę wiadomość – Twoje hasło się nie zmieni."
   },
+  "reminder": {
+    "subject": "Przypomnienie o zadaniu – Todo App",
+    "preheader": "Zadanie z Twojej listy ma wkrótce termin.",
+    "title": "Przypomnienie o zadaniu",
+    "greeting": "Cześć!",
+    "message": "To przypomnienie o Twoim zadaniu:",
+    "task_text": "{task_title}",
+    "due_text": "{due_text}",
+    "button_text": "Otwórz moje zadania",
+    "fallback_text": "Przycisk nie działa? Skopiuj ten link do przeglądarki:",
+    "settings_text": "Dostajesz te wiadomości, bo w ustawieniach Todo App włączono przypomnienia e-mail."
+  },
   "common": {
     "sent_to": "Ta wiadomość została wysłana na adres {email}.",
     "footer_automated": "Wysłaliśmy ją automatycznie, prosimy na nią nie odpowiadać.",
     "footer_copyright": "© {year} Todo App"
+  },
+  "push": {
+    "due_at": "Termin: {time}",
+    "due_today": "Termin: dziś",
+    "due_tomorrow": "Termin: jutro",
+    "due_tomorrow_at": "Termin: jutro, {time}",
+    "test_title": "Testowe powiadomienie",
+    "test_body": "Powiadomienia z listy zadań działają."
   },
   "units": {
     "hours": {

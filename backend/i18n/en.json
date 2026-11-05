@@ -22,10 +22,30 @@
     "fallback_text": "Button not working? Copy this link into your browser:",
     "ignore_text": "If you didn't ask for a password reset, ignore this message – your password stays the same."
   },
+  "reminder": {
+    "subject": "Task reminder – Todo App",
+    "preheader": "A task on your list is due soon.",
+    "title": "Task reminder",
+    "greeting": "Hi!",
+    "message": "This is a reminder about your task:",
+    "task_text": "{task_title}",
+    "due_text": "{due_text}",
+    "button_text": "Open my tasks",
+    "fallback_text": "Button not working? Copy this link into your browser:",
+    "settings_text": "You get these emails because email reminders are switched on in your Todo App settings."
+  },
   "common": {
     "sent_to": "This message was sent to {email}.",
     "footer_automated": "It was sent automatically, please don't reply.",
     "footer_copyright": "© {year} Todo App"
+  },
+  "push": {
+    "due_at": "Due at {time}",
+    "due_today": "Due today",
+    "due_tomorrow": "Due tomorrow",
+    "due_tomorrow_at": "Due tomorrow at {time}",
+    "test_title": "Test notification",
+    "test_body": "Notifications from your task list work."
   },
   "units": {
     "hours": {

@@ -34,7 +34,9 @@ export default defineConfig({
     {
       name: 'pwa',
       testMatch: /pwa\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'], serviceWorkers: 'allow' },
+      // channel 'chromium' is the new headless mode: the default headless shell
+      // reports Notification.permission as 'denied' even after grantPermissions.
+      use: { ...devices['Desktop Chrome'], channel: 'chromium', serviceWorkers: 'allow' },
     },
   ],
 });

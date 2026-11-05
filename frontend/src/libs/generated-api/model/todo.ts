@@ -24,10 +24,12 @@ export interface Todo {
     groupId?: number | null;
     dueDate?: string | null;
     dueTime?: string | null;
+    reminderOffsetMinutes?: number | null;
     id: number;
     userId: number;
     clientId?: string | null;
     ownerEmail?: string | null;
+    remindAt?: string | null;
     createdAt: string;
     updatedAt: string;
     group?: Group | null;

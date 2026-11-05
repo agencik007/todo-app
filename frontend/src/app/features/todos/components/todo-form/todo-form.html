@@ -113,6 +113,37 @@
     </app-form-field>
   }
 
+  @if (todoModel().dueDate) {
+    <app-form-field
+      inputId="reminder"
+      [label]="'TODOS.FORM.FIELD_REMINDER' | translate"
+    >
+      <!-- ngModel, not [formField]: same reason as the group select -->
+      <p-select
+        optionValue="value"
+        optionLabel="label"
+        inputId="reminder"
+        class="w-full"
+        appendTo="body"
+        [pt]="showReminderHint() ? { label: { 'aria-describedby': 'reminder-hint' } } : undefined"
+        [placeholder]="'TODOS.FORM.REMINDER_NONE' | translate"
+        [options]="reminderOptions()"
+        [ngModelOptions]="{ standalone: true }"
+        [ngModel]="todoModel().reminderOffsetMinutes"
+        (ngModelChange)="onReminderChange($event)"
+      />
+      @if (showReminderHint()) {
+        <small
+          id="reminder-hint"
+          class="text-color-secondary"
+          data-testid="reminder-hint"
+        >
+          {{ 'TODOS.FORM.REMINDER_HINT_OFF' | translate }}
+        </small>
+      }
+    </app-form-field>
+  }
+
   <app-form-field
     inputId="group"
     [label]="'TODOS.FORM.FIELD_GROUP' | translate"

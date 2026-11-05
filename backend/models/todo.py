@@ -8,11 +8,13 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     LargeBinary,
     String,
     Time,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -28,6 +30,12 @@ class Todo(Base):
     # retried create returns the existing todo instead of a duplicate.
     __table_args__ = (
         UniqueConstraint("user_id", "client_id", name="uq_todos_user_client_id"),
+        # The reminder worker scans only the reminders that are still to be sent.
+        Index(
+            "ix_todos_pending_reminders",
+            "remind_at",
+            postgresql_where=text("reminder_sent_at IS NULL"),
+        ),
     )
 
     id = Column(Integer, primary_key=True, index=True)
@@ -46,6 +54,12 @@ class Todo(Base):
     # wall-clock values (no timezone), shown as the user entered them.
     due_date = Column(Date, nullable=True)
     due_time = Column(Time, nullable=True)
+    # Minutes before the due time to remind (see services/reminders.py); null =
+    # no reminder. remind_at is derived server-side from the due pair, this
+    # offset and the user's timezone; reminder_sent_at is never exposed.
+    reminder_offset_minutes = Column(Integer, nullable=True)
+    remind_at = Column(DateTime(timezone=True), nullable=True)
+    reminder_sent_at = Column(DateTime(timezone=True), nullable=True)
     # float32 text embedding (services/embedder.py); never exposed by the API
     embedding = Column(LargeBinary, nullable=True)
 

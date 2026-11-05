@@ -34,9 +34,12 @@ export class TodosPage {
     {
       description,
       due,
+      reminder,
     }: {
       description?: string;
       due?: { date: 'Today' | 'Tomorrow'; time?: 'Morning' | 'Afternoon' | 'Evening' };
+      /** Label of a reminder option; needs a due date. */
+      reminder?: string;
     } = {},
   ): Promise<void> {
     await this.page.getByRole('button', { name: 'Add task' }).click();
@@ -50,8 +53,46 @@ export class TodosPage {
         await this.dialog.getByRole('button', { name: due.time, exact: true }).click();
       }
     }
+    if (reminder) {
+      await this.pickReminder(reminder);
+    }
     await this.dialog.getByRole('button', { name: 'Add task' }).click();
     await expect(this.dialog).toBeHidden();
+  }
+
+  /** The dialog's Reminder select (shown once a due date is set). */
+  reminderSelect(): Locator {
+    return this.dialog.locator('#reminder');
+  }
+
+  /** Opens the Reminder select and returns its option labels. */
+  async reminderOptions(): Promise<string[]> {
+    await this.reminderSelect().click();
+    const options = this.page.getByRole('option');
+    await expect(options.first()).toBeVisible();
+    const labels = await options.allTextContents();
+    await this.page.keyboard.press('Escape');
+    await expect(options.first()).toBeHidden();
+    return labels.map((label) => label.trim());
+  }
+
+  /** The bell on a task's due chip, shown when the task has a reminder. */
+  reminderBell(title: string): Locator {
+    return this.dueChip(title).locator('.pi-bell');
+  }
+
+  /** Clears the due time in the open dialog (the date stays). */
+  async clearDueTime(): Promise<void> {
+    await this.dialog
+      .locator('p-datepicker')
+      .filter({ has: this.page.locator('#dueTime') })
+      .locator('.p-datepicker-clear-icon')
+      .click();
+  }
+
+  async pickReminder(label: string): Promise<void> {
+    await this.reminderSelect().click();
+    await this.page.getByRole('option', { name: label, exact: true }).click();
   }
 
   async rename(title: string, newTitle: string): Promise<void> {

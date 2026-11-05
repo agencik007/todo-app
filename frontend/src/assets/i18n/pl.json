@@ -214,6 +214,7 @@
       "DUE_YESTERDAY": "Wczoraj",
       "DUE_TOOLTIP": "Termin: {{date}}",
       "DUE_OVERDUE": "Po terminie",
+      "REMINDER_TOOLTIP": "Przypomnienie: {{choice}}",
       "DUE_SR_PREFIX": "Termin:",
       "TOOLTIP_EDIT": "Edytuj zadanie",
       "TOOLTIP_DELETE": "Usuń zadanie",
@@ -234,6 +235,15 @@
       "FIELD_DUE_DATE": "Termin",
       "FIELD_DUE_DATE_PLACEHOLDER": "Bez terminu",
       "FIELD_DUE_TIME": "Godzina",
+      "FIELD_REMINDER": "Przypomnienie",
+      "REMINDER_NONE": "Bez przypomnienia",
+      "REMINDER_AT_TIME": "W chwili terminu",
+      "REMINDER_15": "15 minut wcześniej",
+      "REMINDER_60": "1 godzinę wcześniej",
+      "REMINDER_DAY_BEFORE": "Dzień wcześniej",
+      "REMINDER_DAY_OF_9": "W dniu terminu o 9:00",
+      "REMINDER_DAY_BEFORE_9": "Dzień wcześniej o 9:00",
+      "REMINDER_HINT_OFF": "Włącz powiadomienia w ustawieniach, aby dostawać przypomnienia",
       "FIELD_DUE_TIME_PLACEHOLDER": "Dowolna pora",
       "DUE_TODAY": "Dziś",
       "DUE_TOMORROW": "Jutro",
@@ -361,11 +371,19 @@
     "TODO_REORDER_SUCCESS": "Kolejność zadania zaktualizowana pomyślnie",
     "TODO_INVALID_INDEX": "Nieprawidłowy indeks zadania",
     "TODO_DUE_TIME_WITHOUT_DATE": "Najpierw wybierz datę, potem godzinę.",
+    "REMINDER_WITHOUT_DATE": "Najpierw ustaw termin, potem przypomnienie.",
+    "REMINDER_INVALID_OFFSET": "Ta opcja przypomnienia jest niedostępna.",
     "HEALTH_DATABASE_UNAVAILABLE": "Baza danych jest niedostępna. Spróbuj ponownie później.",
     "USER_ACCOUNT_DELETED": "Twoje konto zostało usunięte",
     "USER_INVALID_PASSWORD": "Nieprawidłowe hasło",
     "USER_ONBOARDING_ALREADY_COMPLETED": "Konfiguracja konta została już zakończona.",
-    "SUGGESTIONS_UNAVAILABLE": "Podpowiedzi są teraz niedostępne."
+    "INVALID_TIMEZONE": "Nie rozpoznano tej strefy czasowej.",
+    "SUGGESTIONS_UNAVAILABLE": "Podpowiedzi są teraz niedostępne.",
+    "PUSH_UNAVAILABLE": "Powiadomienia w przeglądarce są teraz niedostępne.",
+    "PUSH_SUBSCRIBED": "Powiadomienia w tej przeglądarce są włączone.",
+    "PUSH_UNSUBSCRIBED": "Powiadomienia w tej przeglądarce są wyłączone.",
+    "PUSH_TEST_SENT": "Wysłano testowe powiadomienie.",
+    "PUSH_ENDPOINT_NOT_ALLOWED": "Usługa powiadomień tej przeglądarki nie jest obsługiwana."
   },
   "GROUPS": {
     "SIDEBAR": {
@@ -494,6 +512,21 @@
     "FINALIZING": "Finalizowanie…"
   },
   "SETTINGS": {
+    "NOTIFICATIONS": {
+      "PUSH": "Powiadomienia w przeglądarce",
+      "PUSH_HINT": {
+        "on": "Przypomnienia pojawią się na tym urządzeniu.",
+        "off": "Otrzymuj przypomnienia o zadaniach na tym urządzeniu.",
+        "denied": "Zablokowane w ustawieniach przeglądarki. Zezwól tej stronie na powiadomienia, aby je włączyć.",
+        "unavailable": "Niedostępne w tej chwili.",
+        "unsupported": "Ta przeglądarka nie może tutaj wyświetlać powiadomień."
+      },
+      "IOS_INSTALL": "Na iPhonie i iPadzie najpierw dodaj aplikację do ekranu głównego.",
+      "TEST": "Wyślij testowe powiadomienie",
+      "TEST_NONE": "Żadne urządzenie nie odebrało powiadomienia. Wyłącz i włącz powiadomienia ponownie.",
+      "EMAIL": "Przypomnienia e-mailem",
+      "EMAIL_HINT": "Otrzymuj przypomnienia o zadaniach e-mailem."
+    },
     "BACKGROUND_TOOLTIP": {
       "off": "Tło: Wyłączone",
       "aurora": "Tło: Zorza",
@@ -507,7 +540,7 @@
   },
   "PRIVACY": {
     "TITLE": "Polityka prywatności",
-    "UPDATED": "Ostatnia aktualizacja: 29 października 2026",
+    "UPDATED": "Ostatnia aktualizacja: 5 listopada 2026",
     "BACK": "Wróć",
     "SECTIONS": [
       {
@@ -516,7 +549,7 @@
       },
       {
         "TITLE": "W jakim celu",
-        "BODY": "Dane służą wyłącznie do działania aplikacji: logowania, synchronizacji zadań między urządzeniami i wysyłki wiadomości dotyczących konta (weryfikacja adresu, reset hasła). Nie sprzedajemy danych, nie wyświetlamy reklam i nie profilujemy użytkowników. Treść Twoich zadań jest analizowana na własnym serwerze aplikacji, aby podpowiedzieć grupę dla nowego zadania; nie trafia do podmiotów trzecich."
+        "BODY": "Dane służą wyłącznie do działania aplikacji: logowania, synchronizacji zadań między urządzeniami i wysyłki wiadomości dotyczących konta (weryfikacja adresu, reset hasła) oraz przypomnień o zadaniach, o które prosisz (powiadomienia w przeglądarce i, jeśli je włączysz, e-maile z przypomnieniami). Nie sprzedajemy danych, nie wyświetlamy reklam i nie profilujemy użytkowników. Treść Twoich zadań jest analizowana na własnym serwerze aplikacji, aby podpowiedzieć grupę dla nowego zadania; nie trafia do podmiotów trzecich. Jedyny wyjątek to przypomnienia e-mailem, jeśli je włączysz: taka wiadomość zawiera tytuł zadania i trafia przez naszą usługę wysyłki e-maili (w wersji produkcyjnej Brevo) do dostawcy Twojej poczty."
       },
       {
         "TITLE": "Ciasteczka i pamięć lokalna",
@@ -525,6 +558,10 @@
       {
         "TITLE": "Lokalizacja i pogoda",
         "BODY": "Widżet pogody pyta o lokalizację tylko za Twoją zgodą. Współrzędne są wysyłane bezpośrednio z Twojego urządzenia do Open-Meteo (open-meteo.com) w celu pobrania prognozy oraz do BigDataCloud (bigdatacloud.com) w celu pokazania nazwy Twojej miejscowości i nie są przez nas zapisywane. Nazwa miejscowości jest zapamiętywana na Twoim urządzeniu, aby nie wyszukiwać jej ponownie w tym samym miejscu. Zamiast tego możesz wybrać miasto: jego nazwa jest wyszukiwana w Open-Meteo, lokalizacja Twojego urządzenia nie jest wtedy używana, a miasto jest zapamiętywane na Twoim urządzeniu, dopóki nie wrócisz do swojej lokalizacji."
+      },
+      {
+        "TITLE": "Przypomnienia o zadaniach i powiadomienia przeglądarki",
+        "BODY": "Do zadania z terminem możesz ustawić przypomnienie. Aby wysłać je o właściwej porze, zapisujemy Twoją strefę czasową odczytaną z przeglądarki. Przypomnienia trafiają jako powiadomienie do przeglądarek, w których włączysz „Powiadomienia w przeglądarce”, oraz, jeśli włączysz „Przypomnienia e-mailem”, w wiadomości e-mail. Przypomnienie e-mailem zawiera tytuł zadania i trafia przez naszą usługę wysyłki e-maili (w wersji produkcyjnej Brevo) do dostawcy Twojej poczty; dzieje się tak tylko, gdy przypomnienia e-mailem są włączone. Gdy włączasz powiadomienia przeglądarki, przeglądarka tworzy subskrypcję push, a my zapisujemy ją (adres, klucze szyfrowania i identyfikator przeglądarki, czyli user agent), żeby dostarczać przypomnienia. Dostarczenie odbywa się przez usługę push producenta przeglądarki (Mozilla, Google, Apple lub Microsoft, zależnie od przeglądarki); treść powiadomienia jest szyfrowana end-to-end, więc usługa push jej nie odczyta, ale wie, że do Twojej przeglądarki wysłano wiadomość. Powiadomienia możesz w każdej chwili wyłączyć w ustawieniach aplikacji lub w przeglądarce; wylogowanie usuwa też subskrypcję przeglądarki, z której się wylogowujesz, a usunięcie konta usuwa wszystkie."
       },
       {
         "TITLE": "Przechowywanie i usuwanie",
