@@ -416,6 +416,7 @@ for (const viewport of [
     await todos.addButton().click();
     await expect(todos.dialog).toBeVisible();
     expect(await maskCovers(page, offlineBanner)).toBe(true);
+    await expect(todos.dialog.getByRole('button', { name: 'Close' })).toBeVisible();
     await todos.dialog.locator('#group').click();
     const option = page.getByRole('option').first();
     await expect(option).toBeVisible();
