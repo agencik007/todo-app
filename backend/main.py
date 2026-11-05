@@ -24,7 +24,13 @@ from sqlalchemy import Connection, text
 from sqlalchemy import inspect as sa_inspect
 
 from config.database import Base, engine
-from routes import auth_router, groups_router, todo_router, users_router
+from routes import (
+    auth_router,
+    groups_router,
+    push_router,
+    todo_router,
+    users_router,
+)
 from services.embedder import warm_up_embedder
 from services.suggestion_service import catalog_space
 
@@ -239,6 +245,7 @@ app.include_router(auth_router)
 app.include_router(todo_router)
 app.include_router(users_router)
 app.include_router(groups_router)
+app.include_router(push_router)
 
 
 @app.get("/", tags=["health"])

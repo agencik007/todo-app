@@ -3,12 +3,19 @@ Pydantic schemas - Request/Response models for API validation.
 """
 
 from datetime import date, datetime, time
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    UrlConstraints,
+    field_validator,
+)
 from pydantic.alias_generators import to_camel
-from pydantic_core import PydanticCustomError
+from pydantic_core import PydanticCustomError, Url
 
 from models.group import GroupColor
 
@@ -316,3 +323,47 @@ class PasswordReset(CamelBaseModel):
         from config.password_validator import validate_password_strength
 
         return validate_password_strength(v)
+
+
+# =============================================================================
+# Push Schemas
+# =============================================================================
+
+
+class PushConfig(CamelBaseModel):
+    """Whether web push is set up and the public VAPID key browsers subscribe with."""
+
+    enabled: bool
+    public_key: str | None = None
+
+
+# Browsers hand out https endpoints only; the cap bounds the stored value.
+HttpsUrl = Annotated[Url, UrlConstraints(allowed_schemes=["https"], max_length=2048)]
+
+
+class PushKeys(CamelBaseModel):
+    """Encryption keys of a browser's push subscription."""
+
+    p256dh: str = Field(..., min_length=1, max_length=255)
+    auth: str = Field(..., min_length=1, max_length=255)
+
+
+class PushSubscriptionCreate(CamelBaseModel):
+    """A browser's push subscription (https endpoints only)."""
+
+    endpoint: HttpsUrl
+    keys: PushKeys
+    user_agent: str | None = Field(default=None, max_length=1000)
+
+
+class PushSubscriptionDelete(CamelBaseModel):
+    """Identifies the subscription to remove."""
+
+    endpoint: str = Field(..., min_length=1, max_length=2048)
+
+
+class PushResult(CamelBaseModel):
+    """Result of a push endpoint: an API message code, plus a count for a test."""
+
+    message: str
+    sent: int | None = None

@@ -368,7 +368,11 @@
     "USER_INVALID_PASSWORD": "Nieprawidłowe hasło",
     "USER_ONBOARDING_ALREADY_COMPLETED": "Konfiguracja konta została już zakończona.",
     "INVALID_TIMEZONE": "Nie rozpoznano tej strefy czasowej.",
-    "SUGGESTIONS_UNAVAILABLE": "Podpowiedzi są teraz niedostępne."
+    "SUGGESTIONS_UNAVAILABLE": "Podpowiedzi są teraz niedostępne.",
+    "PUSH_UNAVAILABLE": "Powiadomienia w przeglądarce są teraz niedostępne.",
+    "PUSH_SUBSCRIBED": "Powiadomienia w tej przeglądarce są włączone.",
+    "PUSH_UNSUBSCRIBED": "Powiadomienia w tej przeglądarce są wyłączone.",
+    "PUSH_TEST_SENT": "Wysłano testowe powiadomienie."
   },
   "GROUPS": {
     "SIDEBAR": {

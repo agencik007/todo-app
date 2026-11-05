@@ -27,6 +27,13 @@
     "footer_automated": "It was sent automatically, please don't reply.",
     "footer_copyright": "© {year} Todo App"
   },
+  "push": {
+    "due_at": "Due at {time}",
+    "due_today": "Due today",
+    "due_tomorrow": "Due tomorrow",
+    "test_title": "Test notification",
+    "test_body": "Notifications from your task list work."
+  },
   "units": {
     "hours": {
       "one": "{count} hour",

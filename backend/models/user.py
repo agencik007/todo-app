@@ -48,6 +48,9 @@ class User(Base):
     refresh_tokens = relationship(
         "RefreshToken", back_populates="owner", cascade="all, delete-orphan"
     )
+    push_subscriptions = relationship(
+        "PushSubscription", back_populates="owner", cascade="all, delete-orphan"
+    )
 
     @property
     def onboarding_completed(self) -> bool:

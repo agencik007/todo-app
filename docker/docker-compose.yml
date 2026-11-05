@@ -48,6 +48,11 @@ services:
       # ── Email ──────────────────────────────────────────────────────────────
       - EMAIL_FROM=${EMAIL_FROM:-noreply@example.com}
       - USE_MAILHOG=${USE_MAILHOG:-true}
+      # Web Push (task reminders); empty keys switch push off. Generate a pair
+      # with `python -m scripts.generate_vapid_keys`.
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-}
       # MailHog (dev)
       - MAILHOG_HOST=${MAILHOG_HOST:-mailhog}
       - MAILHOG_PORT=${MAILHOG_PORT:-1025}

@@ -368,7 +368,11 @@
     "USER_INVALID_PASSWORD": "Incorrect password",
     "USER_ONBOARDING_ALREADY_COMPLETED": "Onboarding is already completed.",
     "INVALID_TIMEZONE": "This timezone isn't recognized.",
-    "SUGGESTIONS_UNAVAILABLE": "Suggestions are unavailable right now."
+    "SUGGESTIONS_UNAVAILABLE": "Suggestions are unavailable right now.",
+    "PUSH_UNAVAILABLE": "Browser notifications aren't available right now.",
+    "PUSH_SUBSCRIBED": "Notifications are on for this browser.",
+    "PUSH_UNSUBSCRIBED": "Notifications are off for this browser.",
+    "PUSH_TEST_SENT": "Test notification sent."
   },
   "GROUPS": {
     "SIDEBAR": {

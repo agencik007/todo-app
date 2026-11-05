@@ -27,6 +27,13 @@
     "footer_automated": "Wysłaliśmy ją automatycznie, prosimy na nią nie odpowiadać.",
     "footer_copyright": "© {year} Todo App"
   },
+  "push": {
+    "due_at": "Termin: {time}",
+    "due_today": "Termin: dziś",
+    "due_tomorrow": "Termin: jutro",
+    "test_title": "Testowe powiadomienie",
+    "test_body": "Powiadomienia z listy zadań działają."
+  },
   "units": {
     "hours": {
       "one": "{count} godzinę",
