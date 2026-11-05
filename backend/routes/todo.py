@@ -34,6 +34,7 @@ from services.embedder import (
     get_loaded_embedder,
     todo_embedding_text,
 )
+from services.reminders import ReminderError, apply_reminder, resolve_reminder
 from services.suggestion_service import SuggestionsUnavailableError, suggest_group
 
 router = APIRouter(prefix="/todos", tags=["todos"])
@@ -93,6 +94,32 @@ def resolve_due(todo: TodoModel, update_data: dict) -> tuple[date | None, time |
     else:
         due_time = todo.due_time
     return due_date, due_time
+
+
+def validate_reminder(
+    due_date: date | None, due_time: time | None, offset: int | None
+) -> int | None:
+    """
+    Validate a reminder against the final due pair.
+
+    Args:
+        due_date: Final due date of the todo.
+        due_time: Final due time of the todo.
+        offset: Requested reminder offset, if any.
+
+    Returns:
+        int | None: The normalized offset to store.
+
+    Raises:
+        HTTPException: 422 if the reminder has no date or an unavailable offset.
+    """
+    try:
+        return resolve_reminder(due_date, due_time, offset)
+    except ReminderError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=api_error(error.message),
+        ) from None
 
 
 def validate_group_ownership(db: Session, group_id: int | None, user_id: int) -> None:
@@ -298,6 +325,9 @@ def create_todo(
     validate_due(todo.due_date, todo.due_time)
 
     todo_data = todo.model_dump()
+    todo_data["reminder_offset_minutes"] = validate_reminder(
+        todo.due_date, todo.due_time, todo.reminder_offset_minutes
+    )
     todo_data["user_id"] = current_user.id
     if todo.client_id is not None:
         todo_data["client_id"] = str(todo.client_id)
@@ -317,6 +347,7 @@ def create_todo(
     )
 
     db_todo = TodoModel(**todo_data)
+    apply_reminder(db_todo, current_user.timezone)
     db.add(db_todo)
     try:
         db.commit()
@@ -390,8 +421,28 @@ def update_todo(
         validate_due(due_date, due_time)
         update_data["due_date"], update_data["due_time"] = due_date, due_time
 
+    # Validate the final reminder too; clearing the due date clears it.
+    recompute_reminder = bool(
+        {"due_date", "due_time", "reminder_offset_minutes"} & update_data.keys()
+    )
+    if recompute_reminder:
+        final_date = update_data.get("due_date", todo.due_date)
+        final_time = update_data.get("due_time", todo.due_time)
+        if "reminder_offset_minutes" in update_data:
+            offset = update_data["reminder_offset_minutes"]
+        elif final_date is None:
+            offset = None
+        else:
+            offset = todo.reminder_offset_minutes
+        update_data["reminder_offset_minutes"] = validate_reminder(
+            final_date, final_time, offset
+        )
+
     for field, value in update_data.items():
         setattr(todo, field, value)
+
+    if recompute_reminder:
+        apply_reminder(todo, current_user.timezone)
 
     if "title" in update_data or "description" in update_data:
         todo.embedding = embed_one(

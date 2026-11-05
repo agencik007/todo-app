@@ -82,6 +82,7 @@ class TodoBase(CamelBaseModel):
     group_id: int | None = None
     due_date: date | None = None
     due_time: time | None = None
+    reminder_offset_minutes: int | None = None
 
 
 def normalize_due_time(v: time | None) -> time | None:
@@ -120,6 +121,7 @@ class TodoUpdate(CamelBaseModel):
     group_id: int | None = None
     due_date: date | None = None
     due_time: time | None = None
+    reminder_offset_minutes: int | None = None
 
     _normalize_due_time = field_validator("due_time")(normalize_due_time)
 
@@ -133,6 +135,7 @@ class Todo(TodoBase):
     user_id: int
     client_id: UUID | None = None
     owner_email: str | None = None
+    remind_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
     group: Group | None = None

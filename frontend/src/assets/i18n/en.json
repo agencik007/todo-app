@@ -361,6 +361,8 @@
     "TODO_REORDER_SUCCESS": "Todo order updated successfully",
     "TODO_INVALID_INDEX": "Invalid todo index",
     "TODO_DUE_TIME_WITHOUT_DATE": "Pick a date before setting a time.",
+    "REMINDER_WITHOUT_DATE": "Set a due date before adding a reminder.",
+    "REMINDER_INVALID_OFFSET": "This reminder option isn't available.",
     "HEALTH_DATABASE_UNAVAILABLE": "The database is unavailable. Please try again later.",
     "USER_ACCOUNT_DELETED": "Your account has been deleted",
     "USER_INVALID_PASSWORD": "Incorrect password",

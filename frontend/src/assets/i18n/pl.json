@@ -361,6 +361,8 @@
     "TODO_REORDER_SUCCESS": "Kolejność zadania zaktualizowana pomyślnie",
     "TODO_INVALID_INDEX": "Nieprawidłowy indeks zadania",
     "TODO_DUE_TIME_WITHOUT_DATE": "Najpierw wybierz datę, potem godzinę.",
+    "REMINDER_WITHOUT_DATE": "Najpierw ustaw termin, potem przypomnienie.",
+    "REMINDER_INVALID_OFFSET": "Ta opcja przypomnienia jest niedostępna.",
     "HEALTH_DATABASE_UNAVAILABLE": "Baza danych jest niedostępna. Spróbuj ponownie później.",
     "USER_ACCOUNT_DELETED": "Twoje konto zostało usunięte",
     "USER_INVALID_PASSWORD": "Nieprawidłowe hasło",
