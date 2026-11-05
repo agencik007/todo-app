@@ -10,13 +10,16 @@ import logging
 import os
 from datetime import UTC, datetime
 
+import requests
 from pywebpush import WebPushException, webpush
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from models.push_subscription import PushSubscription
 from models.todo import Todo
 from models.user import User
 from services.email_service import get_text
+from services.push_endpoints import is_allowed_push_endpoint
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +32,7 @@ PUSH_TIMEOUT_SECONDS = 10
 # Answers of a push service meaning the subscription no longer exists.
 GONE_STATUS_CODES = (404, 410)
 MINUTES_PER_DAY = 1440
+MAX_PUSH_SUBSCRIPTIONS_PER_USER = 20
 
 
 def vapid_public_key() -> str | None:
@@ -53,6 +57,13 @@ def push_enabled() -> bool:
     return bool(vapid_public_key() and vapid_private_key())
 
 
+def no_redirect_session() -> requests.Session:
+    """A session that fails on a redirect instead of following it (SSRF guard)."""
+    session = requests.Session()
+    session.max_redirects = 0
+    return session
+
+
 def webpush_send(subscription_info: dict, data: str) -> None:
     """
     Send one encrypted push message. The only caller of pywebpush.webpush.
@@ -66,6 +77,7 @@ def webpush_send(subscription_info: dict, data: str) -> None:
     """
     webpush(
         subscription_info=subscription_info,
+        requests_session=no_redirect_session(),
         data=data,
         vapid_private_key=vapid_private_key(),
         vapid_claims={"sub": vapid_subject()},
@@ -160,6 +172,12 @@ def send_to_user(db: Session, user: User, payload: dict) -> int:
     delivered = 0
     changed = False
     for subscription in subscriptions:
+        if not is_allowed_push_endpoint(subscription.endpoint):
+            logger.warning(
+                "Skipping subscription %s: endpoint not on a known push service",
+                subscription.id,
+            )
+            continue
         info = {
             "endpoint": subscription.endpoint,
             "keys": {"p256dh": subscription.p256dh, "auth": subscription.auth},
@@ -190,3 +208,76 @@ def send_to_user(db: Session, user: User, payload: dict) -> int:
     if changed:
         db.commit()
     return delivered
+
+
+def _find_by_endpoint(db: Session, endpoint: str) -> PushSubscription | None:
+    return (
+        db.query(PushSubscription).filter(PushSubscription.endpoint == endpoint).first()
+    )
+
+
+def _make_room(db: Session, user_id: int) -> None:
+    """Delete the user's oldest subscriptions so one more fits under the cap."""
+    stale = (
+        db.query(PushSubscription)
+        .filter(PushSubscription.user_id == user_id)
+        .order_by(
+            PushSubscription.last_used_at.asc().nulls_first(),
+            PushSubscription.created_at.asc(),
+        )
+        .all()
+    )
+    for subscription in stale[
+        : max(0, len(stale) - MAX_PUSH_SUBSCRIPTIONS_PER_USER + 1)
+    ]:
+        db.delete(subscription)
+
+
+def store_subscription(
+    db: Session,
+    user_id: int,
+    endpoint: str,
+    p256dh: str,
+    auth: str,
+    user_agent: str | None,
+) -> bool:
+    """
+    Create the subscription, or move an existing endpoint to the user.
+
+    Keeps at most MAX_PUSH_SUBSCRIPTIONS_PER_USER per user (the oldest go). A
+    concurrent insert of the same endpoint is retried once as an update.
+
+    Returns:
+        bool: True if a row was created, False if an existing one was updated.
+    """
+    for attempt in range(2):
+        existing = _find_by_endpoint(db, endpoint)
+        if existing is None:
+            _make_room(db, user_id)
+            db.add(
+                PushSubscription(
+                    user_id=user_id,
+                    endpoint=endpoint,
+                    p256dh=p256dh,
+                    auth=auth,
+                    user_agent=user_agent,
+                )
+            )
+            created = True
+        else:
+            if existing.user_id != user_id:
+                _make_room(db, user_id)
+            existing.user_id = user_id
+            existing.p256dh = p256dh
+            existing.auth = auth
+            existing.user_agent = user_agent
+            created = False
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            if attempt == 1:
+                raise
+            continue
+        return created
+    raise AssertionError("unreachable")

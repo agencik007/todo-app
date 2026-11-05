@@ -79,26 +79,16 @@ def subscribe(
         if subscription.user_agent
         else None
     )
-    existing = (
-        db.query(PushSubscription).filter(PushSubscription.endpoint == endpoint).first()
+    created = push_service.store_subscription(
+        db,
+        current_user.id,
+        endpoint,
+        subscription.keys.p256dh,
+        subscription.keys.auth,
+        user_agent,
     )
-    if existing is None:
-        db.add(
-            PushSubscription(
-                user_id=current_user.id,
-                endpoint=endpoint,
-                p256dh=subscription.keys.p256dh,
-                auth=subscription.keys.auth,
-                user_agent=user_agent,
-            )
-        )
-    else:
-        existing.user_id = current_user.id
-        existing.p256dh = subscription.keys.p256dh
-        existing.auth = subscription.keys.auth
-        existing.user_agent = user_agent
+    if not created:
         response.status_code = status.HTTP_200_OK
-    db.commit()
     return api_success(ApiMessages.PUSH_SUBSCRIBED)
 
 
@@ -112,7 +102,7 @@ def unsubscribe(
 ) -> dict:
     """Remove one of the current user's subscriptions (idempotent)."""
     db.query(PushSubscription).filter(
-        PushSubscription.endpoint == body.endpoint,
+        PushSubscription.endpoint == str(body.endpoint),
         PushSubscription.user_id == current_user.id,
     ).delete()
     db.commit()

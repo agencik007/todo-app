@@ -1,6 +1,6 @@
 """Tests for push subscriptions and web push sending."""
 
-from datetime import date, time
+from datetime import UTC, date, datetime, time
 from types import SimpleNamespace
 
 import pytest
@@ -11,9 +11,10 @@ from sqlalchemy.orm import Session
 from models.push_subscription import PushSubscription
 from models.todo import Todo
 from services import push_service
+from services.push_endpoints import is_allowed_push_endpoint
 
-ENDPOINT = "https://push.example.com/send/abc123"
-OTHER_ENDPOINT = "https://push.example.com/send/other"
+ENDPOINT = "https://fcm.googleapis.com/fcm/send/abc123"
+OTHER_ENDPOINT = "https://updates.push.services.mozilla.com/wpush/v2/other"
 BODY = {"endpoint": ENDPOINT, "keys": {"p256dh": "key-p256dh", "auth": "key-auth"}}
 
 
@@ -134,7 +135,7 @@ class TestSubscribe:
     ):
         response = authenticated_client.post(
             "/push/subscriptions",
-            json={**BODY, "endpoint": "http://push.example.com/x"},
+            json={**BODY, "endpoint": "http://fcm.googleapis.com/x"},
         )
         assert response.status_code == 422
         assert rows(test_db) == []
@@ -293,3 +294,117 @@ def test_account_deletion_removes_subscriptions(
     )
     assert response.status_code == 200
     assert rows(test_db) == []
+
+
+ALLOWED = [
+    "https://fcm.googleapis.com/fcm/send/abc",
+    "https://updates.push.services.mozilla.com/wpush/v2/abc",
+    "https://push.services.mozilla.com/wpush/v1/abc",
+    "https://web.push.apple.com/QWxs",
+    "https://db5p.notify.windows.com/?token=abc",
+    "https://fcm.googleapis.com:443/fcm/send/abc",
+]
+REJECTED = [
+    "https://localhost/x",
+    "https://10.0.0.1/x",
+    "https://127.0.0.1/x",
+    "https://evil.example/x",
+    "https://fcm.googleapis.com.evil.example/x",
+    "https://evilfcm.googleapis.com/x",
+    "https://notpush.apple.com.evil.example/x",
+    "https://apple.com/x",
+    "https://fcm.googleapis.com:8443/x",
+    "https://user@fcm.googleapis.com/x",
+]
+
+
+class TestEndpointAllowlist:
+    @pytest.mark.parametrize("endpoint", ALLOWED)
+    def test_allowed_hosts_accepted(
+        self, authenticated_client: TestClient, sent, endpoint: str
+    ):
+        response = authenticated_client.post(
+            "/push/subscriptions", json={**BODY, "endpoint": endpoint}
+        )
+        assert response.status_code == 201
+
+    @pytest.mark.parametrize("endpoint", REJECTED)
+    def test_other_hosts_rejected(
+        self, authenticated_client: TestClient, test_db: Session, sent, endpoint: str
+    ):
+        response = authenticated_client.post(
+            "/push/subscriptions", json={**BODY, "endpoint": endpoint}
+        )
+        assert response.status_code == 422
+        assert response.json()["detail"]["messageCode"] == "PUSH_ENDPOINT_NOT_ALLOWED"
+        assert rows(test_db) == []
+
+    @pytest.mark.parametrize("endpoint", REJECTED)
+    def test_predicate_rejects(self, endpoint: str):
+        assert not is_allowed_push_endpoint(endpoint)
+
+    def test_send_skips_stored_row_that_is_no_longer_allowed(
+        self, test_db: Session, test_user, sent
+    ):
+        add_subscription(test_db, test_user, "https://evil.example/x")
+        add_subscription(test_db, test_user)
+        assert push_service.send_to_user(test_db, test_user, {}) == 1
+        assert [c["subscription_info"]["endpoint"] for c in sent] == [ENDPOINT]
+
+    def test_webpush_send_does_not_follow_redirects(self, monkeypatch):
+        captured = {}
+        monkeypatch.setenv("VAPID_PRIVATE_KEY", "k")
+        monkeypatch.setattr(
+            push_service, "webpush", lambda **kwargs: captured.update(kwargs)
+        )
+        push_service.webpush_send({"endpoint": ENDPOINT, "keys": {}}, "{}")
+        assert captured["requests_session"].max_redirects == 0
+
+
+class TestSubscriptionStorage:
+    def test_cap_drops_the_oldest(
+        self, authenticated_client: TestClient, test_db: Session, test_user, sent
+    ):
+        cap = push_service.MAX_PUSH_SUBSCRIPTIONS_PER_USER
+        for i in range(cap):
+            add_subscription(
+                test_db, test_user, f"https://fcm.googleapis.com/fcm/send/{i}"
+            )
+        # Used ones outrank never-used ones: row 0 was used, row 1 never.
+        used = (
+            test_db.query(PushSubscription)
+            .filter_by(endpoint="https://fcm.googleapis.com/fcm/send/0")
+            .one()
+        )
+        used.last_used_at = datetime.now(UTC)
+        test_db.commit()
+
+        response = authenticated_client.post("/push/subscriptions", json=BODY)
+        assert response.status_code == 201
+        endpoints = {r.endpoint for r in rows(test_db)}
+        assert len(endpoints) == cap
+        assert ENDPOINT in endpoints
+        assert "https://fcm.googleapis.com/fcm/send/0" in endpoints
+        assert "https://fcm.googleapis.com/fcm/send/1" not in endpoints
+
+    def test_concurrent_first_subscribe_retries_as_update(
+        self, test_db: Session, test_user, second_user, monkeypatch
+    ):
+        real_find = push_service._find_by_endpoint
+        calls = {"n": 0}
+
+        def racing_find(db, endpoint):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                # The other request commits its insert after our lookup.
+                add_subscription(test_db, second_user)
+                return None
+            return real_find(db, endpoint)
+
+        monkeypatch.setattr(push_service, "_find_by_endpoint", racing_find)
+        created = push_service.store_subscription(
+            test_db, test_user.id, ENDPOINT, "new-p", "new-a", None
+        )
+        assert created is False
+        [sub] = rows(test_db)
+        assert (sub.user_id, sub.p256dh) == (test_user.id, "new-p")

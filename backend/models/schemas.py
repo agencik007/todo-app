@@ -18,6 +18,7 @@ from pydantic.alias_generators import to_camel
 from pydantic_core import PydanticCustomError, Url
 
 from models.group import GroupColor
+from services.push_endpoints import is_allowed_push_endpoint
 
 
 class CamelBaseModel(BaseModel):
@@ -355,11 +356,20 @@ class PushSubscriptionCreate(CamelBaseModel):
     keys: PushKeys
     user_agent: str | None = Field(default=None, max_length=1000)
 
+    @field_validator("endpoint")
+    @classmethod
+    def endpoint_on_known_push_service(cls, v: Url) -> Url:
+        if not is_allowed_push_endpoint(str(v)):
+            raise PydanticCustomError(
+                "push_endpoint_not_allowed", "PUSH_ENDPOINT_NOT_ALLOWED"
+            )
+        return v
+
 
 class PushSubscriptionDelete(CamelBaseModel):
     """Identifies the subscription to remove."""
 
-    endpoint: str = Field(..., min_length=1, max_length=2048)
+    endpoint: HttpsUrl
 
 
 class PushResult(CamelBaseModel):
