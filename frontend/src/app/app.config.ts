@@ -98,7 +98,10 @@ export const appConfig: ApplicationConfig = {
         },
       },
       zIndex: {
-        modal: 1100,
+        // Above the offline banner (2001) and the user menu (2002), so no
+        // dialog needs its own baseZIndex; overlays opened from a dialog
+        // (selects, datepickers) and tooltips stay above it.
+        modal: 2100,
         overlay: 3000,
         menu: 3000,
         tooltip: 3100,

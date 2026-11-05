@@ -1,4 +1,4 @@
-import { BrowserContext, Page } from '@playwright/test';
+import { BrowserContext, Locator, Page } from '@playwright/test';
 
 import { expect, test } from '../fixtures/test';
 import { weatherMock } from '../fixtures/weather';
@@ -52,6 +52,30 @@ async function installServiceWorker(page: Page): Promise<void> {
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+}
+
+/** Whether a modal's mask is the topmost element in the middle of `element`. */
+async function maskCovers(page: Page, element: Locator): Promise<boolean> {
+  const box = await element.boundingBox();
+  if (!box) return false;
+  return page.evaluate(
+    ([x, y]) => !!document.elementFromPoint(x, y)?.closest('.p-overlay-mask'),
+    [box.x + box.width / 2, box.y + box.height / 2],
+  );
+}
+
+/** Whether `element` itself is the topmost element in its middle. */
+async function isOnTop(page: Page, element: Locator): Promise<boolean> {
+  const handle = await element.elementHandle();
+  const box = await element.boundingBox();
+  if (!handle || !box) return false;
+  return page.evaluate(
+    ([target, x, y]) => {
+      const top = document.elementFromPoint(x as number, y as number);
+      return !!top && (target as Element).contains(top);
+    },
+    [handle, box.x + box.width / 2, box.y + box.height / 2] as const,
+  );
 }
 
 test('the web app manifest is linked and its icons load', async ({ page, request }) => {
@@ -349,3 +373,53 @@ test('weather requests go past the service worker', async ({ page, context, logg
   expect((await place).fromServiceWorker()).toBe(false);
   await expect(new WeatherPage(page).widget).toHaveAccessibleName(/^Kraków – Clear sky/);
 });
+
+for (const viewport of [
+  { name: 'desktop', size: { width: 1280, height: 720 } },
+  { name: 'mobile', size: { width: 375, height: 812 } },
+]) {
+  test(`modals stack above the offline banner (${viewport.name})`, async ({
+    page,
+    context,
+    loggedIn,
+  }) => {
+    void loggedIn;
+    await page.setViewportSize(viewport.size);
+    const todos = new TodosPage(page);
+    const offlineBanner = page.getByRole('status').filter({ hasText: 'You are offline.' });
+    await todos.goto();
+    await todos.add('Layered task');
+
+    await goOffline(context);
+    await expect(offlineBanner).toBeVisible();
+
+    // The delete confirmation.
+    const row = todos.row('Layered task');
+    await row.hover();
+    await row.getByRole('button', { name: 'Delete task' }).click();
+    const confirm = page.getByRole('alertdialog', { name: 'Confirm deletion' });
+    await expect(confirm).toBeVisible();
+    expect(await maskCovers(page, offlineBanner)).toBe(true);
+    await confirm.getByRole('button', { name: 'Cancel' }).click();
+    await expect(confirm).toBeHidden();
+
+    // The command palette.
+    await page.keyboard.press('Control+k');
+    const palette = page.getByRole('dialog');
+    await expect(palette).toBeVisible();
+    expect(await maskCovers(page, offlineBanner)).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(palette).toBeHidden();
+
+    // Last, as Escape doesn't close it reliably once its select was open:
+    // the todo form, and the group select opened from it.
+    await todos.addButton().click();
+    await expect(todos.dialog).toBeVisible();
+    expect(await maskCovers(page, offlineBanner)).toBe(true);
+    await expect(todos.dialog.getByRole('button', { name: 'Close' })).toBeVisible();
+    await todos.dialog.locator('#group').click();
+    const option = page.getByRole('option').first();
+    await expect(option).toBeVisible();
+    expect(await isOnTop(page, option)).toBe(true);
+  });
+}

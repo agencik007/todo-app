@@ -252,6 +252,7 @@
     [resizable]="false"
     [modal]="true"
     [dismissableMask]="true"
+    [closeAriaLabel]="'COMMON.CLOSE' | translate"
     (visibleChange)="isPreviewVisible.set($event)"
   >
     <ng-template pTemplate="header">

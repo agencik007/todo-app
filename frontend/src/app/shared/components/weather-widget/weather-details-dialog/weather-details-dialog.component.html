@@ -11,6 +11,7 @@
   [modal]="true"
   [draggable]="false"
   [dismissableMask]="true"
+  [closeAriaLabel]="'COMMON.CLOSE' | translate"
   (visibleChange)="visible.set($event)"
   (onHide)="closed.emit()"
 >

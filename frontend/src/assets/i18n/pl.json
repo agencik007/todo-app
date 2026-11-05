@@ -28,6 +28,9 @@
     },
     "PRIVACY": "Polityka prywatności"
   },
+  "COMMON": {
+    "CLOSE": "Zamknij"
+  },
   "LANGUAGE": {
     "SELECT": "Język",
     "EN": "Angielski",
