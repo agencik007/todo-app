@@ -75,15 +75,16 @@ def webpush_send(subscription_info: dict, data: str) -> None:
     Raises:
         WebPushException: If the push service rejects the message.
     """
-    webpush(
-        subscription_info=subscription_info,
-        requests_session=no_redirect_session(),
-        data=data,
-        vapid_private_key=vapid_private_key(),
-        vapid_claims={"sub": vapid_subject()},
-        ttl=PUSH_TTL_SECONDS,
-        timeout=PUSH_TIMEOUT_SECONDS,
-    )
+    with no_redirect_session() as session:
+        webpush(
+            subscription_info=subscription_info,
+            requests_session=session,
+            data=data,
+            vapid_private_key=vapid_private_key(),
+            vapid_claims={"sub": vapid_subject()},
+            ttl=PUSH_TTL_SECONDS,
+            timeout=PUSH_TIMEOUT_SECONDS,
+        )
 
 
 def notification_payload(title: str, body: str, tag: str | None = None) -> dict:
@@ -120,9 +121,12 @@ def notification_payload(title: str, body: str, tag: str | None = None) -> dict:
 def reminder_body(todo: Todo, language: str) -> str:
     """Text under a reminder's title: the due time, or today / tomorrow."""
     if todo.due_time is not None:
-        return get_text(
-            language, "push", "due_at", time=todo.due_time.strftime("%H:%M")
+        key = (
+            "due_tomorrow_at"
+            if (todo.reminder_offset_minutes or 0) >= MINUTES_PER_DAY
+            else "due_at"
         )
+        return get_text(language, "push", key, time=todo.due_time.strftime("%H:%M"))
     if (todo.reminder_offset_minutes or 0) >= MINUTES_PER_DAY:
         return get_text(language, "push", "due_tomorrow")
     return get_text(language, "push", "due_today")

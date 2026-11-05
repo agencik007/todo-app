@@ -71,6 +71,11 @@ def compute_remind_at(
         local = datetime.combine(day, DATE_ONLY_REMINDER_TIME, tzinfo=tz)
         return local.astimezone(UTC)
 
+    if offset == MINUTES_PER_DAY:
+        # "The day before" is a calendar day, not 24 h of real time: across a
+        # DST change the two differ by an hour.
+        local = datetime.combine(due_date - timedelta(days=1), due_time, tzinfo=tz)
+        return local.astimezone(UTC)
     due = datetime.combine(due_date, due_time, tzinfo=tz).astimezone(UTC)
     return due - timedelta(minutes=offset)
 
@@ -129,10 +134,12 @@ def apply_reminder(todo: TodoModel, tz_name: str | None) -> None:
 
 def on_user_timezone_changed(db: Session, user: User) -> None:
     """
-    Called after a user's timezone change has been committed.
+    Called after a user's timezone change, before the caller commits (it only
+    flushes, so the change and the recompute land in one transaction).
 
-    Recomputes remind_at of every todo of the user that has a reminder still
-    to be sent.
+    Recomputes remind_at of every todo of the user that has a reminder. A
+    reminder already sent keeps reminder_sent_at, so a later save of the todo
+    does not see a changed remind_at and send it again.
 
     Args:
         db: Database session.
@@ -143,10 +150,12 @@ def on_user_timezone_changed(db: Session, user: User) -> None:
         .filter(
             TodoModel.user_id == user.id,
             TodoModel.reminder_offset_minutes.is_not(None),
-            TodoModel.reminder_sent_at.is_(None),
         )
         .all()
     )
     for todo in todos:
+        sent_at = todo.reminder_sent_at
         apply_reminder(todo, user.timezone)
-    db.commit()
+        if sent_at is not None:
+            todo.reminder_sent_at = sent_at
+    db.flush()

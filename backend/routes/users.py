@@ -234,7 +234,7 @@ async def update_language(
 
 
 @router.put("/me/timezone", response_model=UserResponse)
-async def update_timezone(
+def update_timezone(
     timezone_update: TimezoneUpdate,
     current_user: User = Depends(get_current_verified_user),
     db: Session = Depends(get_db),
@@ -263,15 +263,15 @@ async def update_timezone(
 
     user = db.get(User, current_user.id)
     user.timezone = timezone_update.timezone
+    on_user_timezone_changed(db, user)
     db.commit()
     db.refresh(user)
-    on_user_timezone_changed(db, user)
 
     return user
 
 
 @router.put("/me/email-reminders", response_model=UserResponse)
-async def update_email_reminders(
+def update_email_reminders(
     reminders_update: EmailRemindersUpdate,
     current_user: User = Depends(get_current_verified_user),
     db: Session = Depends(get_db),

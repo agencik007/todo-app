@@ -51,6 +51,33 @@ class ReminderRunResult:
     skipped_stale: int
     failed: int
 
+    @property
+    def delivered(self) -> int:
+        """Rows of the claimed batch that were attempted (not skipped in bulk)."""
+        return self.sent + self.failed
+
+
+def skip_stale(db: Session, now: datetime) -> int:
+    """
+    Mark every reminder overdue by more than REMINDER_GRACE as handled.
+
+    One UPDATE, so a backlog after downtime is cleared at once instead of in
+    batches (the caller commits).
+
+    Returns:
+        int: Rows skipped.
+    """
+    skipped = (
+        db.query(Todo)
+        .filter(
+            Todo.remind_at < now - REMINDER_GRACE,
+            Todo.reminder_sent_at.is_(None),
+            Todo.completed.is_(False),
+        )
+        .update({Todo.reminder_sent_at: now}, synchronize_session=False)
+    )
+    return skipped
+
 
 def claim_due(db: Session, now: datetime, batch_size: int) -> list[Todo]:
     """
@@ -123,8 +150,9 @@ def run_once(
     db = session_factory()
     # The rows are used after the claim's commit: keep them loaded.
     db.expire_on_commit = False
-    sent = skipped_stale = failed = 0
+    sent = failed = 0
     try:
+        skipped_stale = skip_stale(db, now)
         todos = claim_due(db, now, batch_size)
         db.commit()
         for todo in todos:
@@ -174,7 +202,8 @@ def _log_run(result: ReminderRunResult) -> None:
 
 def loop(stop: StopSignal, *, enabled: bool = True) -> None:
     """
-    Run passes every WORKER_INTERVAL_SECONDS until `stop` is set.
+    Run passes every WORKER_INTERVAL_SECONDS until `stop` is set; a pass that
+    claimed a full batch is followed by the next one without waiting.
 
     Disabled, it only keeps the heartbeat: exiting would make the restart
     policy loop and `docker compose up --wait` (the deploy) fail.
@@ -183,9 +212,12 @@ def loop(stop: StopSignal, *, enabled: bool = True) -> None:
 
     while not stop.is_set():
         healthy = True
+        full_batch = False
         try:
             if enabled:
-                _log_run(run_once(database.SessionLocal, datetime.now(UTC)))
+                result = run_once(database.SessionLocal, datetime.now(UTC))
+                _log_run(result)
+                full_batch = result.delivered >= WORKER_BATCH_SIZE
         except ProgrammingError as error:
             pgcode = getattr(error.orig, "pgcode", None)
             if pgcode in SCHEMA_MISSING_PGCODES:
@@ -205,7 +237,8 @@ def loop(stop: StopSignal, *, enabled: bool = True) -> None:
             logger.error("Reminder run failed (%s)", type(error).__name__)
         if healthy:  # a persistently failing worker goes unhealthy
             _touch_heartbeat()
-        stop.wait(WORKER_INTERVAL_SECONDS)
+        if not full_batch:  # a full batch means more may be waiting: go on at once
+            stop.wait(WORKER_INTERVAL_SECONDS)
 
 
 def worker_enabled() -> bool:

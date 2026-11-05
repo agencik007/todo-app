@@ -271,6 +271,23 @@ class TestPayload:
             == "Due tomorrow"
         )
 
+    @pytest.mark.parametrize(
+        ("language", "expected"),
+        [("en", "Due tomorrow at 14:00"), ("pl", "Termin: jutro, 14:00")],
+    )
+    def test_timed_day_before_reminder_says_tomorrow(
+        self, test_user, language, expected
+    ):
+        test_user.language = language
+        todo = self.make_todo(
+            due_date=date(2026, 11, 6),
+            due_time=time(14, 0),
+            reminder_offset_minutes=1440,
+        )
+        assert push_service.reminder_body(todo, language) == expected
+        notification = push_service.reminder_payload(todo, test_user)["notification"]
+        assert notification["body"] == expected
+
     def test_title_is_cut_to_100_chars(self, test_user):
         todo = Todo(id=1, title="t" * 300, user_id=1, due_date=date(2026, 11, 6))
         payload = push_service.reminder_payload(todo, test_user)
@@ -359,6 +376,19 @@ class TestEndpointAllowlist:
         )
         push_service.webpush_send({"endpoint": ENDPOINT, "keys": {}}, "{}")
         assert captured["requests_session"].max_redirects == 0
+
+    def test_webpush_send_closes_its_session(self, monkeypatch):
+        captured = {}
+        closed = []
+        monkeypatch.setenv("VAPID_PRIVATE_KEY", "k")
+        monkeypatch.setattr(
+            push_service, "webpush", lambda **kwargs: captured.update(kwargs)
+        )
+        monkeypatch.setattr(
+            push_service.requests.Session, "close", lambda self: closed.append(self)
+        )
+        push_service.webpush_send({"endpoint": ENDPOINT, "keys": {}}, "{}")
+        assert closed == [captured["requests_session"]]
 
 
 class TestSubscriptionStorage:

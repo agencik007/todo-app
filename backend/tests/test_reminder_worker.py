@@ -243,6 +243,78 @@ def test_run_once_batch_size_limits_a_run(test_db, pushed, emails):
     assert (first.sent, second.sent) == (2, 1)
 
 
+def test_run_once_skips_a_stale_backlog_beyond_the_batch_size(test_db, pushed, emails):
+    """Stale rows are cleared with one UPDATE, not batch by batch."""
+    user = make_user(test_db)
+    for hours in (5, 4, 3, 2):
+        make_todo(test_db, user, remind_at=NOW - timedelta(hours=hours))
+    fresh = make_todo(test_db, user, remind_at=NOW - timedelta(minutes=1))
+
+    result = run_once(TestingSessionLocal, NOW, batch_size=1)
+
+    assert result == ReminderRunResult(sent=1, skipped_stale=4, failed=0)
+    assert sent_at(test_db, fresh) == NOW
+    assert run_once(TestingSessionLocal, NOW) == NOTHING
+
+
+FULL_BATCH = ReminderRunResult(
+    sent=reminder_worker.WORKER_BATCH_SIZE, skipped_stale=0, failed=0
+)
+
+
+def _loop_with_results(monkeypatch, tmp_path, results):
+    """Run the loop until `results` run out; returns the waits it made."""
+    waits = []
+    runs = iter(results)
+    stop = reminder_worker.StopSignal()
+
+    def fake_run(*args, **kwargs):
+        try:
+            return next(runs)
+        except StopIteration:
+            stop.set()
+            return NOTHING
+
+    monkeypatch.setattr(reminder_worker, "run_once", fake_run)
+    monkeypatch.setattr(reminder_worker, "HEARTBEAT_PATH", tmp_path / "heartbeat")
+    stop.wait = lambda seconds: waits.append(seconds)
+    reminder_worker.loop(stop)
+    return waits
+
+
+def test_loop_goes_on_at_once_after_a_full_batch(monkeypatch, tmp_path):
+    waits = _loop_with_results(monkeypatch, tmp_path, [FULL_BATCH, FULL_BATCH])
+
+    # Both full batches were followed straight by the next run, with no sleep;
+    # the run after them (empty, stop set) is the only one that waits.
+    assert waits == [reminder_worker.WORKER_INTERVAL_SECONDS]
+
+
+def test_loop_sleeps_after_a_partial_batch(monkeypatch, tmp_path):
+    partial = ReminderRunResult(sent=1, skipped_stale=0, failed=0)
+
+    waits = _loop_with_results(monkeypatch, tmp_path, [partial, partial])
+
+    assert waits == [reminder_worker.WORKER_INTERVAL_SECONDS] * 3
+
+
+def test_loop_stops_between_full_batches(monkeypatch, tmp_path):
+    stop = reminder_worker.StopSignal()
+    calls = []
+
+    def fake_run(*args, **kwargs):
+        calls.append(1)
+        stop.set()
+        return FULL_BATCH
+
+    monkeypatch.setattr(reminder_worker, "run_once", fake_run)
+    monkeypatch.setattr(reminder_worker, "HEARTBEAT_PATH", tmp_path / "heartbeat")
+
+    reminder_worker.loop(stop)
+
+    assert calls == [1]
+
+
 def test_main_idles_when_disabled(monkeypatch):
     """Exiting would restart-loop the container and fail `up --wait`."""
     monkeypatch.setenv("REMINDER_WORKER_ENABLED", "false")

@@ -17,7 +17,7 @@ ALLOWED_PUSH_HOSTS = (
 # ...and as a domain suffix (any subdomain, including the leading dot).
 ALLOWED_PUSH_HOST_SUFFIXES = (
     ".push.apple.com",  # Safari / iOS web push (web.push.apple.com)
-    ".notify.windows.com",  # Windows Notification Service (legacy Edge)
+    ".notify.windows.com",  # Windows Notification Service (Edge on Windows)
 )
 
 

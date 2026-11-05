@@ -55,6 +55,21 @@ class TestComputeRemindAt:
             2027, 3, 28, 1, 30
         )
 
+    @pytest.mark.parametrize(
+        ("due", "expected"),
+        [
+            # Spring forward on 2027-03-28: the day before is still CET (UTC+1).
+            (date(2027, 3, 28), utc(2027, 3, 27, 13, 0)),
+            (date(2027, 3, 29), utc(2027, 3, 28, 12, 0)),
+            # Fall back on 2026-10-25: the day before is still CEST (UTC+2).
+            (date(2026, 10, 25), utc(2026, 10, 24, 12, 0)),
+            (date(2026, 10, 26), utc(2026, 10, 25, 13, 0)),
+        ],
+    )
+    def test_day_before_with_time_is_the_same_local_time(self, due, expected):
+        """A calendar day, not 24 h: the local time stays 14:00 across DST."""
+        assert compute_remind_at(due, time(14, 0), 1440, WARSAW) == expected
+
     def test_compute_remind_at_dst_fold(self):
         """02:30 happens twice on 2026-10-25; the first (CEST) one is used."""
         assert compute_remind_at(date(2026, 10, 25), time(2, 30), 0, WARSAW) == utc(
@@ -203,13 +218,39 @@ class TestReminderApi:
         test_db.expire_all()
         assert test_db.get(Todo, todo["id"]).remind_at == utc(2026, 11, 7, 13, 0)
 
-    def test_timezone_change_skips_sent(
+    def test_timezone_change_recomputes_sent_without_resending(
         self, warsaw_client: TestClient, test_db: Session
     ):
+        """remind_at follows the timezone, but reminder_sent_at stays."""
         todo = create_timed(warsaw_client, 0)
         row = test_db.get(Todo, todo["id"])
         row.reminder_sent_at = utc(2026, 11, 7, 13, 0)
         test_db.commit()
         warsaw_client.put("/users/me/timezone", json={"timezone": "America/New_York"})
         test_db.expire_all()
-        assert test_db.get(Todo, todo["id"]).remind_at == utc(2026, 11, 7, 13, 0)
+        row = test_db.get(Todo, todo["id"])
+        assert row.remind_at == utc(2026, 11, 7, 19, 0)
+        assert row.reminder_sent_at == utc(2026, 11, 7, 13, 0)
+
+        # An unrelated save sees an unchanged remind_at and does not re-arm it.
+        warsaw_client.put(f"/todos/{todo['id']}", json={"title": "x"})
+        test_db.expire_all()
+        assert test_db.get(Todo, todo["id"]).reminder_sent_at == utc(2026, 11, 7, 13, 0)
+
+    def test_timezone_change_is_one_transaction(
+        self, warsaw_client: TestClient, test_db: Session, test_user, monkeypatch
+    ):
+        """If the recompute fails, the timezone change is not persisted."""
+        from routes import users
+
+        def failing_hook(db, user):
+            raise RuntimeError("recompute failed")
+
+        monkeypatch.setattr(users, "on_user_timezone_changed", failing_hook)
+        client = TestClient(warsaw_client.app, raise_server_exceptions=False)
+
+        response = client.put("/users/me/timezone", json={"timezone": "Asia/Tokyo"})
+
+        assert response.status_code == 500
+        test_db.expire_all()
+        assert test_db.get(type(test_user), test_user.id).timezone == WARSAW
