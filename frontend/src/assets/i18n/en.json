@@ -548,7 +548,7 @@
       },
       {
         "TITLE": "Why we use it",
-        "BODY": "Your data is used only to provide the app: signing you in, syncing your tasks between devices and sending account emails (address verification and password reset). We do not sell your data, show ads or use it for profiling. The text of your tasks is analysed on the app's own server to suggest a group for a new task; it is not sent to third parties."
+        "BODY": "Your data is used only to provide the app: signing you in, syncing your tasks between devices and sending account emails (address verification and password reset) and sending the task reminders you ask for (browser notifications and, if you turn them on, reminder emails). We do not sell your data, show ads or use it for profiling. The text of your tasks is analysed on the app's own server to suggest a group for a new task; it is not sent to third parties."
       },
       {
         "TITLE": "Cookies and local storage",
@@ -560,7 +560,7 @@
       },
       {
         "TITLE": "Task reminders and browser notifications",
-        "BODY": "You can set a reminder on a task with a due date. To time it correctly we store your time zone, taken from your browser. Reminders are sent as a notification to the browsers where you turned on Browser notifications and, if you turn on Email reminders, by email. When you turn on browser notifications, your browser creates a push subscription, and we store it (its address and encryption keys, plus the browser name) to deliver reminders. Delivery goes through your browser vendor's push service (Mozilla, Google or Apple, depending on the browser); the notification content is encrypted end to end, so the push service cannot read it, but it does learn that a message was sent to your browser. You can turn notifications off at any time in the app's settings or in your browser; logging out also removes the subscription of the browser you log out from, and deleting your account removes all of them."
+        "BODY": "You can set a reminder on a task with a due date. To time it correctly we store your time zone, taken from your browser. Reminders are sent as a notification to the browsers where you turned on Browser notifications and, if you turn on Email reminders, by email. When you turn on browser notifications, your browser creates a push subscription, and we store it (its address and encryption keys, plus the browser name) to deliver reminders. Delivery goes through your browser vendor's push service (Mozilla, Google, Apple or Microsoft, depending on the browser); the notification content is encrypted end to end, so the push service cannot read it, but it does learn that a message was sent to your browser. You can turn notifications off at any time in the app's settings or in your browser; logging out also removes the subscription of the browser you log out from, and deleting your account removes all of them."
       },
       {
         "TITLE": "Retention and deletion",
