@@ -69,6 +69,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.backend
+    stop_grace_period: 120s
     command: ["python", "-m", "services.reminder_worker"]
     environment:
       - DATABASE_URL=postgresql://todo:todo@db:5432/todo_e2e

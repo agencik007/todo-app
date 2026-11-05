@@ -48,7 +48,7 @@ All major operations are managed via the root `Makefile`. Always prefer Docker-b
 | Prod environment                                             | `make prod`                                                                   |
 | Deploy prebuilt images (CD runs it on the server)            | `make deploy IMAGE_TAG=<sha> BACKEND_IMAGE=... FRONTEND_IMAGE=...`            |
 | Stop all services                                            | `make down`                                                                   |
-| View logs                                                    | `make logs`, `make logs-backend`, `make logs-worker`, `make logs-frontend`                        |
+| View logs                                                    | `make logs`, `make logs-backend`, `make logs-worker`, `make logs-frontend`    |
 | Clean environment (containers, images, volumes)              | `make clean`                                                                  |
 | Backend tests                                                | `make test-backend`                                                           |
 | Single backend test                                          | `DC exec backend python -m pytest tests/test_filename.py::test_function_name` |
