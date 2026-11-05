@@ -18,18 +18,18 @@ test.describe('task reminders', () => {
       due: { date: 'Tomorrow', time: 'Afternoon' },
       reminder: '15 minutes before',
     });
-    await expect(todos.dueChip('Call the dentist').locator('.pi-bell')).toBeVisible();
+    await expect(todos.reminderBell('Call the dentist')).toBeVisible();
     await expect(todos.row('Call the dentist')).toContainText('Reminder: 15 minutes before');
 
     await page.reload();
-    await expect(todos.dueChip('Call the dentist').locator('.pi-bell')).toBeVisible();
+    await expect(todos.reminderBell('Call the dentist')).toBeVisible();
   });
 
   test('a task without a reminder has no bell', async ({ page }) => {
     const todos = new TodosPage(page);
     await todos.add('No reminder here', { due: { date: 'Tomorrow' } });
     await expect(todos.dueChip('No reminder here')).toBeVisible();
-    await expect(todos.dueChip('No reminder here').locator('.pi-bell')).toBeHidden();
+    await expect(todos.reminderBell('No reminder here')).toBeHidden();
   });
 
   test('reminder options follow the time', async ({ page }) => {
@@ -58,11 +58,7 @@ test.describe('task reminders', () => {
     await expect(todos.reminderSelect()).toContainText('15 minutes before');
 
     // Clearing the time falls back to the date-only equivalent.
-    await todos.dialog
-      .locator('p-datepicker')
-      .filter({ has: page.locator('#dueTime') })
-      .locator('.p-datepicker-clear-icon')
-      .click();
+    await todos.clearDueTime();
     await expect(todos.reminderSelect()).toContainText('On the day at 9:00');
   });
 

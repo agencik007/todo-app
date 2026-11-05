@@ -76,6 +76,20 @@ export class TodosPage {
     return labels.map((label) => label.trim());
   }
 
+  /** The bell on a task's due chip, shown when the task has a reminder. */
+  reminderBell(title: string): Locator {
+    return this.dueChip(title).locator('.pi-bell');
+  }
+
+  /** Clears the due time in the open dialog (the date stays). */
+  async clearDueTime(): Promise<void> {
+    await this.dialog
+      .locator('p-datepicker')
+      .filter({ has: this.page.locator('#dueTime') })
+      .locator('.p-datepicker-clear-icon')
+      .click();
+  }
+
   async pickReminder(label: string): Promise<void> {
     await this.reminderSelect().click();
     await this.page.getByRole('option', { name: label, exact: true }).click();
