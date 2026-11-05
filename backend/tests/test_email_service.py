@@ -12,7 +12,7 @@ from models.user import User
 from services import email_service
 from services.email_service import TRANSLATIONS, format_hours, render_email
 
-TEMPLATES = ["email_verification", "password_reset"]
+TEMPLATES = ["email_verification", "password_reset", "reminder"]
 LANGUAGES = ["en", "pl"]
 ACTION_URL = "http://localhost:4200/reset-password/abc_DEF-123"
 
@@ -24,6 +24,8 @@ def _render(template: str, lang: str, to_email: str = "user@example.com"):
         to_email,
         action_url=ACTION_URL,
         duration=format_hours(lang, 24),
+        task_title="Buy milk",
+        due_text="Due today",
     )
 
 

@@ -259,3 +259,17 @@ def send_password_reset_email(
         action_url=f"{FRONTEND_URL}/reset-password/{reset_token}",
         duration=format_hours(language, expires_in_hours),
     )
+
+
+def send_reminder_email(
+    to_email: str, task_title: str, due_text: str, language: str = "en"
+) -> bool:
+    """Send a task reminder with a link to the task list."""
+    return send_templated_email(
+        to_email,
+        "reminder",
+        language,
+        action_url=f"{FRONTEND_URL}/todos",
+        task_title=task_title,
+        due_text=due_text,
+    )
