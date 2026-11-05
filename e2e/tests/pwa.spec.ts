@@ -397,7 +397,7 @@ for (const viewport of [
     const row = todos.row('Layered task');
     await row.hover();
     await row.getByRole('button', { name: 'Delete task' }).click();
-    const confirm = page.getByRole('alertdialog');
+    const confirm = page.getByRole('alertdialog', { name: 'Confirm deletion' });
     await expect(confirm).toBeVisible();
     expect(await maskCovers(page, offlineBanner)).toBe(true);
     await confirm.getByRole('button', { name: 'Cancel' }).click();
