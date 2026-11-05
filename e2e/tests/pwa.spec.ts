@@ -1,6 +1,7 @@
 import { BrowserContext, Locator, Page } from '@playwright/test';
 
 import { expect, test } from '../fixtures/test';
+import { urls } from '../fixtures/env';
 import { weatherMock } from '../fixtures/weather';
 import { GuestNav, LoginPage, UserMenu } from '../pages/auth.pages';
 import { TodosPage } from '../pages/todos.page';
@@ -455,3 +456,44 @@ for (const viewport of [
     expect(await isOnTop(page, option)).toBe(true);
   });
 }
+
+// fixme: Playwright's headless Chromium can't create a push subscription
+// (pushManager.subscribe() rejects with "Registration failed - permission
+// denied": there is no push service to register with), so the toggle never
+// reaches the POST /push/subscriptions call. Run it by hand against a real
+// browser (the Firefox check in the PR test plan) or enable it where a push
+// service is reachable. The test is otherwise complete; it also needs VAPID
+// keys on the stack and skips without them.
+test.fixme('enables notifications and sends a test', async ({ page, context, loggedIn }) => {
+  // Push needs VAPID keys on the stack (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY /
+  // VAPID_SUBJECT exported before `make e2e-up`) and a reachable push service
+  // (FCM) for the browser; CI has neither, so the test skips there.
+  await context.grantPermissions(['notifications'], { origin: urls.app });
+  const todos = new TodosPage(page);
+  const configResponse = page.waitForResponse((response) =>
+    response.url().endsWith('/push/config'),
+  );
+  await todos.goto();
+  const { enabled } = (await (await configResponse).json()) as {
+    enabled: boolean;
+  };
+  test.skip(!enabled, 'the e2e stack has no VAPID keys; export them before `make e2e-up`');
+  await expect(todos.greeting()).toBeVisible();
+  await installServiceWorker(page);
+
+  const menu = new UserMenu(page);
+  await menu.openSettings(loggedIn.email);
+  const toggle = page.getByRole('switch', { name: 'Browser notifications' });
+  await expect(toggle).toBeEnabled();
+
+  const subscribed = page.waitForRequest(
+    (request) => request.url().endsWith('/push/subscriptions') && request.method() === 'POST',
+  );
+  await toggle.click();
+  await subscribed;
+  await expect(toggle).toBeChecked();
+  await expect(page.getByText('Reminders appear on this device.')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Send a test notification' }).click();
+  await expect(page.getByText('Test notification sent.')).toBeVisible();
+});
