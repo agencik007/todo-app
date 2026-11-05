@@ -539,7 +539,7 @@
   },
   "PRIVACY": {
     "TITLE": "Polityka prywatności",
-    "UPDATED": "Ostatnia aktualizacja: 29 października 2026",
+    "UPDATED": "Ostatnia aktualizacja: 5 listopada 2026",
     "BACK": "Wróć",
     "SECTIONS": [
       {
@@ -557,6 +557,10 @@
       {
         "TITLE": "Lokalizacja i pogoda",
         "BODY": "Widżet pogody pyta o lokalizację tylko za Twoją zgodą. Współrzędne są wysyłane bezpośrednio z Twojego urządzenia do Open-Meteo (open-meteo.com) w celu pobrania prognozy oraz do BigDataCloud (bigdatacloud.com) w celu pokazania nazwy Twojej miejscowości i nie są przez nas zapisywane. Nazwa miejscowości jest zapamiętywana na Twoim urządzeniu, aby nie wyszukiwać jej ponownie w tym samym miejscu. Zamiast tego możesz wybrać miasto: jego nazwa jest wyszukiwana w Open-Meteo, lokalizacja Twojego urządzenia nie jest wtedy używana, a miasto jest zapamiętywane na Twoim urządzeniu, dopóki nie wrócisz do swojej lokalizacji."
+      },
+      {
+        "TITLE": "Przypomnienia o zadaniach i powiadomienia przeglądarki",
+        "BODY": "Do zadania z terminem możesz ustawić przypomnienie. Aby wysłać je o właściwej porze, zapisujemy Twoją strefę czasową odczytaną z przeglądarki. Przypomnienia trafiają jako powiadomienie do przeglądarek, w których włączysz Powiadomienia przeglądarki, oraz, jeśli włączysz Przypomnienia e-mail, w wiadomości e-mail. Gdy włączasz powiadomienia przeglądarki, przeglądarka tworzy subskrypcję push, a my zapisujemy ją (adres, klucze szyfrowania i nazwę przeglądarki), żeby dostarczać przypomnienia. Dostarczenie odbywa się przez usługę push producenta przeglądarki (Mozilla, Google lub Apple, zależnie od przeglądarki); treść powiadomienia jest szyfrowana end-to-end, więc usługa push jej nie odczyta, ale wie, że do Twojej przeglądarki wysłano wiadomość. Powiadomienia możesz w każdej chwili wyłączyć w ustawieniach aplikacji lub w przeglądarce; wylogowanie usuwa też subskrypcję przeglądarki, z której się wylogowujesz, a usunięcie konta usuwa wszystkie."
       },
       {
         "TITLE": "Przechowywanie i usuwanie",

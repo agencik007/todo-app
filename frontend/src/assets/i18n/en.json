@@ -539,7 +539,7 @@
   },
   "PRIVACY": {
     "TITLE": "Privacy policy",
-    "UPDATED": "Last updated: 29 October 2026",
+    "UPDATED": "Last updated: 5 November 2026",
     "BACK": "Back",
     "SECTIONS": [
       {
@@ -557,6 +557,10 @@
       {
         "TITLE": "Location and weather",
         "BODY": "The weather widget asks for your location only with your permission. Coordinates are sent directly from your device to Open-Meteo (open-meteo.com) to fetch the forecast and to BigDataCloud (bigdatacloud.com) to show the name of your town; neither is stored by us. The town name is remembered on your device so it is not looked up again at the same place. You can choose a city instead: its name is searched with Open-Meteo, your device location is not used, and the city is remembered on your device until you switch back to your location."
+      },
+      {
+        "TITLE": "Task reminders and browser notifications",
+        "BODY": "You can set a reminder on a task with a due date. To time it correctly we store your time zone, taken from your browser. Reminders are sent as a notification to the browsers where you turned on Browser notifications and, if you turn on Email reminders, by email. When you turn on browser notifications, your browser creates a push subscription, and we store it (its address and encryption keys, plus the browser name) to deliver reminders. Delivery goes through your browser vendor's push service (Mozilla, Google or Apple, depending on the browser); the notification content is encrypted end to end, so the push service cannot read it, but it does learn that a message was sent to your browser. You can turn notifications off at any time in the app's settings or in your browser; logging out also removes the subscription of the browser you log out from, and deleting your account removes all of them."
       },
       {
         "TITLE": "Retention and deletion",
