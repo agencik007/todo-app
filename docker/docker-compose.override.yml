@@ -20,6 +20,17 @@ services:
       - ../backend:/app
       - /app/venv # Don't mount virtual environment
 
+  reminder-worker:
+    # Dev-only: the same dev stage and bind-mounted source as the backend. No
+    # hot-reload here: `docker restart todo-reminder-worker` after code changes.
+    build:
+      target: dev
+    environment:
+      - DEBUG=True
+    volumes:
+      - ../backend:/app
+      - /app/venv
+
   frontend:
     # Dev-only: stop at the stage that still has node_modules and the source
     # (the final production stage ships only the built dist/ folder).

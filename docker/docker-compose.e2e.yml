@@ -43,6 +43,9 @@ services:
       - USE_MAILHOG=true
       - MAILHOG_HOST=mailhog
       - MAILHOG_PORT=1025
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-}
     ports:
       - "8000:8000"
     depends_on:
@@ -61,6 +64,41 @@ services:
       interval: 2s
       timeout: 5s
       retries: 30
+
+  reminder-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    command: ["python", "-m", "services.reminder_worker"]
+    environment:
+      - DATABASE_URL=postgresql://todo:todo@db:5432/todo_e2e
+      - SECRET_KEY=e2e-only-secret-key-not-used-anywhere-0123456789
+      - DEBUG=False
+      - TESTING=1
+      - FRONTEND_URL=http://localhost:4200
+      - USE_MAILHOG=true
+      - MAILHOG_HOST=mailhog
+      - MAILHOG_PORT=1025
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import os, sys, time; sys.exit(time.time() - os.path.getmtime('/tmp/reminder-worker.heartbeat') > 120)",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
 
   frontend:
     build:

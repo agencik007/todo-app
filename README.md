@@ -483,6 +483,7 @@ make logs
 
 # Logs from a single service
 make logs-backend    # Backend logs
+make logs-worker     # Reminder worker logs
 make logs-frontend   # Frontend logs
 make logs-db         # Database logs
 make logs-pgadmin    # PgAdmin logs
@@ -547,7 +548,8 @@ Multi-stage build:
 - **Volumes**: `postgres_data` (PostgreSQL data), `backend_uploads` (user avatars, mounted at `/app/uploadedFiles` in the backend and served under `/uploads`) and `pgadmin_data`; they survive `make down` and deploys, and are deleted by `make clean` / `make clean-volumes`
 - **Health checks**: Service dependencies
 - **Ports**: Port mapping host:container, all bound to `127.0.0.1` (reachable from the machine itself, not from the network)
-- **Services**: `db` (PostgreSQL 15), `backend`, `frontend`, `mailhog`, `pgadmin`
+- **Services**: `db` (PostgreSQL 15), `backend`, `reminder-worker`, `frontend`, `mailhog`, `pgadmin`
+- **Reminder worker**: `reminder-worker` runs the backend image with `python -m services.reminder_worker`. Every 30 seconds it sends the task reminders that came due, as a Web Push notification (when the `VAPID_*` keys are set) and as an email (for users who switched email reminders on). It uses the backend's database, email and VAPID settings; `REMINDER_WORKER_ENABLED=false` makes it idle without sending anything (it stays up, so the restart policy and `make deploy` are not disturbed). It claims each reminder in the database before sending, so a restart or a second worker never sends one twice, and a reminder more than an hour late is dropped instead of sent. The healthcheck is a heartbeat file the worker touches after every pass. In development it has no hot-reload: run `docker restart todo-reminder-worker` after changing its code.
 - **Images**: backend and frontend are tagged `${BACKEND_IMAGE:-todo-backend}:${IMAGE_TAG:-local}` / `${FRONTEND_IMAGE:-todo-frontend}:${IMAGE_TAG:-local}`; local builds use the defaults, `make deploy` points them at the GHCR images
 
 #### Other files in `docker/`
@@ -640,7 +642,9 @@ Set these in `docker/docker.prod.env` (same variables as `docker/docker.env.exam
 - `FORWARDED_ALLOW_IPS` — the Docker network range (e.g. `172.16.0.0/12`), so rate limiting sees real client IPs.
 - `NG_ALLOWED_HOSTS` — the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version.
 - `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) — the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
-- `USE_MAILHOG=false` and `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM` — a real SMTP server for verification and password-reset emails.
+- `USE_MAILHOG=false` and `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM` — a real SMTP server for verification, password-reset and task reminder emails.
+- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (and optionally `VAPID_SUBJECT`, a `mailto:` address) — enable browser push notifications for task reminders; leave them empty to switch push off. Generate a pair once with `docker exec todo-backend python -m scripts.generate_vapid_keys` and keep it: a new pair invalidates every browser subscription.
+- `REMINDER_WORKER_ENABLED` (default `true`) — set to `false` to make the `reminder-worker` service idle without sending reminders.
 
 Caddy example (`/etc/caddy/Caddyfile`; Caddy obtains the TLS certificate itself):
 
@@ -695,7 +699,7 @@ docker stats
 3. **smoke test** — `GET <PUBLIC_URL>/login` (frontend) and `GET <PUBLIC_URL>/auth/health` (backend and database; under `/auth` so the reverse proxy already routes it) must both return 2xx, and `GET <PUBLIC_URL>/todos` with `Accept: text/html` must return HTML (the reverse proxy sends page navigations to `/todos` to the frontend, see [Production deployment](#production-deployment)). When it passes, the SHA is saved on the server as the last good release (`.deploy/release`).
 4. **automatic rollback** — if the deploy step or the smoke test fails, the job puts back the last good release: `make deploy-rollback-db` restores the dump taken just before this deploy's migrations — only if they changed the schema revision, otherwise the data is left alone — then the server checks out the previous SHA, runs `make deploy` for it and the smoke test runs again. The job still fails, with the rolled-back SHA in its summary. Restoring the dump loses whatever was written between the migration and the rollback (a minute or two, while the site was failing anyway). The first deploy after this was introduced takes the commit checked out on the server as the last good release.
 
-Deploys never run in parallel. **Manual rollback:** Actions → Deploy → _Run workflow_ with `sha` set to the full commit SHA of an earlier release (its images are already in GHCR, nothing is rebuilt). This does not undo migrations: if the newer release changed the schema, restore a dump first (`make restore-db STACK=prod BACKUP=...`, below). With `sha` empty, _Run workflow_ builds and deploys the selected branch.
+Deploys never run in parallel. **Manual rollback:** Actions → Deploy → _Run workflow_ with `sha` set to the full commit SHA of an earlier release (its images are already in GHCR, nothing is rebuilt). This does not undo migrations: if the newer release changed the schema, restore a dump first (`make restore-db STACK=prod BACKUP=...`, below). A release older than the reminder worker does not know the `reminder-worker` container and leaves it running (its `make deploy` has no `--remove-orphans`): the worker keeps working while the schema still has the reminder columns and just waits, logging a warning, when it does not; `make restore-db` of the current Makefile stops it, and the next `make deploy` of a newer release starts it again (stop it by hand with `docker stop todo-reminder-worker` otherwise). With `sha` empty, _Run workflow_ builds and deploys the selected branch.
 
 **One-time setup**
 
@@ -739,7 +743,7 @@ Dependency updates come from Dependabot (`.github/dependabot.yml`): one grouped 
 make backup-db               # dev stack
 make backup-db STACK=prod    # production; `make deploy` runs this before every migration
 
-# Restore a dump: stops backend and frontend, then replaces the whole public schema
+# Restore a dump: stops backend, frontend and reminder worker, then replaces the whole public schema
 # with the dump in one transaction (a broken dump leaves the database untouched).
 make restore-db BACKUP=backups/dev-20260101T120000Z.dump
 make restore-db STACK=prod BACKUP=backups/prod-20260101T120000Z.dump
@@ -825,7 +829,7 @@ todo-app/
 │   ├── templates/email/     # Jinja2 email templates (layout, shared blocks, one .html + .txt per email)
 │   ├── models/              # SQLAlchemy models (user, todo, group, refresh_token) + Pydantic schemas
 │   ├── routes/              # API routes (auth, users, todos, groups)
-│   ├── services/            # Business logic (auth, email, embedder + suggestion_service for group suggestions)
+│   ├── services/            # Business logic (auth, email, embedder + suggestion_service for group suggestions, push + reminders + reminder_worker for task reminders)
 │   ├── migrations/          # Alembic migrations
 │   ├── openapi/             # export_openapi.py + the exported openapi.json (input of `npm run generate-api`)
 │   ├── scripts/             # seed.py - sample data for development; eval_suggestions.py - evaluates the group suggestion thresholds

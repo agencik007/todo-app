@@ -1,5 +1,5 @@
 # Todo App - Docker Development Commands
-.PHONY: help dev prod build up down restart logs logs-backend logs-frontend logs-db logs-pgadmin \
+.PHONY: help dev prod build up down restart logs logs-backend logs-worker logs-frontend logs-db logs-pgadmin \
 	clean clean-volumes shell-backend shell-db migrate test-backend lint-frontend status \
 	quick-start quick-dev test-e2e e2e-up e2e-down deploy deploy-rollback-db backup-db restore-db
 
@@ -68,7 +68,7 @@ deploy: ## Deploy prebuilt images to production (IMAGE_TAG, BACKEND_IMAGE, FRONT
 	$(DB_REVISION) > $(DEPLOY_STATE_DIR)/db-revision
 	ls -1t $(BACKUP_DIR)/prod-*.dump | head -n 1 > $(DEPLOY_STATE_DIR)/backup
 	$(COMPOSE_DEPLOY) run --rm -T backend alembic upgrade head
-	$(COMPOSE_DEPLOY) up -d --no-build --wait
+	$(COMPOSE_DEPLOY) up -d --no-build --wait --remove-orphans
 	@# Keep the newest $(DEPLOY_KEEP_IMAGES) releases of each image for quick rollbacks.
 	for img in $(BACKEND_IMAGE) $(FRONTEND_IMAGE); do \
 		docker images "$$img" --format '{{.Repository}}:{{.Tag}}' | tail -n +$$(( $(DEPLOY_KEEP_IMAGES) + 1 )) \
@@ -91,10 +91,10 @@ backup-db: ## Dump the database to backups/ (keeps the newest 10; STACK=prod for
 
 # Replaces the whole public schema with the dump in one transaction, so objects
 # created after the dump (e.g. by a newer migration) are dropped too. Stops the
-# backend and frontend first; start them again afterwards (make dev / make deploy).
+# backend, frontend and reminder worker first; start them again afterwards (make dev / make deploy).
 restore-db: ## Restore a dump from backup-db (BACKUP=backups/<file>.dump required; STACK=prod for production)
 	@test -f "$(BACKUP)" || { echo "BACKUP must point to a dump file, got '$(BACKUP)'"; exit 1; }
-	$(COMPOSE) stop backend frontend
+	$(COMPOSE) stop backend frontend reminder-worker
 	$(COMPOSE) up -d --wait db
 	$(COMPOSE) exec -T db sh -c 'set -e; sql=$$(mktemp); trap "rm -f $$sql" EXIT; \
 		pg_restore --no-owner --no-acl -f "$$sql"; \
@@ -133,6 +133,9 @@ logs: ## Show logs from all services
 
 logs-backend: ## Show backend logs
 	$(COMPOSE) logs -f backend
+
+logs-worker: ## Show reminder worker logs
+	$(COMPOSE) logs -f reminder-worker
 
 logs-frontend: ## Show frontend logs
 	$(COMPOSE) logs -f frontend
