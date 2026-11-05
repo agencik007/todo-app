@@ -502,6 +502,20 @@
     "FINALIZING": "Finalizing…"
   },
   "SETTINGS": {
+    "NOTIFICATIONS": {
+      "PUSH": "Browser notifications",
+      "PUSH_HINT": {
+        "on": "Reminders appear on this device.",
+        "off": "Get task reminders on this device.",
+        "denied": "Blocked in your browser settings. Allow notifications for this site to turn them on.",
+        "unavailable": "Not available right now.",
+        "unsupported": "This browser can't show notifications here."
+      },
+      "IOS_INSTALL": "On iPhone and iPad, add the app to your home screen first.",
+      "TEST": "Send a test notification",
+      "EMAIL": "Email reminders",
+      "EMAIL_HINT": "Get task reminders by email."
+    },
     "BACKGROUND_TOOLTIP": {
       "off": "Background: Off",
       "aurora": "Background: Aurora",

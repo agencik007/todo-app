@@ -1,3 +1,4 @@
+import { HttpContext } from '@angular/common/http';
 import {
   computed,
   effect,
@@ -11,10 +12,12 @@ import { UserResponse as User } from '@api';
 import { UsersService } from '@api/api/users.service';
 import { firstValueFrom, switchMap } from 'rxjs';
 import { AuthService } from '../../features/auth/services/auth.service';
+import { SILENT_NOTIFICATIONS } from '../interceptors/notification.interceptor';
 import { IndexedDbService } from '../services/indexed-db.service';
 import { LanguageService } from '../services/language.service';
 import { NetworkStatusService } from '../services/network-status.service';
 import { OfflineDataService } from '../services/offline-data.service';
+import { PushNotificationsService } from '../services/push-notifications.service';
 import { isServerUnreachable } from '../utils/network-error.util';
 
 /**
@@ -40,6 +43,7 @@ export class AuthStore {
   private usersService = inject(UsersService);
   readonly #networkStatus = inject(NetworkStatusService);
   readonly #offlineData = inject(OfflineDataService);
+  readonly #pushNotifications = inject(PushNotificationsService);
   readonly #router = inject(Router);
 
   // Private writable state signals
@@ -189,8 +193,44 @@ export class AuthStore {
       this.languageService.setLanguage(user.language);
     }
 
+    this.#syncTimezone(user);
+
     await this.loadAvatarWithCacheCheck(user.avatarUrl);
     return this._userAvatar();
+  }
+
+  /**
+   * Reminders are due in the user's timezone: tell the server when this
+   * browser's differs (travel, a new device). Silent; offline sessions never
+   * get here, and a failure is retried at the next sign-in.
+   */
+  #syncTimezone(user: User): void {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!timezone || user.timezone === timezone) {
+      return;
+    }
+
+    this.usersService
+      .updateTimezoneUsersMeTimezonePut({ timezone }, 'body', false, {
+        context: new HttpContext().set(SILENT_NOTIFICATIONS, true),
+      })
+      .subscribe({
+        next: (updated) => {
+          if (this._currentUser()?.id === updated.id) {
+            this._currentUser.set(updated);
+          }
+        },
+        error: () => undefined,
+      });
+  }
+
+  /** Turns the reminder emails on or off and keeps the stored user in step. */
+  setEmailReminders(enabled: boolean): Promise<void> {
+    return firstValueFrom(
+      this.usersService.updateEmailRemindersUsersMeEmailRemindersPut({
+        enabled,
+      }),
+    ).then((updated) => this._currentUser.set(updated));
   }
 
   /**
@@ -212,10 +252,14 @@ export class AuthStore {
 
   /**
    * Performs a full logout:
-   * 1. Notifies the backend (which clears the refresh cookie via Set-Cookie)
-   * 2. Clears the in-memory access token and all UI signals
+   * 1. Removes this browser's push subscription (needs the access token; at
+   *    most 3 seconds, never fails)
+   * 2. Notifies the backend (which clears the refresh cookie via Set-Cookie)
+   * 3. Clears the in-memory access token and all UI signals
    */
-  logout(): void {
+  async logout(): Promise<void> {
+    await this.#pushNotifications.forgetDevice();
+
     // Notify backend first — it will clear the HttpOnly refresh cookie.
     this.authService.logout().subscribe();
 

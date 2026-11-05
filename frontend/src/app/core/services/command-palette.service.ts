@@ -109,7 +109,7 @@ export class CommandPaletteService {
         this.deleteAvatar();
         break;
       case 'logout':
-        this.logout();
+        void this.logout();
         break;
       case 'todo-add':
         this.addTodo();
@@ -335,8 +335,8 @@ export class CommandPaletteService {
     this.close();
   }
 
-  private logout(): void {
-    this.#authStore.logout();
+  private async logout(): Promise<void> {
+    await this.#authStore.logout();
     this.#router.navigate(['/login']);
     this.close();
   }

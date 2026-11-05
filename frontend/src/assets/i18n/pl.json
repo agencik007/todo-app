@@ -502,6 +502,20 @@
     "FINALIZING": "Finalizowanie…"
   },
   "SETTINGS": {
+    "NOTIFICATIONS": {
+      "PUSH": "Powiadomienia w przeglądarce",
+      "PUSH_HINT": {
+        "on": "Przypomnienia pojawią się na tym urządzeniu.",
+        "off": "Otrzymuj przypomnienia o zadaniach na tym urządzeniu.",
+        "denied": "Zablokowane w ustawieniach przeglądarki. Zezwól tej stronie na powiadomienia, aby je włączyć.",
+        "unavailable": "Niedostępne w tej chwili.",
+        "unsupported": "Ta przeglądarka nie może tutaj wyświetlać powiadomień."
+      },
+      "IOS_INSTALL": "Na iPhonie i iPadzie najpierw dodaj aplikację do ekranu głównego.",
+      "TEST": "Wyślij testowe powiadomienie",
+      "EMAIL": "Przypomnienia e-mailem",
+      "EMAIL_HINT": "Otrzymuj przypomnienia o zadaniach e-mailem."
+    },
     "BACKGROUND_TOOLTIP": {
       "off": "Tło: Wyłączone",
       "aurora": "Tło: Zorza",
