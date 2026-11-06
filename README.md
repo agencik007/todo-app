@@ -675,12 +675,14 @@ Set these in `docker/docker.prod.env` (same variables as `docker/docker.env.exam
 - `API_URL` — the site origin (e.g. `https://todo.example.com`); baked into the frontend image at build time.
 - `SECURE_COOKIES=True`.
 - `ALLOWED_HOSTS`, `CORS_ORIGINS` and `FRONTEND_URL` — the domain. For the native mobile apps also add `capacitor://localhost,https://localhost` to `CORS_ORIGINS`.
-- `FORWARDED_ALLOW_IPS` — the Docker network range (e.g. `172.16.0.0/12`), so rate limiting sees real client IPs.
+- `FORWARDED_ALLOW_IPS` — the Docker network range (e.g. `172.16.0.0/12`), so rate limiting sees real client IPs. The proxy on the host reaches the container through the Docker bridge, so the backend sees it as a `172.x` address, not `127.0.0.1`: with the default, `X-Forwarded-For` is ignored and every client shares the proxy's rate limit.
 - `NG_ALLOWED_HOSTS` — the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version.
 - `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) — the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
 - `USE_MAILHOG=false` (also the default) and `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM` — a real SMTP server for verification, password-reset and task reminder emails.
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (and optionally `VAPID_SUBJECT`, a `mailto:` address) — enable browser push notifications for task reminders; leave them empty to switch push off. Generate a pair once with `docker exec todo-backend python -m scripts.generate_vapid_keys` and keep it: a new pair invalidates every browser subscription.
 - `REMINDER_WORKER_ENABLED` (default `true`) — set to `false` to make the `reminder-worker` service idle without sending reminders.
+
+**Rate limiting is per worker process.** slowapi keeps its counters in memory, and each of the two Uvicorn workers (and each of the four limiters in `main.py`, `routes/auth.py`, `routes/todo.py` and `routes/push.py`) has its own. A client whose requests land on both workers can therefore make up to about twice the configured number (e.g. up to ~10 logins a minute instead of 5), and every deploy or restart resets the counters. That is acceptable for now; a shared store (Redis, via `Limiter(storage_uri=...)` in all four places) would make the limits exact. `--workers 1` would too, at the cost of throughput.
 
 Caddy example (`/etc/caddy/Caddyfile`; Caddy obtains the TLS certificate itself):
 
