@@ -1,5 +1,5 @@
 # Set testing environment variable BEFORE any imports
-# This disables rate limiting in routes/auth.py
+# This disables rate limiting (config/rate_limit.py)
 import os
 from urllib.parse import urlparse, urlunparse
 

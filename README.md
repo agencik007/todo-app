@@ -131,6 +131,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - **Uvicorn** - ASGI server
 - **fastembed** - local ONNX embedding model for group suggestions (no PyTorch)
 - **pywebpush** - Web Push (VAPID) delivery of task reminders
+- **slowapi** + **Redis** - rate limiting; the counters live in Redis so every Uvicorn worker shares them
 
 ### Frontend
 
@@ -149,6 +150,7 @@ A simple Todo application for task management with full CRUD (Create, Read, Upda
 - **Docker** - containerization
 - **Docker Compose** - container orchestration
 - **PostgreSQL** - database in container
+- **Redis** - rate limit counters in container (no persistence)
 - **GitHub Actions** - CI (see [Continuous Integration](#continuous-integration-github-actions)), CD to production and nightly database backups (see [Continuous deployment](#continuous-deployment-github-actions))
 - **Playwright** - end-to-end tests (see [End-to-End Tests](#end-to-end-tests-playwright))
 
@@ -245,7 +247,7 @@ MAILHOG_PORT=1025
 FRONTEND_URL=http://localhost:4200
 ```
 
-Optional: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` (browser notifications for task reminders, see [Task reminders](#task-reminders); push stays off while the keys are empty) and `REMINDER_WORKER_ENABLED` (default `true`; only read by the reminder worker). `AI_SUGGESTIONS_ENABLED` (default `true`; `false`, `0`, `no` or `off` turns the group suggestions off, see [AI group suggestions](#ai-group-suggestions)). In Docker it is set in `docker/docker.env`.
+Optional: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` (browser notifications for task reminders, see [Task reminders](#task-reminders); push stays off while the keys are empty) and `REMINDER_WORKER_ENABLED` (default `true`; only read by the reminder worker). `AI_SUGGESTIONS_ENABLED` (default `true`; `false`, `0`, `no` or `off` turns the group suggestions off, see [AI group suggestions](#ai-group-suggestions)). In Docker it is set in `docker/docker.env`. `RATE_LIMIT_STORAGE_URI` (e.g. `redis://localhost:6379/0`; unset = each process counts in its own memory, which is fine for a single local `uvicorn`, see [Production deployment](#production-deployment)).
 
 > [!NOTE]
 > `ALLOWED_HOSTS` and `CORS_ORIGINS` are required — the backend refuses to start without them (see `backend/main.py`). `SECRET_KEY` must be at least 32 characters and not a known placeholder (see `backend/services/auth_service.py`).
@@ -475,7 +477,7 @@ When CI passes on a push to `develop`, `.github/workflows/deploy.yml` deploys th
                     └───────────────────────┘ └───────────────────────┘
 ```
 
-The `reminder-worker` container (not drawn) runs the backend image against the same database and sends task reminders. All ports are published on `127.0.0.1` only. The browser talks to the frontend and, directly, to the backend API (`API_URL`); in production a reverse proxy on the host puts both behind one domain (see [Production deployment](#production-deployment)).
+The `reminder-worker` container (not drawn) runs the backend image against the same database and sends task reminders. The `redis` container (not drawn, no published port) holds the backend's rate limit counters. All ports are published on `127.0.0.1` only. The browser talks to the frontend and, directly, to the backend API (`API_URL`); in production a reverse proxy on the host puts both behind one domain (see [Production deployment](#production-deployment)).
 
 ### Launch Modes
 
@@ -583,8 +585,8 @@ Multi-stage build:
 - **Volumes**: `postgres_data` (PostgreSQL data), `backend_uploads` (user avatars, mounted at `/app/uploadedFiles` in the backend and served under `/uploads`) and, in the dev stack, `pgadmin_data`; they survive `make down` and deploys, and are deleted by `make clean` / `make clean-volumes`
 - **Health checks**: Service dependencies
 - **Ports**: Port mapping host:container, all bound to `127.0.0.1` (reachable from the machine itself, not from the network)
-- **Services**: `db` (PostgreSQL 15), `backend`, `reminder-worker`, `frontend`; `docker-compose.override.yml` (dev only) adds `mailhog` and `pgadmin` and points the backend and the worker at MailHog (`USE_MAILHOG=true`)
-- **Image versions**: `postgres`, `mailhog` and `pgadmin` are pinned to exact tags; Dependabot (`docker-compose` ecosystem, `/docker`) opens weekly PRs for minor and patch updates. A PostgreSQL major is ignored on purpose: the new server can't start on the old data directory, so it needs a `make backup-db` / `make restore-db` and is done by hand. Keep the `postgres` tag in `docker-compose.yml`, `docker-compose.e2e.yml` and `.github/workflows/ci.yml` the same (Dependabot doesn't update the CI service image)
+- **Services**: `db` (PostgreSQL 15), `redis` (rate limit counters, no persistence, not published), `backend`, `reminder-worker`, `frontend`; `docker-compose.override.yml` (dev only) adds `mailhog` and `pgadmin` and points the backend and the worker at MailHog (`USE_MAILHOG=true`)
+- **Image versions**: `postgres`, `redis`, `mailhog` and `pgadmin` are pinned to exact tags; Dependabot (`docker-compose` ecosystem, `/docker`) opens weekly PRs for minor and patch updates. A PostgreSQL major is ignored on purpose: the new server can't start on the old data directory, so it needs a `make backup-db` / `make restore-db` and is done by hand. Keep the `postgres` tag in `docker-compose.yml`, `docker-compose.e2e.yml` and `.github/workflows/ci.yml` the same (Dependabot doesn't update the CI service image)
 - **Reminder worker**: `reminder-worker` runs the backend image with `python -m services.reminder_worker`. Every 30 seconds it sends the task reminders that came due, as a Web Push notification (when the `VAPID_*` keys are set) and as an email (for users who switched email reminders on). It uses the backend's database, email and VAPID settings; `REMINDER_WORKER_ENABLED=false` makes it idle without sending anything (it stays up, so the restart policy and `make deploy` are not disturbed). It claims each reminder in the database before sending, so a restart or a second worker never sends one twice, and a reminder more than an hour late is dropped instead of sent. The healthcheck is a heartbeat file the worker touches after every pass. In development it has no hot-reload: run `docker restart todo-reminder-worker` after changing its code.
 - **Images**: backend and frontend are tagged `${BACKEND_IMAGE:-todo-backend}:${IMAGE_TAG:-local}` / `${FRONTEND_IMAGE:-todo-frontend}:${IMAGE_TAG:-local}`; local builds use the defaults, `make deploy` points them at the GHCR images
 
@@ -682,7 +684,7 @@ Set these in `docker/docker.prod.env` (same variables as `docker/docker.env.exam
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (and optionally `VAPID_SUBJECT`, a `mailto:` address) — enable browser push notifications for task reminders; leave them empty to switch push off. Generate a pair once with `docker exec todo-backend python -m scripts.generate_vapid_keys` and keep it: a new pair invalidates every browser subscription.
 - `REMINDER_WORKER_ENABLED` (default `true`) — set to `false` to make the `reminder-worker` service idle without sending reminders.
 
-**Rate limiting is per worker process.** slowapi keeps its counters in memory, and each of the two Uvicorn workers (and each of the four limiters in `main.py`, `routes/auth.py`, `routes/todo.py` and `routes/push.py`) has its own. A client whose requests land on both workers can therefore make up to about twice the configured number (e.g. up to ~10 logins a minute instead of 5), and every deploy or restart resets the counters. That is acceptable for now; a shared store (Redis, via `Limiter(storage_uri=...)` in all four places) would make the limits exact. `--workers 1` would too, at the cost of throughput.
+**Rate limiting is shared through Redis.** Every limiter is built by `create_limiter()` in `backend/config/rate_limit.py`, which keeps the counters in `RATE_LIMIT_STORAGE_URI` — in Docker the `redis` service (`redis://redis:6379/0`, the compose default). Both Uvicorn workers therefore count against the same limits (5 logins a minute means 5, not up to 10), and backend restarts and deploys keep them. Redis stores nothing else and runs without persistence, so restarting the `redis` container only resets the limits. If Redis is unreachable, slowapi falls back to per-worker in-memory counters (the old, roughly doubled limits) and switches back once Redis answers again; requests keep working. Without `RATE_LIMIT_STORAGE_URI` (running `uvicorn` outside Docker) each process counts in its own memory.
 
 Caddy example (`/etc/caddy/Caddyfile`; Caddy obtains the TLS certificate itself):
 
@@ -862,7 +864,7 @@ docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec ba
 todo-app/
 ├── backend/                 # Python FastAPI backend
 │   ├── AGENTS.md            # Backend rules for contributors and AI agents
-│   ├── config/              # database, auth, api_messages, password validation
+│   ├── config/              # database, auth, api_messages, password validation, rate_limit
 │   ├── i18n/                # en.json, pl.json - email texts
 │   ├── templates/email/     # Jinja2 email templates (layout, shared blocks, one .html + .txt per email)
 │   ├── models/              # SQLAlchemy models (user, todo, group, refresh_token, push_subscription) + Pydantic schemas
