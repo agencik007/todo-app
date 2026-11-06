@@ -13,7 +13,7 @@ Never log subscription endpoints or keys, addresses or task titles: counts only.
 import logging
 import os
 import signal
-import threading
+import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -169,19 +169,33 @@ def run_once(
 
 
 class StopSignal:
-    """Set by SIGTERM / SIGINT; `wait` sleeps until then or the timeout."""
+    """
+    Set by SIGTERM / SIGINT; `wait` sleeps until then or the timeout.
+
+    A plain flag polled by `wait`, not a `threading.Event`: the signal handler
+    runs on the main thread, and a SIGTERM that lands while that thread holds
+    the event's lock inside `Event.wait` deadlocks `Event.set`, so the worker
+    never stops.
+    """
+
+    POLL_SECONDS = 0.2
 
     def __init__(self) -> None:
-        self._event = threading.Event()
+        self._set = False
 
     def set(self, *_args) -> None:
-        self._event.set()
+        self._set = True
 
     def is_set(self) -> bool:
-        return self._event.is_set()
+        return self._set
 
     def wait(self, seconds: float) -> None:
-        self._event.wait(seconds)
+        deadline = time.monotonic() + seconds
+        while not self._set:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                return
+            time.sleep(min(remaining, self.POLL_SECONDS))
 
 
 def _touch_heartbeat() -> None:
@@ -252,12 +266,14 @@ def main() -> None:
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
     )
-    enabled = worker_enabled()
-    if not enabled:
-        logger.info("REMINDER_WORKER_ENABLED is false, no reminders will be sent")
+    # Handlers first: a SIGTERM right after the first log line must not kill
+    # the process with the default action.
     stop = StopSignal()
     signal.signal(signal.SIGTERM, stop.set)
     signal.signal(signal.SIGINT, stop.set)
+    enabled = worker_enabled()
+    if not enabled:
+        logger.info("REMINDER_WORKER_ENABLED is false, no reminders will be sent")
     logger.info("Reminder worker started (every %ds)", WORKER_INTERVAL_SECONDS)
     loop(stop, enabled=enabled)
     logger.info("Reminder worker stopped")
