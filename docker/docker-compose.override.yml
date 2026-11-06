@@ -10,6 +10,8 @@ services:
       # Bind-mounted changes from a Windows/macOS host don't emit file events
       # inside the container, so uvicorn --reload (watchfiles) must poll.
       - WATCHFILES_FORCE_POLLING=true
+      # Dev default: emails go to MailHog (the production default is false).
+      - USE_MAILHOG=${USE_MAILHOG:-true}
     # Dev-only: hot-reload (single worker). Production uses the Dockerfile's
     # default CMD (no --reload, multiple workers) via docker-compose.yml alone.
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
@@ -19,6 +21,9 @@ services:
     volumes:
       - ../backend:/app
       - /app/venv # Don't mount virtual environment
+    depends_on:
+      mailhog:
+        condition: service_started
 
   reminder-worker:
     # Dev-only: the same dev stage and bind-mounted source as the backend. No
@@ -27,9 +32,13 @@ services:
       target: dev
     environment:
       - DEBUG=True
+      - USE_MAILHOG=${USE_MAILHOG:-true}
     volumes:
       - ../backend:/app
       - /app/venv
+    depends_on:
+      mailhog:
+        condition: service_started
 
   frontend:
     # Dev-only: stop at the stage that still has node_modules and the source
@@ -49,3 +58,57 @@ services:
     volumes:
       - ../frontend:/app
       - /app/node_modules
+
+  # Dev-only tools below: production runs docker-compose.yml alone, so these
+  # never start there (`make deploy --remove-orphans` drops old containers).
+
+  # MailHog - captures every email the dev stack sends (Web UI on :8025).
+  # v1.0.1 is the last release (the project is unmaintained).
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: todo-mailhog
+    restart: unless-stopped
+    ports:
+      # Loopback only - the backend reaches MailHog over todo-network.
+      - "127.0.0.1:1025:1025" # SMTP server
+      - "127.0.0.1:8025:8025" # Web UI
+    networks:
+      - todo-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8025",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # PgAdmin - database management. Desktop mode (no login), which is why it
+  # must stay out of production.
+  pgadmin:
+    image: dpage/pgadmin4:9.19.0
+    container_name: todo-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:?PGADMIN_EMAIL must be set}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?PGADMIN_PASSWORD must be set}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      # Bound to loopback only - not reachable from the network.
+      - "127.0.0.1:5050:80"
+    depends_on:
+      - db
+    networks:
+      - todo-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  pgadmin_data:
+    driver: local

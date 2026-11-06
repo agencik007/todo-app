@@ -9,7 +9,7 @@
 
 services:
   db:
-    image: postgres:15-alpine
+    image: postgres:15.19-alpine
     environment:
       POSTGRES_USER: todo
       POSTGRES_PASSWORD: todo
