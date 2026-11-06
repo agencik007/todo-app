@@ -10,6 +10,8 @@ services:
       # Bind-mounted changes from a Windows/macOS host don't emit file events
       # inside the container, so uvicorn --reload (watchfiles) must poll.
       - WATCHFILES_FORCE_POLLING=true
+      # Dev default: emails go to MailHog (the production default is false).
+      - USE_MAILHOG=${USE_MAILHOG:-true}
     # Dev-only: hot-reload (single worker). Production uses the Dockerfile's
     # default CMD (no --reload, multiple workers) via docker-compose.yml alone.
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
@@ -30,6 +32,7 @@ services:
       target: dev
     environment:
       - DEBUG=True
+      - USE_MAILHOG=${USE_MAILHOG:-true}
     volumes:
       - ../backend:/app
       - /app/venv

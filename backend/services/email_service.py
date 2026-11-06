@@ -3,7 +3,8 @@ Email service - Email sending functionality with dual-mode support:
 - Development: MailHog (captures emails, no real sending)
 - Production: Real SMTP (Brevo / SendGrid / Gmail / etc.)
 
-Controlled by the USE_MAILHOG environment variable (default: true).
+Controlled by the USE_MAILHOG environment variable (default: false, so a
+missing variable never routes production email into a dev-only MailHog).
 """
 
 import json
@@ -26,8 +27,8 @@ EMAIL_FROM = os.getenv("EMAIL_FROM", "noreply@example.com")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:4200")
 
 # ── Mode switch ───────────────────────────────────────────────────────────────
-# Set USE_MAILHOG=false in production to use real SMTP (Brevo etc.)
-USE_MAILHOG = os.getenv("USE_MAILHOG", "true").lower() == "true"
+# Real SMTP (Brevo etc.) unless USE_MAILHOG=true - the dev stack sets it.
+USE_MAILHOG = os.getenv("USE_MAILHOG", "false").lower() == "true"
 
 # ── MailHog (dev) ─────────────────────────────────────────────────────────────
 MAILHOG_HOST = os.getenv("MAILHOG_HOST", "mailhog")

@@ -75,7 +75,7 @@ The application uses **MailHog** for testing email functionalities (email verifi
 
 Emails are rendered from Jinja2 templates in `backend/templates/email/` (dark theme only, the app's cyan palette) with texts from `backend/i18n/{en,pl}.json`. They are sent in the account's language: the interface language at sign-up, changed later with the language selector. The logo is loaded from `FRONTEND_URL/icons/icon-192.png`, so it only shows in clients that can reach that address.
 
-**Note:** MailHog and pgAdmin are defined in `docker-compose.override.yml`, so only the dev stack (`make dev`) starts them; `make prod` and `make deploy` use `docker-compose.yml` alone. In production set `USE_MAILHOG=false` and the `SMTP_*` variables so emails go through a real SMTP server.
+**Note:** MailHog and pgAdmin are defined in `docker-compose.override.yml`, so only the dev stack (`make dev`) starts them; `make prod` and `make deploy` use `docker-compose.yml` alone. `USE_MAILHOG` defaults to `false` (real SMTP via the `SMTP_*` variables); the dev override and `docker/docker.env.example` set it to `true`.
 
 ---
 
@@ -583,7 +583,7 @@ Multi-stage build:
 - **Volumes**: `postgres_data` (PostgreSQL data), `backend_uploads` (user avatars, mounted at `/app/uploadedFiles` in the backend and served under `/uploads`) and, in the dev stack, `pgadmin_data`; they survive `make down` and deploys, and are deleted by `make clean` / `make clean-volumes`
 - **Health checks**: Service dependencies
 - **Ports**: Port mapping host:container, all bound to `127.0.0.1` (reachable from the machine itself, not from the network)
-- **Services**: `db` (PostgreSQL 15), `backend`, `reminder-worker`, `frontend`; `docker-compose.override.yml` (dev only) adds `mailhog` and `pgadmin`
+- **Services**: `db` (PostgreSQL 15), `backend`, `reminder-worker`, `frontend`; `docker-compose.override.yml` (dev only) adds `mailhog` and `pgadmin` and points the backend and the worker at MailHog (`USE_MAILHOG=true`)
 - **Reminder worker**: `reminder-worker` runs the backend image with `python -m services.reminder_worker`. Every 30 seconds it sends the task reminders that came due, as a Web Push notification (when the `VAPID_*` keys are set) and as an email (for users who switched email reminders on). It uses the backend's database, email and VAPID settings; `REMINDER_WORKER_ENABLED=false` makes it idle without sending anything (it stays up, so the restart policy and `make deploy` are not disturbed). It claims each reminder in the database before sending, so a restart or a second worker never sends one twice, and a reminder more than an hour late is dropped instead of sent. The healthcheck is a heartbeat file the worker touches after every pass. In development it has no hot-reload: run `docker restart todo-reminder-worker` after changing its code.
 - **Images**: backend and frontend are tagged `${BACKEND_IMAGE:-todo-backend}:${IMAGE_TAG:-local}` / `${FRONTEND_IMAGE:-todo-frontend}:${IMAGE_TAG:-local}`; local builds use the defaults, `make deploy` points them at the GHCR images
 
@@ -677,7 +677,7 @@ Set these in `docker/docker.prod.env` (same variables as `docker/docker.env.exam
 - `FORWARDED_ALLOW_IPS` — the Docker network range (e.g. `172.16.0.0/12`), so rate limiting sees real client IPs.
 - `NG_ALLOWED_HOSTS` — the domain plus `localhost,127.0.0.1` (e.g. `todo.example.com,localhost,127.0.0.1`): the Angular SSR server only renders for those hostnames and answers 400 to any other `Host` / `X-Forwarded-Host`. Without it every page silently falls back to client-side rendering, which Angular will turn into a 400 in a future version.
 - `NG_TRUST_PROXY_HEADERS` (default `x-forwarded-host,x-forwarded-proto,x-forwarded-for`) — the `X-Forwarded-*` headers the proxy may send; any other one also makes SSR fall back to client-side rendering.
-- `USE_MAILHOG=false` and `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM` — a real SMTP server for verification, password-reset and task reminder emails.
+- `USE_MAILHOG=false` (also the default) and `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM` — a real SMTP server for verification, password-reset and task reminder emails.
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (and optionally `VAPID_SUBJECT`, a `mailto:` address) — enable browser push notifications for task reminders; leave them empty to switch push off. Generate a pair once with `docker exec todo-backend python -m scripts.generate_vapid_keys` and keep it: a new pair invalidates every browser subscription.
 - `REMINDER_WORKER_ENABLED` (default `true`) — set to `false` to make the `reminder-worker` service idle without sending reminders.
 

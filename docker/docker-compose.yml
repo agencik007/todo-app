@@ -7,7 +7,10 @@ x-app-env: &app-env
   FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
   # Email
   EMAIL_FROM: ${EMAIL_FROM:-noreply@example.com}
-  USE_MAILHOG: ${USE_MAILHOG:-true}
+  # Off unless set: if the variable ever went missing from the production env
+  # file, emails would otherwise vanish into a MailHog that isn't there. The
+  # dev override and docker.env.example turn it on.
+  USE_MAILHOG: ${USE_MAILHOG:-false}
   # Web Push (task reminders); empty keys switch push off. Generate a pair
   # with `python -m scripts.generate_vapid_keys`.
   VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
