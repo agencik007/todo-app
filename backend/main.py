@@ -17,13 +17,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 from sqlalchemy import Connection, text
 from sqlalchemy import inspect as sa_inspect
 
 from config.database import Base, engine
+from config.rate_limit import create_limiter
 from routes import (
     auth_router,
     groups_router,
@@ -163,7 +164,7 @@ app = FastAPI(
 )
 
 # Initialize rate limiter
-limiter = Limiter(key_func=get_remote_address, enabled=os.getenv("TESTING") != "1")
+limiter = create_limiter(get_remote_address)
 app.state.limiter = limiter
 
 

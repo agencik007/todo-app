@@ -2,15 +2,13 @@
 Push routes - Web Push subscriptions and a test notification.
 """
 
-import os
-
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from slowapi import Limiter
 from sqlalchemy.orm import Session
 
 from config.api_messages import ApiMessages, api_error, api_success
 from config.auth import get_current_verified_user
 from config.database import get_db
+from config.rate_limit import create_limiter
 from models.push_subscription import PushSubscription
 from models.schemas import (
     PushConfig,
@@ -27,9 +25,7 @@ router = APIRouter(prefix="/push", tags=["push"])
 
 USER_AGENT_MAX_LENGTH = 255
 
-limiter = Limiter(
-    key_func=suggestion_rate_limit_key, enabled=os.getenv("TESTING") != "1"
-)
+limiter = create_limiter(suggestion_rate_limit_key)
 
 
 def require_push_enabled() -> None:

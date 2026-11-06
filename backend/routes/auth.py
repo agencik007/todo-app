@@ -8,7 +8,6 @@ import secrets
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -16,6 +15,7 @@ from sqlalchemy.orm import Session
 from config.api_messages import ApiMessages, api_error, api_success
 from config.auth import get_current_active_user
 from config.database import get_db
+from config.rate_limit import create_limiter
 from models.schemas import (
     PasswordReset,
     PasswordResetRequest,
@@ -42,9 +42,7 @@ from services.email_service import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
 
-# Use a no-op limiter in testing environment
-IS_TESTING = os.getenv("TESTING", "0") == "1"
-limiter = Limiter(key_func=get_remote_address, enabled=not IS_TESTING)
+limiter = create_limiter(get_remote_address)
 
 # Constants
 PASSWORD_RESET_EXPIRY_HOURS = 1

@@ -122,7 +122,7 @@ Smooth out login avatar final fade phase      # no type
 ```
 backend/
   AGENTS.md      # backend rules (FastAPI, tests, migrations)
-  config/        # api_messages.py, database, auth, password validation
+  config/        # api_messages.py, database, auth, password validation, rate_limit.py (shared slowapi limiter factory)
   models/        # SQLAlchemy models (user, todo, group, refresh_token) + schemas.py (Pydantic)
   routes/        # FastAPI endpoints
   services/      # business logic

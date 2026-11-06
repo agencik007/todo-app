@@ -55,6 +55,35 @@ services:
       retries: 5
       start_period: 30s
 
+  # Rate limit counters, shared by every backend worker (and kept across
+  # backend restarts). Nothing else is stored, so no persistence: a Redis
+  # restart only resets the limits. Not published, only todo-network sees it.
+  redis:
+    image: redis:8.10.3-alpine
+    container_name: todo-redis
+    restart: unless-stopped
+    # Every key has a TTL (the limit window); the cap and eviction policy keep
+    # a flood of distinct client keys from growing it without bound.
+    command:
+      [
+        "redis-server",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--maxmemory",
+        "64mb",
+        "--maxmemory-policy",
+        "volatile-lru",
+      ]
+    networks:
+      - todo-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # FastAPI Backend
   backend:
     # Local builds are tagged todo-backend:local. The CD workflow sets
@@ -79,6 +108,9 @@ services:
       FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
       # Mark auth cookies Secure. Set to True when the app is served over HTTPS.
       SECURE_COOKIES: ${SECURE_COOKIES:-False}
+      # Rate limit counters (backend/config/rate_limit.py). Unset = in-memory
+      # per worker; if Redis goes down the backend falls back to that.
+      RATE_LIMIT_STORAGE_URI: ${RATE_LIMIT_STORAGE_URI:-redis://redis:6379/0}
     ports:
       # Loopback only, like db: the reverse proxy on the host
       # reaches it at 127.0.0.1:8000, nothing else should.
@@ -89,6 +121,8 @@ services:
       - backend_uploads:/app/uploadedFiles
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - todo-network

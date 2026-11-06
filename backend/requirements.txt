@@ -18,8 +18,11 @@ cryptography==50.0.2
 bcrypt==5.0.0
 email-validator==2.3.0
 
-# Rate limiting
+# Rate limiting. Counters live in Redis (RATE_LIMIT_STORAGE_URI); limits[redis]
+# pins the redis client to the range limits supports (currently <8).
 slowapi==0.1.10
+limits[redis]==5.8.0
+redis==7.4.1
 alembic==1.20.1
 
 # IANA timezone database for zoneinfo (slim images may lack system tz data)

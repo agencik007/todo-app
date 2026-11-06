@@ -2,12 +2,10 @@
 Todo routes - CRUD operations for todo items.
 """
 
-import os
 from datetime import date, time
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
@@ -16,6 +14,7 @@ from sqlalchemy.orm import Session, selectinload
 from config.api_messages import ApiMessages, api_error, api_success
 from config.auth import get_current_verified_user
 from config.database import get_db
+from config.rate_limit import create_limiter
 from models.group import Group as GroupModel
 from models.schemas import (
     GroupSuggestion,
@@ -50,9 +49,7 @@ def suggestion_rate_limit_key(request: Request) -> str:
     return get_remote_address(request)
 
 
-limiter = Limiter(
-    key_func=suggestion_rate_limit_key, enabled=os.getenv("TESTING") != "1"
-)
+limiter = create_limiter(suggestion_rate_limit_key)
 
 
 def validate_due(due_date: date | None, due_time: time | None) -> None:
