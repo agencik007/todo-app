@@ -110,6 +110,9 @@ jobs:
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
+    # A normal run takes ~6 minutes; fail a hung one instead of waiting the
+    # default 6 hours (deploys wait for CI).
+    timeout-minutes: 20
     env:
       COMPOSE_E2E: docker compose -p todo-e2e -f docker/docker-compose.e2e.yml
 
@@ -127,11 +130,15 @@ jobs:
       - name: Start the e2e stack
         run: $COMPOSE_E2E up --build --wait
 
+      # No --with-deps: it apt-installs CJK/X11 font packages from the Ubuntu
+      # mirror, which at times crawls (9+ minutes for 15 MB). The runner image
+      # ships Google Chrome, so Chromium's shared libraries are already there,
+      # and the tests make no screenshot assertions that would need the fonts.
       - name: Install Playwright
         working-directory: e2e
         run: |
           npm ci
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
 
       - name: Typecheck
         working-directory: e2e
