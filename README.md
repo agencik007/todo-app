@@ -462,7 +462,7 @@ When CI passes on a push to `develop`, `.github/workflows/deploy.yml` deploys th
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │────│    Backend      │────│   PostgreSQL    │
-│   (Angular SSR) │    │   (FastAPI)     │    │   (15, Alpine)  │
+│   (Angular SSR) │    │   (FastAPI)     │    │ (15.19, Alpine) │
 │   Port: 4200    │    │   Port: 8000    │    │   Port: 5433    │
 │   Node server   │    │   REST API      │    │   Persistent    │
 │   + prerender   │    │   + Swagger     │    │   Volume        │
@@ -584,6 +584,7 @@ Multi-stage build:
 - **Health checks**: Service dependencies
 - **Ports**: Port mapping host:container, all bound to `127.0.0.1` (reachable from the machine itself, not from the network)
 - **Services**: `db` (PostgreSQL 15), `backend`, `reminder-worker`, `frontend`; `docker-compose.override.yml` (dev only) adds `mailhog` and `pgadmin` and points the backend and the worker at MailHog (`USE_MAILHOG=true`)
+- **Image versions**: `postgres`, `mailhog` and `pgadmin` are pinned to exact tags; Dependabot (`docker-compose` ecosystem, `/docker`) opens weekly PRs for minor and patch updates. A PostgreSQL major is ignored on purpose: the new server can't start on the old data directory, so it needs a `make backup-db` / `make restore-db` and is done by hand. Keep the `postgres` tag in `docker-compose.yml`, `docker-compose.e2e.yml` and `.github/workflows/ci.yml` the same (Dependabot doesn't update the CI service image)
 - **Reminder worker**: `reminder-worker` runs the backend image with `python -m services.reminder_worker`. Every 30 seconds it sends the task reminders that came due, as a Web Push notification (when the `VAPID_*` keys are set) and as an email (for users who switched email reminders on). It uses the backend's database, email and VAPID settings; `REMINDER_WORKER_ENABLED=false` makes it idle without sending anything (it stays up, so the restart policy and `make deploy` are not disturbed). It claims each reminder in the database before sending, so a restart or a second worker never sends one twice, and a reminder more than an hour late is dropped instead of sent. The healthcheck is a heartbeat file the worker touches after every pass. In development it has no hot-reload: run `docker restart todo-reminder-worker` after changing its code.
 - **Images**: backend and frontend are tagged `${BACKEND_IMAGE:-todo-backend}:${IMAGE_TAG:-local}` / `${FRONTEND_IMAGE:-todo-frontend}:${IMAGE_TAG:-local}`; local builds use the defaults, `make deploy` points them at the GHCR images
 

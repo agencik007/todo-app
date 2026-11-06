@@ -23,7 +23,9 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15-alpine
+        # Keep in step with docker/docker-compose.yml (Dependabot only bumps the
+        # compose files).
+        image: postgres:15.19-alpine
         env:
           POSTGRES_USER: todo
           POSTGRES_PASSWORD: todo

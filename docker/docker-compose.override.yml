@@ -63,8 +63,9 @@ services:
   # never start there (`make deploy --remove-orphans` drops old containers).
 
   # MailHog - captures every email the dev stack sends (Web UI on :8025).
+  # v1.0.1 is the last release (the project is unmaintained).
   mailhog:
-    image: mailhog/mailhog:latest
+    image: mailhog/mailhog:v1.0.1
     container_name: todo-mailhog
     restart: unless-stopped
     ports:
@@ -91,7 +92,7 @@ services:
   # PgAdmin - database management. Desktop mode (no login), which is why it
   # must stay out of production.
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:9.19.0
     container_name: todo-pgadmin
     restart: unless-stopped
     environment:
