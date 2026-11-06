@@ -1,13 +1,13 @@
 fastapi==0.162.0
 starlette==1.10.0
-anyio==4.15.1
+anyio==4.16.0
 uvicorn[standard]==0.54.0
 sqlalchemy==2.1.6
-psycopg[binary]==3.3.6
+psycopg[binary]==3.3.7
 pydantic==2.14.2
 pydantic[email]==2.14.2
 python-dotenv==1.2.4
-python-multipart==0.0.32
+python-multipart==0.0.33
 
 # Email templates
 Jinja2==3.1.6
@@ -23,7 +23,7 @@ slowapi==0.1.10
 alembic==1.20.1
 
 # IANA timezone database for zoneinfo (slim images may lack system tz data)
-tzdata==2026.2
+tzdata==2026.6
 
 # Web Push (VAPID) for task reminders
 pywebpush==2.5.0
