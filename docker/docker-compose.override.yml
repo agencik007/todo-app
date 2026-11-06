@@ -19,6 +19,9 @@ services:
     volumes:
       - ../backend:/app
       - /app/venv # Don't mount virtual environment
+    depends_on:
+      mailhog:
+        condition: service_started
 
   reminder-worker:
     # Dev-only: the same dev stage and bind-mounted source as the backend. No
@@ -30,6 +33,9 @@ services:
     volumes:
       - ../backend:/app
       - /app/venv
+    depends_on:
+      mailhog:
+        condition: service_started
 
   frontend:
     # Dev-only: stop at the stage that still has node_modules and the source
@@ -49,3 +55,56 @@ services:
     volumes:
       - ../frontend:/app
       - /app/node_modules
+
+  # Dev-only tools below: production runs docker-compose.yml alone, so these
+  # never start there (`make deploy --remove-orphans` drops old containers).
+
+  # MailHog - captures every email the dev stack sends (Web UI on :8025).
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: todo-mailhog
+    restart: unless-stopped
+    ports:
+      # Loopback only - the backend reaches MailHog over todo-network.
+      - "127.0.0.1:1025:1025" # SMTP server
+      - "127.0.0.1:8025:8025" # Web UI
+    networks:
+      - todo-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8025",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # PgAdmin - database management. Desktop mode (no login), which is why it
+  # must stay out of production.
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: todo-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:?PGADMIN_EMAIL must be set}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?PGADMIN_PASSWORD must be set}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      # Bound to loopback only - not reachable from the network.
+      - "127.0.0.1:5050:80"
+    depends_on:
+      - db
+    networks:
+      - todo-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  pgadmin_data:
+    driver: local

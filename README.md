@@ -38,7 +38,7 @@ make dev
 ```
 
 > [!IMPORTANT]
-> `docker/docker.env` is required — `docker-compose.yml` has no hardcoded credentials and refuses to start without `POSTGRES_*`, `PGADMIN_*` etc. `make dev` loads this file automatically; `make prod` loads `docker/docker.prod.env` instead (never committed). Compose interpolates `$` in that file; write a literal dollar sign as `$$`.
+> `docker/docker.env` is required — `docker-compose.yml` has no hardcoded credentials and refuses to start without `POSTGRES_*`, `SECRET_KEY` etc. (and the dev stack also without `PGADMIN_*`). `make dev` loads this file automatically; `make prod` loads `docker/docker.prod.env` instead (never committed). Compose interpolates `$` in that file; write a literal dollar sign as `$$`.
 >
 > Replace `SECRET_KEY` with a random value of at least 32 characters (`openssl rand -hex 32`) — the placeholder from the example file is rejected and the backend won't start. Docker does not need a `backend/.env`; `ALLOWED_HOSTS` and `CORS_ORIGINS` default to localhost values in `docker-compose.yml` and can be overridden in `docker/docker.env`.
 
@@ -47,8 +47,8 @@ Once started, open these in your browser:
 - **📱 Frontend App**: http://localhost:4200
 - **🔧 Backend API**: http://localhost:8000
 - **📚 API Documentation**: http://localhost:8000/docs
-- **📧 MailHog**: http://localhost:8025
-- **🗄️ PgAdmin** (Database Manager): http://localhost:5050
+- **📧 MailHog** (dev only): http://localhost:8025
+- **🗄️ PgAdmin** (Database Manager, dev only): http://localhost:5050
   - Login: `PGADMIN_EMAIL` / `PGADMIN_PASSWORD` from `docker/docker.env`
 
 Every port is published on `127.0.0.1` only, so these URLs work on the machine running Docker, not from other devices on the network.
@@ -68,14 +68,14 @@ The application uses **MailHog** for testing email functionalities (email verifi
 
 **How to use MailHog:**
 
-1. MailHog starts automatically with docker-compose
+1. MailHog starts automatically with `make dev`
 2. Open your browser: **http://localhost:8025**
 3. All emails sent by the application will appear in the MailHog interface
 4. You can view content, headers, and test email features
 
 Emails are rendered from Jinja2 templates in `backend/templates/email/` (dark theme only, the app's cyan palette) with texts from `backend/i18n/{en,pl}.json`. They are sent in the account's language: the interface language at sign-up, changed later with the language selector. The logo is loaded from `FRONTEND_URL/icons/icon-192.png`, so it only shows in clients that can reach that address.
 
-**Note:** MailHog is part of `docker-compose.yml`, so it also starts with `make prod`. In production set `USE_MAILHOG=false` and the `SMTP_*` variables so emails go through a real SMTP server.
+**Note:** MailHog and pgAdmin are defined in `docker-compose.override.yml`, so only the dev stack (`make dev`) starts them; `make prod` and `make deploy` use `docker-compose.yml` alone. In production set `USE_MAILHOG=false` and the `SMTP_*` variables so emails go through a real SMTP server.
 
 ---
 
@@ -469,7 +469,7 @@ When CI passes on a push to `develop`, `.github/workflows/deploy.yml` deploys th
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │                       │
                     ┌───────────┴───────────┐ ┌─────────┴─────────────┐
-                    │  MailHog              │ │  PgAdmin (optional)   │
+                    │  MailHog (dev only)   │ │  PgAdmin (dev only)   │
                     │  Catches sent emails  │ │  Database management  │
                     │  SMTP: 1025, UI: 8025 │ │  Port: 5050           │
                     └───────────────────────┘ └───────────────────────┘
@@ -521,7 +521,7 @@ make logs-backend    # Backend logs
 make logs-worker     # Reminder worker logs
 make logs-frontend   # Frontend logs
 make logs-db         # Database logs
-make logs-pgadmin    # PgAdmin logs
+make logs-pgadmin    # PgAdmin logs (dev stack only)
 
 # Shell in a container
 make shell-backend   # Terminal inside backend container
@@ -540,7 +540,7 @@ make clean          # Removes containers, volumes and images
 
 ### Using PgAdmin
 
-PgAdmin is a web tool for managing PostgreSQL:
+PgAdmin is a web tool for managing PostgreSQL. It runs only in the dev stack (`docker-compose.override.yml`), in desktop mode without its own login, so it never belongs in production:
 
 1. **Open**: http://localhost:5050
 2. **Log in** with `PGADMIN_EMAIL` / `PGADMIN_PASSWORD` from `docker/docker.env`
@@ -580,10 +580,10 @@ Multi-stage build:
 #### docker-compose.yml
 
 - **Network**: Isolated todo-network
-- **Volumes**: `postgres_data` (PostgreSQL data), `backend_uploads` (user avatars, mounted at `/app/uploadedFiles` in the backend and served under `/uploads`) and `pgadmin_data`; they survive `make down` and deploys, and are deleted by `make clean` / `make clean-volumes`
+- **Volumes**: `postgres_data` (PostgreSQL data), `backend_uploads` (user avatars, mounted at `/app/uploadedFiles` in the backend and served under `/uploads`) and, in the dev stack, `pgadmin_data`; they survive `make down` and deploys, and are deleted by `make clean` / `make clean-volumes`
 - **Health checks**: Service dependencies
 - **Ports**: Port mapping host:container, all bound to `127.0.0.1` (reachable from the machine itself, not from the network)
-- **Services**: `db` (PostgreSQL 15), `backend`, `reminder-worker`, `frontend`, `mailhog`, `pgadmin`
+- **Services**: `db` (PostgreSQL 15), `backend`, `reminder-worker`, `frontend`; `docker-compose.override.yml` (dev only) adds `mailhog` and `pgadmin`
 - **Reminder worker**: `reminder-worker` runs the backend image with `python -m services.reminder_worker`. Every 30 seconds it sends the task reminders that came due, as a Web Push notification (when the `VAPID_*` keys are set) and as an email (for users who switched email reminders on). It uses the backend's database, email and VAPID settings; `REMINDER_WORKER_ENABLED=false` makes it idle without sending anything (it stays up, so the restart policy and `make deploy` are not disturbed). It claims each reminder in the database before sending, so a restart or a second worker never sends one twice, and a reminder more than an hour late is dropped instead of sent. The healthcheck is a heartbeat file the worker touches after every pass. In development it has no hot-reload: run `docker restart todo-reminder-worker` after changing its code.
 - **Images**: backend and frontend are tagged `${BACKEND_IMAGE:-todo-backend}:${IMAGE_TAG:-local}` / `${FRONTEND_IMAGE:-todo-frontend}:${IMAGE_TAG:-local}`; local builds use the defaults, `make deploy` points them at the GHCR images
 
@@ -667,7 +667,7 @@ The hook is installed by Husky: run `npm install` once in the project root (it s
 
 When the app is served from a real domain, put a TLS-terminating reverse proxy (e.g. Caddy or nginx) in front of it: route `/auth`, `/todos`, `/users`, `/groups`, `/push` and `/uploads` to the backend (port 8000) and everything else to the frontend (port 4200) — with one exception: `/todos` is also the Angular page, so a browser navigation to it (`Accept: text/html` — a refresh, a bookmark, a link) must go to the frontend, otherwise it gets the API's JSON (see the Caddyfile below).
 
-`docker-compose.yml` publishes every port on `127.0.0.1` only (backend 8000, frontend 4200, MailHog 1025/8025, PostgreSQL 5433, pgAdmin 5050), so run the proxy on the host and point it at `127.0.0.1:8000` / `127.0.0.1:4200`; nothing is reachable from outside without it. To open pgAdmin or MailHog on the server, use an SSH tunnel (e.g. `ssh -L 5050:127.0.0.1:5050 <user>@<server>`).
+`docker-compose.yml` publishes every port on `127.0.0.1` only (backend 8000, frontend 4200, PostgreSQL 5433), so run the proxy on the host and point it at `127.0.0.1:8000` / `127.0.0.1:4200`; nothing is reachable from outside without it. MailHog and pgAdmin don't run in production. To look at the production database, use `make shell-db STACK=prod` on the server, or an SSH tunnel to PostgreSQL (`ssh -L 5433:127.0.0.1:5433 <user>@<server>`) and a client on your machine.
 
 Set these in `docker/docker.prod.env` (same variables as `docker/docker.env.example`, plus the ones below):
 

@@ -13,7 +13,7 @@ x-app-env: &app-env
   VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
   VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
   VAPID_SUBJECT: ${VAPID_SUBJECT:-}
-  # MailHog (dev)
+  # MailHog (dev only, see docker-compose.override.yml)
   MAILHOG_HOST: ${MAILHOG_HOST:-mailhog}
   MAILHOG_PORT: ${MAILHOG_PORT:-1025}
   # Real SMTP / Brevo (prod, used when USE_MAILHOG=false)
@@ -74,7 +74,7 @@ services:
       # Mark auth cookies Secure. Set to True when the app is served over HTTPS.
       SECURE_COOKIES: ${SECURE_COOKIES:-False}
     ports:
-      # Loopback only, like db and pgAdmin: the reverse proxy on the host
+      # Loopback only, like db: the reverse proxy on the host
       # reaches it at 127.0.0.1:8000, nothing else should.
       - "127.0.0.1:8000:8000"
     volumes:
@@ -84,8 +84,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      mailhog:
-        condition: service_started
     networks:
       - todo-network
     healthcheck:
@@ -122,8 +120,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      mailhog:
-        condition: service_started
     networks:
       - todo-network
     healthcheck:
@@ -182,57 +178,10 @@ services:
       retries: 3
       start_period: 10s
 
-  # MailHog - Email testing tool
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: todo-mailhog
-    restart: unless-stopped
-    ports:
-      # Loopback only - the backend reaches MailHog over todo-network.
-      - "127.0.0.1:1025:1025" # SMTP server
-      - "127.0.0.1:8025:8025" # Web UI
-    networks:
-      - todo-network
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--quiet",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8025",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-
-  # PgAdmin - Database management (optional)
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: todo-pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:?PGADMIN_EMAIL must be set}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?PGADMIN_PASSWORD must be set}
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-    ports:
-      # Bound to loopback only - not reachable from the network.
-      - "127.0.0.1:5050:80"
-    depends_on:
-      - db
-    networks:
-      - todo-network
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-
 volumes:
   postgres_data:
     driver: local
   backend_uploads:
-    driver: local
-  pgadmin_data:
     driver: local
 
 networks:
