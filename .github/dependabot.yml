@@ -39,6 +39,12 @@ updates:
       interval: weekly
     commit-message:
       prefix: build(backend)
+    ignore:
+      # The redis client is pinned for the rate limiter, and limits[redis]
+      # (slowapi's storage layer) only accepts redis < 8. A major bump fails
+      # `pip install`; drop this rule once limits supports the new major.
+      - dependency-name: redis
+        update-types: [version-update:semver-major]
     groups:
       # pytest and its plugins pin each other's ranges (pytest 9 needs
       # pytest-asyncio 1.x and vice versa), so they only upgrade together.
