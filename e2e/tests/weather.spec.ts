@@ -56,6 +56,9 @@ test.describe('with location access', () => {
     await new TodosPage(page).goto();
     await weather.widget.click();
     await expect(weather.title()).toHaveText('Kraków');
+    // PrimeNG moves focus into the dialog a moment after it opens; opening the
+    // search before that lets the dialog take focus back from the search box.
+    await expect(weather.dialog.locator(':focus')).toHaveCount(1);
 
     await weather.changeLocationButton().click();
     await expect(weather.citySearch()).toBeFocused();
