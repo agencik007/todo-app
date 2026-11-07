@@ -34,6 +34,15 @@
     }
   }
 
+  // App update toast (app.html). PrimeNG centres it with translateX(-50%),
+  // which the full-width mobile rule above would push half off screen.
+  &.p-toast-bottom-center {
+    @media (max-width: 768px) {
+      transform: none !important;
+      bottom: calc(var(--app-space-4) + var(--app-safe-bottom)) !important;
+    }
+  }
+
   .p-toast-message {
     @include mixins.glass-panel;
     border-radius: var(--app-radius-lg);
