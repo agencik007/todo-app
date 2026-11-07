@@ -71,13 +71,6 @@ class TestConfig:
         assert response.status_code == 503
         assert response.json()["detail"]["messageCode"] == "PUSH_UNAVAILABLE"
 
-    def test_test_push_unavailable_without_keys(
-        self, authenticated_client: TestClient, no_keys
-    ):
-        response = authenticated_client.post("/push/test")
-        assert response.status_code == 503
-        assert response.json()["detail"]["messageCode"] == "PUSH_UNAVAILABLE"
-
     def test_subject_defaults_to_email_from(self, monkeypatch):
         monkeypatch.delenv("VAPID_SUBJECT", raising=False)
         monkeypatch.setenv("EMAIL_FROM", "me@example.com")
@@ -181,14 +174,10 @@ class TestUnsubscribe:
 
 
 class TestSending:
-    def test_test_push_sends_to_all_subscriptions(
-        self, authenticated_client: TestClient, test_db: Session, test_user, sent
-    ):
+    def test_send_to_all_subscriptions(self, test_db: Session, test_user, sent):
         add_subscription(test_db, test_user)
         add_subscription(test_db, test_user, OTHER_ENDPOINT)
-        response = authenticated_client.post("/push/test")
-        assert response.status_code == 200
-        assert response.json() == {"message": "PUSH_TEST_SENT", "sent": 2}
+        assert push_service.send_to_user(test_db, test_user, {"notification": {}}) == 2
         assert {c["subscription_info"]["endpoint"] for c in sent} == {
             ENDPOINT,
             OTHER_ENDPOINT,

@@ -369,14 +369,14 @@ After running the backend with `DEBUG=True`, API documentation is available at:
 | `/users`  | Current user's avatar, language preference, time zone (`PUT /users/me/timezone`), email reminders (`PUT /users/me/email-reminders`), account deletion and first-sign-in onboarding (`POST /users/me/onboarding`) |
 | `/todos`  | Tasks CRUD, reordering and group suggestions (`POST /todos/suggest-group`)                                              |
 | `/groups` | Task groups CRUD and the starter group catalogue (`GET /groups/catalog`)                                                |
-| `/push`   | Browser notifications: `GET /push/config`, `POST` / `DELETE /push/subscriptions`, `POST /push/test`                     |
+| `/push`   | Browser notifications: `GET /push/config`, `POST` / `DELETE /push/subscriptions`                                        |
 
 All `/todos`, `/groups`, `/users` and `/push` endpoints require an authenticated user with a verified email. The full, up-to-date list is in Swagger UI.
 
 - `GET /groups/catalog` returns the starter groups (localised names) the user can pick from.
 - `POST /users/me/onboarding` takes `groupKeys` (catalogue keys), creates those groups and marks the account as onboarded (`onboardingCompleted` in `UserResponse`). A repeat call answers `409`. The frontend sends users who have not finished it to `/welcome`.
 - `/todos` accept `reminderOffsetMinutes` (minutes before the due moment: 0, 15, 60 or 1440 for a task with a time; 0 or 1440 for a date without a time, which fires at 9:00 in the user's time zone; `null` = no reminder) and return the read-only `remindAt` (UTC). A reminder needs a due date (`REMINDER_WITHOUT_DATE`), and the offset must be one of the allowed values (`REMINDER_INVALID_OFFSET`).
-- `GET /push/config` returns `enabled` and the public VAPID key browsers subscribe with. `POST /push/subscriptions` and `POST /push/test` answer `503` with `PUSH_UNAVAILABLE` while the keys are not configured (limited to 20 and 5 requests per minute per client). `POST /push/subscriptions` stores a browser's subscription: the endpoint must be an `https` URL on port 443 of the Firebase Cloud Messaging, Mozilla, Apple or Windows push hosts (anything else is rejected, so the server never calls arbitrary URLs), and the oldest subscription goes once a user has 20. `DELETE /push/subscriptions` removes one; `POST /push/test` sends a test notification to the user's browsers.
+- `GET /push/config` returns `enabled` and the public VAPID key browsers subscribe with. `POST /push/subscriptions` answers `503` with `PUSH_UNAVAILABLE` while the keys are not configured (limited to 20 requests per minute per client). `POST /push/subscriptions` stores a browser's subscription: the endpoint must be an `https` URL on port 443 of the Firebase Cloud Messaging, Mozilla, Apple or Windows push hosts (anything else is rejected, so the server never calls arbitrary URLs), and the oldest subscription goes once a user has 20. `DELETE /push/subscriptions` removes one.
 - `POST /todos/suggest-group` takes a title and optional description and returns a suggested existing group or a catalogue group to create, with a confidence. Limited to 60 requests per minute per user; answers `503` with `SUGGESTIONS_UNAVAILABLE` when the feature is disabled or the model cannot be loaded.
 
 ---

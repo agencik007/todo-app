@@ -1372,33 +1372,6 @@
         ]
       }
     },
-    "/push/test": {
-      "post": {
-        "tags": [
-          "push"
-        ],
-        "summary": "Send Test Push",
-        "description": "Send a test notification to every browser the current user subscribed.",
-        "operationId": "send_test_push_push_test_post",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PushResult"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
     "/": {
       "get": {
         "tags": [
@@ -1810,17 +1783,6 @@
           "message": {
             "type": "string",
             "title": "Message"
-          },
-          "sent": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sent"
           }
         },
         "type": "object",
@@ -1828,7 +1790,7 @@
           "message"
         ],
         "title": "PushResult",
-        "description": "Result of a push endpoint: an API message code, plus a count for a test."
+        "description": "Result of a push endpoint: an API message code."
       },
       "PushSubscriptionCreate": {
         "properties": {

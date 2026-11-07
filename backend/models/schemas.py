@@ -373,7 +373,6 @@ class PushSubscriptionDelete(CamelBaseModel):
 
 
 class PushResult(CamelBaseModel):
-    """Result of a push endpoint: an API message code, plus a count for a test."""
+    """Result of a push endpoint: an API message code."""
 
     message: str
-    sent: int | None = None
