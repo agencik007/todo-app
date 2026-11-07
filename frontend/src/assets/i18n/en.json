@@ -522,8 +522,6 @@
         "unsupported": "This browser can't show notifications here."
       },
       "IOS_INSTALL": "On iPhone and iPad, add the app to your home screen first.",
-      "TEST": "Send a test notification",
-      "TEST_NONE": "No device received the notification. Turn notifications off and on again.",
       "EMAIL": "Email reminders",
       "EMAIL_HINT": "Get task reminders by email."
     },

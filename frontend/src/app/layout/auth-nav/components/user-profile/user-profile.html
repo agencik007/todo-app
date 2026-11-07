@@ -254,18 +254,6 @@
                 (ngModelChange)="onPushChange($event)"
               />
             </label>
-            @if (pushState() === 'on') {
-              <div class="setting-row setting-row--action">
-                <p-button
-                  size="small"
-                  severity="secondary"
-                  [text]="true"
-                  [label]="'SETTINGS.NOTIFICATIONS.TEST' | translate"
-                  [disabled]="!canWrite() || pushBusy()"
-                  (onClick)="onSendTestNotification()"
-                />
-              </div>
-            }
             <label
               for="email-reminders-input"
               class="setting-row setting-row--switch"

@@ -275,7 +275,7 @@ When you create a task, the app suggests a group for it. Everything runs locally
 
 A task with a due date can have a reminder: **At the time**, **15 minutes**, **1 hour** or **1 day before** for a task with a time, or **on the day at 9:00** / **the day before at 9:00** for a date without a time (9:00 in the user's time zone, which the browser reports on sign-in). Reminders arrive as:
 
-- **Browser notifications** (Web Push), also when the app is closed. Each user turns them on per browser in the user menu → settings → **Browser notifications** (the browser asks for permission); **Send a test notification** checks the setup. Logging out removes the browser's subscription. On iPhone and iPad web push only works for the app added to the home screen. The toggle says why it is unavailable when push is switched off on the server, blocked in the browser, or not supported (for example in `ng serve`, which has no service worker).
+- **Browser notifications** (Web Push), also when the app is closed. Each user turns them on per browser in the user menu → settings → **Browser notifications** (the browser asks for permission). Logging out removes the browser's subscription. On iPhone and iPad web push only works for the app added to the home screen. The toggle says why it is unavailable when push is switched off on the server, blocked in the browser, or not supported (for example in `ng serve`, which has no service worker).
 - **Email**, for users who switch **Email reminders** on in the same settings.
 
 **Setup.** Push needs a VAPID key pair; without it the feature stays off (emails still work). Generate one pair, keep it, and put it in `docker/docker.env` (and `docker/docker.prod.env` on the server):
@@ -295,10 +295,9 @@ A new pair invalidates every existing browser subscription, so change it only on
 2. `make down`, then `make e2e-up`.
 3. In Firefox open `http://localhost:4200`, register, verify the address in MailHog (`http://localhost:8025`) and sign in.
 4. User menu → settings → **Browser notifications** on, and allow the permission prompt.
-5. **Send a test notification**: a system notification appears (on Windows allow notifications for Firefox and turn Focus Assist off).
-6. Create a task due today, 3 minutes from now, with the reminder **At the time**.
-7. Close the app's tab but keep Firefox running: the notification arrives within about 30 seconds of the time, and clicking it opens `/todos`.
-8. `make e2e-down`, then start the dev stack again with `make dev`.
+5. Create a task due today, 3 minutes from now, with the reminder **At the time**.
+6. Close the app's tab but keep Firefox running: the notification arrives within about 30 seconds of the time (on Windows allow notifications for Firefox and turn Focus Assist off), and clicking it opens `/todos`.
+7. `make e2e-down`, then start the dev stack again with `make dev`.
 
 ## 🏃‍♂️ Running the app
 
