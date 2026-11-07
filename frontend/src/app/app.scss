@@ -14,5 +14,19 @@
 
   &__text {
     flex: 1;
+    min-width: 0;
+  }
+
+  // Narrow screens: drop the button under the text instead of squeezing it.
+  @media (max-width: 480px) {
+    flex-wrap: wrap;
+
+    &__text {
+      flex-basis: calc(100% - var(--app-text-xl) - var(--app-space-3));
+    }
+
+    p-button {
+      margin-left: auto;
+    }
   }
 }
