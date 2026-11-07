@@ -10,10 +10,9 @@
 
 
 /**
- * Result of a push endpoint: an API message code, plus a count for a test.
+ * Result of a push endpoint: an API message code.
  */
 export interface PushResult { 
     message: string;
-    sent?: number | null;
 }
 

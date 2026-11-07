@@ -1,5 +1,5 @@
 """
-Push routes - Web Push subscriptions and a test notification.
+Push routes - Web Push config and subscriptions.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -19,7 +19,6 @@ from models.schemas import (
 from models.user import User
 from routes.todo import suggestion_rate_limit_key
 from services import push_service
-from services.email_service import get_text
 
 router = APIRouter(prefix="/push", tags=["push"])
 
@@ -103,25 +102,3 @@ def unsubscribe(
     ).delete()
     db.commit()
     return api_success(ApiMessages.PUSH_UNSUBSCRIBED)
-
-
-@router.post(
-    "/test",
-    response_model=PushResult,
-    dependencies=[Depends(require_push_enabled)],
-)
-@limiter.limit("5/minute")
-def send_test_push(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_verified_user),
-) -> dict:
-    """Send a test notification to every browser the current user subscribed."""
-    language = current_user.language
-    payload = push_service.notification_payload(
-        title=get_text(language, "push", "test_title"),
-        body=get_text(language, "push", "test_body"),
-        tag="push-test",
-    )
-    sent = push_service.send_to_user(db, current_user, payload)
-    return api_success(ApiMessages.PUSH_TEST_SENT, sent=sent)

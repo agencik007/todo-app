@@ -382,7 +382,6 @@
     "PUSH_UNAVAILABLE": "Browser notifications aren't available right now.",
     "PUSH_SUBSCRIBED": "Notifications are on for this browser.",
     "PUSH_UNSUBSCRIBED": "Notifications are off for this browser.",
-    "PUSH_TEST_SENT": "Test notification sent.",
     "PUSH_ENDPOINT_NOT_ALLOWED": "This browser's push service isn't supported."
   },
   "GROUPS": {

@@ -43,9 +43,7 @@
     "due_at": "Termin: {time}",
     "due_today": "Termin: dziś",
     "due_tomorrow": "Termin: jutro",
-    "due_tomorrow_at": "Termin: jutro, {time}",
-    "test_title": "Testowe powiadomienie",
-    "test_body": "Powiadomienia z listy zadań działają."
+    "due_tomorrow_at": "Termin: jutro, {time}"
   },
   "units": {
     "hours": {

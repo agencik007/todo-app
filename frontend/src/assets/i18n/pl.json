@@ -382,7 +382,6 @@
     "PUSH_UNAVAILABLE": "Powiadomienia w przeglądarce są teraz niedostępne.",
     "PUSH_SUBSCRIBED": "Powiadomienia w tej przeglądarce są włączone.",
     "PUSH_UNSUBSCRIBED": "Powiadomienia w tej przeglądarce są wyłączone.",
-    "PUSH_TEST_SENT": "Wysłano testowe powiadomienie.",
     "PUSH_ENDPOINT_NOT_ALLOWED": "Usługa powiadomień tej przeglądarki nie jest obsługiwana."
   },
   "GROUPS": {
