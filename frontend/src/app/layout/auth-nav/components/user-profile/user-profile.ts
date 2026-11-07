@@ -133,10 +133,6 @@ export class UserProfileComponent {
     }
   }
 
-  onSendTestNotification(): void {
-    void this.#pushNotifications.sendTest();
-  }
-
   async onEmailRemindersChange(enabled: boolean): Promise<void> {
     this.#emailPending.set(enabled);
     try {

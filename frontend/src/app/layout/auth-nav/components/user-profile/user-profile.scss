@@ -509,12 +509,6 @@
   cursor: pointer;
 }
 
-// A button on its own line under a setting.
-.setting-row--action {
-  justify-content: flex-start;
-  padding-block: 0;
-}
-
 .setting-label {
   font-size: var(--app-text-sm);
   font-weight: var(--app-font-medium);

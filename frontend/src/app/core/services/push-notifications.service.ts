@@ -12,8 +12,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SwPush } from '@angular/service-worker';
 import { PushConfig } from '@api';
 import { PushService } from '@api/api/push.service';
-import { TranslateService } from '@ngx-translate/core';
-import { MessageService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
 import { SILENT_NOTIFICATIONS } from '../interceptors/notification.interceptor';
 
@@ -35,11 +33,9 @@ export type PushState =
 })
 export class PushNotificationsService {
   readonly #destroyRef = inject(DestroyRef);
-  readonly #messageService = inject(MessageService);
   readonly #platformId = inject(PLATFORM_ID);
   readonly #push = inject(PushService);
   readonly #swPush = inject(SwPush);
-  readonly #translate = inject(TranslateService);
 
   static readonly FORGET_TIMEOUT_MS = 3000;
 
@@ -176,37 +172,6 @@ export class PushNotificationsService {
       await this.#swPush.unsubscribe();
     } catch {
       // Still on: the server may still push to this browser.
-    } finally {
-      this.#busy.set(false);
-    }
-  }
-
-  async sendTest(): Promise<void> {
-    this.#busy.set(true);
-    try {
-      const result = await firstValueFrom(
-        this.#push.sendTestPushPushTestPost('body', false, {
-          context: new HttpContext().set(SILENT_NOTIFICATIONS, true),
-        }),
-      );
-      if (result.sent === 0) {
-        // The server has no device to push to: the toggle's "on" is stale.
-        this.#messageService.add({
-          severity: 'warn',
-          summary: this.#translate.instant('MESSAGES.ERROR'),
-          detail: this.#translate.instant('SETTINGS.NOTIFICATIONS.TEST_NONE'),
-          life: 5000,
-        });
-        return;
-      }
-      this.#messageService.add({
-        severity: 'success',
-        summary: this.#translate.instant('MESSAGES.SUCCESS'),
-        detail: this.#translate.instant(`API_MESSAGES.${result.message}`),
-        life: 3000,
-      });
-    } catch {
-      // The interceptor already showed the error.
     } finally {
       this.#busy.set(false);
     }

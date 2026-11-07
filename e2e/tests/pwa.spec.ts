@@ -464,7 +464,7 @@ for (const viewport of [
 // browser (the Firefox check in the PR test plan) or enable it where a push
 // service is reachable. The test is otherwise complete; it also needs VAPID
 // keys on the stack and skips without them.
-test.fixme('enables notifications and sends a test', async ({ page, context, loggedIn }) => {
+test.fixme('enables notifications', async ({ page, context, loggedIn }) => {
   // Push needs VAPID keys on the stack (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY /
   // VAPID_SUBJECT exported before `make e2e-up`) and a reachable push service
   // (FCM) for the browser; CI has neither, so the test skips there.
@@ -493,7 +493,4 @@ test.fixme('enables notifications and sends a test', async ({ page, context, log
   await subscribed;
   await expect(toggle).toBeChecked();
   await expect(page.getByText('Reminders appear on this device.')).toBeVisible();
-
-  await page.getByRole('button', { name: 'Send a test notification' }).click();
-  await expect(page.getByText('Test notification sent.')).toBeVisible();
 });

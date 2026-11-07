@@ -77,6 +77,5 @@ test.describe('task reminders', () => {
     await new UserMenu(page).openSettings(loggedIn.email);
     await expect(page.getByText("This browser can't show notifications here.")).toBeVisible();
     await expect(page.getByRole('switch', { name: 'Browser notifications' })).toBeDisabled();
-    await expect(page.getByRole('button', { name: 'Send a test notification' })).toBeHidden();
   });
 });

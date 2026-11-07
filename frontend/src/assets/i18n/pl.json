@@ -522,8 +522,6 @@
         "unsupported": "Ta przeglądarka nie może tutaj wyświetlać powiadomień."
       },
       "IOS_INSTALL": "Na iPhonie i iPadzie najpierw dodaj aplikację do ekranu głównego.",
-      "TEST": "Wyślij testowe powiadomienie",
-      "TEST_NONE": "Żadne urządzenie nie odebrało powiadomienia. Wyłącz i włącz powiadomienia ponownie.",
       "EMAIL": "Przypomnienia e-mailem",
       "EMAIL_HINT": "Otrzymuj przypomnienia o zadaniach e-mailem."
     },
