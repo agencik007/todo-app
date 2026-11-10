@@ -191,6 +191,8 @@ Stored in `.claude/commands/`:
 Third-party skills installed with `npx skills add <owner/repo>`, pinned in `skills-lock.json`. Each skill is written to both `.claude/skills/` (Claude Code) and `.agents/skills/` (other agents) — keep the two copies identical and commit them together with the lockfile.
 
 - `web-design-guidelines` (`vercel-labs/agent-skills`) — reviews UI code against Vercel's Web Interface Guidelines (fetched fresh on each run) and reports findings as `file:line`.
+- `fastapi` (`fastapi/fastapi`) — the official FastAPI conventions (`Annotated`, return types, routers, dependencies, streaming). Its tooling advice is generic: this repo keeps SQLAlchemy (not SQLModel), `requirements.txt` + Docker (not uv) and its own deploy (not FastAPI Cloud) — `backend/AGENTS.md` wins on any conflict.
+- `playwright-best-practices` (`currents-dev/playwright-best-practices-skill`) — reference guides for writing, debugging and de-flaking Playwright tests; `e2e/AGENTS.md` wins on any conflict.
 
 ### Language policy for AI configuration files
 
