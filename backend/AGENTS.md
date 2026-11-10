@@ -48,7 +48,7 @@ Every email the backend sends follows the same rules, so a new one looks and beh
 
 ## Testing
 
-- The full suite is 310 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
+- The full suite is 309 tests; run with `make test-backend`. `pytest.ini` enforces at least 80% coverage.
 - Single test: `docker-compose -f docker/docker-compose.yml --env-file docker/docker.env exec backend python -m pytest tests/test_filename.py::test_function_name`.
 - Test and lint tools (pytest, pytest-asyncio, pytest-cov, httpx, ruff) live in `backend/requirements-dev.txt`, not `requirements.txt`: the production image installs runtime dependencies only, the dev container (`target: dev`) and CI install both.
 - Tests never use the application database: `conftest.py` derives `<db>_test` from `DATABASE_URL` (created automatically if the DB user has permission), or uses `TEST_DATABASE_URL` if set.
@@ -83,6 +83,7 @@ Every email the backend sends follows the same rules, so a new one looks and beh
 
 ```python
 from models.group import Group  # noqa: F401
+from models.push_subscription import PushSubscription  # noqa: F401
 from models.refresh_token import RefreshToken  # noqa: F401
 from models.todo import Todo  # noqa: F401
 from models.user import User  # noqa: F401
