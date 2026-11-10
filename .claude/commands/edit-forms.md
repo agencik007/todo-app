@@ -14,6 +14,7 @@ Globally edit all user forms in the project according to the Angular Style Guide
 | Reset Password | `frontend/src/app/features/auth/components/reset-password/reset-password.html` | `reset-password/reset-password.ts` |
 | Todo Form | `frontend/src/app/features/todos/components/todo-form/todo-form.html` | `todo-form/todo-form.ts` |
 | Group Form | `frontend/src/app/features/groups/components/group-form/group-form.html` | `group-form/group-form.component.ts` |
+| Delete Account | `frontend/src/app/layout/auth-nav/components/delete-account-dialog/delete-account-dialog.html` | `delete-account-dialog/delete-account-dialog.ts` |
 
 ---
 
@@ -112,7 +113,7 @@ import { compatForm } from '@angular/forms/signals';
 The user provided: **$ARGUMENTS**
 
 ### Steps:
-1. Read all 6 HTML files and their corresponding TS counterparts
+1. Read all 7 HTML files and their corresponding TS counterparts
 2. Check the currently used form system (ReactiveFormsModule / Signal Forms)
 3. Identify forms that need changes (default: all)
 4. Apply consistent changes across all selected forms, following:
@@ -120,5 +121,5 @@ The user provided: **$ARGUMENTS**
    - Signal Forms API if the task requires it
 5. After editing, summarize: what you changed and in which files
 
-If `$ARGUMENTS` is empty — list the current structure of all 6 forms:
+If `$ARGUMENTS` is empty — list the current structure of all 7 forms:
 fields, validators, CSS classes, form system in use (Reactive / Signal).
