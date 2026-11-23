@@ -31,7 +31,7 @@ services:
     # Pinned: Dependabot bumps minor/patch. A major (16, ...) can't start on a
     # 15 data directory - that needs a dump and restore, so it's done by hand
     # together with ci.yml and docker-compose.e2e.yml.
-    image: postgres:15.19-alpine
+    image: postgres:15.20-alpine
     container_name: todo-postgres
     restart: unless-stopped
     environment:
